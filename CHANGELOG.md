@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2](https://github.com/zigordev/gpool/compare/v0.1.1...v0.1.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* **deploy:** accept NEXT_PUBLIC_API_BASE_URL alias ([#13](https://github.com/zigordev/gpool/issues/13)) ([e6301f3](https://github.com/zigordev/gpool/commit/e6301f3a98234820ce0a678f456e81a1f103ebc9))
+
 ## [0.1.1](https://github.com/zigordev/gpool/compare/v0.1.0...v0.1.1) (2026-03-10)
 
 
