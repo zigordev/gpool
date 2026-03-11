@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3](https://github.com/zigordev/gpool/compare/v0.1.2...v0.1.3) (2026-03-11)
+
+
+### Features
+
+* unified env non secrets 20260310 ([#15](https://github.com/zigordev/gpool/issues/15)) ([c627ebd](https://github.com/zigordev/gpool/commit/c627ebd16847a232aef5de7ce136f598a3bd3b5e))
+
+
+### Bug Fixes
+
+* dockerfiles ([#18](https://github.com/zigordev/gpool/issues/18)) ([18f7240](https://github.com/zigordev/gpool/commit/18f7240508a43023227e4e4cd4d6119485ff6f64))
+
 ## [0.1.2](https://github.com/zigordev/gpool/compare/v0.1.1...v0.1.2) (2026-03-10)
 
 
