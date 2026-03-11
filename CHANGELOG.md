@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4](https://github.com/zigordev/gpool/compare/v0.1.3...v0.1.4) (2026-03-11)
+
+
+### Bug Fixes
+
+* **release:** trigger release-please for deploy ([#22](https://github.com/zigordev/gpool/issues/22)) ([4b35c04](https://github.com/zigordev/gpool/commit/4b35c042f5056af1d4960c88328d709a3f41bbea))
+
 ## [0.1.3](https://github.com/zigordev/gpool/compare/v0.1.2...v0.1.3) (2026-03-11)
 
 
