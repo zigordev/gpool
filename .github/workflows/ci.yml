@@ -41,12 +41,12 @@ jobs:
           WEB_DOMAIN: app.example.com
           API_DOMAIN: api.example.com
           NODE_ENV: production
-          POSTGRES_USER: app
+          POSTGRES_USER: gpool_admin
           POSTGRES_PASSWORD: app
           POSTGRES_DB: gpool
           DB_HOST: postgres
           DB_PORT: "5432"
-          DB_USER: app
+          DB_USER: gpool_admin
           DB_PASSWORD: app
           DB_NAME: gpool
           API_PORT: "3000"
@@ -74,7 +74,7 @@ jobs:
           GOOGLE_CLIENT_SECRET: ci-google-secret
           GOOGLE_OAUTH_REDIRECT_URI: https://app.example.com/api/auth/google/callback
           FRONTEND_URL: https://app.example.com
-          NOTIFICATIONS_KAFKA_BROKERS: notifications-redpanda:9092
+          NOTIFICATIONS_KAFKA_BROKERS: platform-redpanda:9092
           NOTIFICATIONS_EMAIL_TOPIC: notification.email.requested.v1
         run: |
           docker compose -f docker/compose.app.local.yml config > /dev/null
@@ -132,7 +132,7 @@ jobs:
           if-no-files-found: warn
 
   integration-e2e:
-    name: Integration Smoke (Compose)
+    name: Integration Smoke + Contract + k6
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -171,6 +171,17 @@ jobs:
           printf '%s\n' "$metrics" | grep -q 'http_requests_total'
           printf '%s\n' "$metrics" | grep -q 'http_request_duration_seconds_bucket'
 
+      - name: Export OpenAPI spec
+        run: |
+          mkdir -p artifacts
+          docker compose -f docker/compose.ci.yml exec -T api sh -lc 'wget -qO- http://localhost:3000/docs-json' > artifacts/openapi.test.json
+
+      - name: Regenerate web API contract
+        run: npm run contract:gen:web -- artifacts/openapi.test.json apps/ui/src/lib/api/generated.ts
+
+      - name: Enforce API contract drift
+        run: git diff --exit-code -- apps/ui/src/lib/api/generated.ts
+
       - name: Wait for web
         run: |
           i=1
@@ -184,6 +195,17 @@ jobs:
           done
           docker compose -f docker/compose.ci.yml logs --no-color web api
           exit 1
+
+      - name: k6 smoke
+        run: docker compose -f docker/compose.ci.yml up --abort-on-container-exit --exit-code-from k6_test k6_test
+
+      - name: Upload k6 summary
+        if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: k6-summary-test
+          path: artifacts/k6-summary-test.json
+          if-no-files-found: error
 
       - name: Compose logs (on failure)
         if: failure()
