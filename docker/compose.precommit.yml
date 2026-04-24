@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: app
+      POSTGRES_USER: gpool_admin
       POSTGRES_PASSWORD: app
       POSTGRES_DB: gpool_test
     healthcheck:
@@ -25,7 +25,7 @@ services:
       PORT: 3000
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: app
+      DB_USER: gpool_admin
       DB_PASSWORD: app
       DB_NAME: gpool_test
       CORS_ORIGINS: http://localhost:3101
@@ -45,7 +45,7 @@ services:
       GOOGLE_CLIENT_SECRET: ci-google-secret
       GOOGLE_OAUTH_REDIRECT_URI: http://localhost:3101/api/auth/google/callback
       FRONTEND_URL: http://localhost:3101
-      NOTIFICATIONS_KAFKA_BROKERS: notifications-redpanda:9092
+      NOTIFICATIONS_KAFKA_BROKERS: platform-redpanda:9092
       NOTIFICATIONS_EMAIL_TOPIC: notification.email.requested.v1
     ports:
       - "3010:3000"
