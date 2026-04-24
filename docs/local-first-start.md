@@ -1,7 +1,8 @@
 # Local First Start (gpool)
 
 Use this runbook when you are creating the `gpool` local environment from scratch.
-Complete `platform-ops/docs/local-first-start.md` first. `gpool` depends on the shared local OpenBao, Tolgee, observability stack, and Docker network provided there.
+Complete `platform-ops/docs/local-first-start.md` first. `gpool` depends on the shared local OpenBao, Tolgee, Redpanda, observability stack, and Docker network provided there.
+The shared translation source-of-truth model is documented in `platform-ops/docs/local-first-start.md` under `Translation Workflow`.
 
 ## 1. What You Are Building
 
@@ -12,6 +13,7 @@ When this runbook is complete, you will have:
 - a local Postgres database for `gpool`
 - Google OAuth login working locally
 - runtime translations loaded from Tolgee
+- notification publishing wired to the shared platform Kafka broker
 - optional email delivery through the separate `notifications` local stack
 
 ## 2. Prerequisites
@@ -95,10 +97,16 @@ Create secret path `kv/gpool` with these keys:
 
 ## 6. Create A Read-Only Policy For `gpool`
 
-Create an OpenBao ACL policy named `gpool-local-read`:
+Create an OpenBao ACL policy named `gpool-local-read`.
+This step requires the OpenBao root token saved during the `platform-ops` bootstrap:
 
 ```bash
-docker compose --env-file ../platform-ops/docker/.env.ops.local -f ../platform-ops/docker/compose.ops.local.yml exec -T openbao bao policy write gpool-local-read - <<'EOF'
+ROOT_TOKEN='paste_root_token_here'
+
+docker compose --env-file ../platform-ops/docker/.env.ops.local -f ../platform-ops/docker/compose.ops.local.yml exec -T \
+  -e BAO_ADDR=http://127.0.0.1:8200 \
+  -e BAO_TOKEN="$ROOT_TOKEN" \
+  openbao bao policy write gpool-local-read - <<'EOF'
 path "kv/data/gpool" { capabilities = ["read"] }
 path "kv/metadata/gpool" { capabilities = ["read"] }
 EOF
@@ -149,7 +157,7 @@ Set or review these values:
 - `SWAGGER_ENABLED`
   - set to `true` if you want Swagger locally
 - `NOTIFICATIONS_KAFKA_BROKERS`
-  - keep the default if you use the local `notifications` stack
+  - keep the default if you use the shared Redpanda broker from `platform-ops`
 
 Leave these placeholders as they are:
 
@@ -211,6 +219,21 @@ Stop the stack and delete local volumes:
 npm run local:reset
 ```
 
+Translation workflow:
+
+- edit translations in the local Tolgee UI at `http://localhost:8090`
+- rerun `npm run local:up` to pull the latest Tolgee export into `apps/ui/messages/*.json`
+- commit those JSON snapshot changes to git
+- let the production translation promotion workflow push the committed snapshots into prod Tolgee
+
+Local translation snapshots:
+
+- use your local `docker/.env.app.local`
+- read `TOLGEE_API_KEY` from OpenBao path `kv/gpool`
+- talk to the local Tolgee instance from `platform-ops` at `http://localhost:8090`
+- are refreshed automatically during `npm run local:up`
+- are tracked in git for history, but are not the primary editing surface
+
 ## 12. Troubleshooting
 
 `403 permission denied` when reading `kv/gpool`:
@@ -229,8 +252,15 @@ Translations do not load:
 - `TOLGEE_PROJECT_ID` does not match the real Tolgee project
 - `TOLGEE_API_KEY` is wrong or missing
 
+Tolgee push/watch fails:
+
+- `platform-ops` is not running, so Tolgee is not reachable on `http://localhost:8090`
+- `OPENBAO_TOKEN` in `docker/.env.app.local` is still the placeholder value
+- `TOLGEE_API_KEY` is missing from `kv/gpool`
+
 Email-producing flows fail:
 
+- the `platform-ops` stack is not running, so the shared Kafka broker does not exist
 - the `notifications` stack is not running
 - `NOTIFICATIONS_KAFKA_BROKERS` points to the wrong broker
 

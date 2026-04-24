@@ -40,6 +40,8 @@ curl -fsS http://localhost:3011
 npm run local:down
 ```
 
+Translations are authored in the local Tolgee from `platform-ops`. After changing translations there, rerun `npm run local:up` to refresh the tracked `apps/ui/messages/*.json` snapshots before committing them.
+
 ## Quality commands
 
 ```bash

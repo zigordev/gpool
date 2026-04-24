@@ -1,0 +1,72 @@
+name: Promote Prod Translations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ui/messages/**/*.json'
+      - 'docker/.env.app.prod'
+      - 'apps/ui/tolgee.config.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-prod-translations
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Validate Tolgee promotion settings
+        env:
+          TOLGEE_SYNC_API_URL: ${{ vars.TOLGEE_SYNC_API_URL }}
+          TOLGEE_SYNC_API_KEY: ${{ secrets.TOLGEE_SYNC_API_KEY }}
+        run: |
+          required=(
+            TOLGEE_SYNC_API_URL
+            TOLGEE_SYNC_API_KEY
+          )
+
+          for name in "${required[@]}"; do
+            value="$(printenv "$name" || true)"
+            if [ -z "$value" ]; then
+              echo "Missing required production translation setting: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Load TOLGEE_PROJECT_ID from docker/.env.app.prod
+        run: |
+          set -euo pipefail
+
+          APP_ENV_FILE="docker/.env.app.prod"
+          project_id="$(grep -E '^TOLGEE_PROJECT_ID=' "$APP_ENV_FILE" | tail -n1 | cut -d'=' -f2- || true)"
+
+          if [ -z "$project_id" ]; then
+            echo "Missing required key in $APP_ENV_FILE: TOLGEE_PROJECT_ID" >&2
+            exit 1
+          fi
+
+          echo "TOLGEE_PROJECT_ID=$project_id" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20.19.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Promote committed snapshots into prod Tolgee
+        env:
+          TOLGEE_API_URL: ${{ vars.TOLGEE_SYNC_API_URL }}
+          TOLGEE_API_KEY: ${{ secrets.TOLGEE_SYNC_API_KEY }}
+          TOLGEE_PROJECT_ID: ${{ env.TOLGEE_PROJECT_ID }}
+        run: npm run i18n:push -w @gpool/web
