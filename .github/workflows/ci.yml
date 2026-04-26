@@ -197,7 +197,10 @@ jobs:
           exit 1
 
       - name: k6 smoke
-        run: docker compose -f docker/compose.ci.yml up --abort-on-container-exit --exit-code-from k6_test k6_test
+        run: |
+          mkdir -p artifacts
+          chmod 0777 artifacts
+          docker compose -f docker/compose.ci.yml up --no-deps --no-recreate --abort-on-container-exit --exit-code-from k6_test k6_test
 
       - name: Upload k6 summary
         if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
