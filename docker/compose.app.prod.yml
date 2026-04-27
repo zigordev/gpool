@@ -5,7 +5,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app
+      POSTGRES_USER: gpool_admin
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: gpool
     volumes:
@@ -32,7 +32,7 @@ services:
       PORT: 3000
       DB_HOST: gpool-postgres
       DB_PORT: 5432
-      DB_USER: app
+      DB_USER: gpool_admin
       DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       DB_NAME: gpool
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
