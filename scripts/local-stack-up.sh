@@ -11,7 +11,8 @@ OPENBAO_REQUIRED_KEYS_API="AUTH_SESSION_SECRET,GOOGLE_CLIENT_SECRET"
 OPENBAO_REQUIRED_KEYS_WEB="AUTH_SESSION_SECRET,TOLGEE_API_KEY"
 OPENBAO_REQUIRED_KEYS_DB="POSTGRES_PASSWORD"
 DB_NAME="gpool"
-DB_USER="app"
+DB_USER="gpool_admin"
+TOLGEE_LOCAL_ADDR="http://localhost:8090"
 
 read_env_var_from_file() {
   local file="$1"
@@ -31,6 +32,19 @@ unset_compose_shell_overrides() {
   while IFS='=' read -r key _; do
     unset "$key" || true
   done < <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$file" || true)
+}
+
+pull_tolgee_messages() {
+  local project_id="$1"
+  echo "Pulling Tolgee snapshots for local messages..."
+  OPENBAO_ADDR="$OPENBAO_LOCAL_ADDR" \
+  OPENBAO_TOKEN="$openbao_token" \
+  OPENBAO_KV_MOUNT="$openbao_kv_mount" \
+  OPENBAO_SECRET_PATH="$openbao_secret_path" \
+  OPENBAO_REQUIRED_KEYS="TOLGEE_API_KEY" \
+  TOLGEE_API_URL="$TOLGEE_LOCAL_ADDR" \
+  TOLGEE_PROJECT_ID="$project_id" \
+    node scripts/openbao-run.mjs -- npm run i18n:pull -w @gpool/web
 }
 if [ ! -f "$APP_ENV_FILE" ]; then
   if [ ! -f "$APP_ENV_EXAMPLE_FILE" ]; then
@@ -189,6 +203,11 @@ process.stdout.write(String(value));
 '
 )"
 export POSTGRES_PASSWORD="$postgres_password"
+
+tolgee_project_id="$(read_env_var_from_file "$APP_ENV_FILE" "TOLGEE_PROJECT_ID")"
+if [ -n "$tolgee_project_id" ]; then
+  pull_tolgee_messages "$tolgee_project_id"
+fi
 
 echo "Ensuring PostgreSQL database exists: $db_name"
 docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml up -d postgres

@@ -1,7 +1,8 @@
 # Cloud First Deploy (gpool)
 
 Use this runbook when you are deploying `gpool` to AWS from scratch.
-Complete `platform-ops/docs/cloud-first-deploy.md` first. `gpool` depends on the shared production host, OpenBao, Tolgee, and ingress managed there.
+Complete `platform-ops/docs/cloud-first-deploy.md` first. `gpool` depends on the shared production host, OpenBao, Tolgee, Redpanda, and ingress managed there.
+The shared translation promotion model is documented in `platform-ops/docs/cloud-first-deploy.md` under `Translation Promotion Model`.
 
 ## 1. What You Are Building
 
@@ -11,6 +12,7 @@ When this runbook is complete, you will have:
 - a `gpool` application deployment running on the shared EC2 host
 - Google OAuth login working in production
 - runtime secrets stored in OpenBao and SSM
+- notification publishing wired to the shared platform Kafka broker
 - public routing handled by the shared `platform-ops` ingress
 
 ## 2. Prerequisites
@@ -36,12 +38,14 @@ Open the production Tolgee UI and create a project for `gpool` if needed.
 Then:
 
 1. note the numeric project id
-2. create an API key for server-side translation reads/exports
+2. create an API key for server-side runtime translation reads
+3. create a second write-capable API key for the GitHub translation promotion workflow
 
 You will need:
 
 - the project id for `TOLGEE_PROJECT_ID` in `docker/.env.app.prod`
-- the API key for OpenBao secret `kv/gpool`
+- the runtime read API key for OpenBao secret `kv/gpool`
+- the write-capable promotion API key for GitHub secret `TOLGEE_SYNC_API_KEY`
 
 The tracked production env file defaults `TOLGEE_PROJECT_ID=3`.
 If your real production project id is different, update the tracked file before deployment.
@@ -79,6 +83,8 @@ Required environment variables:
   - EC2 instance targeted through SSM
 - `AWS_SSM_APP_PREFIX`
   - SSM prefix for `gpool`, for example `/gpool/prod/app`
+- `TOLGEE_SYNC_API_URL`
+  - public base URL of the production Tolgee UI/API used by the translation promotion workflow
 
 Optional environment variable:
 
@@ -89,6 +95,8 @@ Required environment secret:
 
 - `AWS_DEPLOY_ROLE_ARN`
   - IAM role assumed by GitHub Actions through OIDC
+- `TOLGEE_SYNC_API_KEY`
+  - write-capable production Tolgee API key used only by the translation promotion workflow
 
 ## 5. Review The Tracked Non-Secret Config
 
@@ -114,6 +122,7 @@ Important values:
   - public `gpool` web origin
 - `NOTIFICATIONS_KAFKA_BROKERS`
   - Kafka brokers reachable from the production host
+  - keep `platform-redpanda:9092` unless you intentionally move the shared broker
 - `NOTIFICATIONS_EMAIL_TOPIC`
   - topic used when `gpool` publishes email requests
 
@@ -220,7 +229,31 @@ Trigger it by:
 
 The workflow builds the images, uploads the deploy bundle, and runs the remote deploy script over SSM.
 
-## 10. Validate The Production App
+## 10. Promote Translation Snapshots To Prod Tolgee
+
+Production Tolgee is updated from the tracked JSON snapshots in git, not from ad-hoc manual edits.
+
+Workflow:
+
+- `Promote Prod Translations` in `.github/workflows/promote-prod-translations.yml`
+
+Trigger it in either way:
+
+- merge a commit to `main` that changes `apps/ui/messages/*.json`
+- or run `workflow_dispatch` manually
+
+What the workflow does:
+
+- reads `TOLGEE_PROJECT_ID` from `docker/.env.app.prod`
+- uses `TOLGEE_SYNC_API_URL` and `TOLGEE_SYNC_API_KEY`
+- pushes the committed JSON snapshots into the production Tolgee project
+
+Important:
+
+- local Tolgee is the authoring source during development
+- production Tolgee should be treated as a promoted target, not as a manual editing surface
+
+## 11. Validate The Production App
 
 Validate the public API:
 
@@ -240,7 +273,7 @@ Recommended manual checks:
 - verify the app can read translations from Tolgee
 - exercise at least one flow that publishes a notification event
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 Google login fails in production:
 
@@ -253,6 +286,11 @@ Translations fail:
 - `TOLGEE_PROJECT_ID` does not match the real Tolgee project
 - `TOLGEE_API_KEY` is wrong or stale
 
+Translation promotion fails:
+
+- `TOLGEE_SYNC_API_URL` is missing or points to the wrong public Tolgee URL
+- `TOLGEE_SYNC_API_KEY` is missing, stale, or lacks write permissions
+
 Deploy fails when reading OpenBao:
 
 - OpenBao is sealed
@@ -262,4 +300,4 @@ Deploy fails when reading OpenBao:
 Notification publishing fails:
 
 - `NOTIFICATIONS_KAFKA_BROKERS` is wrong
-- the shared notifications service is not reachable from the production host
+- the shared Redpanda service in `platform-ops` is not reachable from the production host

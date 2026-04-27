@@ -8,6 +8,8 @@
     "start": "next start -H 0.0.0.0",
     "lint": "next lint --no-cache",
     "typecheck": "tsc --noEmit",
+    "i18n:pull": "node ./scripts/i18n-pull.mjs",
+    "i18n:push": "tolgee push --config ./tolgee.config.cjs --force-mode OVERRIDE",
     "test": "echo \"No web tests configured\"",
     "clean": "rm -rf .next"
   },
@@ -20,6 +22,7 @@
     "react-hot-toast": "^2.6.0"
   },
   "devDependencies": {
+    "@tolgee/cli": "2.16.1",
     "@types/node": "^20.3.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

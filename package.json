@@ -28,7 +28,8 @@
     "local:reset": "bash ./scripts/local-stack-reset.sh",
     "audit": "npm audit --audit-level=high",
     "audit:prod:gate": "node ./scripts/audit-prod-gate.mjs",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "contract:gen:web": "node ./scripts/generate-api-contract.mjs"
   },
   "overrides": {
     "multer": "2.1.1",
