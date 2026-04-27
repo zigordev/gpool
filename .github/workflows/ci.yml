@@ -132,7 +132,7 @@ jobs:
           if-no-files-found: warn
 
   integration-e2e:
-    name: Integration Smoke + Contract + k6
+    name: Integration Smoke (Compose)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
