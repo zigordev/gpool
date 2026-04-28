@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6](https://github.com/zigordev/gpool/compare/v0.1.5...v0.1.6) (2026-04-28)
+
+
+### Bug Fixes
+
+* auth issue ([#39](https://github.com/zigordev/gpool/issues/39)) ([bb5e9a0](https://github.com/zigordev/gpool/commit/bb5e9a04d551f1fac87b1fef08837f9f85551d52))
+
 ## [0.1.5](https://github.com/zigordev/gpool/compare/v0.1.4...v0.1.5) (2026-03-11)
 
 
