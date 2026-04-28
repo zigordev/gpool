@@ -32,7 +32,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 
   staged_paths="$(
     git diff --cached --name-only \
-      | rg -v '(^|/)docker/\.env\..*\.local(\..*)?$|(^|/)\.env\..*\.local(\..*)?$' \
+      | grep -Ev '(^|/)docker/\.env\..*\.local(\..*)?$|(^|/)\.env\..*\.local(\..*)?$' \
       || true
   )"
 

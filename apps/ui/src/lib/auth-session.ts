@@ -56,6 +56,21 @@ function readSessionSecret(): string | null {
   return configured && configured.length > 0 ? configured : null;
 }
 
+function shouldUseSecureCookies(): boolean {
+  const publicUrl =
+    process.env.FRONTEND_URL?.trim() || process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim();
+
+  if (publicUrl) {
+    try {
+      return new URL(publicUrl).protocol === "https:";
+    } catch {
+      return process.env.NODE_ENV === "production";
+    }
+  }
+
+  return process.env.NODE_ENV === "production";
+}
+
 function sign(value: string, secret: string): string {
   return createHmac("sha256", secret).update(value).digest("base64url");
 }
@@ -149,7 +164,7 @@ async function persistSession(session: AuthSession): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, toSignedValue(payload, secret), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: Math.max(0, session.exp - Math.floor(Date.now() / 1000)),
@@ -226,7 +241,7 @@ export async function setPostLoginRedirectPath(path: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(REDIRECT_COOKIE_NAME, sanitizeRedirectPath(path), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: 10 * 60,
@@ -237,7 +252,7 @@ export async function setGoogleOauthState(state: string, redirectPath: string): 
   const cookieStore = await cookies();
   cookieStore.set(GOOGLE_STATE_COOKIE_NAME, state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: OAUTH_STATE_TTL_SECONDS,
@@ -250,7 +265,7 @@ export async function consumePostLoginRedirectPath(): Promise<string> {
   const redirectPath = sanitizeRedirectPath(cookieStore.get(REDIRECT_COOKIE_NAME)?.value);
   cookieStore.set(REDIRECT_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: 0,
@@ -266,7 +281,7 @@ export async function consumeGoogleOauthState(): Promise<{
   const state = cookieStore.get(GOOGLE_STATE_COOKIE_NAME)?.value ?? null;
   cookieStore.set(GOOGLE_STATE_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: 0,
@@ -315,7 +330,7 @@ export async function clearAuthSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: 0,
