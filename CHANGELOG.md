@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6](https://github.com/zigorlsp7/gpool/compare/v0.1.5...v0.1.6) (2026-04-28)
+
+
+### Bug Fixes
+
+* auth issue ([#39](https://github.com/zigorlsp7/gpool/issues/39)) ([f96de0a](https://github.com/zigorlsp7/gpool/commit/f96de0a998434531197dc6a0472a4d93b0d813fd))
+
 ## [0.1.5](https://github.com/zigorlsp7/gpool/compare/v0.1.4...v0.1.5) (2026-03-11)
 
 
