@@ -1,7 +1,52 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PoolRepository } from '../database/pool.repository';
+import { resolvePoolDeadline } from '../pool-deadline.util';
 
-export type BracketPhase = '16th-finals' | '8th-finals' | 'quarter-finals' | 'semi-finals' | 'finals';
+export type BracketPhase =
+  | '16th-finals'
+  | '8th-finals'
+  | 'quarter-finals'
+  | 'semi-finals'
+  | 'finals';
+
+const BRACKET_POOL_ID = 'all-pools';
+const BRACKET_PHASES: Array<{ phase: BracketPhase; matches: number }> = [
+  { phase: '16th-finals', matches: 16 },
+  { phase: '8th-finals', matches: 8 },
+  { phase: 'quarter-finals', matches: 4 },
+  { phase: 'semi-finals', matches: 2 },
+  { phase: 'finals', matches: 1 },
+];
+
+type BracketRoundScoring = {
+  exactPositionPoints?: number;
+  correctTeamWrongPositionPoints?: number;
+  tournamentWinnerPoints?: number;
+};
+
+function resolveRoundScoring(
+  bracketScoring: any,
+  phase: string,
+  override?: BracketRoundScoring,
+): Required<BracketRoundScoring> {
+  const roundScoring = bracketScoring?.rounds?.[phase] || {};
+  return {
+    exactPositionPoints:
+      override?.exactPositionPoints ??
+      roundScoring.exactPositionPoints ??
+      bracketScoring?.exactPositionPoints ??
+      5,
+    correctTeamWrongPositionPoints:
+      override?.correctTeamWrongPositionPoints ??
+      roundScoring.correctTeamWrongPositionPoints ??
+      bracketScoring?.correctTeamWrongPositionPoints ??
+      3,
+    tournamentWinnerPoints:
+      override?.tournamentWinnerPoints ??
+      bracketScoring?.tournamentWinnerPoints ??
+      10,
+  };
+}
 
 @Injectable()
 export class BracketService {
@@ -13,13 +58,37 @@ export class BracketService {
     return this.poolRepository.getBracketMatches(poolId, phase);
   }
 
+  private async ensureGlobalBracketPhases() {
+    const allMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID);
+    const counts = new Map<string, number>();
+    allMatches.forEach((match: any) => {
+      counts.set(match.phase, (counts.get(match.phase) || 0) + 1);
+    });
+
+    let startNumber = 1;
+    for (const { phase, matches } of BRACKET_PHASES) {
+      if ((counts.get(phase) || 0) === 0) {
+        for (let index = 0; index < matches; index++) {
+          await this.poolRepository.createBracketMatch({
+            bracketMatchId: `${BRACKET_POOL_ID}-${phase}-${index + 1}`,
+            poolId: BRACKET_POOL_ID,
+            phase,
+            matchNumber: startNumber + index,
+            status: 'scheduled',
+          });
+        }
+      }
+      startNumber += matches;
+    }
+  }
+
   async createBracketPhase(
     poolId: string,
     phase: BracketPhase,
     numberOfMatches: number,
     forceRecreate: boolean = false,
   ) {
-    const existingMatches = await this.poolRepository.getBracketMatches(poolId, phase);
+    const existingMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, phase);
     if (existingMatches.length > 0) {
       if (!forceRecreate) {
         throw new BadRequestException(`Phase ${phase} already exists for this pool`);
@@ -29,45 +98,23 @@ export class BracketService {
       }
     }
 
-    const allExistingMatches = await this.poolRepository.getBracketMatches(poolId);
-    const maxMatchNumber =
-      allExistingMatches.length > 0
-        ? Math.max(...allExistingMatches.map((match: any) => match.matchNumber || 0))
-        : 0;
-    const startMatchNumber = maxMatchNumber + 1;
-
-    const phaseOrder: BracketPhase[] = [
-      '16th-finals',
-      '8th-finals',
-      'quarter-finals',
-      'semi-finals',
-      'finals',
-    ];
-    const expectedMatchCounts: Record<BracketPhase, number> = {
-      '16th-finals': 16,
-      '8th-finals': 8,
-      'quarter-finals': 4,
-      'semi-finals': 2,
-      finals: 1,
-    };
-
     let expectedStartNumber = 1;
-    for (const currentPhase of phaseOrder) {
-      if (currentPhase === phase) {
+    for (const currentPhase of BRACKET_PHASES) {
+      if (currentPhase.phase === phase) {
         break;
       }
-      expectedStartNumber += expectedMatchCounts[currentPhase];
+      expectedStartNumber += currentPhase.matches;
     }
 
-    const actualStartNumber = Math.max(startMatchNumber, expectedStartNumber);
+    const actualStartNumber = expectedStartNumber;
 
     const matches = [];
     for (let index = 0; index < numberOfMatches; index++) {
       const matchNumber = actualStartNumber + index;
-      const bracketMatchId = `${poolId}-${phase}-${index + 1}`;
+      const bracketMatchId = `${BRACKET_POOL_ID}-${phase}-${index + 1}`;
       const match = await this.poolRepository.createBracketMatch({
         bracketMatchId,
-        poolId,
+        poolId: BRACKET_POOL_ID,
         phase,
         matchNumber,
         status: 'scheduled',
@@ -119,17 +166,15 @@ export class BracketService {
     bracketMatchId: string,
     match: any,
     poolId: string,
-    scoringOverride?: { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number },
+    scoringOverride?: BracketRoundScoring,
   ) {
     const pool = await this.poolRepository.getPool(poolId);
-    const exactPosPoints =
-      scoringOverride?.exactPositionPoints ??
-      pool?.config?.bracketScoring?.exactPositionPoints ??
-      5;
-    const wrongPosPoints =
-      scoringOverride?.correctTeamWrongPositionPoints ??
-      pool?.config?.bracketScoring?.correctTeamWrongPositionPoints ??
-      3;
+    const {
+      exactPositionPoints: exactPosPoints,
+      correctTeamWrongPositionPoints: wrongPosPoints,
+      tournamentWinnerPoints,
+    } =
+      resolveRoundScoring(pool?.config?.bracketScoring, match.phase, scoringOverride);
 
     const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
 
@@ -140,6 +185,19 @@ export class BracketService {
       const homeTeamCorrectButWrongPosition = prediction.homeTeamId === match.awayTeamId;
       const awayTeamExactPosition = prediction.awayTeamId === match.awayTeamId;
       const awayTeamCorrectButWrongPosition = prediction.awayTeamId === match.homeTeamId;
+      const actualWinnerTeamId =
+        match.phase === 'finals' &&
+        typeof match.homeResult === 'number' &&
+        typeof match.awayResult === 'number' &&
+        match.homeResult !== match.awayResult
+          ? match.homeResult > match.awayResult
+            ? match.homeTeamId
+            : match.awayTeamId
+          : null;
+      const tournamentWinnerCorrect =
+        actualWinnerTeamId && prediction.predictedWinnerTeamId
+          ? prediction.predictedWinnerTeamId === actualWinnerTeamId
+          : null;
 
       if (homeTeamExactPosition) {
         points += exactPosPoints;
@@ -153,6 +211,10 @@ export class BracketService {
         points += wrongPosPoints;
       }
 
+      if (tournamentWinnerCorrect) {
+        points += tournamentWinnerPoints;
+      }
+
       await this.poolRepository.updateBracketPredictionPoints(
         prediction.bracketPredictionId,
         points,
@@ -160,6 +222,7 @@ export class BracketService {
         awayTeamExactPosition,
         homeTeamCorrectButWrongPosition,
         awayTeamCorrectButWrongPosition,
+        tournamentWinnerCorrect,
       );
     }
   }
@@ -201,11 +264,11 @@ export class BracketService {
   }
 
   async getBracketStructure(poolId: string) {
+    await this.ensureGlobalBracketPhases();
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
-    const phases: BracketPhase[] = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'];
 
     const structure: Record<string, any[]> = {};
-    for (const phase of phases) {
+    for (const { phase } of BRACKET_PHASES) {
       structure[phase] = allMatches
         .filter((match: any) => match.phase === phase)
         .sort((a: any, b: any) => a.matchNumber - b.matchNumber);
@@ -222,11 +285,21 @@ export class BracketService {
     homeTeamName: string,
     awayTeamId: string,
     awayTeamName: string,
+    predictedWinnerTeamId?: string,
+    predictedWinnerTeamName?: string,
   ) {
-    const deadline = new Date('2026-06-08T00:00:00Z').getTime();
+    const pool = await this.poolRepository.getPool(poolId);
+    const deadline = resolvePoolDeadline(pool);
     if (Date.now() >= deadline) {
       throw new BadRequestException('Deadline has passed. Bracket predictions can no longer be edited.');
     }
+
+    const matches = await this.poolRepository.getBracketMatches(poolId);
+    const match = matches.find((candidate: any) => candidate.bracketMatchId === bracketMatchId);
+    const validWinner =
+      match?.phase === 'finals' &&
+      predictedWinnerTeamId &&
+      (predictedWinnerTeamId === homeTeamId || predictedWinnerTeamId === awayTeamId);
 
     return this.poolRepository.createBracketPrediction(
       poolId,
@@ -236,6 +309,8 @@ export class BracketService {
       homeTeamName,
       awayTeamId,
       awayTeamName,
+      validWinner ? predictedWinnerTeamId : '',
+      validWinner ? predictedWinnerTeamName : '',
     );
   }
 

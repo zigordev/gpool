@@ -1,5 +1,12 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PoolRepository } from '../database/pool.repository';
+import { resolvePoolDeadline } from '../pool-deadline.util';
+import {
+  computePlayerAwardPoints,
+  computePlayerPoints,
+  resolvePlayerAwardWinners,
+  resolvePlayerScoring,
+} from '../player/player.service';
 
 @Injectable()
 export class MatchService {
@@ -55,8 +62,9 @@ export class MatchService {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
 
-    const now = Date.now();
-    if (match.deadline && now >= match.deadline) {
+    const pool = await this.poolRepository.getPool(poolId);
+    const deadline = resolvePoolDeadline(pool);
+    if (Date.now() >= deadline) {
       throw new BadRequestException('Prediction deadline has passed');
     }
 
@@ -165,17 +173,35 @@ export class MatchService {
   }
 
   async getPoolRanking(poolId: string) {
-    const allPredictions = await this.poolRepository.getAllPredictionsForPool(poolId);
-    const bracketPredictions = await this.poolRepository.getAllBracketPredictionsForPool(poolId);
-    const members = await this.poolRepository.getPoolMembers(poolId);
+    const [
+      pool,
+      allPredictions,
+      bracketPredictions,
+      members,
+      playerSelections,
+      playerAwardSelections,
+      tournamentPlayers,
+    ] = await Promise.all([
+      this.poolRepository.getPool(poolId),
+      this.poolRepository.getAllPredictionsForPool(poolId),
+      this.poolRepository.getAllBracketPredictionsForPool(poolId),
+      this.poolRepository.getPoolMembers(poolId),
+      this.poolRepository.getPlayerSelectionsForPool(poolId),
+      this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
+      this.poolRepository.getTournamentPlayers(),
+    ]);
 
     const memberUserIds = new Set(members.map((member: any) => member.userId));
 
-    const userPoints = new Map<string, { points: number; userName: string; userEmail?: string }>();
+    const userPoints = new Map<
+      string,
+      { userId: string; points: number; userName: string; userEmail?: string }
+    >();
     members.forEach((member: any) => {
       const email = member.userEmail || '';
       const userName = member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
       userPoints.set(member.userId, {
+        userId: member.userId,
         points: 0,
         userName,
         userEmail: email,
@@ -202,10 +228,33 @@ export class MatchService {
       }
     });
 
+    const playerScoring = resolvePlayerScoring(pool);
+    playerSelections.forEach((selection: any) => {
+      if (!memberUserIds.has(selection.userId)) {
+        return;
+      }
+      const current = userPoints.get(selection.userId);
+      if (current) {
+        current.points += computePlayerPoints(selection, playerScoring);
+      }
+    });
+
+    const awardWinners = resolvePlayerAwardWinners(pool, tournamentPlayers);
+    playerAwardSelections.forEach((selection: any) => {
+      if (!memberUserIds.has(selection.userId)) {
+        return;
+      }
+      const current = userPoints.get(selection.userId);
+      if (current) {
+        current.points += computePlayerAwardPoints(selection, awardWinners, playerScoring);
+      }
+    });
+
     return Array.from(userPoints.values())
       .sort((a, b) => b.points - a.points)
       .map((entry, index) => ({
         rank: index + 1,
+        userId: entry.userId,
         userName: entry.userName,
         userEmail: entry.userEmail,
         points: entry.points,

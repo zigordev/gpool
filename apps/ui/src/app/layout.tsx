@@ -4,8 +4,22 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
 import { getLocale, getMessages, getTranslator } from '@/i18n/server'
 import type { Metadata } from 'next'
+import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const display = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: ['500', '600', '700', '800'],
+})
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslator()
@@ -25,7 +39,7 @@ export default async function RootLayout({
   const messages = await getMessages(locale)
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${inter.variable} ${display.variable}`}>
       <body>
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
@@ -37,32 +51,33 @@ export default async function RootLayout({
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-color)',
+                    background: 'rgb(var(--bg-elevated))',
+                    color: 'rgb(var(--fg))',
+                    border: '1px solid rgb(var(--border))',
                     borderRadius: 'var(--radius-md)',
                     boxShadow: 'var(--shadow-md)',
+                    fontWeight: 500,
                   },
                   success: {
                     iconTheme: {
-                      primary: '#4caf50',
+                      primary: 'rgb(var(--pitch))',
                       secondary: 'white',
                     },
                     style: {
-                      background: '#e8f5e9',
-                      color: '#2e7d32',
-                      border: '1px solid #81c784',
+                      background: 'rgb(var(--pitch) / 0.08)',
+                      color: 'rgb(var(--pitch))',
+                      border: '1px solid rgb(var(--pitch) / 0.30)',
                     },
                   },
                   error: {
                     iconTheme: {
-                      primary: '#f44336',
+                      primary: 'rgb(var(--live))',
                       secondary: 'white',
                     },
                     style: {
-                      background: '#ffebee',
-                      color: '#c62828',
-                      border: '1px solid #ef9a9a',
+                      background: 'rgb(var(--live) / 0.08)',
+                      color: 'rgb(var(--live))',
+                      border: '1px solid rgb(var(--live) / 0.30)',
                     },
                   },
                 }}

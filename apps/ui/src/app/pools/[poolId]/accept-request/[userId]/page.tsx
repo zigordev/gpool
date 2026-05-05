@@ -9,6 +9,48 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { rum } from '@/lib/rum';
+import { Button } from '@/components/ui/Button';
+
+type Status = 'pending' | 'success' | 'error';
+
+const STATUS_TONE: Record<Status, { iconBg: string; iconFg: string }> = {
+  pending: { iconBg: 'rgb(var(--info) / 0.10)', iconFg: 'rgb(var(--info))' },
+  success: { iconBg: 'rgb(var(--pitch) / 0.10)', iconFg: 'rgb(var(--pitch))' },
+  error: { iconBg: 'rgb(var(--live) / 0.10)', iconFg: 'rgb(var(--live))' },
+};
+
+function StatusIcon({ status }: { status: Status }) {
+  const tone = STATUS_TONE[status];
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: 64,
+        height: 64,
+        borderRadius: '999px',
+        background: tone.iconBg,
+        color: tone.iconFg,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.25rem',
+      }}
+    >
+      {status === 'pending' ? (
+        <span className="btn-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+      ) : status === 'success' ? (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="18" y1="6" x2="6" y2="18" />
+        </svg>
+      )}
+    </div>
+  );
+}
 
 function AcceptAccessRequestContent() {
   const router = useRouter();
@@ -16,14 +58,23 @@ function AcceptAccessRequestContent() {
   const { user } = useAuth();
   const { t } = useI18n();
 
-  const poolId = typeof params?.poolId === 'string' ? params.poolId : Array.isArray(params?.poolId) ? params.poolId[0] : '';
-  const userId = typeof params?.userId === 'string' ? params.userId : Array.isArray(params?.userId) ? params.userId[0] : '';
+  const poolId =
+    typeof params?.poolId === 'string'
+      ? params.poolId
+      : Array.isArray(params?.poolId)
+      ? params.poolId[0]
+      : '';
+  const userId =
+    typeof params?.userId === 'string'
+      ? params.userId
+      : Array.isArray(params?.userId)
+      ? params.userId[0]
+      : '';
 
-  const [status, setStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [status, setStatus] = useState<Status>('pending');
   const [message, setMessage] = useState<string>(() => t('acceptRequest.processingMessage'));
 
   useEffect(() => {
-    // If poolId or userId is missing, bail out gracefully
     if (!poolId || !userId) {
       setStatus('error');
       setMessage(t('acceptRequest.errors.invalidLink'));
@@ -31,12 +82,8 @@ function AcceptAccessRequestContent() {
       return;
     }
 
-    // If user is not yet loaded, wait – ProtectedRoute will handle redirect if needed
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
-    // Check if user is admin
     if (user.role !== 'admin') {
       setStatus('error');
       setMessage(t('acceptRequest.errors.adminOnly'));
@@ -47,37 +94,25 @@ function AcceptAccessRequestContent() {
     const acceptRequest = async () => {
       try {
         const response = await apiClient.post(`/pools/${poolId}/accept-request/${userId}`);
-
-        const successMessage =
-          response.data?.message || t('acceptRequest.success.accepted');
-
+        const successMessage = response.data?.message || t('acceptRequest.success.accepted');
         setStatus('success');
         setMessage(successMessage);
         toast.success(successMessage);
 
-        // Track RUM event
         rum?.trackCustomEvent('Access Request Accepted', {
           poolId,
           targetUserId: userId,
           adminUserId: user.userId,
         });
 
-        // Redirect to pool detail page after a short delay
-        setTimeout(() => {
-          router.push(`/pools/${poolId}`);
-        }, 1500);
+        setTimeout(() => router.push(`/pools/${poolId}`), 1500);
       } catch (error: any) {
-        // Try to extract a meaningful error message
         const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          t('acceptRequest.errors.acceptFailed');
-
+          error?.response?.data?.message || error?.message || t('acceptRequest.errors.acceptFailed');
         setStatus('error');
         setMessage(errorMessage);
         toast.error(errorMessage);
 
-        // Track failure
         rum?.trackCustomEvent('Access Request Accept Failed', {
           poolId,
           targetUserId: userId,
@@ -99,62 +134,48 @@ function AcceptAccessRequestContent() {
   return (
     <main
       style={{
-        padding: 'var(--spacing-2xl)',
+        padding: 'var(--spacing-2xl) var(--spacing-md)',
         minHeight: '60vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <div
+      <section
+        className="surface"
         style={{
           maxWidth: 480,
           width: '100%',
-          padding: 'var(--spacing-xl)',
-          borderRadius: 'var(--radius-lg)',
-          background: 'var(--bg-secondary)',
-          boxShadow: 'var(--shadow-md)',
-          border: '1px solid var(--border-color)',
+          padding: '2.25rem 2rem',
           textAlign: 'center',
         }}
       >
+        <StatusIcon status={status} />
         <h1
           style={{
-            fontSize: '1.75rem',
+            fontFamily: 'var(--font-display, inherit)',
+            fontSize: '1.6rem',
             fontWeight: 700,
-            marginBottom: 'var(--spacing-md)',
-            color: 'var(--text-primary)',
+            letterSpacing: '-0.015em',
+            color: 'rgb(var(--fg))',
+            margin: '0 0 0.6rem',
+            lineHeight: 1.15,
           }}
         >
           {heading}
         </h1>
-        <p
-          style={{
-            color: status === 'error' ? '#c62828' : 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-lg)',
-          }}
-        >
+        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.95rem', lineHeight: 1.55, marginBottom: '1.5rem' }}>
           {message}
         </p>
-        {status !== 'pending' && (
-          <button
-            type="button"
+        {status !== 'pending' ? (
+          <Button
+            variant={status === 'error' ? 'outline' : 'primary'}
             onClick={() => router.push(`/pools/${poolId}`)}
-            style={{
-              padding: '0.5rem 1.25rem',
-              borderRadius: '999px',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 500,
-              background:
-                status === 'error' ? '#c62828' : 'var(--accent-primary)',
-              color: '#fff',
-            }}
           >
             {t('acceptRequest.actions.goToPools')}
-          </button>
-        )}
-      </div>
+          </Button>
+        ) : null}
+      </section>
     </main>
   );
 }

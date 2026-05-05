@@ -13,7 +13,8 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      const redirectPath = `${window.location.pathname || '/pools'}${window.location.search || ''}`;
+      router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     }
   }, [isAuthenticated, loading, router]);
 

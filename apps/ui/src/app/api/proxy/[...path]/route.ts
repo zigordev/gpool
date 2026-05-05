@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { buildApiAuthHeaders, getApiBaseUrl, getAuthSession } from "@/lib/auth-session";
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     path?: string[];
-  };
+  }>;
 };
 
 function pickResponseHeaders(upstream: Headers): Headers {
@@ -21,8 +21,9 @@ function pickResponseHeaders(upstream: Headers): Headers {
   return headers;
 }
 
-async function handleProxy(request: Request, context: RouteContext): Promise<NextResponse> {
-  const path = context.params.path ?? [];
+async function handleProxy(request: NextRequest, context: RouteContext): Promise<NextResponse> {
+  const params = await context.params;
+  const path = params.path ?? [];
   if (path.length === 0) {
     return NextResponse.json(
       {
@@ -93,30 +94,30 @@ async function handleProxy(request: Request, context: RouteContext): Promise<Nex
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function POST(request: Request, context: RouteContext) {
+export async function POST(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function PUT(request: Request, context: RouteContext) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function OPTIONS(request: Request, context: RouteContext) {
+export async function OPTIONS(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }
 
-export async function HEAD(request: Request, context: RouteContext) {
+export async function HEAD(request: NextRequest, context: RouteContext) {
   return handleProxy(request, context);
 }

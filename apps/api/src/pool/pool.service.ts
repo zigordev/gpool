@@ -327,8 +327,34 @@ export class PoolService {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (pool.adminUserId !== userId) {
+    if (userRole !== 'admin' && pool.adminUserId !== userId) {
       throw new ForbiddenException('Only the pool administrator can update pool configuration');
+    }
+
+    const paidPositions = newConfig?.prizeDistribution?.paidPositions;
+    if (paidPositions !== undefined) {
+      const paidPositionCount = Number(paidPositions);
+      const members = await this.poolRepository.getPoolMembers(poolId);
+      if (!Number.isInteger(paidPositionCount) || paidPositionCount < 0) {
+        throw new BadRequestException('Prize paid positions must be a non-negative integer');
+      }
+      if (paidPositionCount > members.length) {
+        throw new BadRequestException(
+          `Prize paid positions cannot exceed the number of pool members (${members.length})`,
+        );
+      }
+      const payouts = Array.isArray(newConfig.prizeDistribution.payouts)
+        ? newConfig.prizeDistribution.payouts
+        : [];
+      const hasOutOfRangeRank = payouts.some((payout: any) => {
+        const rank = Number(payout?.rank);
+        return Number.isInteger(rank) && rank > members.length;
+      });
+      if (hasOutOfRangeRank) {
+        throw new BadRequestException(
+          `Prize payout ranks cannot exceed the number of pool members (${members.length})`,
+        );
+      }
     }
 
     const existingConfig = pool.config || {};

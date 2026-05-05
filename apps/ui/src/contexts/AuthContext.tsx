@@ -11,7 +11,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: () => void;
+    login: (redirectPath?: string) => void;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
     checkAuth: () => Promise<void>;
@@ -56,9 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkAuth();
     }, [checkAuth]);
 
-    const login = () => {
-        const redirectPath = encodeURIComponent(window.location.pathname || '/pools');
-        window.location.href = `/api/auth/google/start?redirect=${redirectPath}`;
+    const login = (redirectPath?: string) => {
+        const currentPath = `${window.location.pathname || '/pools'}${window.location.search || ''}`;
+        const targetPath = redirectPath || currentPath;
+        window.location.href = `/api/auth/google/start?redirect=${encodeURIComponent(targetPath)}`;
     };
 
     const logout = async () => {

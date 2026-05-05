@@ -353,6 +353,349 @@ export class PoolRepository {
     return result.rows;
   }
 
+  async getTournamentPlayers(position?: string) {
+    const params: any[] = [];
+    const where = position ? `WHERE tournament_players.position = $1` : '';
+    if (position) params.push(position);
+
+    const result = await this.postgres.query(
+      `
+        SELECT
+          tournament_players.player_id AS "playerId",
+          tournament_players.team_id AS "teamId",
+          tournament_players.team_name AS "teamName",
+          tournament_players.name,
+          tournament_players.position,
+          tournament_players.image_url AS "imageUrl",
+          tournament_players.country_code AS "countryCode",
+          tournament_players.flag_emoji AS "flagEmoji",
+          COALESCE(s.goals, 0)::int AS goals,
+          COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(s.mvps, 0)::int AS mvps,
+          COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets"
+        FROM tournament_players
+        LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
+        ${where}
+        ORDER BY tournament_players.position ASC, tournament_players.team_name ASC, tournament_players.name ASC
+      `,
+      params,
+    );
+
+    return result.rows;
+  }
+
+  async getTournamentPlayer(playerId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          tournament_players.player_id AS "playerId",
+          tournament_players.team_id AS "teamId",
+          tournament_players.team_name AS "teamName",
+          tournament_players.name,
+          tournament_players.position,
+          tournament_players.image_url AS "imageUrl",
+          tournament_players.country_code AS "countryCode",
+          tournament_players.flag_emoji AS "flagEmoji",
+          COALESCE(s.goals, 0)::int AS goals,
+          COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(s.mvps, 0)::int AS mvps,
+          COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets"
+        FROM tournament_players
+        LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
+        WHERE tournament_players.player_id = $1
+      `,
+      [playerId],
+    );
+
+    return result.rows[0] || null;
+  }
+
+  async getPlayerSelections(poolId: string, userId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          s.pool_id AS "poolId",
+          s.user_id AS "userId",
+          s.position,
+          s.slot::int AS slot,
+          s.player_id AS "playerId",
+          p.team_id AS "teamId",
+          p.team_name AS "teamName",
+          p.name,
+          p.image_url AS "imageUrl",
+          p.country_code AS "countryCode",
+          p.flag_emoji AS "flagEmoji",
+          COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(ps.mvps, 0)::int AS mvps,
+          COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          s.updated_at::int AS "updatedAt"
+        FROM pool_player_selections s
+        INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
+        WHERE s.pool_id = $1 AND s.user_id = $2
+        ORDER BY s.position ASC, s.slot ASC
+      `,
+      [poolId, userId],
+    );
+
+    return result.rows;
+  }
+
+  async getPlayerSelectionsForPool(poolId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          s.pool_id AS "poolId",
+          s.user_id AS "userId",
+          s.position,
+          s.slot::int AS slot,
+          s.player_id AS "playerId",
+          p.team_id AS "teamId",
+          p.team_name AS "teamName",
+          p.name,
+          p.image_url AS "imageUrl",
+          p.country_code AS "countryCode",
+          p.flag_emoji AS "flagEmoji",
+          COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(ps.mvps, 0)::int AS mvps,
+          COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          s.updated_at::int AS "updatedAt"
+        FROM pool_player_selections s
+        INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
+        WHERE s.pool_id = $1
+        ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
+      `,
+      [poolId],
+    );
+
+    return result.rows;
+  }
+
+  async getPlayerAwardSelections(poolId: string, userId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          a.pool_id AS "poolId",
+          a.user_id AS "userId",
+          a.award,
+          a.player_id AS "playerId",
+          p.team_id AS "teamId",
+          p.team_name AS "teamName",
+          p.name,
+          p.position,
+          p.image_url AS "imageUrl",
+          p.country_code AS "countryCode",
+          p.flag_emoji AS "flagEmoji",
+          COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(ps.mvps, 0)::int AS mvps,
+          COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          a.updated_at::int AS "updatedAt"
+        FROM pool_player_award_selections a
+        INNER JOIN tournament_players p ON p.player_id = a.player_id
+        LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
+        WHERE a.pool_id = $1 AND a.user_id = $2
+        ORDER BY a.award ASC
+      `,
+      [poolId, userId],
+    );
+
+    return result.rows;
+  }
+
+  async getPlayerAwardSelectionsForPool(poolId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          a.pool_id AS "poolId",
+          a.user_id AS "userId",
+          a.award,
+          a.player_id AS "playerId",
+          p.team_id AS "teamId",
+          p.team_name AS "teamName",
+          p.name,
+          p.position,
+          p.image_url AS "imageUrl",
+          p.country_code AS "countryCode",
+          p.flag_emoji AS "flagEmoji",
+          COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(ps.mvps, 0)::int AS mvps,
+          COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          a.updated_at::int AS "updatedAt"
+        FROM pool_player_award_selections a
+        INNER JOIN tournament_players p ON p.player_id = a.player_id
+        LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
+        WHERE a.pool_id = $1
+        ORDER BY a.user_id ASC, a.award ASC
+      `,
+      [poolId],
+    );
+
+    return result.rows;
+  }
+
+  async updateTournamentPlayerStats(
+    playerId: string,
+    stats: {
+      goals?: number;
+      missedPenalties?: number;
+      mvps?: number;
+      penaltiesSaved?: number;
+      cleanSheets?: number;
+    },
+  ) {
+    const now = Math.floor(Date.now() / 1000);
+    const result = await this.postgres.query(
+      `
+        INSERT INTO tournament_player_stats (
+          player_id,
+          goals,
+          missed_penalties,
+          mvps,
+          penalties_saved,
+          clean_sheets,
+          created_at,
+          updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+        ON CONFLICT (player_id)
+        DO UPDATE SET
+          goals = EXCLUDED.goals,
+          missed_penalties = EXCLUDED.missed_penalties,
+          mvps = EXCLUDED.mvps,
+          penalties_saved = EXCLUDED.penalties_saved,
+          clean_sheets = EXCLUDED.clean_sheets,
+          updated_at = EXCLUDED.updated_at
+        RETURNING
+          player_id AS "playerId",
+          goals::int AS goals,
+          missed_penalties::int AS "missedPenalties",
+          mvps::int AS mvps,
+          penalties_saved::int AS "penaltiesSaved",
+          clean_sheets::int AS "cleanSheets",
+          updated_at::int AS "updatedAt"
+      `,
+      [
+        playerId,
+        Math.max(0, stats.goals ?? 0),
+        Math.max(0, stats.missedPenalties ?? 0),
+        Math.max(0, stats.mvps ?? 0),
+        Math.max(0, stats.penaltiesSaved ?? 0),
+        Math.max(0, stats.cleanSheets ?? 0),
+        now,
+      ],
+    );
+
+    return result.rows[0];
+  }
+
+  async upsertPlayerSelection(poolId: string, userId: string, position: string, slot: number, playerId: string) {
+    const now = Math.floor(Date.now() / 1000);
+    await this.postgres.query(
+      `
+        DELETE FROM pool_player_selections
+        WHERE pool_id = $1
+          AND user_id = $2
+          AND player_id = $3
+          AND NOT (position = $4 AND slot = $5)
+      `,
+      [poolId, userId, playerId, position, slot],
+    );
+
+    const result = await this.postgres.query(
+      `
+        INSERT INTO pool_player_selections (
+          pool_id,
+          user_id,
+          position,
+          slot,
+          player_id,
+          created_at,
+          updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $6)
+        ON CONFLICT (pool_id, user_id, position, slot)
+        DO UPDATE SET
+          player_id = EXCLUDED.player_id,
+          updated_at = EXCLUDED.updated_at
+        RETURNING
+          pool_id AS "poolId",
+          user_id AS "userId",
+          position,
+          slot::int AS slot,
+          player_id AS "playerId",
+          updated_at::int AS "updatedAt"
+      `,
+      [poolId, userId, position, slot, playerId, now],
+    );
+
+    return result.rows[0];
+  }
+
+  async deletePlayerSelection(poolId: string, userId: string, position: string, slot: number) {
+    await this.postgres.query(
+      `
+        DELETE FROM pool_player_selections
+        WHERE pool_id = $1 AND user_id = $2 AND position = $3 AND slot = $4
+      `,
+      [poolId, userId, position, slot],
+    );
+
+    return { success: true };
+  }
+
+  async upsertPlayerAwardSelection(poolId: string, userId: string, award: string, playerId: string) {
+    const now = Math.floor(Date.now() / 1000);
+    const result = await this.postgres.query(
+      `
+        INSERT INTO pool_player_award_selections (
+          pool_id,
+          user_id,
+          award,
+          player_id,
+          created_at,
+          updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $5)
+        ON CONFLICT (pool_id, user_id, award)
+        DO UPDATE SET
+          player_id = EXCLUDED.player_id,
+          updated_at = EXCLUDED.updated_at
+        RETURNING
+          pool_id AS "poolId",
+          user_id AS "userId",
+          award,
+          player_id AS "playerId",
+          updated_at::int AS "updatedAt"
+      `,
+      [poolId, userId, award, playerId, now],
+    );
+
+    return result.rows[0];
+  }
+
+  async deletePlayerAwardSelection(poolId: string, userId: string, award: string) {
+    await this.postgres.query(
+      `
+        DELETE FROM pool_player_award_selections
+        WHERE pool_id = $1 AND user_id = $2 AND award = $3
+      `,
+      [poolId, userId, award],
+    );
+
+    return { success: true };
+  }
+
   async getMatch(matchId: string) {
     const result = await this.postgres.query(
       `
@@ -365,7 +708,6 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_name AS "awayTeamName",
           scheduled_at::text AS "scheduledAt",
-          deadline::double precision AS "deadline",
           phase,
           status,
           home_result AS "homeResult",
@@ -392,7 +734,6 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_name AS "awayTeamName",
           scheduled_at::text AS "scheduledAt",
-          deadline::double precision AS "deadline",
           phase,
           status,
           home_result AS "homeResult",
@@ -420,7 +761,6 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_name AS "awayTeamName",
           scheduled_at::text AS "scheduledAt",
-          deadline::double precision AS "deadline",
           phase,
           status,
           home_result AS "homeResult",
@@ -457,7 +797,11 @@ export class PoolRepository {
         DO UPDATE SET
           home_score = EXCLUDED.home_score,
           away_score = EXCLUDED.away_score,
-          updated_at = EXCLUDED.updated_at
+          updated_at = EXCLUDED.updated_at,
+          is_correct = NULL,
+          is_exact_match = NULL,
+          points = 0,
+          evaluated_at = NULL
         RETURNING
           prediction_id AS "predictionId",
           pool_id AS "poolId",
@@ -855,6 +1199,9 @@ export class PoolRepository {
           away_team_exact_position AS "awayTeamExactPosition",
           home_team_correct_but_wrong_position AS "homeTeamCorrectButWrongPosition",
           away_team_correct_but_wrong_position AS "awayTeamCorrectButWrongPosition",
+          predicted_winner_team_id AS "predictedWinnerTeamId",
+          predicted_winner_team_name AS "predictedWinnerTeamName",
+          tournament_winner_correct AS "tournamentWinnerCorrect",
           created_at::int AS "createdAt",
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
@@ -873,6 +1220,7 @@ export class PoolRepository {
     awayTeamExactPosition: boolean,
     homeTeamCorrectButWrongPosition: boolean = false,
     awayTeamCorrectButWrongPosition: boolean = false,
+    tournamentWinnerCorrect: boolean | null = null,
   ) {
     await this.postgres.query(
       `
@@ -884,7 +1232,8 @@ export class PoolRepository {
           away_team_exact_position = $4,
           home_team_correct_but_wrong_position = $5,
           away_team_correct_but_wrong_position = $6,
-          evaluated_at = $7
+          tournament_winner_correct = $7,
+          evaluated_at = $8
         WHERE bracket_prediction_id = $1
       `,
       [
@@ -894,6 +1243,7 @@ export class PoolRepository {
         awayTeamExactPosition,
         homeTeamCorrectButWrongPosition,
         awayTeamCorrectButWrongPosition,
+        tournamentWinnerCorrect,
         Math.floor(Date.now() / 1000),
       ],
     );
@@ -907,6 +1257,8 @@ export class PoolRepository {
     homeTeamName: string,
     awayTeamId: string,
     awayTeamName: string,
+    predictedWinnerTeamId?: string,
+    predictedWinnerTeamName?: string,
   ) {
     const bracketPredictionId = `${poolId}-${bracketMatchId}-${userId}`;
     const now = Math.floor(Date.now() / 1000);
@@ -922,18 +1274,22 @@ export class PoolRepository {
           home_team_name,
           away_team_id,
           away_team_name,
+          predicted_winner_team_id,
+          predicted_winner_team_name,
           points,
           is_evaluated,
           created_at,
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, FALSE, $9, $9)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, FALSE, $11, $11)
         ON CONFLICT (bracket_prediction_id)
         DO UPDATE SET
           home_team_id = EXCLUDED.home_team_id,
           home_team_name = EXCLUDED.home_team_name,
           away_team_id = EXCLUDED.away_team_id,
           away_team_name = EXCLUDED.away_team_name,
+          predicted_winner_team_id = EXCLUDED.predicted_winner_team_id,
+          predicted_winner_team_name = EXCLUDED.predicted_winner_team_name,
           updated_at = EXCLUDED.updated_at
         RETURNING
           bracket_prediction_id AS "bracketPredictionId",
@@ -944,12 +1300,15 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          predicted_winner_team_id AS "predictedWinnerTeamId",
+          predicted_winner_team_name AS "predictedWinnerTeamName",
           points::int AS "points",
           is_evaluated AS "isEvaluated",
           home_team_exact_position AS "homeTeamExactPosition",
           away_team_exact_position AS "awayTeamExactPosition",
           home_team_correct_but_wrong_position AS "homeTeamCorrectButWrongPosition",
           away_team_correct_but_wrong_position AS "awayTeamCorrectButWrongPosition",
+          tournament_winner_correct AS "tournamentWinnerCorrect",
           created_at::int AS "createdAt",
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
@@ -963,6 +1322,8 @@ export class PoolRepository {
         homeTeamName || null,
         awayTeamId || null,
         awayTeamName || null,
+        predictedWinnerTeamId || null,
+        predictedWinnerTeamName || null,
         now,
       ],
     );
@@ -982,12 +1343,15 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          predicted_winner_team_id AS "predictedWinnerTeamId",
+          predicted_winner_team_name AS "predictedWinnerTeamName",
           points::int AS "points",
           is_evaluated AS "isEvaluated",
           home_team_exact_position AS "homeTeamExactPosition",
           away_team_exact_position AS "awayTeamExactPosition",
           home_team_correct_but_wrong_position AS "homeTeamCorrectButWrongPosition",
           away_team_correct_but_wrong_position AS "awayTeamCorrectButWrongPosition",
+          tournament_winner_correct AS "tournamentWinnerCorrect",
           created_at::int AS "createdAt",
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
@@ -1012,12 +1376,15 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          predicted_winner_team_id AS "predictedWinnerTeamId",
+          predicted_winner_team_name AS "predictedWinnerTeamName",
           points::int AS "points",
           is_evaluated AS "isEvaluated",
           home_team_exact_position AS "homeTeamExactPosition",
           away_team_exact_position AS "awayTeamExactPosition",
           home_team_correct_but_wrong_position AS "homeTeamCorrectButWrongPosition",
           away_team_correct_but_wrong_position AS "awayTeamCorrectButWrongPosition",
+          tournament_winner_correct AS "tournamentWinnerCorrect",
           created_at::int AS "createdAt",
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
@@ -1041,12 +1408,15 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          predicted_winner_team_id AS "predictedWinnerTeamId",
+          predicted_winner_team_name AS "predictedWinnerTeamName",
           points::int AS "points",
           is_evaluated AS "isEvaluated",
           home_team_exact_position AS "homeTeamExactPosition",
           away_team_exact_position AS "awayTeamExactPosition",
           home_team_correct_but_wrong_position AS "homeTeamCorrectButWrongPosition",
           away_team_correct_but_wrong_position AS "awayTeamCorrectButWrongPosition",
+          tournament_winner_correct AS "tournamentWinnerCorrect",
           created_at::int AS "createdAt",
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
