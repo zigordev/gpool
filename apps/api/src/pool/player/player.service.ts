@@ -2,11 +2,28 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PoolRepository } from '../database/pool.repository';
 
 export type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
-export type PlayerStatKey = 'goals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'cleanSheets';
+export type PlayerStatKey =
+  | 'goals'
+  | 'missedPenalties'
+  | 'mvps'
+  | 'penaltiesSaved'
+  | 'cleanSheets'
+  | 'assists'
+  | 'yellowCards'
+  | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
 
 const POSITIONS: PlayerPosition[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
-const STATS: PlayerStatKey[] = ['goals', 'missedPenalties', 'mvps', 'penaltiesSaved', 'cleanSheets'];
+const STATS: PlayerStatKey[] = [
+  'goals',
+  'missedPenalties',
+  'mvps',
+  'penaltiesSaved',
+  'cleanSheets',
+  'assists',
+  'yellowCards',
+  'redCards',
+];
 const AWARDS: PlayerAward[] = ['golden_boot', 'tournament_mvp'];
 const SELECTION_LIMIT = 6;
 
@@ -26,6 +43,19 @@ export const DEFAULT_PLAYER_SCORING = {
     midfielder: 1,
     forward: 0,
   },
+  // Per-position assist values. GKs default to 0 since assists are extremely
+  // rare for keepers, but the field still exists so admins can configure it.
+  assist: {
+    goalkeeper: 0,
+    defender: 4,
+    midfielder: 3,
+    forward: 2,
+  },
+  // Cards subtract points. Stored as the raw signed value the admin
+  // configures (negative numbers are expected); the points calculation simply
+  // multiplies by the stat count.
+  yellowCard: -1,
+  redCard: -3,
   award: {
     goldenBoot: 15,
     tournamentMvp: 15,
@@ -40,6 +70,8 @@ export function resolvePlayerScoring(pool: any) {
       ? configured.cleanSheet
       : {};
   const legacyCleanSheet = Number(configured.cleanSheet);
+  const assist =
+    configured.assist && typeof configured.assist === 'object' ? configured.assist : {};
   return {
     goal: {
       goalkeeper: Number.isFinite(Number(goal.goalkeeper)) ? Number(goal.goalkeeper) : DEFAULT_PLAYER_SCORING.goal.goalkeeper,
@@ -66,6 +98,26 @@ export function resolvePlayerScoring(pool: any) {
         ? Math.max(0, Number(cleanSheet.forward))
         : DEFAULT_PLAYER_SCORING.cleanSheet.forward,
     },
+    assist: {
+      goalkeeper: Number.isFinite(Number(assist.goalkeeper))
+        ? Math.max(0, Number(assist.goalkeeper))
+        : DEFAULT_PLAYER_SCORING.assist.goalkeeper,
+      defender: Number.isFinite(Number(assist.defender))
+        ? Math.max(0, Number(assist.defender))
+        : DEFAULT_PLAYER_SCORING.assist.defender,
+      midfielder: Number.isFinite(Number(assist.midfielder))
+        ? Math.max(0, Number(assist.midfielder))
+        : DEFAULT_PLAYER_SCORING.assist.midfielder,
+      forward: Number.isFinite(Number(assist.forward))
+        ? Math.max(0, Number(assist.forward))
+        : DEFAULT_PLAYER_SCORING.assist.forward,
+    },
+    yellowCard: Number.isFinite(Number(configured.yellowCard))
+      ? Number(configured.yellowCard)
+      : DEFAULT_PLAYER_SCORING.yellowCard,
+    redCard: Number.isFinite(Number(configured.redCard))
+      ? Number(configured.redCard)
+      : DEFAULT_PLAYER_SCORING.redCard,
     award: {
       goldenBoot: Number.isFinite(Number(configured.award?.goldenBoot))
         ? Math.max(0, Number(configured.award.goldenBoot))
@@ -80,12 +132,17 @@ export function resolvePlayerScoring(pool: any) {
 export function computePlayerPoints(player: any, scoring: ReturnType<typeof resolvePlayerScoring>) {
   const position = POSITIONS.includes(player.position) ? player.position : 'forward';
   const cleanSheetPoints = (player.cleanSheets || 0) * scoring.cleanSheet[position];
+  const assistPoints = (player.assists || 0) * scoring.assist[position];
+  const cardPoints =
+    (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
   return (
     (player.goals || 0) * scoring.goal[position] +
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
-    cleanSheetPoints
+    cleanSheetPoints +
+    assistPoints +
+    cardPoints
   );
 }
 
@@ -187,6 +244,9 @@ export class PlayerService {
       mvps: player.mvps || 0,
       penaltiesSaved: player.penaltiesSaved || 0,
       cleanSheets: player.cleanSheets || 0,
+      assists: player.assists || 0,
+      yellowCards: player.yellowCards || 0,
+      redCards: player.redCards || 0,
     };
 
     for (const key of STATS) {

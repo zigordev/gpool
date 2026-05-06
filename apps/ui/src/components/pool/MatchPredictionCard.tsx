@@ -105,9 +105,9 @@ export function MatchPredictionCard({
       <article
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr) 8.5rem',
+          gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)',
           alignItems: 'center',
-          gap: '0.35rem',
+          gap: '0.25rem 0.35rem',
           padding: '0.38rem 0.5rem',
           borderRadius: 'var(--radius-sm)',
           background: tone.tint,
@@ -217,12 +217,16 @@ export function MatchPredictionCard({
 
         <div
           style={{
+            gridColumn: '1 / -1',
             minWidth: 0,
-            display: 'grid',
-            justifyItems: 'end',
-            gap: '0.1rem',
-            fontSize: '0.65rem',
-            lineHeight: 1.1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.5rem',
+            paddingTop: '0.28rem',
+            borderTop: '1px dashed rgb(var(--border) / 0.75)',
+            fontSize: '0.68rem',
+            lineHeight: 1.2,
             color: 'rgb(var(--fg-muted))',
           }}
         >
@@ -234,6 +238,7 @@ export function MatchPredictionCard({
               whiteSpace: 'nowrap',
               fontWeight: 600,
               color: 'rgb(var(--fg-subtle))',
+              minWidth: 0,
             }}
           >
             {matchDate}
@@ -241,6 +246,8 @@ export function MatchPredictionCard({
           <span
             style={{
               maxWidth: '100%',
+              minWidth: 0,
+              textAlign: 'right',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',

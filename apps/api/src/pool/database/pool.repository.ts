@@ -373,7 +373,10 @@ export class PoolRepository {
           COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(s.mvps, 0)::int AS mvps,
           COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
-          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets"
+          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(s.assists, 0)::int AS assists,
+          COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
         LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
         ${where}
@@ -401,7 +404,10 @@ export class PoolRepository {
           COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(s.mvps, 0)::int AS mvps,
           COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
-          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets"
+          COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(s.assists, 0)::int AS assists,
+          COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
         LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
         WHERE tournament_players.player_id = $1
@@ -432,6 +438,9 @@ export class PoolRepository {
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(ps.assists, 0)::int AS assists,
+          COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.red_cards, 0)::int AS "redCards",
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
@@ -465,6 +474,9 @@ export class PoolRepository {
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(ps.assists, 0)::int AS assists,
+          COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.red_cards, 0)::int AS "redCards",
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
@@ -498,6 +510,9 @@ export class PoolRepository {
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(ps.assists, 0)::int AS assists,
+          COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.red_cards, 0)::int AS "redCards",
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a
         INNER JOIN tournament_players p ON p.player_id = a.player_id
@@ -531,6 +546,9 @@ export class PoolRepository {
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(ps.assists, 0)::int AS assists,
+          COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.red_cards, 0)::int AS "redCards",
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a
         INNER JOIN tournament_players p ON p.player_id = a.player_id
@@ -552,6 +570,9 @@ export class PoolRepository {
       mvps?: number;
       penaltiesSaved?: number;
       cleanSheets?: number;
+      assists?: number;
+      yellowCards?: number;
+      redCards?: number;
     },
   ) {
     const now = Math.floor(Date.now() / 1000);
@@ -564,10 +585,13 @@ export class PoolRepository {
           mvps,
           penalties_saved,
           clean_sheets,
+          assists,
+          yellow_cards,
+          red_cards,
           created_at,
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)
         ON CONFLICT (player_id)
         DO UPDATE SET
           goals = EXCLUDED.goals,
@@ -575,6 +599,9 @@ export class PoolRepository {
           mvps = EXCLUDED.mvps,
           penalties_saved = EXCLUDED.penalties_saved,
           clean_sheets = EXCLUDED.clean_sheets,
+          assists = EXCLUDED.assists,
+          yellow_cards = EXCLUDED.yellow_cards,
+          red_cards = EXCLUDED.red_cards,
           updated_at = EXCLUDED.updated_at
         RETURNING
           player_id AS "playerId",
@@ -583,6 +610,9 @@ export class PoolRepository {
           mvps::int AS mvps,
           penalties_saved::int AS "penaltiesSaved",
           clean_sheets::int AS "cleanSheets",
+          assists::int AS assists,
+          yellow_cards::int AS "yellowCards",
+          red_cards::int AS "redCards",
           updated_at::int AS "updatedAt"
       `,
       [
@@ -592,6 +622,9 @@ export class PoolRepository {
         Math.max(0, stats.mvps ?? 0),
         Math.max(0, stats.penaltiesSaved ?? 0),
         Math.max(0, stats.cleanSheets ?? 0),
+        Math.max(0, stats.assists ?? 0),
+        Math.max(0, stats.yellowCards ?? 0),
+        Math.max(0, stats.redCards ?? 0),
         now,
       ],
     );

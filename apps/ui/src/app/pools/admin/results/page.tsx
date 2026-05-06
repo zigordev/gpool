@@ -85,6 +85,9 @@ interface TournamentPlayer {
   mvps?: number;
   penaltiesSaved?: number;
   cleanSheets?: number;
+  assists?: number;
+  yellowCards?: number;
+  redCards?: number;
   totalPoints?: number;
 }
 
@@ -97,7 +100,15 @@ interface PoolSummary {
 
 type AdminTab = 'configuration' | 'groups' | 'final' | 'players';
 type PrizePayout = { rank: number; percentage: number };
-type PlayerStatKey = 'goals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'cleanSheets';
+type PlayerStatKey =
+  | 'goals'
+  | 'missedPenalties'
+  | 'mvps'
+  | 'penaltiesSaved'
+  | 'cleanSheets'
+  | 'assists'
+  | 'yellowCards'
+  | 'redCards';
 type BracketRoundScoring = {
   exactPositionPoints: number;
   correctTeamWrongPositionPoints: number;
@@ -125,6 +136,13 @@ const DEFAULT_PLAYER_SCORING = {
   mvp: 5,
   penaltySaved: 5,
   cleanSheet: { goalkeeper: 4, defender: 3, midfielder: 1, forward: 0 },
+  // Per-position assist values. GKs default to 0 since assists are extremely
+  // rare for keepers; admins can still configure them.
+  assist: { goalkeeper: 0, defender: 4, midfielder: 3, forward: 2 },
+  // Cards subtract points — values are stored signed so the math is just a
+  // multiplication by the stat count.
+  yellowCard: -1,
+  redCard: -3,
   award: {
     goldenBoot: 15,
     tournamentMvp: 15,
@@ -133,10 +151,13 @@ const DEFAULT_PLAYER_SCORING = {
 
 const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: string; labelKey: string }> = [
   { key: 'goals', icon: '⚽', labelKey: 'adminResults.players.actions.goals' },
-  { key: 'missedPenalties', icon: '✕', labelKey: 'adminResults.players.actions.missedPenalties' },
-  { key: 'mvps', icon: '★', labelKey: 'adminResults.players.actions.mvps' },
+  { key: 'assists', icon: '🅰', labelKey: 'adminResults.players.actions.assists' },
+  { key: 'missedPenalties', icon: '❌', labelKey: 'adminResults.players.actions.missedPenalties' },
+  { key: 'mvps', icon: '⭐️', labelKey: 'adminResults.players.actions.mvps' },
   { key: 'penaltiesSaved', icon: '🧤', labelKey: 'adminResults.players.actions.penaltiesSaved' },
   { key: 'cleanSheets', icon: '🛡', labelKey: 'adminResults.players.actions.cleanSheets' },
+  { key: 'yellowCards', icon: '🟨', labelKey: 'adminResults.players.actions.yellowCards' },
+  { key: 'redCards', icon: '🟥', labelKey: 'adminResults.players.actions.redCards' },
 ];
 
 function unwrapArray<T>(value: any): T[] {
@@ -243,12 +264,17 @@ function resolveCleanSheetScoring(value: any): typeof DEFAULT_PLAYER_SCORING.cle
 
 function computePlayerPoints(player: TournamentPlayer, scoring: typeof DEFAULT_PLAYER_SCORING): number {
   const cleanSheetPoints = (player.cleanSheets || 0) * scoring.cleanSheet[player.position];
+  const assistPoints = (player.assists || 0) * scoring.assist[player.position];
+  const cardPoints =
+    (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
   return (
     (player.goals || 0) * scoring.goal[player.position] +
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
-    cleanSheetPoints
+    cleanSheetPoints +
+    assistPoints +
+    cardPoints
   );
 }
 
@@ -380,6 +406,14 @@ function AdminResultsContent() {
               mvp: pool.config.playerScoring.mvp ?? DEFAULT_PLAYER_SCORING.mvp,
               penaltySaved: pool.config.playerScoring.penaltySaved ?? DEFAULT_PLAYER_SCORING.penaltySaved,
               cleanSheet: resolveCleanSheetScoring(pool.config.playerScoring.cleanSheet),
+              assist: {
+                goalkeeper: pool.config.playerScoring.assist?.goalkeeper ?? DEFAULT_PLAYER_SCORING.assist.goalkeeper,
+                defender: pool.config.playerScoring.assist?.defender ?? DEFAULT_PLAYER_SCORING.assist.defender,
+                midfielder: pool.config.playerScoring.assist?.midfielder ?? DEFAULT_PLAYER_SCORING.assist.midfielder,
+                forward: pool.config.playerScoring.assist?.forward ?? DEFAULT_PLAYER_SCORING.assist.forward,
+              },
+              yellowCard: pool.config.playerScoring.yellowCard ?? DEFAULT_PLAYER_SCORING.yellowCard,
+              redCard: pool.config.playerScoring.redCard ?? DEFAULT_PLAYER_SCORING.redCard,
               award: {
                 goldenBoot: pool.config.playerScoring.award?.goldenBoot ?? DEFAULT_PLAYER_SCORING.award.goldenBoot,
                 tournamentMvp:
@@ -662,6 +696,9 @@ function AdminResultsContent() {
         mvps: player.mvps || 0,
         penaltiesSaved: player.penaltiesSaved || 0,
         cleanSheets: player.cleanSheets || 0,
+        assists: player.assists || 0,
+        yellowCards: player.yellowCards || 0,
+        redCards: player.redCards || 0,
         [stat]: next,
       });
       setPlayers((prev) =>
@@ -675,6 +712,9 @@ function AdminResultsContent() {
                   mvps: updated.data?.mvps ?? item.mvps,
                   penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved,
                   cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets,
+                  assists: updated.data?.assists ?? item.assists,
+                  yellowCards: updated.data?.yellowCards ?? item.yellowCards,
+                  redCards: updated.data?.redCards ?? item.redCards,
                 };
                 return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) };
               })()
@@ -1136,6 +1176,83 @@ function AdminResultsContent() {
                       marginBottom: '0.5rem',
                     }}
                   >
+                    {t('adminResults.config.players.subgroups.assistsByPosition')}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    <FormField label={t('adminResults.players.scoring.assistGoalkeeper')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={playerScoringConfig.assist.goalkeeper}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10) || 0;
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            assist: { ...prev.assist, goalkeeper: Math.max(0, value) },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                    <FormField label={t('adminResults.players.scoring.assistDefender')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={playerScoringConfig.assist.defender}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10) || 0;
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            assist: { ...prev.assist, defender: Math.max(0, value) },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                    <FormField label={t('adminResults.players.scoring.assistMidfielder')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={playerScoringConfig.assist.midfielder}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10) || 0;
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            assist: { ...prev.assist, midfielder: Math.max(0, value) },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                    <FormField label={t('adminResults.players.scoring.assistForward')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={playerScoringConfig.assist.forward}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10) || 0;
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            assist: { ...prev.assist, forward: Math.max(0, value) },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+
+                <div>
+                  <p
+                    style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'rgb(var(--fg-subtle))',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     {t('adminResults.config.players.subgroups.individualActions')}
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
@@ -1169,6 +1286,57 @@ function AdminResultsContent() {
                         onChange={(e) => {
                           const value = parseInt(e.target.value, 10) || 0;
                           setPlayerScoringConfig((prev) => ({ ...prev, penaltySaved: value }));
+                        }}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+
+                <div>
+                  <p
+                    style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      color: 'rgb(var(--fg-subtle))',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    {t('adminResults.config.players.subgroups.discipline')}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    <FormField
+                      label={t('adminResults.players.scoring.yellowCard')}
+                      hint={t('adminResults.players.scoring.cardHint')}
+                    >
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={playerScoringConfig.yellowCard}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            yellowCard: Number.isFinite(value) ? value : 0,
+                          }));
+                        }}
+                      />
+                    </FormField>
+                    <FormField
+                      label={t('adminResults.players.scoring.redCard')}
+                      hint={t('adminResults.players.scoring.cardHint')}
+                    >
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={playerScoringConfig.redCard}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          setPlayerScoringConfig((prev) => ({
+                            ...prev,
+                            redCard: Number.isFinite(value) ? value : 0,
+                          }));
                         }}
                       />
                     </FormField>

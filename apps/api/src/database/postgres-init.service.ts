@@ -80,10 +80,16 @@ export class PostgresInitService implements OnModuleInit {
         mvps INTEGER NOT NULL DEFAULT 0,
         penalties_saved INTEGER NOT NULL DEFAULT 0,
         clean_sheets INTEGER NOT NULL DEFAULT 0,
+        assists INTEGER NOT NULL DEFAULT 0,
+        yellow_cards INTEGER NOT NULL DEFAULT 0,
+        red_cards INTEGER NOT NULL DEFAULT 0,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL
       );
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS clean_sheets INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS assists INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS yellow_cards INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS red_cards INTEGER NOT NULL DEFAULT 0;
 
       CREATE TABLE IF NOT EXISTS pool_player_selections (
         pool_id TEXT NOT NULL,

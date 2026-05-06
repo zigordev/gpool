@@ -83,6 +83,9 @@ interface TournamentPlayer {
   mvps?: number;
   penaltiesSaved?: number;
   cleanSheets?: number;
+  assists?: number;
+  yellowCards?: number;
+  redCards?: number;
   totalPoints?: number;
 }
 
@@ -1265,6 +1268,7 @@ function PoolDetailContent() {
                               <article
                                 key={selectionKey}
                                 style={{
+                                  position: 'relative',
                                   minWidth: 0,
                                   display: 'flex',
                                   alignItems: 'center',
@@ -1281,6 +1285,12 @@ function PoolDetailContent() {
                                   transition: 'opacity 0.15s ease, background 0.15s ease',
                                 }}
                               >
+                                {selected ? (
+                                  <PlayerTotalPointsBadge
+                                    points={selected.totalPoints || 0}
+                                    label={t('poolDetail.players.points', { points: selected.totalPoints || 0 })}
+                                  />
+                                ) : null}
                                 <div
                                   style={{
                                     width: '2rem',
@@ -1341,15 +1351,15 @@ function PoolDetailContent() {
                                   {selected ? (
                                     <PlayerActionSummary
                                       player={selected}
-                                      pointsLabel={t('poolDetail.players.points', {
-                                        points: selected.totalPoints || 0,
-                                      })}
                                       labels={{
                                         goals: t('poolDetail.players.actions.goals'),
                                         missedPenalties: t('poolDetail.players.actions.missedPenalties'),
                                         mvps: t('poolDetail.players.actions.mvps'),
                                         penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
                                         cleanSheets: t('poolDetail.players.actions.cleanSheets'),
+                                        assists: t('poolDetail.players.actions.assists'),
+                                        yellowCards: t('poolDetail.players.actions.yellowCards'),
+                                        redCards: t('poolDetail.players.actions.redCards'),
                                       }}
                                     />
                                   ) : null}
@@ -1459,64 +1469,113 @@ interface PlayerPickerLabels {
 
 function PlayerActionSummary({
   player,
-  pointsLabel,
   labels,
 }: {
-  player: Pick<TournamentPlayer, 'goals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'cleanSheets'>;
-  pointsLabel: string;
+  player: Pick<
+    TournamentPlayer,
+    | 'goals'
+    | 'missedPenalties'
+    | 'mvps'
+    | 'penaltiesSaved'
+    | 'cleanSheets'
+    | 'assists'
+    | 'yellowCards'
+    | 'redCards'
+  >;
   labels: {
     goals: string;
     missedPenalties: string;
     mvps: string;
     penaltiesSaved: string;
     cleanSheets: string;
+    assists: string;
+    yellowCards: string;
+    redCards: string;
   };
 }) {
+  // All 8 stats render as pills regardless of value — zero-valued ones are
+  // visually muted so the user always sees what scoring categories exist.
   const items = [
     { key: 'goals', value: player.goals || 0, label: labels.goals, icon: '⚽' },
-    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: '✕' },
-    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: '★' },
+    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: '🅰' },
+    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: '❌' },
+    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: '⭐️' },
     { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: '🧤' },
     { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: '🛡' },
-  ].filter((item) => item.value > 0);
+    { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: '🟨' },
+    { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: '🟥' },
+  ];
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-      {items.map((item) => (
-        <span
-          key={item.key}
-          title={`${item.label}: ${item.value}`}
-          aria-label={`${item.label}: ${item.value}`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.12rem',
-            padding: '0.08rem 0.28rem',
-            borderRadius: '999px',
-            background: 'rgb(var(--bg-subtle) / 0.88)',
-            border: '1px solid rgb(var(--border-subtle))',
-            color: 'rgb(var(--fg))',
-            fontSize: '0.58rem',
-            fontWeight: 800,
-            lineHeight: 1,
-          }}
-        >
-          <span aria-hidden>{item.icon}</span>
-          <span>{item.value}</span>
-        </span>
-      ))}
-      <span
-        style={{
-          marginLeft: items.length > 0 ? '0.1rem' : 0,
-          color: 'rgb(var(--fg-muted))',
-          fontSize: '0.58rem',
-          fontWeight: 800,
-          lineHeight: 1,
-        }}
-      >
-        {pointsLabel}
-      </span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
+      {items.map((item) => {
+        const isZero = item.value === 0;
+        return (
+          <span
+            key={item.key}
+            title={`${item.label}: ${item.value}`}
+            aria-label={`${item.label}: ${item.value}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.12rem',
+              padding: '0.08rem 0.28rem',
+              borderRadius: '999px',
+              background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)',
+              border: isZero
+                ? '1px dashed rgb(var(--border-subtle))'
+                : '1px solid rgb(var(--border-subtle))',
+              color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))',
+              opacity: isZero ? 0.45 : 1,
+              filter: isZero ? 'grayscale(85%)' : 'none',
+              fontSize: '0.58rem',
+              fontWeight: 800,
+              lineHeight: 1,
+            }}
+          >
+            <span aria-hidden>{item.icon}</span>
+            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
+          </span>
+        );
+      })}
     </div>
+  );
+}
+
+/**
+ * Prominent total-points pill that anchors the top-right corner of a player
+ * card. Uses the gold accent so it pops against both the green pitch and the
+ * neutral surface beneath the cards.
+ */
+function PlayerTotalPointsBadge({ points, label }: { points: number; label: string }) {
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      style={{
+        position: 'absolute',
+        top: '-0.45rem',
+        right: '-0.45rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '1.6rem',
+        padding: '0.18rem 0.45rem',
+        borderRadius: '999px',
+        background: 'linear-gradient(135deg, rgb(var(--gold)), rgb(var(--sunset)))',
+        color: 'rgb(var(--accent-fg))',
+        fontSize: '0.72rem',
+        fontWeight: 800,
+        lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums',
+        border: '2px solid rgb(var(--bg-elevated))',
+        boxShadow: '0 4px 12px rgb(15 23 42 / 0.20)',
+        zIndex: 2,
+        pointerEvents: 'none',
+      }}
+    >
+      {points}
+    </span>
   );
 }
 
