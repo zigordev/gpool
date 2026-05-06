@@ -10,6 +10,7 @@ import { countryFlag, countryWithFlag } from '@/lib/country-flags';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
+import { buildBracketProjection } from '@/lib/bracket-projection';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +24,10 @@ import { RankCard } from '@/components/pool/RankCard';
 
 interface Match {
   matchId: string;
+  matchNumber?: number;
   groupId: string;
+  homeTeamId?: string;
+  awayTeamId?: string;
   homeTeamName: string;
   awayTeamName: string;
   scheduledAt: string;
@@ -325,6 +329,7 @@ function PoolDetailContent() {
   const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; points: number }>>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
+  const [resettingBracketDefaults, setResettingBracketDefaults] = useState(false);
   const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?: string; code?: string }>>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerSelections, setPlayerSelections] = useState<Record<string, PlayerSelection>>({});
@@ -609,6 +614,67 @@ function PoolDetailContent() {
     [t],
   );
 
+  const poolDeadline = resolveDeadline(pool);
+  const bracketProjection = useMemo(
+    () =>
+      buildBracketProjection({
+        matchesByGroup,
+        groupPredictions: predictions,
+        teams,
+        bracket,
+        bracketPredictions,
+      }),
+    [matchesByGroup, predictions, teams, bracket, bracketPredictions],
+  );
+  const effectiveBracketPredictions = bracketProjection.effectivePredictions;
+
+  const handleResetBracketDefaults = async () => {
+    if (Date.now() >= poolDeadline) {
+      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+      return;
+    }
+
+    const resetPredictions = bracketProjection.resetPredictions;
+    const matches = Object.values(bracket).flat();
+    if (matches.length === 0) return;
+
+    try {
+      setResettingBracketDefaults(true);
+      const savedEntries = await Promise.all(
+        matches.map(async (match: any) => {
+          const prediction = resetPredictions[match.bracketMatchId] || {
+            bracketMatchId: match.bracketMatchId,
+            homeTeamId: '',
+            homeTeamName: '',
+            awayTeamId: '',
+            awayTeamName: '',
+            predictedWinnerTeamId: '',
+            predictedWinnerTeamName: '',
+          };
+          const response = await apiClient.post(
+            `/pools/${poolId}/bracket/matches/${match.bracketMatchId}/predict`,
+            {
+              homeTeamId: prediction.homeTeamId || '',
+              homeTeamName: prediction.homeTeamName || '',
+              awayTeamId: prediction.awayTeamId || '',
+              awayTeamName: prediction.awayTeamName || '',
+              predictedWinnerTeamId: '',
+              predictedWinnerTeamName: '',
+            },
+          );
+          return [match.bracketMatchId, response.data] as const;
+        }),
+      );
+
+      setBracketPredictions(Object.fromEntries(savedEntries));
+      toast.success(t('poolDetail.finalPhase.defaultsReset'));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
+    } finally {
+      setResettingBracketDefaults(false);
+    }
+  };
+
   if (loading) {
     return (
       <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
@@ -622,7 +688,6 @@ function PoolDetailContent() {
   }
 
   const memberCount = pool.memberCount ?? (pool.members ? pool.members.length : 0);
-  const poolDeadline = resolveDeadline(pool);
   const isPastPoolDeadline = Date.now() >= poolDeadline;
   const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
   const prizeDistribution = resolvePrizeDistribution(pool);
@@ -640,7 +705,7 @@ function PoolDetailContent() {
   const finalMissingCount = Object.values(bracket)
     .flat()
     .filter((match: any) => {
-      const prediction = bracketPredictions[match.bracketMatchId];
+      const prediction = effectiveBracketPredictions[match.bracketMatchId];
       return !prediction?.homeTeamId || !prediction?.awayTeamId;
     }).length;
   const playerAwardSelectionCount = PLAYER_AWARDS.filter((award) => playerAwardSelections[award.key]).length;
@@ -859,13 +924,16 @@ function PoolDetailContent() {
                             const prediction =
                               predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
                             const isPastDeadline = Date.now() >= poolDeadline;
-                            const matchDate = new Date(match.scheduledAt).toLocaleString(locale, {
+                            const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
                               hour: 'numeric',
                               minute: '2-digit',
                             });
+                            const matchDate = match.matchNumber
+                              ? `P${match.matchNumber} · ${formattedDate}`
+                              : formattedDate;
 
                             const hasResults =
                               typeof match.homeResult === 'number' &&
@@ -950,84 +1018,100 @@ function PoolDetailContent() {
         {activeTab === 'final' ? (
           <div className="tabs-panel">
             {Object.keys(bracket).length > 0 ? (
-              <BracketVisualization
-                bracket={bracket}
-                teams={teams}
-                poolId={poolId}
-                mode="user"
-                bracketPredictions={bracketPredictions}
-                deadline={poolDeadline}
-                exactPositionPoints={bracketScoringConfig.exactPositionPoints}
-                correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
-                roundScoring={bracketScoringConfig.rounds}
-                onPredictionChange={async (
-                  bracketMatchId: string,
-                  side: 'home' | 'away' | 'winner',
-                  teamId: string,
-                  teamName: string,
-                ) => {
-                  if (Date.now() >= poolDeadline) {
-                    toast.error(t('poolDetail.finalPhase.deadlinePassed'));
-                    return;
-                  }
-
-                  try {
-                    const prediction = bracketPredictions[bracketMatchId];
-                    const updates: any = {
-                      predictedWinnerTeamId: prediction?.predictedWinnerTeamId || '',
-                      predictedWinnerTeamName: prediction?.predictedWinnerTeamName || '',
-                    };
-                    if (side === 'home') {
-                      updates.homeTeamId = teamId;
-                      updates.homeTeamName = teamName;
-                      updates.awayTeamId = prediction?.awayTeamId || '';
-                      updates.awayTeamName = prediction?.awayTeamName || '';
-                      if (
-                        updates.predictedWinnerTeamId &&
-                        updates.predictedWinnerTeamId !== teamId &&
-                        updates.predictedWinnerTeamId !== updates.awayTeamId
-                      ) {
-                        updates.predictedWinnerTeamId = '';
-                        updates.predictedWinnerTeamName = '';
-                      }
-                    } else if (side === 'away') {
-                      updates.homeTeamId = prediction?.homeTeamId || '';
-                      updates.homeTeamName = prediction?.homeTeamName || '';
-                      updates.awayTeamId = teamId;
-                      updates.awayTeamName = teamName;
-                      if (
-                        updates.predictedWinnerTeamId &&
-                        updates.predictedWinnerTeamId !== updates.homeTeamId &&
-                        updates.predictedWinnerTeamId !== teamId
-                      ) {
-                        updates.predictedWinnerTeamId = '';
-                        updates.predictedWinnerTeamName = '';
-                      }
-                    } else {
-                      updates.homeTeamId = prediction?.homeTeamId || '';
-                      updates.homeTeamName = prediction?.homeTeamName || '';
-                      updates.awayTeamId = prediction?.awayTeamId || '';
-                      updates.awayTeamName = prediction?.awayTeamName || '';
-                      updates.predictedWinnerTeamId = teamId;
-                      updates.predictedWinnerTeamName = teamName;
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetBracketDefaults}
+                    disabled={isPastPoolDeadline || resettingBracketDefaults}
+                    loading={resettingBracketDefaults}
+                  >
+                    {resettingBracketDefaults
+                      ? t('poolDetail.finalPhase.resettingDefaults')
+                      : t('poolDetail.finalPhase.resetDefaults')}
+                  </Button>
+                </div>
+                <BracketVisualization
+                  bracket={bracket}
+                  teams={teams}
+                  poolId={poolId}
+                  mode="user"
+                  bracketPredictions={effectiveBracketPredictions}
+                  candidateOptions={bracketProjection.candidateOptions}
+                  deadline={poolDeadline}
+                  exactPositionPoints={bracketScoringConfig.exactPositionPoints}
+                  correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
+                  roundScoring={bracketScoringConfig.rounds}
+                  onPredictionChange={async (
+                    bracketMatchId: string,
+                    side: 'home' | 'away' | 'winner',
+                    teamId: string,
+                    teamName: string,
+                  ) => {
+                    if (Date.now() >= poolDeadline) {
+                      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+                      return;
                     }
 
-                    await apiClient.post(
-                      `/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`,
-                      updates,
-                    );
+                    try {
+                      const prediction = effectiveBracketPredictions[bracketMatchId];
+                      const updates: any = {
+                        predictedWinnerTeamId: prediction?.predictedWinnerTeamId || '',
+                        predictedWinnerTeamName: prediction?.predictedWinnerTeamName || '',
+                      };
+                      if (side === 'home') {
+                        updates.homeTeamId = teamId;
+                        updates.homeTeamName = teamName;
+                        updates.awayTeamId = prediction?.awayTeamId || '';
+                        updates.awayTeamName = prediction?.awayTeamName || '';
+                        if (
+                          updates.predictedWinnerTeamId &&
+                          updates.predictedWinnerTeamId !== teamId &&
+                          updates.predictedWinnerTeamId !== updates.awayTeamId
+                        ) {
+                          updates.predictedWinnerTeamId = '';
+                          updates.predictedWinnerTeamName = '';
+                        }
+                      } else if (side === 'away') {
+                        updates.homeTeamId = prediction?.homeTeamId || '';
+                        updates.homeTeamName = prediction?.homeTeamName || '';
+                        updates.awayTeamId = teamId;
+                        updates.awayTeamName = teamName;
+                        if (
+                          updates.predictedWinnerTeamId &&
+                          updates.predictedWinnerTeamId !== updates.homeTeamId &&
+                          updates.predictedWinnerTeamId !== teamId
+                        ) {
+                          updates.predictedWinnerTeamId = '';
+                          updates.predictedWinnerTeamName = '';
+                        }
+                      } else {
+                        updates.homeTeamId = prediction?.homeTeamId || '';
+                        updates.homeTeamName = prediction?.homeTeamName || '';
+                        updates.awayTeamId = prediction?.awayTeamId || '';
+                        updates.awayTeamName = prediction?.awayTeamName || '';
+                        updates.predictedWinnerTeamId = teamId;
+                        updates.predictedWinnerTeamName = teamName;
+                      }
 
-                    setBracketPredictions((prev) => ({
-                      ...prev,
-                      [bracketMatchId]: { ...prediction, ...updates },
-                    }));
+                      const response = await apiClient.post(
+                        `/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`,
+                        updates,
+                      );
 
-                    toast.success(t('poolDetail.finalPhase.predictionSaved'));
-                  } catch (err: any) {
-                    toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
-                  }
-                }}
-              />
+                      setBracketPredictions((prev) => ({
+                        ...prev,
+                        [bracketMatchId]: response.data || { ...prediction, ...updates },
+                      }));
+
+                      toast.success(t('poolDetail.finalPhase.predictionSaved'));
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
+                    }
+                  }}
+                />
+              </div>
             ) : (
               <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
                 {t('poolDetail.finalPhase.bracketUnavailable')}
@@ -1498,12 +1582,12 @@ function PlayerActionSummary({
   const items = [
     { key: 'goals', value: player.goals || 0, label: labels.goals, icon: '⚽' },
     { key: 'assists', value: player.assists || 0, label: labels.assists, icon: '🅰' },
-    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: '❌' },
     { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: '⭐️' },
     { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: '🧤' },
     { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: '🛡' },
     { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: '🟨' },
     { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: '🟥' },
+    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: '❌' },
   ];
 
   return (

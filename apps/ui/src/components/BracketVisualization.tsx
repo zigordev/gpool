@@ -13,6 +13,8 @@ interface BracketMatch {
   homeTeamName?: string;
   awayTeamId?: string;
   awayTeamName?: string;
+  homeSourceLabel?: string;
+  awaySourceLabel?: string;
   homeResult?: number;
   awayResult?: number;
   status?: string;
@@ -54,6 +56,7 @@ interface BracketVisualizationProps {
   submittingResult?: string | null;
   // User mode props
   bracketPredictions?: Record<string, BracketPrediction>;
+  candidateOptions?: Record<string, { home: Team[]; away: Team[] }>;
   deadline?: number;
   onPredictionChange?: (
     bracketMatchId: string,
@@ -67,7 +70,7 @@ interface BracketVisualizationProps {
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
 }
 
-const MATCH_HEIGHT = 110;
+const MATCH_HEIGHT = 124;
 const MATCH_GAP = 10;
 const ROUND_GAP = 24;
 const MATCH_BOX_WIDTH = 140;
@@ -190,7 +193,11 @@ export function BracketVisualization({
   mode = 'admin',
   updatingMatch = null,
   onUpdateTeam,
+  onUpdateResult,
+  bracketResults = {},
+  submittingResult = null,
   bracketPredictions = {},
+  candidateOptions = {},
   deadline,
   onPredictionChange,
   exactPositionPoints = 5,
@@ -199,6 +206,27 @@ export function BracketVisualization({
 }: BracketVisualizationProps) {
   const { t } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
+
+  const selectedTeamIdsInPhase = (
+    phaseKey: string,
+    excludeMatchId: string,
+    excludeSide: Slot,
+  ): Set<string> => {
+    const ids = new Set<string>();
+    (bracket[phaseKey] || []).forEach((match) => {
+      const prediction = bracketPredictions[match.bracketMatchId] || {};
+      const homeTeamId = mode === 'admin' ? match.homeTeamId : prediction.homeTeamId;
+      const awayTeamId = mode === 'admin' ? match.awayTeamId : prediction.awayTeamId;
+
+      if (!(match.bracketMatchId === excludeMatchId && excludeSide === 'home') && homeTeamId) {
+        ids.add(homeTeamId);
+      }
+      if (!(match.bracketMatchId === excludeMatchId && excludeSide === 'away') && awayTeamId) {
+        ids.add(awayTeamId);
+      }
+    });
+    return ids;
+  };
 
   const getMatchTop = (
     matchIndex: number,
@@ -326,6 +354,11 @@ export function BracketVisualization({
           }
 
           const prediction = bracketPredictions[match.bracketMatchId] || {};
+          const matchCandidates = candidateOptions[match.bracketMatchId];
+          const unavailableTeamIds = {
+            home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
+            away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
+          };
           const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
           const homeTeamExactPosition = hasBothTeams && prediction.homeTeamExactPosition === true;
           const awayTeamExactPosition = hasBothTeams && prediction.awayTeamExactPosition === true;
@@ -354,6 +387,8 @@ export function BracketVisualization({
                 updatingMatch={updatingMatch}
                 onUpdateTeam={onUpdateTeam}
                 prediction={prediction}
+                candidateTeams={matchCandidates}
+                unavailableTeamIds={unavailableTeamIds}
                 isDeadlinePassed={isDeadlinePassed}
                 onPredictionChange={onPredictionChange}
                 isFinal={isFinal}
@@ -372,6 +407,275 @@ export function BracketVisualization({
           );
         })}
         </div>
+      </div>
+    );
+  };
+
+  const renderStandaloneMatch = (
+    phaseKey: string,
+    label: string,
+    match: BracketMatch | undefined,
+    isFinal: boolean = false,
+  ) => {
+    if (!match) return null;
+
+    const tone = toneFor(phaseKey);
+    const prediction = bracketPredictions[match.bracketMatchId] || {};
+    const matchCandidates = candidateOptions[match.bracketMatchId];
+    const unavailableTeamIds = {
+      home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
+      away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
+    };
+    const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
+    const homeTeamExactPosition = hasBothTeams && prediction.homeTeamExactPosition === true;
+    const awayTeamExactPosition = hasBothTeams && prediction.awayTeamExactPosition === true;
+    const homeTeamCorrectButWrongPosition =
+      hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
+    const awayTeamCorrectButWrongPosition =
+      hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
+    const points = prediction.points || 0;
+
+    return (
+      <div
+        style={{
+          width: `${MATCH_BOX_WIDTH}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              padding: '0.25rem 0.55rem',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: tone.label,
+              background: tone.tint,
+              border: `1px solid ${tone.border}`,
+              borderRadius: '999px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: tone.label,
+                flexShrink: 0,
+              }}
+            />
+            {label}
+          </span>
+        </div>
+        <BracketMatchBox
+          match={match}
+          teams={teams}
+          poolId={poolId}
+          mode={mode}
+          updatingMatch={updatingMatch}
+          onUpdateTeam={onUpdateTeam}
+          prediction={prediction}
+          candidateTeams={matchCandidates}
+          unavailableTeamIds={unavailableTeamIds}
+          isDeadlinePassed={isDeadlinePassed}
+          onPredictionChange={onPredictionChange}
+          isFinal={isFinal}
+          phaseKey={phaseKey}
+          homeTeamExactPosition={homeTeamExactPosition}
+          awayTeamExactPosition={awayTeamExactPosition}
+          homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
+          awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
+          points={points}
+          exactPositionPoints={roundScoring[phaseKey]?.exactPositionPoints ?? exactPositionPoints}
+          correctTeamWrongPositionPoints={
+            roundScoring[phaseKey]?.correctTeamWrongPositionPoints ?? correctTeamWrongPositionPoints
+          }
+        />
+      </div>
+    );
+  };
+
+  const renderTournamentWinnerCard = (match: BracketMatch | undefined) => {
+    if (!match) return null;
+
+    const tone = toneFor('finals');
+    const prediction = bracketPredictions[match.bracketMatchId] || {};
+    const isAdmin = mode === 'admin';
+    const finalResult = bracketResults[match.bracketMatchId];
+    const resultHome =
+      typeof finalResult?.homeResult === 'number'
+        ? finalResult.homeResult
+        : typeof match.homeResult === 'number'
+        ? match.homeResult
+        : null;
+    const resultAway =
+      typeof finalResult?.awayResult === 'number'
+        ? finalResult.awayResult
+        : typeof match.awayResult === 'number'
+        ? match.awayResult
+        : null;
+    const homeTeamId = isAdmin ? match.homeTeamId || '' : prediction.homeTeamId || '';
+    const awayTeamId = isAdmin ? match.awayTeamId || '' : prediction.awayTeamId || '';
+    const homeTeamName = isAdmin ? match.homeTeamName || '' : prediction.homeTeamName || '';
+    const awayTeamName = isAdmin ? match.awayTeamName || '' : prediction.awayTeamName || '';
+    const selectedWinnerTeamId = isAdmin
+      ? resultHome !== null && resultAway !== null && resultHome !== resultAway
+        ? resultHome > resultAway
+          ? homeTeamId
+          : awayTeamId
+        : ''
+      : prediction.predictedWinnerTeamId || '';
+    const isDisabled = isAdmin
+      ? poolId === 'all-pools' ||
+        submittingResult === match.bracketMatchId ||
+        !homeTeamId ||
+        !awayTeamId ||
+        !onUpdateResult
+      : poolId === 'all-pools' ||
+        Boolean(isDeadlinePassed) ||
+        !homeTeamId ||
+        !awayTeamId ||
+        !onPredictionChange;
+    const handleWinnerChange = (teamId: string) => {
+      if (isAdmin) {
+        if (!onUpdateResult || !teamId) return;
+        if (teamId === homeTeamId) {
+          onUpdateResult(match.bracketMatchId, 1, 0);
+        } else if (teamId === awayTeamId) {
+          onUpdateResult(match.bracketMatchId, 0, 1);
+        }
+        return;
+      }
+
+      if (!onPredictionChange) return;
+      if (teamId === homeTeamId) {
+        onPredictionChange(match.bracketMatchId, 'winner', homeTeamId, homeTeamName || '');
+      } else if (teamId === awayTeamId) {
+        onPredictionChange(match.bracketMatchId, 'winner', awayTeamId, awayTeamName || '');
+      } else {
+        onPredictionChange(match.bracketMatchId, 'winner', '', '');
+      }
+    };
+
+    return (
+      <div
+        style={{
+          width: `${MATCH_BOX_WIDTH}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              padding: '0.25rem 0.55rem',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: tone.label,
+              background: tone.tint,
+              border: `1px solid ${tone.border}`,
+              borderRadius: '999px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: tone.label,
+                flexShrink: 0,
+              }}
+            />
+            {t('bracket.winner')}
+          </span>
+        </div>
+        <article
+          style={{
+            background: 'rgb(var(--bg-elevated))',
+            border: '1px solid rgb(var(--border))',
+            borderTop: `3px solid ${tone.label}`,
+            boxShadow: `var(--shadow-sm), 0 0 0 1px ${tone.ring}`,
+            padding: '0.45rem',
+            borderRadius: 'var(--radius-sm)',
+            minWidth: `${MATCH_BOX_WIDTH - 8}px`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.35rem',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: tone.label,
+            }}
+          >
+            {t('bracket.winner')}
+          </span>
+          <select
+            aria-label={t('bracket.selectTournamentWinner')}
+            value={selectedWinnerTeamId}
+            onChange={(e) => handleWinnerChange(e.target.value)}
+            disabled={isDisabled}
+            style={{
+              width: '100%',
+              padding: '0.35rem 0.45rem',
+              border: `1px solid ${
+                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                  ? 'rgb(var(--gold))'
+                  : 'rgb(var(--border))'
+              }`,
+              borderRadius: 'var(--radius-sm)',
+              background:
+                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                  ? 'rgb(var(--gold) / 0.08)'
+                  : isDisabled
+                  ? 'rgb(var(--bg-subtle))'
+                  : 'rgb(var(--bg))',
+              color: 'rgb(var(--fg))',
+              fontSize: '0.76rem',
+              fontWeight: 700,
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              cursor: isDisabled ? 'not-allowed' : 'pointer',
+              opacity: isDisabled ? 0.7 : 1,
+            }}
+          >
+            <option value="" style={{ color: '#000' }}>
+              {t('bracket.selectTournamentWinner')}
+            </option>
+            {homeTeamId ? (
+              <option value={homeTeamId} style={{ color: '#000' }}>
+                {countryWithFlag(homeTeamName || homeTeamId)}
+              </option>
+            ) : null}
+            {awayTeamId ? (
+              <option value={awayTeamId} style={{ color: '#000' }}>
+                {countryWithFlag(awayTeamName || awayTeamId)}
+              </option>
+            ) : null}
+          </select>
+        </article>
       </div>
     );
   };
@@ -456,13 +760,16 @@ export function BracketVisualization({
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-start',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1.5rem',
             height: `${maxHeight}px`,
             justifyContent: 'center',
             position: 'relative',
           }}
         >
-          {renderRound('finals', t('bracket.round.final'), bracket['finals'] || [], false, false, true)}
+          {renderTournamentWinnerCard(bracket['finals']?.[0])}
+          {renderStandaloneMatch('finals', t('bracket.round.final'), bracket['finals']?.[0], true)}
         </div>
 
         {/* Right side */}
@@ -492,6 +799,8 @@ interface BracketMatchBoxProps {
   updatingMatch?: string | null;
   onUpdateTeam?: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => void;
   prediction?: BracketPrediction;
+  candidateTeams?: { home: Team[]; away: Team[] };
+  unavailableTeamIds?: { home: Set<string>; away: Set<string> };
   isDeadlinePassed?: boolean;
   onPredictionChange?: (
     bracketMatchId: string,
@@ -519,6 +828,8 @@ function BracketMatchBox({
   updatingMatch,
   onUpdateTeam,
   prediction,
+  candidateTeams,
+  unavailableTeamIds,
   isDeadlinePassed,
   onPredictionChange,
   isFinal = false,
@@ -542,8 +853,9 @@ function BracketMatchBox({
   const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';
   const homeTeamName = isAdmin ? match.homeTeamName : prediction?.homeTeamName || '';
   const awayTeamName = isAdmin ? match.awayTeamName : prediction?.awayTeamName || '';
-  const predictedWinnerTeamId = prediction?.predictedWinnerTeamId || '';
   const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
+  const homeOptions = !isAdmin && candidateTeams ? candidateTeams.home : teams;
+  const awayOptions = !isAdmin && candidateTeams ? candidateTeams.away : teams;
 
   const homeState: SlotState = slotState(
     isAdmin,
@@ -568,17 +880,6 @@ function BracketMatchBox({
     }
   };
 
-  const handleWinnerChange = (teamId: string) => {
-    if (!onPredictionChange) return;
-    if (teamId === homeTeamId) {
-      onPredictionChange(match.bracketMatchId, 'winner', homeTeamId, homeTeamName || '');
-    } else if (teamId === awayTeamId) {
-      onPredictionChange(match.bracketMatchId, 'winner', awayTeamId, awayTeamName || '');
-    } else {
-      onPredictionChange(match.bracketMatchId, 'winner', '', '');
-    }
-  };
-
   return (
     <article
       style={{
@@ -589,7 +890,7 @@ function BracketMatchBox({
         padding: '0.35rem 0.45rem',
         borderRadius: 'var(--radius-sm)',
         minWidth: `${MATCH_BOX_WIDTH - 8}px`,
-        minHeight: !isAdmin && isFinal ? 132 : 102,
+        minHeight: 102,
         display: 'flex',
         flexDirection: 'column',
         gap: '0.25rem',
@@ -613,72 +914,33 @@ function BracketMatchBox({
             color: phaseTone.label,
           }}
         >
-          {isFinal ? t('bracket.round.final') : t('bracket.match', { number: match.matchNumber })}
+          {isFinal ? `${t('bracket.round.final')} · P${match.matchNumber}` : `P${match.matchNumber}`}
         </span>
         {!isAdmin && points > 0 ? <Badge variant="gold">{points}</Badge> : null}
       </div>
 
       <BracketSlot
         teamId={homeTeamId || ''}
-        teams={teams}
+        teams={homeOptions}
         disabled={isDisabled}
         state={homeState}
         onChange={(teamId, teamName) => handleTeamChange('home', teamId, teamName)}
         ariaLabel={t('bracket.selectTeam')}
+        sourceLabel={match.homeSourceLabel}
+        unavailableTeamIds={unavailableTeamIds?.home}
       />
 
       <BracketSlot
         teamId={awayTeamId || ''}
-        teams={teams}
+        teams={awayOptions}
         disabled={isDisabled}
         state={awayState}
         onChange={(teamId, teamName) => handleTeamChange('away', teamId, teamName)}
         ariaLabel={t('bracket.selectTeam')}
+        sourceLabel={match.awaySourceLabel}
+        unavailableTeamIds={unavailableTeamIds?.away}
       />
 
-      {!isAdmin && isFinal ? (
-        <select
-          aria-label={t('bracket.selectTournamentWinner')}
-          value={predictedWinnerTeamId}
-          onChange={(e) => handleWinnerChange(e.target.value)}
-          disabled={isDisabled || !homeTeamId || !awayTeamId}
-          style={{
-            width: '100%',
-            padding: '0.3rem 0.4rem',
-            border: `1px solid ${
-              prediction?.tournamentWinnerCorrect === true ? 'rgb(var(--gold))' : 'rgb(var(--border))'
-            }`,
-            borderRadius: 'var(--radius-sm)',
-            background:
-              prediction?.tournamentWinnerCorrect === true
-                ? 'rgb(var(--gold) / 0.08)'
-                : isDisabled || !homeTeamId || !awayTeamId
-                ? 'rgb(var(--bg-subtle))'
-                : 'rgb(var(--bg))',
-            color: 'rgb(var(--fg))',
-            fontSize: '0.76rem',
-            fontWeight: 700,
-            appearance: 'none',
-            WebkitAppearance: 'none',
-            cursor: isDisabled || !homeTeamId || !awayTeamId ? 'not-allowed' : 'pointer',
-            opacity: isDisabled || !homeTeamId || !awayTeamId ? 0.7 : 1,
-          }}
-        >
-          <option value="" style={{ color: '#000' }}>
-            {t('bracket.selectTournamentWinner')}
-          </option>
-          {homeTeamId ? (
-            <option value={homeTeamId} style={{ color: '#000' }}>
-              {countryWithFlag(homeTeamName || homeTeamId)}
-            </option>
-          ) : null}
-          {awayTeamId ? (
-            <option value={awayTeamId} style={{ color: '#000' }}>
-              {countryWithFlag(awayTeamName || awayTeamId)}
-            </option>
-          ) : null}
-        </select>
-      ) : null}
     </article>
   );
 }
@@ -690,9 +952,21 @@ interface BracketSlotProps {
   state: SlotState;
   onChange: (teamId: string, teamName: string) => void;
   ariaLabel: string;
+  sourceLabel?: string;
+  unavailableTeamIds?: Set<string>;
 }
 
-function BracketSlot({ teamId, teams, disabled, state, onChange, ariaLabel }: BracketSlotProps) {
+function BracketSlot({
+  teamId,
+  teams,
+  disabled,
+  state,
+  onChange,
+  ariaLabel,
+  sourceLabel,
+  unavailableTeamIds,
+}: BracketSlotProps) {
+  const { t } = useI18n();
   const borderColor = slotBorderColor(state);
   const isExact = state === 'exact';
   const isCorrect = state === 'correct-wrong-position';
@@ -706,38 +980,58 @@ function BracketSlot({ teamId, teams, disabled, state, onChange, ariaLabel }: Br
     : 'rgb(var(--bg))';
 
   return (
-    <select
-      aria-label={ariaLabel}
-      value={teamId || ''}
-      onChange={(e) => {
-        const selected = teams.find((team) => team.teamId === e.target.value);
-        if (selected) onChange(selected.teamId, selected.name);
-      }}
-      disabled={disabled}
-      style={{
-        width: '100%',
-        padding: '0.3rem 0.4rem',
-        border: `1px solid ${borderColor}`,
-        borderRadius: 'var(--radius-sm)',
-        background: tintBg,
-        color: 'rgb(var(--fg))',
-        fontSize: '0.78rem',
-        fontWeight: 600,
-        appearance: 'none',
-        WebkitAppearance: 'none',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.7 : 1,
-        transition: 'border-color 0.15s ease, background 0.15s ease',
-      }}
-    >
-      <option value="" style={{ color: '#000' }}>
-        {ariaLabel}
-      </option>
-      {teams.map((team) => (
-        <option key={team.teamId} value={team.teamId} style={{ color: '#000' }}>
-          {countryWithFlag(team.name)}
+    <div style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}>
+      {sourceLabel ? (
+        <span
+          title={sourceLabel}
+          style={{
+            fontSize: '0.58rem',
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            color: 'rgb(var(--fg-muted))',
+            lineHeight: 1,
+          }}
+        >
+          {sourceLabel}
+        </span>
+      ) : null}
+      <select
+        aria-label={sourceLabel ? `${ariaLabel} ${sourceLabel}` : ariaLabel}
+        value={teamId || ''}
+        onChange={(e) => {
+          const selected = teams.find((team) => team.teamId === e.target.value);
+          if (selected) onChange(selected.teamId, selected.name);
+        }}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          padding: '0.3rem 0.4rem',
+          border: `1px solid ${borderColor}`,
+          borderRadius: 'var(--radius-sm)',
+          background: tintBg,
+          color: 'rgb(var(--fg))',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.7 : 1,
+          transition: 'border-color 0.15s ease, background 0.15s ease',
+        }}
+      >
+        <option value="" style={{ color: '#000' }}>
+          {sourceLabel || ariaLabel}
         </option>
-      ))}
-    </select>
+        {teams.map((team) => {
+          const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
+          return (
+            <option key={team.teamId} value={team.teamId} disabled={isUnavailable} style={{ color: '#000' }}>
+              {countryWithFlag(team.name)}
+              {isUnavailable ? ` - ${t('bracket.alreadySelected')}` : ''}
+            </option>
+          );
+        })}
+      </select>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,7 @@ import { Section } from '@/components/ui/Section';
 
 interface Match {
   matchId: string;
+  matchNumber?: number;
   groupId: string;
   homeTeamName: string;
   awayTeamName: string;
@@ -58,6 +59,8 @@ interface BracketMatch {
   homeTeamName?: string;
   awayTeamId?: string;
   awayTeamName?: string;
+  homeSourceLabel?: string;
+  awaySourceLabel?: string;
   homeResult?: number;
   awayResult?: number;
   status?: string;
@@ -152,12 +155,12 @@ const DEFAULT_PLAYER_SCORING = {
 const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: string; labelKey: string }> = [
   { key: 'goals', icon: '⚽', labelKey: 'adminResults.players.actions.goals' },
   { key: 'assists', icon: '🅰', labelKey: 'adminResults.players.actions.assists' },
-  { key: 'missedPenalties', icon: '❌', labelKey: 'adminResults.players.actions.missedPenalties' },
   { key: 'mvps', icon: '⭐️', labelKey: 'adminResults.players.actions.mvps' },
   { key: 'penaltiesSaved', icon: '🧤', labelKey: 'adminResults.players.actions.penaltiesSaved' },
   { key: 'cleanSheets', icon: '🛡', labelKey: 'adminResults.players.actions.cleanSheets' },
   { key: 'yellowCards', icon: '🟨', labelKey: 'adminResults.players.actions.yellowCards' },
   { key: 'redCards', icon: '🟥', labelKey: 'adminResults.players.actions.redCards' },
+  { key: 'missedPenalties', icon: '❌', labelKey: 'adminResults.players.actions.missedPenalties' },
 ];
 
 function unwrapArray<T>(value: any): T[] {
@@ -262,6 +265,50 @@ function resolveCleanSheetScoring(value: any): typeof DEFAULT_PLAYER_SCORING.cle
   };
 }
 
+/**
+ * Builds the wire payload sent to `PUT /pools/:poolId/configuration`. Pure
+ * function (no hooks/state read) so the same shape can be computed both from
+ * the React state during auto-save and from the freshly-loaded server values
+ * on initial fetch — letting us seed `lastSavedConfig` and avoid saving the
+ * data we just loaded straight back to the server.
+ */
+function buildConfigPayloadFrom(input: {
+  scoring: { winnerPoints: number; exactResultPoints: number };
+  bracketScoring: BracketScoringConfig;
+  playerScoring: typeof DEFAULT_PLAYER_SCORING;
+  awardWinners: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
+  deadlineLocal: string;
+  entryFee: number;
+  prizeDistribution: PrizePayout[];
+}) {
+  return {
+    scoring: {
+      winnerPoints: input.scoring.winnerPoints,
+      exactResultPoints: input.scoring.exactResultPoints,
+    },
+    bracketScoring: {
+      exactPositionPoints: input.bracketScoring.exactPositionPoints,
+      correctTeamWrongPositionPoints: input.bracketScoring.correctTeamWrongPositionPoints,
+      tournamentWinnerPoints: input.bracketScoring.tournamentWinnerPoints,
+      rounds: input.bracketScoring.rounds,
+    },
+    playerScoring: input.playerScoring,
+    playerAwardWinners: {
+      goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds,
+      tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '',
+    },
+    deadline: fromDateTimeLocal(input.deadlineLocal),
+    entryFee: Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0,
+    prizeDistribution: {
+      paidPositions: input.prizeDistribution.length,
+      payouts: input.prizeDistribution.map((row, index) => ({
+        rank: index + 1,
+        percentage: Number(row.percentage.toFixed(2)),
+      })),
+    },
+  };
+}
+
 function computePlayerPoints(player: TournamentPlayer, scoring: typeof DEFAULT_PLAYER_SCORING): number {
   const cleanSheetPoints = (player.cleanSheets || 0) * scoring.cleanSheet[player.position];
   const assistPoints = (player.assists || 0) * scoring.assist[player.position];
@@ -288,6 +335,16 @@ function AdminResultsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  // Per-match debounce timers for auto-saving results. Stored on a ref instead
+  // of state so the cleared/replaced timers don't trigger unnecessary
+  // re-renders mid-keystroke.
+  const resultSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Config auto-save: hold the JSON snapshot of the last persisted config so
+  // the effect can short-circuit when the values match (avoids saving the data
+  // that we just loaded back to the server). The matching debounce timer
+  // collapses fast successive edits into one network call.
+  const lastSavedConfig = useRef<string | null>(null);
+  const configSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [results, setResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
   const [scoringConfig, setScoringConfig] = useState({ winnerPoints: 1, exactResultPoints: 3 });
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(
@@ -421,7 +478,7 @@ function AdminResultsContent() {
               },
             });
           }
-          setPlayerAwardWinnersConfig({
+          const loadedAwardWinners = {
             goldenBootPlayerIds: Array.isArray(pool?.config?.playerAwardWinners?.goldenBootPlayerIds)
               ? pool.config.playerAwardWinners.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string')
               : [],
@@ -429,7 +486,62 @@ function AdminResultsContent() {
               typeof pool?.config?.playerAwardWinners?.tournamentMvpPlayerId === 'string'
                 ? pool.config.playerAwardWinners.tournamentMvpPlayerId
                 : '',
-          });
+          };
+          setPlayerAwardWinnersConfig(loadedAwardWinners);
+
+          // Seed the auto-save baseline so the first effect run after the
+          // initial load doesn't re-PUT the data we just GET'd.
+          const loadedScoring = pool?.config?.scoring
+            ? {
+                winnerPoints: pool.config.scoring.winnerPoints ?? 1,
+                exactResultPoints: pool.config.scoring.exactResultPoints ?? 3,
+              }
+            : { winnerPoints: 1, exactResultPoints: 3 };
+          const loadedBracketScoring = pool?.config?.bracketScoring
+            ? normalizeBracketScoring(pool.config.bracketScoring)
+            : normalizeBracketScoring({});
+          const loadedPlayerScoring = {
+            goal: {
+              goalkeeper: pool?.config?.playerScoring?.goal?.goalkeeper ?? DEFAULT_PLAYER_SCORING.goal.goalkeeper,
+              defender: pool?.config?.playerScoring?.goal?.defender ?? DEFAULT_PLAYER_SCORING.goal.defender,
+              midfielder: pool?.config?.playerScoring?.goal?.midfielder ?? DEFAULT_PLAYER_SCORING.goal.midfielder,
+              forward: pool?.config?.playerScoring?.goal?.forward ?? DEFAULT_PLAYER_SCORING.goal.forward,
+            },
+            missedPenalty: pool?.config?.playerScoring?.missedPenalty ?? DEFAULT_PLAYER_SCORING.missedPenalty,
+            mvp: pool?.config?.playerScoring?.mvp ?? DEFAULT_PLAYER_SCORING.mvp,
+            penaltySaved: pool?.config?.playerScoring?.penaltySaved ?? DEFAULT_PLAYER_SCORING.penaltySaved,
+            cleanSheet: resolveCleanSheetScoring(pool?.config?.playerScoring?.cleanSheet),
+            assist: {
+              goalkeeper: pool?.config?.playerScoring?.assist?.goalkeeper ?? DEFAULT_PLAYER_SCORING.assist.goalkeeper,
+              defender: pool?.config?.playerScoring?.assist?.defender ?? DEFAULT_PLAYER_SCORING.assist.defender,
+              midfielder: pool?.config?.playerScoring?.assist?.midfielder ?? DEFAULT_PLAYER_SCORING.assist.midfielder,
+              forward: pool?.config?.playerScoring?.assist?.forward ?? DEFAULT_PLAYER_SCORING.assist.forward,
+            },
+            yellowCard: pool?.config?.playerScoring?.yellowCard ?? DEFAULT_PLAYER_SCORING.yellowCard,
+            redCard: pool?.config?.playerScoring?.redCard ?? DEFAULT_PLAYER_SCORING.redCard,
+            award: {
+              goldenBoot: pool?.config?.playerScoring?.award?.goldenBoot ?? DEFAULT_PLAYER_SCORING.award.goldenBoot,
+              tournamentMvp:
+                pool?.config?.playerScoring?.award?.tournamentMvp ?? DEFAULT_PLAYER_SCORING.award.tournamentMvp,
+            },
+          };
+          const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
+          const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
+          const loadedPrizeDistribution = normalizePrizeDistribution(
+            pool?.config?.prizeDistribution,
+            prizePaidPositionsLimit(memberCount),
+          );
+          lastSavedConfig.current = JSON.stringify(
+            buildConfigPayloadFrom({
+              scoring: loadedScoring,
+              bracketScoring: loadedBracketScoring,
+              playerScoring: loadedPlayerScoring,
+              awardWinners: loadedAwardWinners,
+              deadlineLocal: loadedDeadlineLocal,
+              entryFee: loadedEntryFee,
+              prizeDistribution: loadedPrizeDistribution,
+            }),
+          );
 
           const bracketData = bracketResponse.data || {};
           setBracket(bracketData);
@@ -497,6 +609,43 @@ function AdminResultsContent() {
     }
   }, [user, t]);
 
+  // Debounced auto-save: any change to the config state schedules a save 600 ms
+  // later. The snapshot diff inside autoSaveConfig short-circuits when the
+  // server already has the same values (e.g. on the first effect run after
+  // fetchData populated state) so we don't save what we just loaded.
+  useEffect(() => {
+    if (loading) return;
+    if (!poolId || poolId === 'all-pools') return;
+    // Skip while the prize percentages don't add up to 100 — show the
+    // validation message inline instead of pushing an invalid payload.
+    const prizeSum = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
+    if (prizeDistribution.length > 0 && Math.abs(prizeSum - 100) > 0.01) return;
+
+    if (configSaveTimer.current) clearTimeout(configSaveTimer.current);
+    configSaveTimer.current = setTimeout(() => {
+      configSaveTimer.current = null;
+      void autoSaveConfig();
+    }, 600);
+
+    return () => {
+      if (configSaveTimer.current) {
+        clearTimeout(configSaveTimer.current);
+        configSaveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    scoringConfig,
+    bracketScoringConfig,
+    playerScoringConfig,
+    playerAwardWinnersConfig,
+    deadlineLocal,
+    entryFee,
+    prizeDistribution,
+    poolId,
+    loading,
+  ]);
+
   const handleResultChange = (matchId: string, side: 'home' | 'away', value: string) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
     const numValue = value === '' ? '' : Math.max(0, parseInt(value, 10) || 0);
@@ -509,77 +658,61 @@ function AdminResultsContent() {
           prev[matchId]?.[side === 'home' ? 'awayResult' : 'homeResult'] ?? '',
       },
     }));
-  };
 
-  const handleSaveScoringConfig = async () => {
-    if (!poolId || poolId === 'all-pools') {
-      toast.error(t('adminResults.errors.selectPoolFirst'));
-      return;
-    }
-    const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
-    if (prizeDistribution.length > 0 && Math.abs(prizeTotal - 100) > 0.01) {
-      toast.error(t('adminResults.errors.prizeDistributionTotal'));
-      return;
-    }
-    const maxPaidPositions = prizePaidPositionsLimit(poolMemberCount);
-    if (prizeDistribution.length > maxPaidPositions) {
-      toast.error(t('adminResults.errors.prizePaidPositionsLimit', { count: maxPaidPositions }));
-      return;
-    }
-    try {
-      setSavingConfig(true);
-      await apiClient.put(`/pools/${poolId}/configuration`, {
-        scoring: {
-          winnerPoints: scoringConfig.winnerPoints,
-          exactResultPoints: scoringConfig.exactResultPoints,
-        },
-        bracketScoring: {
-          exactPositionPoints: bracketScoringConfig.exactPositionPoints,
-          correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints,
-          tournamentWinnerPoints: bracketScoringConfig.tournamentWinnerPoints,
-          rounds: bracketScoringConfig.rounds,
-        },
-        playerScoring: playerScoringConfig,
-        playerAwardWinners: {
-          goldenBootPlayerIds: playerAwardWinnersConfig.goldenBootPlayerIds,
-          tournamentMvpPlayerId: playerAwardWinnersConfig.tournamentMvpPlayerId || '',
-        },
-        deadline: fromDateTimeLocal(deadlineLocal),
-        entryFee: Number.isFinite(entryFee) ? Math.max(0, entryFee) : 0,
-        prizeDistribution: {
-          paidPositions: prizeDistribution.length,
-          payouts: prizeDistribution.map((row, index) => ({
-            rank: index + 1,
-            percentage: Number(row.percentage.toFixed(2)),
-          })),
-        },
+    // Auto-save: debounce 500 ms and only fire when both scores are filled in,
+    // so a half-typed result like "3" doesn't trigger a request that would be
+    // immediately superseded by the next keystroke.
+    const existing = resultSaveTimers.current[matchId];
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      delete resultSaveTimers.current[matchId];
+      setResults((current) => {
+        const r = current[matchId];
+        if (r && r.homeResult !== '' && r.awayResult !== '') {
+          void autoSaveResults(matchId, r.homeResult, r.awayResult);
+        }
+        return current;
       });
-      toast.success(t('adminResults.toast.scoringSaved'));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.saveScoring'));
-    } finally {
-      setSavingConfig(false);
-    }
+    }, 500);
+    resultSaveTimers.current[matchId] = timer;
   };
 
-  const handleSaveResults = async (matchId: string) => {
-    const result = results[matchId];
-    if (!result || result.homeResult === '' || result.awayResult === '') {
-      toast.error(t('adminResults.errors.enterBothResults'));
-      return;
-    }
+  const autoSaveResults = async (matchId: string, homeResult: number, awayResult: number) => {
     try {
       setSubmitting(matchId);
       const targetPoolId = poolId !== 'all-pools' ? poolId : 'all-pools';
       await apiClient.post(`/pools/${targetPoolId}/matches/${matchId}/results`, {
-        homeResult: result.homeResult,
-        awayResult: result.awayResult,
+        homeResult,
+        awayResult,
       });
-      toast.success(t('adminResults.toast.resultsSaved'));
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('adminResults.errors.saveResults'));
     } finally {
-      setSubmitting(null);
+      setSubmitting((current) => (current === matchId ? null : current));
+    }
+  };
+
+  const autoSaveConfig = async () => {
+    if (!poolId || poolId === 'all-pools') return;
+    const payload = buildConfigPayloadFrom({
+      scoring: scoringConfig,
+      bracketScoring: bracketScoringConfig,
+      playerScoring: playerScoringConfig,
+      awardWinners: playerAwardWinnersConfig,
+      deadlineLocal,
+      entryFee,
+      prizeDistribution,
+    });
+    const snapshot = JSON.stringify(payload);
+    if (snapshot === lastSavedConfig.current) return;
+    try {
+      setSavingConfig(true);
+      await apiClient.put(`/pools/${poolId}/configuration`, payload);
+      lastSavedConfig.current = snapshot;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.saveScoring'));
+    } finally {
+      setSavingConfig(false);
     }
   };
 
@@ -1531,16 +1664,37 @@ function AdminResultsContent() {
               </div>
             </Section>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="primary"
-                size="sm"
-                loading={savingConfig}
-                disabled={savingConfig || poolNotSelected || prizeTotalInvalid}
-                onClick={handleSaveScoringConfig}
-              >
-                {savingConfig ? t('common.saving') : t('adminResults.scoring.save')}
-              </Button>
+            <div
+              aria-live="polite"
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: '0.4rem',
+                minHeight: '1.4rem',
+                fontSize: '0.78rem',
+                color: 'rgb(var(--fg-muted))',
+                fontStyle: 'italic',
+              }}
+            >
+              {savingConfig ? (
+                <>
+                  <span
+                    aria-hidden
+                    className="btn-spinner"
+                    style={{ width: '0.75rem', height: '0.75rem', borderWidth: 2 }}
+                  />
+                  {t('adminResults.scoring.savingAuto')}
+                </>
+              ) : prizeTotalInvalid ? (
+                <span style={{ color: 'rgb(var(--live))', fontStyle: 'normal', fontWeight: 600 }}>
+                  {t('adminResults.scoring.prizeTotalInvalid')}
+                </span>
+              ) : poolNotSelected ? (
+                <span style={{ fontStyle: 'normal' }}>{t('adminResults.errors.selectPoolFirst')}</span>
+              ) : (
+                <span aria-hidden>{t('adminResults.scoring.savedAuto')}</span>
+              )}
             </div>
           </div>
         ) : null}
@@ -1572,9 +1726,6 @@ function AdminResultsContent() {
                               result={results[match.matchId] || { homeResult: '', awayResult: '' }}
                               submitting={submitting === match.matchId}
                               onChange={handleResultChange}
-                              onSave={handleSaveResults}
-                              saveLabel={t('common.save')}
-                              updateLabel={t('common.update')}
                               savingLabel={t('common.saving')}
                             />
                           ))}
@@ -1857,9 +2008,6 @@ interface ResultEntryRowProps {
   result: { homeResult: number | ''; awayResult: number | '' };
   submitting: boolean;
   onChange: (matchId: string, side: 'home' | 'away', value: string) => void;
-  onSave: (matchId: string) => void;
-  saveLabel: string;
-  updateLabel: string;
   savingLabel: string;
 }
 
@@ -1869,20 +2017,16 @@ function ResultEntryRow({
   result,
   submitting,
   onChange,
-  onSave,
-  saveLabel,
-  updateLabel,
   savingLabel,
 }: ResultEntryRowProps) {
-  const matchDate = new Date(match.scheduledAt).toLocaleString(locale, {
+  const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   });
-  const hasResults = result.homeResult !== '' && result.awayResult !== '';
-  const canSave = result.homeResult !== '' && result.awayResult !== '';
+  const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
   const alreadyHadResult =
     typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
 
@@ -1890,7 +2034,7 @@ function ResultEntryRow({
     <article
       style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr) 8rem 5.2rem',
+        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr) 9rem',
         alignItems: 'center',
         gap: '0.35rem',
         padding: '0.38rem 0.5rem',
@@ -1961,7 +2105,7 @@ function ResultEntryRow({
           minWidth: 0,
           display: 'grid',
           justifyItems: 'end',
-          gap: '0.1rem',
+          gap: '0.15rem',
           fontSize: '0.65rem',
           lineHeight: 1.1,
           color: 'rgb(var(--fg-muted))',
@@ -1979,21 +2123,30 @@ function ResultEntryRow({
         >
           {matchDate}
         </span>
-        <span style={{ fontWeight: 700, color: alreadyHadResult ? 'rgb(var(--info))' : 'rgb(var(--fg-muted))' }}>
-          {alreadyHadResult ? 'FT' : hasResults ? updateLabel : saveLabel}
-        </span>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant={hasResults ? 'outline' : 'primary'}
-          size="sm"
-          loading={submitting}
-          disabled={submitting || !canSave}
-          onClick={() => onSave(match.matchId)}
-        >
-          {submitting ? savingLabel : alreadyHadResult || hasResults ? updateLabel : saveLabel}
-        </Button>
+        {submitting ? (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              color: 'rgb(var(--fg-muted))',
+              fontWeight: 600,
+              fontStyle: 'italic',
+            }}
+            aria-live="polite"
+          >
+            <span
+              aria-hidden
+              className="btn-spinner"
+              style={{ width: '0.7rem', height: '0.7rem', borderWidth: 2 }}
+            />
+            {savingLabel}
+          </span>
+        ) : alreadyHadResult ? (
+          <Badge variant="info" style={{ fontSize: '0.6rem', padding: '0.05rem 0.4rem' }}>
+            FT
+          </Badge>
+        ) : null}
       </div>
     </article>
   );

@@ -45,8 +45,11 @@
       "players": {
         "description": "Configura la puntuacion de jugadores y los ganadores de premios individuales.",
         "subgroups": {
+          "assistsByPosition": "Asistencias por posicion",
           "awardWinners": "Ganadores de premios",
           "awards": "Premios especiales",
+          "cleanSheetsByPosition": "Porterias a cero por posicion",
+          "discipline": "Disciplina",
           "goalsByPosition": "Goles por posicion",
           "individualActions": "Acciones individuales"
         },
@@ -78,11 +81,14 @@
     },
     "players": {
       "actions": {
+        "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
         "goals": "Goles",
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
-        "penaltiesSaved": "Penaltis parados"
+        "penaltiesSaved": "Penaltis parados",
+        "redCards": "Tarjetas rojas",
+        "yellowCards": "Tarjetas amarillas"
       },
       "awardWinners": {
         "goldenBoot": "Ganadores de Bota de oro",
@@ -101,7 +107,16 @@
       "noResults": "No hay jugadores que coincidan con los filtros.",
       "points": "{points} pts",
       "scoring": {
+        "assistDefender": "Asistencia de defensa",
+        "assistForward": "Asistencia de delantero",
+        "assistGoalkeeper": "Asistencia de portero",
+        "assistMidfielder": "Asistencia de mediocampista",
+        "cardHint": "Usa valores negativos para restar puntos.",
         "cleanSheet": "Porteria a cero del portero",
+        "cleanSheetDefender": "Porteria a cero de defensa",
+        "cleanSheetForward": "Porteria a cero de delantero",
+        "cleanSheetGoalkeeper": "Porteria a cero de portero",
+        "cleanSheetMidfielder": "Porteria a cero de mediocampista",
         "goalDefender": "Gol de defensa",
         "goalForward": "Gol de delantero",
         "goalGoalkeeper": "Gol de portero",
@@ -110,7 +125,9 @@
         "missedPenalty": "Penalti fallado",
         "mvp": "MVP",
         "penaltySaved": "Penalti parado",
-        "tournamentMvp": "MVP del torneo"
+        "redCard": "Tarjeta roja",
+        "tournamentMvp": "MVP del torneo",
+        "yellowCard": "Tarjeta amarilla"
       },
       "searchPlaceholder": "Buscar jugador o pais"
     },
@@ -123,7 +140,7 @@
       "deadlineHint": "Despues de esta fecha y hora no se podran enviar ni modificar predicciones.",
       "entryFee": "Cuota de entrada (EUR)",
       "entryFeeHint": "Cantidad que cada participante debe abonar para entrar en la porra. Usa 0 para porras gratuitas.",
-      "finalCorrectWrongPosition": "Puntos por equipo correcto (posicion incorrecta",
+      "finalCorrectWrongPosition": "Puntos por equipo correcto (posicion incorrecta)",
       "finalExactPosition": "Puntos por posicion exacta correcta",
       "groupPhaseExact": "Puntos por resultado exacto",
       "groupPhaseWinner": "Puntos por ganador correcto",
@@ -135,7 +152,10 @@
       "prizeTotalInvalid": "Debe sumar 100%",
       "prizeTotalValid": "Correcto",
       "save": "Guardar configuracion de puntuacion",
-      "title": "Configuracion de puntuacion"
+      "savedAuto": "Cambios guardados",
+      "savingAuto": "Guardando cambios...",
+      "title": "Configuracion de puntuacion",
+      "tournamentWinner": "Ganador del torneo"
     },
     "tabs": {
       "configuration": "Configuración",
@@ -170,8 +190,10 @@
       "semi": "Semifinales"
     },
     "selectTeam": "Selecciona equipo",
+    "selectTournamentWinner": "Selecciona ganador del torneo",
     "totalPoints": "Total: +{points} pts",
-    "vs": "vs"
+    "vs": "vs",
+    "winner": "Ganador"
   },
   "common": {
     "backToPools": "Volver a porras",
@@ -227,7 +249,10 @@
     "finalPhase": {
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
+      "defaultsReset": "Fase final reiniciada con los valores por defecto",
       "predictionSaved": "Prediccion guardada",
+      "resetDefaults": "Reiniciar fase final",
+      "resettingDefaults": "Reiniciando...",
       "title": "Fase final"
     },
     "groupPhase": {
@@ -255,11 +280,14 @@
     },
     "players": {
       "actions": {
+        "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
         "goals": "Goles",
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
-        "penaltiesSaved": "Penaltis parados"
+        "penaltiesSaved": "Penaltis parados",
+        "redCards": "Tarjetas rojas",
+        "yellowCards": "Tarjetas amarillas"
       },
       "awards": {
         "goldenBoot": "Bota de oro",

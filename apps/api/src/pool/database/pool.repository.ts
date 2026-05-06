@@ -734,6 +734,7 @@ export class PoolRepository {
       `
         SELECT
           match_id AS "matchId",
+          match_number AS "matchNumber",
           pool_id AS "poolId",
           group_id AS "groupId",
           home_team_id AS "homeTeamId",
@@ -760,6 +761,7 @@ export class PoolRepository {
       `
         SELECT
           match_id AS "matchId",
+          match_number AS "matchNumber",
           pool_id AS "poolId",
           group_id AS "groupId",
           home_team_id AS "homeTeamId",
@@ -774,7 +776,7 @@ export class PoolRepository {
           created_at::int AS "createdAt"
         FROM group_phase_matches
         WHERE pool_id = $1
-        ORDER BY group_id ASC, match_id ASC
+        ORDER BY group_id ASC, match_number ASC NULLS LAST, match_id ASC
       `,
       [poolId],
     );
@@ -787,6 +789,7 @@ export class PoolRepository {
       `
         SELECT
           match_id AS "matchId",
+          match_number AS "matchNumber",
           pool_id AS "poolId",
           group_id AS "groupId",
           home_team_id AS "homeTeamId",
@@ -801,7 +804,7 @@ export class PoolRepository {
           created_at::int AS "createdAt"
         FROM group_phase_matches
         WHERE pool_id = $1 AND group_id = $2
-        ORDER BY match_id ASC
+        ORDER BY match_number ASC NULLS LAST, match_id ASC
       `,
       [poolId, groupId],
     );
@@ -995,6 +998,8 @@ export class PoolRepository {
     homeTeamName?: string;
     awayTeamId?: string;
     awayTeamName?: string;
+    homeSourceLabel?: string;
+    awaySourceLabel?: string;
     homeResult?: number;
     awayResult?: number;
     scheduledAt?: string;
@@ -1011,13 +1016,15 @@ export class PoolRepository {
           home_team_name,
           away_team_id,
           away_team_name,
+          home_source_label,
+          away_source_label,
           home_result,
           away_result,
           scheduled_at,
           status,
           created_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11::timestamptz, NOW()), $12, $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13::timestamptz, NOW()), $14, $15)
         ON CONFLICT (bracket_match_id)
         DO UPDATE SET
           pool_id = EXCLUDED.pool_id,
@@ -1027,6 +1034,8 @@ export class PoolRepository {
           home_team_name = EXCLUDED.home_team_name,
           away_team_id = EXCLUDED.away_team_id,
           away_team_name = EXCLUDED.away_team_name,
+          home_source_label = EXCLUDED.home_source_label,
+          away_source_label = EXCLUDED.away_source_label,
           home_result = EXCLUDED.home_result,
           away_result = EXCLUDED.away_result,
           scheduled_at = EXCLUDED.scheduled_at,
@@ -1041,6 +1050,8 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          home_source_label AS "homeSourceLabel",
+          away_source_label AS "awaySourceLabel",
           home_result AS "homeResult",
           away_result AS "awayResult",
           scheduled_at::text AS "scheduledAt",
@@ -1057,6 +1068,8 @@ export class PoolRepository {
         bracketMatchData.homeTeamName || null,
         bracketMatchData.awayTeamId || null,
         bracketMatchData.awayTeamName || null,
+        bracketMatchData.homeSourceLabel || null,
+        bracketMatchData.awaySourceLabel || null,
         bracketMatchData.homeResult ?? null,
         bracketMatchData.awayResult ?? null,
         bracketMatchData.scheduledAt || null,
@@ -1081,6 +1094,8 @@ export class PoolRepository {
             home_team_name AS "homeTeamName",
             away_team_id AS "awayTeamId",
             away_team_name AS "awayTeamName",
+            home_source_label AS "homeSourceLabel",
+            away_source_label AS "awaySourceLabel",
             home_result AS "homeResult",
             away_result AS "awayResult",
             scheduled_at::text AS "scheduledAt",
@@ -1107,6 +1122,8 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          home_source_label AS "homeSourceLabel",
+          away_source_label AS "awaySourceLabel",
           home_result AS "homeResult",
           away_result AS "awayResult",
           scheduled_at::text AS "scheduledAt",
@@ -1144,6 +1161,8 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          home_source_label AS "homeSourceLabel",
+          away_source_label AS "awaySourceLabel",
           home_result AS "homeResult",
           away_result AS "awayResult",
           scheduled_at::text AS "scheduledAt",
@@ -1183,6 +1202,8 @@ export class PoolRepository {
           home_team_name AS "homeTeamName",
           away_team_id AS "awayTeamId",
           away_team_name AS "awayTeamName",
+          home_source_label AS "homeSourceLabel",
+          away_source_label AS "awaySourceLabel",
           home_result AS "homeResult",
           away_result AS "awayResult",
           scheduled_at::text AS "scheduledAt",

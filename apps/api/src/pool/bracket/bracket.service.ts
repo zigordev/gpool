@@ -17,6 +17,13 @@ const BRACKET_PHASES: Array<{ phase: BracketPhase; matches: number }> = [
   { phase: 'semi-finals', matches: 2 },
   { phase: 'finals', matches: 1 },
 ];
+const FIFA_BRACKET_MATCH_NUMBERS: Record<BracketPhase, number[]> = {
+  '16th-finals': [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
+  '8th-finals': [89, 90, 93, 94, 91, 92, 95, 96],
+  'quarter-finals': [97, 98, 99, 100],
+  'semi-finals': [101, 102],
+  finals: [104],
+};
 
 type BracketRoundScoring = {
   exactPositionPoints?: number;
@@ -48,6 +55,12 @@ function resolveRoundScoring(
   };
 }
 
+function bracketLayoutIndex(match: any): number {
+  const raw = String(match?.bracketMatchId || '');
+  const suffix = Number(raw.split('-').pop());
+  return Number.isFinite(suffix) ? suffix : Number(match?.matchNumber || 0);
+}
+
 @Injectable()
 export class BracketService {
   private readonly logger = new Logger(BracketService.name);
@@ -65,7 +78,6 @@ export class BracketService {
       counts.set(match.phase, (counts.get(match.phase) || 0) + 1);
     });
 
-    let startNumber = 1;
     for (const { phase, matches } of BRACKET_PHASES) {
       if ((counts.get(phase) || 0) === 0) {
         for (let index = 0; index < matches; index++) {
@@ -73,12 +85,11 @@ export class BracketService {
             bracketMatchId: `${BRACKET_POOL_ID}-${phase}-${index + 1}`,
             poolId: BRACKET_POOL_ID,
             phase,
-            matchNumber: startNumber + index,
+            matchNumber: FIFA_BRACKET_MATCH_NUMBERS[phase][index],
             status: 'scheduled',
           });
         }
       }
-      startNumber += matches;
     }
   }
 
@@ -98,19 +109,9 @@ export class BracketService {
       }
     }
 
-    let expectedStartNumber = 1;
-    for (const currentPhase of BRACKET_PHASES) {
-      if (currentPhase.phase === phase) {
-        break;
-      }
-      expectedStartNumber += currentPhase.matches;
-    }
-
-    const actualStartNumber = expectedStartNumber;
-
     const matches = [];
     for (let index = 0; index < numberOfMatches; index++) {
-      const matchNumber = actualStartNumber + index;
+      const matchNumber = FIFA_BRACKET_MATCH_NUMBERS[phase]?.[index] ?? index + 1;
       const bracketMatchId = `${BRACKET_POOL_ID}-${phase}-${index + 1}`;
       const match = await this.poolRepository.createBracketMatch({
         bracketMatchId,
@@ -123,7 +124,7 @@ export class BracketService {
     }
 
     this.logger.log(
-      `Created ${numberOfMatches} matches for phase ${phase} in pool ${poolId} starting at match number ${actualStartNumber}`,
+      `Created ${numberOfMatches} matches for phase ${phase} in pool ${poolId}`,
     );
     return matches;
   }
@@ -271,7 +272,7 @@ export class BracketService {
     for (const { phase } of BRACKET_PHASES) {
       structure[phase] = allMatches
         .filter((match: any) => match.phase === phase)
-        .sort((a: any, b: any) => a.matchNumber - b.matchNumber);
+        .sort((a: any, b: any) => bracketLayoutIndex(a) - bracketLayoutIndex(b));
     }
 
     return structure;

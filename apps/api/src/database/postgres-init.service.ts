@@ -125,6 +125,7 @@ export class PostgresInitService implements OnModuleInit {
         away_team_id TEXT NOT NULL,
         home_team_name TEXT NOT NULL,
         away_team_name TEXT NOT NULL,
+        match_number INTEGER,
         scheduled_at TIMESTAMPTZ NOT NULL,
         phase TEXT NOT NULL DEFAULT 'group',
         status TEXT NOT NULL DEFAULT 'scheduled',
@@ -133,8 +134,10 @@ export class PostgresInitService implements OnModuleInit {
         created_at BIGINT NOT NULL
       );
       ALTER TABLE group_phase_matches DROP COLUMN IF EXISTS deadline;
+      ALTER TABLE group_phase_matches ADD COLUMN IF NOT EXISTS match_number INTEGER;
       CREATE INDEX IF NOT EXISTS idx_group_phase_matches_pool_id ON group_phase_matches(pool_id);
       CREATE INDEX IF NOT EXISTS idx_group_phase_matches_pool_group ON group_phase_matches(pool_id, group_id);
+      CREATE INDEX IF NOT EXISTS idx_group_phase_matches_pool_number ON group_phase_matches(pool_id, match_number);
 
       CREATE TABLE IF NOT EXISTS group_phase_predictions (
         prediction_id TEXT PRIMARY KEY,
@@ -164,6 +167,8 @@ export class PostgresInitService implements OnModuleInit {
         home_team_name TEXT,
         away_team_id TEXT,
         away_team_name TEXT,
+        home_source_label TEXT,
+        away_source_label TEXT,
         home_result INTEGER,
         away_result INTEGER,
         scheduled_at TIMESTAMPTZ,
@@ -171,6 +176,8 @@ export class PostgresInitService implements OnModuleInit {
         created_at BIGINT NOT NULL,
         updated_at BIGINT
       );
+      ALTER TABLE final_phase_matches ADD COLUMN IF NOT EXISTS home_source_label TEXT;
+      ALTER TABLE final_phase_matches ADD COLUMN IF NOT EXISTS away_source_label TEXT;
       CREATE INDEX IF NOT EXISTS idx_final_phase_matches_pool_phase ON final_phase_matches(pool_id, phase);
 
       CREATE TABLE IF NOT EXISTS final_phase_predictions (
@@ -236,6 +243,7 @@ export class PostgresInitService implements OnModuleInit {
     type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
     type MatchSeed = {
       matchId: string;
+      matchNumber?: number;
       group: string;
       home: string;
       away: string;
@@ -392,6 +400,14 @@ export class PostgresInitService implements OnModuleInit {
       })),
     );
     const teamsByName = new Map(teams.map((team) => [team.name, team]));
+    const matchNumbersById = new Map(
+      [...matches]
+        .sort((a, b) => {
+          const byTime = toUtcIsoFromEt(a.date, a.timeEt).localeCompare(toUtcIsoFromEt(b.date, b.timeEt));
+          return byTime || a.matchId.localeCompare(b.matchId);
+        })
+        .map((match, index) => [match.matchId, index + 1]),
+    );
 
     const client = await this.postgres.getClient();
     try {
@@ -486,12 +502,13 @@ export class PostgresInitService implements OnModuleInit {
               away_team_id,
               home_team_name,
               away_team_name,
+              match_number,
               scheduled_at,
               phase,
               status,
               created_at
             )
-            VALUES ($1, 'all-pools', $2, $3, $4, $5, $6, $7, 'group', 'scheduled', $8)
+            VALUES ($1, 'all-pools', $2, $3, $4, $5, $6, $7, $8, 'group', 'scheduled', $9)
             ON CONFLICT (match_id)
             DO UPDATE SET
               pool_id = EXCLUDED.pool_id,
@@ -500,6 +517,7 @@ export class PostgresInitService implements OnModuleInit {
               away_team_id = EXCLUDED.away_team_id,
               home_team_name = EXCLUDED.home_team_name,
               away_team_name = EXCLUDED.away_team_name,
+              match_number = EXCLUDED.match_number,
               scheduled_at = EXCLUDED.scheduled_at,
               phase = EXCLUDED.phase,
               status = CASE
@@ -514,6 +532,7 @@ export class PostgresInitService implements OnModuleInit {
             awayTeam.teamId,
             homeTeam.name,
             awayTeam.name,
+            matchNumbersById.get(match.matchId) ?? null,
             scheduledAt,
             Math.floor(Date.now() / 1000),
           ],
@@ -532,56 +551,106 @@ export class PostgresInitService implements OnModuleInit {
   }
 
   private async seedBracketMatches(): Promise<void> {
-    const phases: Array<{ phase: string; matches: number }> = [
-      { phase: '16th-finals', matches: 16 },
-      { phase: '8th-finals', matches: 8 },
-      { phase: 'quarter-finals', matches: 4 },
-      { phase: 'semi-finals', matches: 2 },
-      { phase: 'finals', matches: 1 },
+    const matches: Array<{
+      phase: string;
+      index: number;
+      matchNumber: number;
+      homeSourceLabel: string;
+      awaySourceLabel: string;
+    }> = [
+      { phase: '16th-finals', index: 1, matchNumber: 74, homeSourceLabel: '1E', awaySourceLabel: '3ABCDF' },
+      { phase: '16th-finals', index: 2, matchNumber: 77, homeSourceLabel: '1I', awaySourceLabel: '3CDFGH' },
+      { phase: '16th-finals', index: 3, matchNumber: 73, homeSourceLabel: '2A', awaySourceLabel: '2B' },
+      { phase: '16th-finals', index: 4, matchNumber: 75, homeSourceLabel: '1F', awaySourceLabel: '2C' },
+      { phase: '16th-finals', index: 5, matchNumber: 83, homeSourceLabel: '2K', awaySourceLabel: '2L' },
+      { phase: '16th-finals', index: 6, matchNumber: 84, homeSourceLabel: '1H', awaySourceLabel: '2J' },
+      { phase: '16th-finals', index: 7, matchNumber: 81, homeSourceLabel: '1D', awaySourceLabel: '3BEFIJ' },
+      { phase: '16th-finals', index: 8, matchNumber: 82, homeSourceLabel: '1G', awaySourceLabel: '3AEHIJ' },
+      { phase: '16th-finals', index: 9, matchNumber: 76, homeSourceLabel: '1C', awaySourceLabel: '2F' },
+      { phase: '16th-finals', index: 10, matchNumber: 78, homeSourceLabel: '2E', awaySourceLabel: '2I' },
+      { phase: '16th-finals', index: 11, matchNumber: 79, homeSourceLabel: '1A', awaySourceLabel: '3CEFHI' },
+      { phase: '16th-finals', index: 12, matchNumber: 80, homeSourceLabel: '1L', awaySourceLabel: '3EHIJK' },
+      { phase: '16th-finals', index: 13, matchNumber: 86, homeSourceLabel: '1J', awaySourceLabel: '2H' },
+      { phase: '16th-finals', index: 14, matchNumber: 88, homeSourceLabel: '2D', awaySourceLabel: '2G' },
+      { phase: '16th-finals', index: 15, matchNumber: 85, homeSourceLabel: '1B', awaySourceLabel: '3EFGIJ' },
+      { phase: '16th-finals', index: 16, matchNumber: 87, homeSourceLabel: '1K', awaySourceLabel: '3DEIJL' },
+      { phase: '8th-finals', index: 1, matchNumber: 89, homeSourceLabel: 'W74', awaySourceLabel: 'W77' },
+      { phase: '8th-finals', index: 2, matchNumber: 90, homeSourceLabel: 'W73', awaySourceLabel: 'W75' },
+      { phase: '8th-finals', index: 3, matchNumber: 93, homeSourceLabel: 'W83', awaySourceLabel: 'W84' },
+      { phase: '8th-finals', index: 4, matchNumber: 94, homeSourceLabel: 'W81', awaySourceLabel: 'W82' },
+      { phase: '8th-finals', index: 5, matchNumber: 91, homeSourceLabel: 'W76', awaySourceLabel: 'W78' },
+      { phase: '8th-finals', index: 6, matchNumber: 92, homeSourceLabel: 'W79', awaySourceLabel: 'W80' },
+      { phase: '8th-finals', index: 7, matchNumber: 95, homeSourceLabel: 'W86', awaySourceLabel: 'W88' },
+      { phase: '8th-finals', index: 8, matchNumber: 96, homeSourceLabel: 'W85', awaySourceLabel: 'W87' },
+      { phase: 'quarter-finals', index: 1, matchNumber: 97, homeSourceLabel: 'W89', awaySourceLabel: 'W90' },
+      { phase: 'quarter-finals', index: 2, matchNumber: 98, homeSourceLabel: 'W93', awaySourceLabel: 'W94' },
+      { phase: 'quarter-finals', index: 3, matchNumber: 99, homeSourceLabel: 'W91', awaySourceLabel: 'W92' },
+      { phase: 'quarter-finals', index: 4, matchNumber: 100, homeSourceLabel: 'W95', awaySourceLabel: 'W96' },
+      { phase: 'semi-finals', index: 1, matchNumber: 101, homeSourceLabel: 'W97', awaySourceLabel: 'W98' },
+      { phase: 'semi-finals', index: 2, matchNumber: 102, homeSourceLabel: 'W99', awaySourceLabel: 'W100' },
+      { phase: 'finals', index: 1, matchNumber: 104, homeSourceLabel: 'W101', awaySourceLabel: 'W102' },
     ];
-    const countsResult = await this.postgres.query<{ phase: string; count: number }>(
-      `
-        SELECT phase, COUNT(*)::int AS count
-        FROM final_phase_matches
-        WHERE pool_id = 'all-pools'
-        GROUP BY phase
-      `,
-    );
-    const counts = new Map(countsResult.rows.map((row) => [row.phase, row.count]));
-    const complete = phases.every(({ phase, matches }) => (counts.get(phase) || 0) === matches);
-    if (complete) return;
 
     const client = await this.postgres.getClient();
     try {
       await client.query('BEGIN');
 
-      let matchNumber = 1;
-      for (const phase of phases) {
-        if ((counts.get(phase.phase) || 0) === 0) {
-          for (let i = 1; i <= phase.matches; i++) {
-            const bracketMatchId = `all-pools-${phase.phase}-${i}`;
-            await client.query(
-              `
-                INSERT INTO final_phase_matches (
-                  bracket_match_id,
-                  pool_id,
-                  phase,
-                  match_number,
-                  status,
-                  created_at
-                )
-                VALUES ($1, 'all-pools', $2, $3, 'scheduled', $4)
-                ON CONFLICT (bracket_match_id) DO NOTHING
-              `,
-              [bracketMatchId, phase.phase, matchNumber + i - 1, Math.floor(Date.now() / 1000)],
-            );
-          }
-        }
-        matchNumber += phase.matches;
+      await client.query(
+        `
+          DELETE FROM final_phase_predictions
+          WHERE bracket_match_id IN (
+            SELECT bracket_match_id
+            FROM final_phase_matches
+            WHERE pool_id = 'all-pools'
+              AND (phase = 'third-place' OR match_number = 103)
+          )
+          OR bracket_match_id = 'all-pools-third-place-1'
+        `,
+      );
+      await client.query(
+        `
+          DELETE FROM final_phase_matches
+          WHERE pool_id = 'all-pools'
+            AND (phase = 'third-place' OR match_number = 103 OR bracket_match_id = 'all-pools-third-place-1')
+        `,
+      );
+
+      for (const match of matches) {
+        const bracketMatchId = `all-pools-${match.phase}-${match.index}`;
+        await client.query(
+          `
+            INSERT INTO final_phase_matches (
+              bracket_match_id,
+              pool_id,
+              phase,
+              match_number,
+              home_source_label,
+              away_source_label,
+              status,
+              created_at
+            )
+            VALUES ($1, 'all-pools', $2, $3, $4, $5, 'scheduled', $6)
+            ON CONFLICT (bracket_match_id)
+            DO UPDATE SET
+              phase = EXCLUDED.phase,
+              match_number = EXCLUDED.match_number,
+              home_source_label = EXCLUDED.home_source_label,
+              away_source_label = EXCLUDED.away_source_label,
+              updated_at = EXCLUDED.created_at
+          `,
+          [
+            bracketMatchId,
+            match.phase,
+            match.matchNumber,
+            match.homeSourceLabel,
+            match.awaySourceLabel,
+            Math.floor(Date.now() / 1000),
+          ],
+        );
       }
 
       await client.query('COMMIT');
-      this.logger.log('Backfilled final phase matches');
+      this.logger.log('Seeded FIFA final phase match numbers');
     } catch (error: any) {
       await client.query('ROLLBACK');
       this.logger.error(`Failed to seed bracket matches: ${error.message}`, error.stack);
