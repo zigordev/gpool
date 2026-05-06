@@ -306,6 +306,11 @@ function formatEur(amount: number, locale: string): string {
   }
 }
 
+function numericPoints(value: unknown): number {
+  const points = Number(value);
+  return Number.isFinite(points) ? points : 0;
+}
+
 function PoolDetailContent() {
   const params = useParams();
   const router = useRouter();
@@ -713,11 +718,29 @@ function PoolDetailContent() {
     0,
     REQUIRED_PLAYER_SELECTIONS - Object.keys(playerSelections).length - playerAwardSelectionCount,
   );
-  const tabs: Array<{ key: PoolTab; label: string; missingCount?: number }> = [
+  const groupTotalPoints = Object.values(predictions).reduce(
+    (sum, prediction) => sum + numericPoints(prediction.points),
+    0,
+  );
+  const finalTotalPoints = Object.values(effectiveBracketPredictions).reduce(
+    (sum, prediction: any) => sum + numericPoints(prediction?.points),
+    0,
+  );
+  const playersTotalPoints =
+    Object.values(playerSelections).reduce(
+      (sum, selection) => sum + numericPoints(selection?.totalPoints),
+      0,
+    ) +
+    Object.values(playerAwardSelections).reduce(
+      (sum, selection) => sum + numericPoints(selection?.awardPoints),
+      0,
+    );
+  
+  const tabs: Array<{ key: PoolTab; label: string; missingCount?: number, totalPoints?: number }> = [
     { key: 'ranking', label: t('poolDetail.tabs.ranking') },
-    { key: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
-    { key: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
-    { key: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
+    { key: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount, totalPoints: groupTotalPoints },
+    { key: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount, totalPoints: finalTotalPoints },
+    { key: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount, totalPoints: playersTotalPoints },
   ];
   const deadlineHint = new Date(poolDeadline).toLocaleDateString(locale, {
     second: '2-digit',
@@ -812,6 +835,16 @@ function PoolDetailContent() {
                       }
                     >
                       {tab.missingCount}
+                    </Badge>
+                  ) : null}
+                  {typeof tab.totalPoints === 'number' ? (
+                    <Badge
+                      variant="sunset"
+                      className="badge-attention"
+                      title={t('poolDetail.tabs.totalPoints', { count: tab.totalPoints })}
+                      aria-label={t('poolDetail.tabs.totalPoints', { count: tab.totalPoints })}
+                    >
+                      {tab.totalPoints}
                     </Badge>
                   ) : null}
                 </button>

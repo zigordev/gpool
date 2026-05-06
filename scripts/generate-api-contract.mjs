@@ -30,9 +30,7 @@ for (const [route, methods] of Object.entries(paths)) {
 }
 
 operations.sort((a, b) =>
-  `${a.method}:${a.path}:${a.operationId}`.localeCompare(
-    `${b.method}:${b.path}:${b.operationId}`,
-  ),
+  `${a.method}:${a.path}:${a.operationId}`.localeCompare(`${b.method}:${b.path}:${b.operationId}`)
 );
 
 const file = `// Auto-generated from OpenAPI. Do not edit by hand.
@@ -49,7 +47,7 @@ export type ApiOperation = ${
   path: '${op.path}';
   operationId: '${op.operationId}';
   responseCodes: [${op.responseCodes.map((code) => `'${code}'`).join(', ')}];
-}`,
+}`
         )
         .join(' | ')
 };

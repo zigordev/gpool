@@ -11,16 +11,16 @@ services:
     volumes:
       - app-local-pgdata:/var/lib/postgresql/data
     ports:
-      - "15433:5432"
+      - '15433:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
       interval: 5s
       timeout: 3s
       retries: 20
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks:
       gp_shared:
         aliases:
@@ -58,15 +58,15 @@ services:
       NOTIFICATIONS_KAFKA_BROKERS: ${NOTIFICATIONS_KAFKA_BROKERS:-platform-redpanda:9092}
       NOTIFICATIONS_EMAIL_TOPIC: ${NOTIFICATIONS_EMAIL_TOPIC:-notification.email.requested.v1}
     ports:
-      - "3010:3000"
+      - '3010:3000'
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["node", "/app/scripts/openbao-run.mjs", "--", "node", "dist/main.js"]
+    command: ['node', '/app/scripts/openbao-run.mjs', '--', 'node', 'dist/main.js']
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks:
       gp_shared:
         aliases:
@@ -94,19 +94,19 @@ services:
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: ${TOLGEE_PROJECT_ID:?TOLGEE_PROJECT_ID is required}
     ports:
-      - "3011:3001"
+      - '3011:3001'
     depends_on:
       - api
     command:
       [
-        "sh",
-        "-lc",
-        "until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js",
+        'sh',
+        '-lc',
+        'until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
       ]
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks: [gp_shared]
 
   alloy:

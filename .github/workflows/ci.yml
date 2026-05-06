@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  HUSKY: "0"
+  HUSKY: '0'
 
 jobs:
   quality:
@@ -45,17 +45,17 @@ jobs:
           POSTGRES_PASSWORD: app
           POSTGRES_DB: gpool
           DB_HOST: postgres
-          DB_PORT: "5432"
+          DB_PORT: '5432'
           DB_USER: gpool_admin
           DB_PASSWORD: app
           DB_NAME: gpool
-          API_PORT: "3000"
-          WEB_PORT: "3001"
+          API_PORT: '3000'
+          WEB_PORT: '3001'
           NEXT_PUBLIC_API_BASE_URL: http://api.example.com
           NEXT_PUBLIC_RELEASE: ci
           CORS_ORIGINS: http://localhost:3001
-          TRUST_PROXY: "false"
-          SWAGGER_ENABLED: "false"
+          TRUST_PROXY: 'false'
+          SWAGGER_ENABLED: 'false'
           OTEL_SERVICE_NAME: gpool-api
           OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
           OPENBAO_ADDR: http://openbao:8200
@@ -65,11 +65,11 @@ jobs:
           OPENBAO_REQUIRED_KEYS_API: AUTH_SESSION_SECRET,GOOGLE_CLIENT_SECRET
           OPENBAO_REQUIRED_KEYS_WEB: AUTH_SESSION_SECRET,TOLGEE_API_KEY
           TOLGEE_API_URL: http://tolgee:8080
-          TOLGEE_PROJECT_ID: "3"
+          TOLGEE_PROJECT_ID: '3'
           JWT_SECRET: ci-jwt-secret
           JWT_REFRESH_SECRET: ci-jwt-refresh-secret
           JWT_EXPIRES_IN: 15m
-          JWT_REFRESH_EXPIRES_IN: "604800"
+          JWT_REFRESH_EXPIRES_IN: '604800'
           GOOGLE_CLIENT_ID: ci-google-id
           GOOGLE_CLIENT_SECRET: ci-google-secret
           GOOGLE_OAUTH_REDIRECT_URI: https://app.example.com/api/auth/google/callback

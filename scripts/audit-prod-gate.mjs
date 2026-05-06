@@ -35,8 +35,7 @@ function isAllowedViaEntry(via) {
     return false;
   }
 
-  const ghsa =
-    parseGhsa(via.url) ?? parseGhsa(via.title) ?? parseGhsa(via.name) ?? null;
+  const ghsa = parseGhsa(via.url) ?? parseGhsa(via.title) ?? parseGhsa(via.name) ?? null;
   if (ghsa && ALLOWED_GHSA.has(ghsa)) {
     return true;
   }
@@ -52,8 +51,7 @@ function extractGhsaIds(viaList) {
   const ids = new Set();
   for (const via of viaList) {
     if (!via || typeof via !== 'object') continue;
-    const ghsa =
-      parseGhsa(via.url) ?? parseGhsa(via.title) ?? parseGhsa(via.name) ?? null;
+    const ghsa = parseGhsa(via.url) ?? parseGhsa(via.title) ?? parseGhsa(via.name) ?? null;
     if (ghsa) ids.add(ghsa);
   }
   return ids;
@@ -85,12 +83,9 @@ function evaluateModernAudit(report) {
     const viaList = Array.isArray(vulnerability?.via) ? vulnerability.via : [];
     const viaGhsaIds = extractGhsaIds(viaList);
     const hasAllowedGhsa = [...viaGhsaIds].some((id) => ALLOWED_GHSA.has(id));
-    const highCriticalViaList = viaList.filter((via) =>
-      isHighOrCriticalVia(via, vulnerabilities),
-    );
+    const highCriticalViaList = viaList.filter((via) => isHighOrCriticalVia(via, vulnerabilities));
     const allHighCriticalViaAllowed =
-      highCriticalViaList.length > 0 &&
-      highCriticalViaList.every(isAllowedViaEntry);
+      highCriticalViaList.length > 0 && highCriticalViaList.every(isAllowedViaEntry);
     const allViaAllowed = viaList.length > 0 && viaList.every(isAllowedViaEntry);
 
     const isAllowlisted =
@@ -127,11 +122,7 @@ function evaluateLegacyAudit(report) {
     const moduleName = advisory?.module_name ?? 'unknown';
     const issue = { name: moduleName, severity, ghsa: ghsa ? [ghsa] : [] };
 
-    if (
-      ALLOWED_CHAIN_PACKAGES.has(moduleName) &&
-      ghsa &&
-      ALLOWED_GHSA.has(ghsa)
-    ) {
+    if (ALLOWED_CHAIN_PACKAGES.has(moduleName) && ghsa && ALLOWED_GHSA.has(ghsa)) {
       ignored.push(issue);
     } else {
       blockers.push(issue);
@@ -146,12 +137,8 @@ function printIssues(header, issues) {
   for (const issue of issues) {
     const ghsaSuffix = issue.ghsa.length ? ` ghsa=${issue.ghsa.join(',')}` : '';
     const fixSuffix =
-      issue.fixAvailable && issue.fixAvailable !== false
-        ? ' fix=available'
-        : ' fix=none';
-    console.error(
-      `- ${issue.name} severity=${issue.severity}${ghsaSuffix}${fixSuffix}`,
-    );
+      issue.fixAvailable && issue.fixAvailable !== false ? ' fix=available' : ' fix=none';
+    console.error(`- ${issue.name} severity=${issue.severity}${ghsaSuffix}${fixSuffix}`);
   }
 }
 
@@ -188,9 +175,7 @@ if (report?.error) {
   process.exit(1);
 }
 
-const result = report.vulnerabilities
-  ? evaluateModernAudit(report)
-  : evaluateLegacyAudit(report);
+const result = report.vulnerabilities ? evaluateModernAudit(report) : evaluateLegacyAudit(report);
 
 if (result.blockers.length > 0) {
   printIssues('Blocking high/critical vulnerabilities found:', result.blockers);

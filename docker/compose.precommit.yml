@@ -8,12 +8,12 @@ services:
       POSTGRES_PASSWORD: app
       POSTGRES_DB: gpool_test
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
       interval: 5s
       timeout: 3s
       retries: 20
     ports:
-      - "5433:5432"
+      - '5433:5432'
 
   api:
     build:
@@ -29,8 +29,8 @@ services:
       DB_PASSWORD: app
       DB_NAME: gpool_test
       CORS_ORIGINS: http://localhost:3101
-      TRUST_PROXY: "false"
-      SWAGGER_ENABLED: "true"
+      TRUST_PROXY: 'false'
+      SWAGGER_ENABLED: 'true'
       OTEL_SERVICE_NAME: gpool-api-test
       OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4318
       OPENBAO_ADDR: http://openbao:8200
@@ -39,7 +39,7 @@ services:
       OPENBAO_SECRET_PATH: gpool
       OPENBAO_REQUIRED_KEYS_API: AUTH_SESSION_SECRET,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
-      TOLGEE_PROJECT_ID: "3"
+      TOLGEE_PROJECT_ID: '3'
       AUTH_SESSION_SECRET: ci-auth-session-secret
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
@@ -48,7 +48,7 @@ services:
       NOTIFICATIONS_KAFKA_BROKERS: platform-redpanda:9092
       NOTIFICATIONS_EMAIL_TOPIC: notification.email.requested.v1
     ports:
-      - "3010:3000"
+      - '3010:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,12 +70,12 @@ services:
       OPENBAO_SECRET_PATH: gpool
       OPENBAO_REQUIRED_KEYS_WEB: TOLGEE_API_KEY,AUTH_SESSION_SECRET
       TOLGEE_API_URL: http://tolgee:8080
-      TOLGEE_PROJECT_ID: "3"
+      TOLGEE_PROJECT_ID: '3'
       AUTH_SESSION_SECRET: ci-auth-session-secret
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
       GOOGLE_OAUTH_REDIRECT_URI: http://localhost:3101/api/auth/google/callback
     ports:
-      - "3101:3001"
+      - '3101:3001'
     depends_on:
       - api
