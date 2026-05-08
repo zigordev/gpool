@@ -1,63 +1,7 @@
-export interface GroupMatchProjection {
-  matchId: string;
-  groupId: string;
-  homeTeamId?: string;
-  awayTeamId?: string;
-  homeTeamName: string;
-  awayTeamName: string;
-}
-
-export interface ScorePredictionProjection {
-  homeScore: number | '';
-  awayScore: number | '';
-}
-
-export interface TeamProjection {
-  teamId: string;
-  name: string;
-  group?: string;
-  code?: string;
-}
-
-export interface BracketMatchProjection {
-  bracketMatchId: string;
-  phase: string;
-  matchNumber: number;
-  homeSourceLabel?: string;
-  awaySourceLabel?: string;
-}
-
-export interface BracketPredictionProjection {
-  bracketPredictionId?: string;
-  poolId?: string;
-  bracketMatchId?: string;
-  userId?: string;
-  homeTeamId?: string;
-  homeTeamName?: string;
-  awayTeamId?: string;
-  awayTeamName?: string;
-  predictedWinnerTeamId?: string;
-  predictedWinnerTeamName?: string;
-  points?: number;
-  [key: string]: any;
-}
-
-export type BracketCandidateMap = Record<
-  string,
-  {
-    home: TeamProjection[];
-    away: TeamProjection[];
-  }
->;
-
-interface StandingRow extends TeamProjection {
-  played: number;
-  points: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  fairPlay: number;
-}
+import { BracketCandidateMap } from "@/types/bracketCandidateMap.type";
+import { BracketPredictionProjection } from "@/types/bracketPredictionProjection.interface";
+import { GroupMatchProjection } from "@/types/groupMatchProjection.interface";
+import { ScorePredictionProjection } from "@/types/scorePredictionProjection.interface";
 
 const PHASE_ORDER = [
   '16th-finals',
@@ -84,9 +28,9 @@ function teamFromMatchSide(
   teamId: string | undefined,
   teamName: string,
   group: string,
-  teamsById: Map<string, TeamProjection>,
-  teamsByName: Map<string, TeamProjection>,
-): TeamProjection {
+  teamsById: Map<string, Team>,
+  teamsByName: Map<string, Team>,
+): Team {
   const byId = teamId ? teamsById.get(teamId) : undefined;
   const byName = teamsByName.get(teamName);
   return {
@@ -169,7 +113,7 @@ function rankGroup(
 function computeGroupStandings(
   matchesByGroup: Record<string, GroupMatchProjection[]>,
   predictions: Record<string, ScorePredictionProjection>,
-  teams: TeamProjection[],
+  teams: Team[],
 ): Record<string, StandingRow[]> {
   const teamsById = new Map(teams.map((team) => [team.teamId, team]));
   const teamsByName = new Map(teams.map((team) => [team.name, team]));
@@ -177,7 +121,7 @@ function computeGroupStandings(
 
   Object.entries(matchesByGroup).forEach(([group, groupMatches]) => {
     const rowsByTeam = new Map<string, StandingRow>();
-    const ensureRow = (team: TeamProjection) => {
+    const ensureRow = (team: Team) => {
       const existing = rowsByTeam.get(team.teamId);
       if (existing) return existing;
       const row: StandingRow = {
@@ -229,22 +173,22 @@ function computeGroupStandings(
   return standings;
 }
 
-function selectedTeam(prediction: BracketPredictionProjection | undefined, side: 'home' | 'away'): TeamProjection | null {
+function selectedTeam(prediction: BracketPredictionProjection | undefined, side: 'home' | 'away'): Team | null {
   const teamId = side === 'home' ? prediction?.homeTeamId : prediction?.awayTeamId;
   const name = side === 'home' ? prediction?.homeTeamName : prediction?.awayTeamName;
   return teamId && name ? { teamId, name } : null;
 }
 
-function selectedTeams(prediction: BracketPredictionProjection | undefined): TeamProjection[] {
-  return [selectedTeam(prediction, 'home'), selectedTeam(prediction, 'away')].filter(Boolean) as TeamProjection[];
+function selectedTeams(prediction: BracketPredictionProjection | undefined): Team[] {
+  return [selectedTeam(prediction, 'home'), selectedTeam(prediction, 'away')].filter(Boolean) as Team[];
 }
 
-function teamAllowed(teamId: string | undefined, candidates: TeamProjection[]): boolean {
+function teamAllowed(teamId: string | undefined, candidates: Team[]): boolean {
   if (!teamId) return true;
   return candidates.some((candidate) => candidate.teamId === teamId);
 }
 
-function matchByNumber(bracket: Record<string, BracketMatchProjection[]>, matchNumber: number) {
+function matchByNumber(bracket: Record<string, BracketMatch[]>, matchNumber: number) {
   return Object.values(bracket)
     .flat()
     .find((match) => match.matchNumber === matchNumber);
@@ -259,9 +203,9 @@ function sourceCandidates(
   sourceLabel: string | undefined,
   standings: Record<string, StandingRow[]>,
   qualifiedThirds: StandingRow[],
-  bracket: Record<string, BracketMatchProjection[]>,
+  bracket: Record<string, BracketMatch[]>,
   effectivePredictions: Record<string, BracketPredictionProjection>,
-): TeamProjection[] {
+): Team[] {
   if (!sourceLabel) return [];
 
   const direct = sourceLabel.match(/^([12])([A-L])$/);
@@ -296,9 +240,9 @@ function sourceCandidates(
 }
 
 function assignThirdPlaceDefaults(
-  bracket: Record<string, BracketMatchProjection[]>,
+  bracket: Record<string, BracketMatch[]>,
   qualifiedThirds: StandingRow[],
-): Record<string, TeamProjection> {
+): Record<string, Team> {
   const byGroup = new Map(qualifiedThirds.map((row, index) => [row.group || '', { row, index }]));
   const slots = (bracket['16th-finals'] || []).flatMap((match) =>
     ([
@@ -313,7 +257,7 @@ function assignThirdPlaceDefaults(
       })),
   );
 
-  const assigned: Record<string, TeamProjection> = {};
+  const assigned: Record<string, Team> = {};
   const orderedSlots = slots.slice().sort((a, b) => a.allowedGroups.length - b.allowedGroups.length);
   const slotCandidates = orderedSlots.map((slot) => ({
     ...slot,
@@ -322,13 +266,13 @@ function assignThirdPlaceDefaults(
       .filter((entry): entry is { row: StandingRow; index: number } => Boolean(entry))
       .sort((a, b) => a.index - b.index),
   }));
-  let bestAssignments: Record<string, TeamProjection> | null = null;
+  let bestAssignments: Record<string, Team> | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
 
   const search = (
     index: number,
     usedGroups: Set<string>,
-    assignments: Record<string, TeamProjection>,
+    assignments: Record<string, Team>,
     score: number,
   ) => {
     if (index >= slotCandidates.length) {
@@ -366,8 +310,8 @@ export function buildBracketProjection({
 }: {
   matchesByGroup: Record<string, GroupMatchProjection[]>;
   groupPredictions: Record<string, ScorePredictionProjection>;
-  teams: TeamProjection[];
-  bracket: Record<string, BracketMatchProjection[]>;
+  teams: Team[];
+  bracket: Record<string, BracketMatch[]>;
   bracketPredictions: Record<string, BracketPredictionProjection>;
 }) {
   const standings = computeGroupStandings(matchesByGroup, groupPredictions, teams);

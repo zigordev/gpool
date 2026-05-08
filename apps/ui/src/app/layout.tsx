@@ -6,6 +6,7 @@ import { getLocale, getMessages, getTranslator } from '@/i18n/server'
 import type { Metadata } from 'next'
 import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import 'flag-icons/css/flag-icons.min.css'
 import './globals.css'
 
 const inter = Inter({
@@ -32,9 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   const locale = await getLocale()
   const messages = await getMessages(locale)
 
@@ -44,8 +45,28 @@ export default async function RootLayout({
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
             <RUMProvider>
-              <NavigationBar />
-              {children}
+              <main
+                style={{
+                  position: 'relative',
+                  minHeight: 'calc(100vh - 4rem)',
+                  background: 'rgb(var(--bg))',
+                }}
+              >
+                <div
+                  aria-hidden
+                  className="bg-mesh"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                <div className="container-app" style={{ position: 'relative' }}>
+                  <NavigationBar />
+                  {children}
+                </div>
+              </main>
               <Toaster
                 position="top-right"
                 toastOptions={{

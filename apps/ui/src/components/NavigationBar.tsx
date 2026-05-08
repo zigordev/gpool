@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Logo } from './Logo';
@@ -13,7 +12,7 @@ function initials(value: string | undefined | null): string {
   if (!trimmed) return '?';
   const parts = trimmed.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {
-    return (parts[0]![0] + parts[1]![0]).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
   return trimmed.slice(0, 2).toUpperCase();
 }
@@ -53,42 +52,28 @@ export function NavigationBar() {
     };
   }, [showUserMenu]);
 
-  // Don't show navigation on login page
   if (pathname === '/login') {
     return null;
   }
 
-  const isPoolsActive = pathname === '/pools' || pathname?.startsWith('/pools/');
-
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgb(var(--bg-elevated) / 0.78)',
-        backdropFilter: 'blur(14px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(140%)',
-        borderBottom: '1px solid rgb(var(--border-subtle))',
-      }}
-    >
+    <header>
       <nav
         aria-label="Primary"
         style={{
           width: '100%',
           maxWidth: '80rem',
           margin: '0 auto',
-          padding: '0.75rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Logo size="sm" />
         </div>
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
         {user ? (
           <div style={{ position: 'relative' }}>
             <button
@@ -236,6 +221,7 @@ export function NavigationBar() {
             ) : null}
           </div>
         ) : null}
+        </div>
       </nav>
     </header>
   );

@@ -46,8 +46,10 @@ export class PostgresInitService implements OnModuleInit {
         joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         user_email TEXT NOT NULL DEFAULT '',
         user_name TEXT NOT NULL DEFAULT '',
+        config JSONB NOT NULL DEFAULT '{}'::jsonb,
         PRIMARY KEY (pool_id, user_id)
       );
+      ALTER TABLE pool_memberships ADD COLUMN IF NOT EXISTS config JSONB NOT NULL DEFAULT '{}'::jsonb;
       CREATE INDEX IF NOT EXISTS idx_pool_memberships_user_id ON pool_memberships(user_id);
 
       CREATE TABLE IF NOT EXISTS teams (

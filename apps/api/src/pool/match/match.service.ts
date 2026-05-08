@@ -195,14 +195,16 @@ export class MatchService {
 
     const userPoints = new Map<
       string,
-      { userId: string; points: number; userName: string; userEmail?: string }
+      { userId: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; userName: string; userEmail?: string }
     >();
     members.forEach((member: any) => {
       const email = member.userEmail || '';
       const userName = member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
       userPoints.set(member.userId, {
         userId: member.userId,
-        points: 0,
+        groupPhasePoints: 0,
+        finalPhasePoints: 0,
+        playerPoints: 0,
         userName,
         userEmail: email,
       });
@@ -214,7 +216,7 @@ export class MatchService {
       }
       const current = userPoints.get(prediction.userId);
       if (current) {
-        current.points += prediction.points || 0;
+        current.groupPhasePoints += prediction.points || 0;
       }
     });
 
@@ -224,7 +226,7 @@ export class MatchService {
       }
       const current = userPoints.get(prediction.userId);
       if (current) {
-        current.points += prediction.points || 0;
+        current.finalPhasePoints += prediction.points || 0;
       }
     });
 
@@ -235,7 +237,7 @@ export class MatchService {
       }
       const current = userPoints.get(selection.userId);
       if (current) {
-        current.points += computePlayerPoints(selection, playerScoring);
+        current.playerPoints += computePlayerPoints(selection, playerScoring);
       }
     });
 
@@ -246,18 +248,20 @@ export class MatchService {
       }
       const current = userPoints.get(selection.userId);
       if (current) {
-        current.points += computePlayerAwardPoints(selection, awardWinners, playerScoring);
+        current.playerPoints += computePlayerAwardPoints(selection, awardWinners, playerScoring);
       }
     });
 
     return Array.from(userPoints.values())
-      .sort((a, b) => b.points - a.points)
+      .sort((a, b) => (b.groupPhasePoints + b.finalPhasePoints + b.playerPoints) - (a.groupPhasePoints + a.finalPhasePoints + a.playerPoints))
       .map((entry, index) => ({
         rank: index + 1,
         userId: entry.userId,
         userName: entry.userName,
         userEmail: entry.userEmail,
-        points: entry.points,
+        groupPhasePoints: entry.groupPhasePoints,
+        finalPhasePoints: entry.finalPhasePoints,
+        playerPoints: entry.playerPoints,
       }));
   }
 }

@@ -276,6 +276,7 @@
       "incorrect": "✗ Incorrecto (0 pts)",
       "incorrectBadge": "Incorrecto",
       "pendingBadge": "Sin prediccion",
+      "points": "Puntos",
       "result": "Resultado: {home} - {away}"
     },
     "players": {
@@ -323,7 +324,51 @@
     },
     "ranking": {
       "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
-      "title": "Clasificacion"
+      "finalPhasePoints": "Puntos fase final",
+      "groupPhasePoints": "Puntos fase grupos",
+      "playerPoints": "Puntos jugadores",
+      "prize": "Premio",
+      "title": "Clasificacion",
+      "totalPoints": "Puntos totales",
+      "user": "Usuario"
+    },
+    "rules": {
+      "description": "Resumen rapido de como jugar esta porra y de la puntuacion configurada ahora mismo.",
+      "doNotShowAgain": "No volver a mostrar",
+      "howTo": {
+        "deadline": "La fecha limite bloquea cambios en grupos, fase final y jugadores.",
+        "final": "La fase final se rellena inicialmente desde tus predicciones de grupos, pero puedes ajustar las selecciones validas de cada casilla.",
+        "players": "Elige 6 porteros, 6 defensas, 6 mediocampistas, 6 delanteros, Bota de oro y MVP del torneo.",
+        "predict": "Predice todos los marcadores de la fase de grupos antes de la fecha limite.",
+        "ranking": "La clasificacion suma puntos de grupos, fase final, jugadores y premios individuales.",
+        "title": "Como se juega"
+      },
+      "points": {
+        "assists": "Asistencias",
+        "bracketRound": "Exacto +{exact} · equipo correcto +{wrong}",
+        "cleanSheets": "Porteria a cero",
+        "correctWinner": "Ganador +{points}",
+        "exactResult": "Resultado exacto +{points}",
+        "goals": "Goles",
+        "goldenBoot": "Bota de oro +{points}",
+        "missedPenalty": "Penalti fallado {points}",
+        "mvp": "MVP partido +{points}",
+        "penaltySaved": "Penalti parado +{points}",
+        "redCard": "Roja {points}",
+        "title": "Sistema de puntos",
+        "tournamentMvp": "MVP torneo +{points}",
+        "tournamentWinner": "Ganador del torneo +{points}",
+        "yellowCard": "Amarilla {points}"
+      },
+      "poolConfig": {
+        "deadline": "Fecha limite: {deadline}",
+        "entryFee": "Cuota: {fee}",
+        "prizes": "{count} posiciones con premio",
+        "title": "Configuracion de esta porra"
+      },
+      "savePreferenceError": "No se pudo guardar la preferencia",
+      "showAgain": "Cerrar",
+      "title": "Reglas de {pool}"
     },
     "spy": {
       "action": "Ver picks",
@@ -352,7 +397,8 @@
       "label": "Secciones de la porra",
       "missingCount": "{count} pendientes",
       "players": "Jugadores",
-      "ranking": "Clasificacion"
+      "ranking": "Clasificacion",
+      "totalPoints": "{count} puntos"
     },
     "title": "Porra"
   },
@@ -411,5 +457,11 @@
       "nameMax": "El nombre de la porra debe tener menos de 100 caracteres",
       "nameMin": "El nombre de la porra debe tener al menos 3 caracteres"
     }
+  },
+  "theme": {
+    "dark": "Oscuro",
+    "light": "Claro",
+    "system": "Auto (sistema)",
+    "toggle": "Tema"
   }
 }

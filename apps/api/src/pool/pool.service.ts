@@ -365,6 +365,25 @@ export class PoolService {
     return { success: true, message: 'Pool configuration updated successfully' };
   }
 
+  async updateMembershipConfig(poolId: string, userId: string, config: Record<string, any>) {
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+
+    const membership = await this.poolRepository.getMembership(poolId, userId);
+    if (!membership) {
+      throw new ForbiddenException('You must be a member of this pool to update membership settings');
+    }
+
+    const updated = await this.poolRepository.updateMembershipConfig(poolId, userId, config || {});
+    if (!updated) {
+      throw new BadRequestException('Failed to update membership settings');
+    }
+
+    return updated;
+  }
+
   async getPoolMembers(poolId: string, userId?: string, userRole?: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {

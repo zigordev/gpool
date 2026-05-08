@@ -1,62 +1,45 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
-
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
-import { countryFlag, countryWithFlag } from '@/lib/country-flags';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
 import { buildBracketProjection } from '@/lib/bracket-projection';
-
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { CountdownChip } from '@/components/ui/CountdownChip';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Section } from '@/components/ui/Section';
 import { MatchPredictionCard, type MatchPredictionState } from '@/components/pool/MatchPredictionCard';
 import { RankCard } from '@/components/pool/RankCard';
-
-interface Match {
-  matchId: string;
-  matchNumber?: number;
-  groupId: string;
-  homeTeamId?: string;
-  awayTeamId?: string;
-  homeTeamName: string;
-  awayTeamName: string;
-  scheduledAt: string;
-  phase: string;
-  status: string;
-  homeResult?: number | null;
-  awayResult?: number | null;
-}
-
-interface Prediction {
-  matchId: string;
-  homeScore: number | '';
-  awayScore: number | '';
-  isCorrect?: boolean | null;
-  isExactMatch?: boolean | null;
-  points?: number;
-}
-
-type PoolTab = 'ranking' | 'groups' | 'final' | 'players';
-type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
-type PlayerAward = 'golden_boot' | 'tournament_mvp';
-type BracketRoundScoring = {
-  exactPositionPoints: number;
-  correctTeamWrongPositionPoints: number;
-};
-type BracketScoringConfig = BracketRoundScoring & {
-  rounds: Record<string, BracketRoundScoring>;
-  tournamentWinnerPoints: number;
-};
+import { countryIsoCode } from '@/lib/country-flags';
+import ReactCountryFlag from 'react-country-flag';
+import { FaFutbol, FaMagic, FaStar, FaShieldAlt, FaClock, FaMedal } from 'react-icons/fa';
+import { IoMdCloseCircle } from 'react-icons/io';
+import { LuRectangleVertical } from 'react-icons/lu';
+import { PiBoxingGlove } from 'react-icons/pi';
+import { FaPerson } from 'react-icons/fa6';
+import { MdOnlinePrediction } from 'react-icons/md';
+import { BsFillDiagram3Fill } from 'react-icons/bs';
+import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerPickerState } from '@/types/playerPickerState.type';
+import { BracketRoundScoring } from '@/types/bracketRoundScoring.type';
+import { BracketScoringConfig } from '@/types/bracketScoringConfig.type';
+import { PlayerPosition } from '@/types/playerPosition.type';
+import { PlayerSelection } from '@/types/playerSelection.interface';
+import { PoolTab } from '@/types/poolTab.type';
+import { SpyPicksData } from '@/types/spyPicksData.interface';
+import { PlayerPickerLabels } from '@/types/playerPickerLabels.interface';
+import { PrizePayout } from '@/types/prizePayout.type';
+import { SpyPicksLabels } from '@/types/spyPicksLabels.interface';
+import { Loading } from '@/components/Loading';
+import { PlayerTotalPointsBadge } from '@/components/PlayerTotalPointsBadge';
+import { RankTable } from '@/components/pool/RankTable';
 
 const BRACKET_PHASES = [
   { key: '16th-finals', labelKey: 'bracket.round.16th' },
@@ -69,76 +52,20 @@ const BRACKET_PHASES = [
 const DEFAULT_BRACKET_EXACT_POSITION_POINTS = 5;
 const DEFAULT_BRACKET_WRONG_POSITION_POINTS = 3;
 const DEFAULT_TOURNAMENT_WINNER_POINTS = 10;
-type PlayerPickerState =
-  | { kind: 'regular'; position: PlayerPosition; slot: number }
-  | { kind: 'award'; award: PlayerAward };
+const DEFAULT_GROUP_WINNER_POINTS = 1;
+const DEFAULT_GROUP_EXACT_POINTS = 3;
+const DEFAULT_PLAYER_RULE_SCORING = {
+  goal: { goalkeeper: 10, defender: 6, midfielder: 4, forward: 3 },
+  missedPenalty: -2,
+  mvp: 5,
+  penaltySaved: 5,
+  cleanSheet: { goalkeeper: 4, defender: 3, midfielder: 1, forward: 0 },
+  assist: { goalkeeper: 0, defender: 4, midfielder: 3, forward: 2 },
+  yellowCard: -1,
+  redCard: -3,
+  award: { goldenBoot: 15, tournamentMvp: 15 },
+};
 
-interface TournamentPlayer {
-  playerId: string;
-  teamId: string;
-  teamName: string;
-  name: string;
-  position: PlayerPosition;
-  imageUrl?: string;
-  countryCode?: string;
-  flagEmoji?: string;
-  goals?: number;
-  missedPenalties?: number;
-  mvps?: number;
-  penaltiesSaved?: number;
-  cleanSheets?: number;
-  assists?: number;
-  yellowCards?: number;
-  redCards?: number;
-  totalPoints?: number;
-}
-
-interface PlayerSelection extends TournamentPlayer {
-  poolId: string;
-  userId: string;
-  slot: number;
-}
-
-interface PlayerAwardSelection extends TournamentPlayer {
-  poolId: string;
-  userId: string;
-  award: PlayerAward;
-  awardPoints?: number;
-}
-
-interface SpyBracketPrediction {
-  bracketMatchId: string;
-  homeTeamId?: string;
-  homeTeamName?: string;
-  awayTeamId?: string;
-  awayTeamName?: string;
-  predictedWinnerTeamId?: string;
-  predictedWinnerTeamName?: string;
-  points?: number;
-  homeTeamExactPosition?: boolean;
-  awayTeamExactPosition?: boolean;
-  homeTeamCorrectButWrongPosition?: boolean;
-  awayTeamCorrectButWrongPosition?: boolean;
-  tournamentWinnerCorrect?: boolean;
-}
-
-interface SpyPicksData {
-  user: { userId: string; userName: string; userEmail?: string };
-  predictions: Array<{
-    matchId: string;
-    homeScore: number;
-    awayScore: number;
-    isCorrect?: boolean | null;
-    isExactMatch?: boolean | null;
-    points?: number;
-  }>;
-  bracketPredictions: SpyBracketPrediction[];
-  playerSelections: PlayerSelection[];
-  playerAwardSelections: PlayerAwardSelection[];
-}
-
-// Order matches the visual layout on the soccer field, attacking left → right:
-//   GK → DEF → (halfway) → MID → FWD.
 const PLAYER_POSITIONS: Array<{ key: PlayerPosition; labelKey: string; }> = [
   { key: 'goalkeeper', labelKey: 'poolDetail.players.positions.goalkeeper' },
   { key: 'defender', labelKey: 'poolDetail.players.positions.defender' },
@@ -146,50 +73,20 @@ const PLAYER_POSITIONS: Array<{ key: PlayerPosition; labelKey: string; }> = [
   { key: 'forward', labelKey: 'poolDetail.players.positions.forward' },
 ];
 
-const PLAYER_AWARDS: Array<{ key: PlayerAward; labelKey: string; descriptionKey: string; icon: string }> = [
+const PLAYER_AWARDS: Array<{ key: PlayerAward; labelKey: string; descriptionKey: string; icon: any }> = [
   {
     key: 'golden_boot',
     labelKey: 'poolDetail.players.awards.goldenBoot',
     descriptionKey: 'poolDetail.players.awards.goldenBootDescription',
-    icon: '🦶',
+    icon: <FaFutbol style={ {color: 'gold' } } size='27'/>,
   },
   {
     key: 'tournament_mvp',
     labelKey: 'poolDetail.players.awards.tournamentMvp',
     descriptionKey: 'poolDetail.players.awards.tournamentMvpDescription',
-    icon: '⭐️',
+    icon: <FaStar style={ {color: 'gold' } } size='27'/>,
   },
 ];
-
-const POSITION_TONE: Record<
-  PlayerPosition,
-  { label: string; tint: string; border: string; chipFg: string }
-> = {
-  goalkeeper: {
-    label: 'rgb(var(--gold))',
-    tint: 'rgb(var(--gold) / 0.18)',
-    border: 'rgb(var(--gold) / 0.50)',
-    chipFg: 'rgb(var(--gold))',
-  },
-  defender: {
-    label: 'rgb(var(--info))',
-    tint: 'rgb(var(--info) / 0.16)',
-    border: 'rgb(var(--info) / 0.45)',
-    chipFg: 'rgb(var(--info))',
-  },
-  midfielder: {
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.18)',
-    border: 'rgb(var(--pitch) / 0.50)',
-    chipFg: 'rgb(var(--pitch))',
-  },
-  forward: {
-    label: 'rgb(var(--sunset))',
-    tint: 'rgb(var(--sunset) / 0.18)',
-    border: 'rgb(var(--sunset) / 0.50)',
-    chipFg: 'rgb(var(--sunset))',
-  },
-};
 
 const DEFAULT_POOL_DEADLINE = new Date('2026-06-08T00:00:00Z').getTime();
 const PLAYER_SELECTION_LIMIT = 6;
@@ -202,16 +99,6 @@ function resolveDeadline(pool: any): number {
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_POOL_DEADLINE;
 }
 
-interface PrizePayout {
-  rank: number;
-  percentage: number;
-}
-
-/**
- * Pool prize distribution as a list of payouts (rank → percentage). Defaults
- * to winner-takes-all if not configured. Percentages don't strictly have to
- * sum to 100 — they're normalised to a share of the pot at compute time.
- */
 function resolvePrizeDistribution(pool: any): PrizePayout[] {
   const raw = pool?.config?.prizeDistribution;
   if (raw && Array.isArray(raw.payouts) && raw.payouts.length > 0) {
@@ -274,6 +161,56 @@ function normalizeBracketScoring(value: any): BracketScoringConfig {
   };
 }
 
+function resolveGroupScoring(value: any) {
+  return {
+    winnerPoints: Number.isFinite(Number(value?.winnerPoints))
+      ? Math.max(0, Number(value.winnerPoints))
+      : DEFAULT_GROUP_WINNER_POINTS,
+    exactResultPoints: Number.isFinite(Number(value?.exactResultPoints))
+      ? Math.max(0, Number(value.exactResultPoints))
+      : DEFAULT_GROUP_EXACT_POINTS,
+  };
+}
+
+function resolvePositionScoring<T extends Record<PlayerPosition, number>>(
+  value: any,
+  fallback: T,
+): T {
+  return {
+    goalkeeper: Number.isFinite(Number(value?.goalkeeper)) ? Number(value.goalkeeper) : fallback.goalkeeper,
+    defender: Number.isFinite(Number(value?.defender)) ? Number(value.defender) : fallback.defender,
+    midfielder: Number.isFinite(Number(value?.midfielder)) ? Number(value.midfielder) : fallback.midfielder,
+    forward: Number.isFinite(Number(value?.forward)) ? Number(value.forward) : fallback.forward,
+  } as T;
+}
+
+function resolvePlayerRuleScoring(value: any) {
+  return {
+    goal: resolvePositionScoring(value?.goal, DEFAULT_PLAYER_RULE_SCORING.goal),
+    missedPenalty: Number.isFinite(Number(value?.missedPenalty))
+      ? Number(value.missedPenalty)
+      : DEFAULT_PLAYER_RULE_SCORING.missedPenalty,
+    mvp: Number.isFinite(Number(value?.mvp)) ? Number(value.mvp) : DEFAULT_PLAYER_RULE_SCORING.mvp,
+    penaltySaved: Number.isFinite(Number(value?.penaltySaved))
+      ? Number(value.penaltySaved)
+      : DEFAULT_PLAYER_RULE_SCORING.penaltySaved,
+    cleanSheet: resolvePositionScoring(value?.cleanSheet, DEFAULT_PLAYER_RULE_SCORING.cleanSheet),
+    assist: resolvePositionScoring(value?.assist, DEFAULT_PLAYER_RULE_SCORING.assist),
+    yellowCard: Number.isFinite(Number(value?.yellowCard))
+      ? Number(value.yellowCard)
+      : DEFAULT_PLAYER_RULE_SCORING.yellowCard,
+    redCard: Number.isFinite(Number(value?.redCard)) ? Number(value.redCard) : DEFAULT_PLAYER_RULE_SCORING.redCard,
+    award: {
+      goldenBoot: Number.isFinite(Number(value?.award?.goldenBoot))
+        ? Math.max(0, Number(value.award.goldenBoot))
+        : DEFAULT_PLAYER_RULE_SCORING.award.goldenBoot,
+      tournamentMvp: Number.isFinite(Number(value?.award?.tournamentMvp))
+        ? Math.max(0, Number(value.award.tournamentMvp))
+        : DEFAULT_PLAYER_RULE_SCORING.award.tournamentMvp,
+    },
+  };
+}
+
 function phaseShortKey(phase: string): string {
   switch (phase) {
     case '16th-finals':
@@ -313,7 +250,6 @@ function numericPoints(value: unknown): number {
 
 function PoolDetailContent() {
   const params = useParams();
-  const router = useRouter();
   const { user } = useAuth();
   const { t, locale } = useI18n();
   const poolId =
@@ -328,10 +264,8 @@ function PoolDetailContent() {
   const [groups, setGroups] = useState<string[]>([]);
   const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState<string | null>(null);
   const [saveTimers, setSaveTimers] = useState<Record<string, NodeJS.Timeout>>({});
-  const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; points: number }>>([]);
+  const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }>>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
   const [resettingBracketDefaults, setResettingBracketDefaults] = useState(false);
@@ -357,11 +291,12 @@ function PoolDetailContent() {
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(
     normalizeBracketScoring(null),
   );
+  const [showRulesModal, setShowRulesModal] = useState(false);
+  const [savingRulesPreference, setSavingRulesPreference] = useState(false);
   const [activeTab, setActiveTab] = useState<PoolTab>('ranking');
 
   useEffect(() => {
     if (!poolId) {
-      setError(t('poolDetail.errors.invalidPoolId'));
       setLoading(false);
       return;
     }
@@ -390,6 +325,10 @@ function PoolDetailContent() {
         ]);
 
         setPool(poolResponse.data);
+        setShowRulesModal(
+          Boolean(poolResponse.data?.userMembership) &&
+            poolResponse.data?.userMembership?.config?.rulesSummaryDismissed !== true,
+        );
         const matchesData = matchesResponse.data || {};
         setMatchesByGroup(matchesData.matchesByGroup || {});
         setGroups(matchesData.groups || []);
@@ -435,11 +374,8 @@ function PoolDetailContent() {
         if (poolResponse.data?.config?.bracketScoring) {
           setBracketScoringConfig(normalizeBracketScoring(poolResponse.data.config.bracketScoring));
         }
-
-        setError(null);
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || t('poolDetail.errors.loadPool');
-        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -633,6 +569,36 @@ function PoolDetailContent() {
   );
   const effectiveBracketPredictions = bracketProjection.effectivePredictions;
 
+  const handleDismissRulesModal = async () => {
+    try {
+      setSavingRulesPreference(true);
+      const response = await apiClient.put(`/pools/${poolId}/membership/config`, {
+        rulesSummaryDismissed: true,
+      });
+      setPool((current: any) =>
+        current
+          ? {
+              ...current,
+              userMembership: {
+                ...(current.userMembership || {}),
+                ...(response.data || {}),
+                config: {
+                  ...(current.userMembership?.config || {}),
+                  ...(response.data?.config || {}),
+                  rulesSummaryDismissed: true,
+                },
+              },
+            }
+          : current,
+      );
+      setShowRulesModal(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('poolDetail.rules.savePreferenceError'));
+    } finally {
+      setSavingRulesPreference(false);
+    }
+  };
+
   const handleResetBracketDefaults = async () => {
     if (Date.now() >= poolDeadline) {
       toast.error(t('poolDetail.finalPhase.deadlinePassed'));
@@ -683,11 +649,7 @@ function PoolDetailContent() {
   if (loading) {
     return (
       <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
-        <div className="container-app">
-          <p style={{ color: 'rgb(var(--fg-muted))', textAlign: 'center', padding: '3rem 0' }}>
-            {t('poolDetail.loading')}
-          </p>
-        </div>
+        <Loading message={t('poolDetail.loading')} />
       </main>
     );
   }
@@ -695,6 +657,8 @@ function PoolDetailContent() {
   const memberCount = pool.memberCount ?? (pool.members ? pool.members.length : 0);
   const isPastPoolDeadline = Date.now() >= poolDeadline;
   const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
+  const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
+  const playerRuleScoring = resolvePlayerRuleScoring(pool?.config?.playerScoring);
   const prizeDistribution = resolvePrizeDistribution(pool);
   const totalPrizePool = (entryFee ?? 0) * memberCount;
   const prizeForRank = (rank: number): number =>
@@ -718,29 +682,12 @@ function PoolDetailContent() {
     0,
     REQUIRED_PLAYER_SELECTIONS - Object.keys(playerSelections).length - playerAwardSelectionCount,
   );
-  const groupTotalPoints = Object.values(predictions).reduce(
-    (sum, prediction) => sum + numericPoints(prediction.points),
-    0,
-  );
-  const finalTotalPoints = Object.values(effectiveBracketPredictions).reduce(
-    (sum, prediction: any) => sum + numericPoints(prediction?.points),
-    0,
-  );
-  const playersTotalPoints =
-    Object.values(playerSelections).reduce(
-      (sum, selection) => sum + numericPoints(selection?.totalPoints),
-      0,
-    ) +
-    Object.values(playerAwardSelections).reduce(
-      (sum, selection) => sum + numericPoints(selection?.awardPoints),
-      0,
-    );
   
-  const tabs: Array<{ key: PoolTab; label: string; missingCount?: number, totalPoints?: number }> = [
+  const tabs: Array<{ key: PoolTab; label: string; missingCount?: number }> = [
     { key: 'ranking', label: t('poolDetail.tabs.ranking') },
-    { key: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount, totalPoints: groupTotalPoints },
-    { key: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount, totalPoints: finalTotalPoints },
-    { key: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount, totalPoints: playersTotalPoints },
+    { key: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
+    { key: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
+    { key: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
   ];
   const deadlineHint = new Date(poolDeadline).toLocaleDateString(locale, {
     second: '2-digit',
@@ -752,842 +699,1141 @@ function PoolDetailContent() {
   });
 
   return (
-    <main style={{
-        position: 'relative',
-        minHeight: 'calc(100vh - 4rem)',
-        background: 'rgb(var(--bg))',
-      }}>
-      <div className="container-app" style={{ position: 'relative' }}>
-        <header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            marginBottom: '1.75rem',
-          }}
+    <>
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '1.75rem',
+        }}
+      >
+        <div style={{ minWidth: 0, flex: '1 1 22rem' }}>
+          <h1
+            style={{
+              fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              lineHeight: 1.05,
+            }}
+          >
+            <span>{t('poolDetail.title')}</span>
+          </h1>
+        </div>
+        <div style={{ alignSelf: 'flex-start' }}>
+          <CountdownChip
+            deadline={poolDeadline}
+            label={t('poolDetail.deadline.general')}
+            dateTime={deadlineHint}
+            passedLabel={t('poolDetail.deadline.passed')}
+          />
+        </div>
+      </header>
+
+      <div className="tabs-frame">
+        <div
+          role="tablist"
+          aria-label={t('poolDetail.tabs.label')}
+          className="tabs-list tabs-list-4"
         >
-          <div>
-            <p className="eyebrow" style={{ marginBottom: '0.4rem' }}>
-              {t('poolDetail.title')}
-            </p>
-            <h1
+          {tabs.map((tab) => {
+            const selected = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => setActiveTab(tab.key)}
+                className="tab-button"
+              >
+                <span>{tab.label}</span>
+                {tab.missingCount ? (
+                  <Badge
+                    variant="sunset"
+                    className="badge-attention"
+                    title={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
+                    aria-label={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
+                    leadingIcon={
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                      </svg>
+                    }
+                  >
+                    {tab.missingCount}
+                  </Badge>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        {activeTab === 'ranking' ? (
+          <div className="tabs-panel">
+          {ranking.length > 0 ? (
+            <RankTable
+              ranking={ranking}
+              currentUserId={user?.userId}
+              currentUserEmail={user?.email}
+              prizeForRank={prizeForRank}
+              formatCurrency={formatCurrency}
+              onSpy={handleStartSpy}
+            />
+          ) : (
+            <p
               style={{
-                fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.025em',
+                color: 'rgb(var(--fg-muted))',
+                fontSize: '0.875rem',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                padding: '1.5rem 0.5rem',
               }}
             >
-              <span className="gradient-text">{pool.name}</span>
-            </h1>
-          </div>
-          <div style={{ alignSelf: 'flex-start' }}>
-            <CountdownChip
-              deadline={poolDeadline}
-              label={t('poolDetail.deadline.general')}
-              dateTime={deadlineHint}
-              passedLabel={t('poolDetail.deadline.passed')}
-            />
-          </div>
-        </header>
+              {t('poolDetail.ranking.empty')}
+            </p>
+          )}
 
-        <div className="tabs-frame">
-          <div
-            role="tablist"
-            aria-label={t('poolDetail.tabs.label')}
-            className="tabs-list tabs-list-4"
-          >
-            {tabs.map((tab) => {
-              const selected = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setActiveTab(tab.key)}
-                  className="tab-button"
-                >
-                  <span>{tab.label}</span>
-                  {tab.missingCount ? (
-                    <Badge
-                      variant="sunset"
-                      className="badge-attention"
-                      title={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
-                      aria-label={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
-                      leadingIcon={
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.4"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-                          <path d="M12 9v4" />
-                          <path d="M12 17h.01" />
-                        </svg>
-                      }
-                    >
-                      {tab.missingCount}
-                    </Badge>
-                  ) : null}
-                  {typeof tab.totalPoints === 'number' ? (
-                    <Badge
-                      variant="sunset"
-                      className="badge-attention"
-                      title={t('poolDetail.tabs.totalPoints', { count: tab.totalPoints })}
-                      aria-label={t('poolDetail.tabs.totalPoints', { count: tab.totalPoints })}
-                    >
-                      {tab.totalPoints}
-                    </Badge>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+          <SpyPicksModal
+            spy={spy}
+            onClose={() => setSpy(null)}
+            groups={groups}
+            matchesByGroup={matchesByGroup}
+            bracketStructure={bracket}
+            tournamentPlayers={players}
+            poolDeadline={poolDeadline}
+            labels={{
+              title: (name) => t('poolDetail.spy.title', { name }),
+              description: t('poolDetail.spy.description'),
+              close: t('poolDetail.spy.close'),
+              loading: t('poolDetail.spy.loading'),
+              tabs: {
+                groups: t('poolDetail.spy.tabs.groups'),
+                final: t('poolDetail.spy.tabs.final'),
+                players: t('poolDetail.spy.tabs.players'),
+              },
+              empty: {
+                predictions: t('poolDetail.spy.empty.predictions'),
+                bracket: t('poolDetail.spy.empty.bracket'),
+                players: t('poolDetail.spy.empty.players'),
+              },
+              noPick: t('poolDetail.spy.noPick'),
+              groupLabel: (group) => t('poolDetail.spy.groupLabel', { group }),
+              positionLabel: (p) => t(`poolDetail.players.positions.${p}`),
+              awardLabel: (award) =>
+                t(`poolDetail.players.awards.${award === 'golden_boot' ? 'goldenBoot' : 'tournamentMvp'}`),
+              bracketRoundLabel: (phase) => t(`bracket.round.${phaseShortKey(phase)}`),
+              vs: t('bracket.vs'),
+              slotLabel: (slot) => t('poolDetail.players.slotLabel', { slot }),
+              pointsLabel: (n) => (n === 1 ? t('common.point') : t('common.points')),
+              ftLabel: t('poolDetail.spy.ftLabel') || 'FT',
+            }}
+            locale={locale}
+          />
+        </div>
+      ) : null}
 
-          {activeTab === 'ranking' ? (
-            <div className="tabs-panel">
-            {ranking.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                {ranking.map((entry) => {
-                  const isCurrentUser =
-                    (entry.userId && entry.userId === user?.userId) ||
-                    entry.userName === user?.email;
-                  const prize = prizeForRank(entry.rank);
-                  return (
-                    <RankCard
-                      key={`${entry.rank}-${entry.userName}`}
-                      rank={entry.rank}
-                      name={entry.userName}
-                      points={entry.points}
-                      pointsLabel={entry.points === 1 ? t('common.point') : t('common.points')}
-                      isCurrentUser={isCurrentUser}
-                      prizeLabel={prize > 0 ? formatCurrency(prize) : undefined}
-                      onSpy={
-                        !isCurrentUser && entry.userId
-                          ? () =>
-                              handleStartSpy({ userId: entry.userId!, userName: entry.userName })
-                          : undefined
-                      }
-                      spyLabel={t('poolDetail.spy.action')}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <p
-                style={{
-                  color: 'rgb(var(--fg-muted))',
-                  fontSize: '0.875rem',
-                  fontStyle: 'italic',
-                  textAlign: 'center',
-                  padding: '1.5rem 0.5rem',
-                }}
-              >
-                {t('poolDetail.ranking.empty')}
-              </p>
-            )}
-
-            <SpyPicksModal
-              spy={spy}
-              onClose={() => setSpy(null)}
-              groups={groups}
-              matchesByGroup={matchesByGroup}
-              bracketStructure={bracket}
-              tournamentPlayers={players}
-              poolDeadline={poolDeadline}
-              labels={{
-                title: (name) => t('poolDetail.spy.title', { name }),
-                description: t('poolDetail.spy.description'),
-                close: t('poolDetail.spy.close'),
-                loading: t('poolDetail.spy.loading'),
-                tabs: {
-                  groups: t('poolDetail.spy.tabs.groups'),
-                  final: t('poolDetail.spy.tabs.final'),
-                  players: t('poolDetail.spy.tabs.players'),
-                },
-                empty: {
-                  predictions: t('poolDetail.spy.empty.predictions'),
-                  bracket: t('poolDetail.spy.empty.bracket'),
-                  players: t('poolDetail.spy.empty.players'),
-                },
-                noPick: t('poolDetail.spy.noPick'),
-                groupLabel: (group) => t('poolDetail.spy.groupLabel', { group }),
-                positionLabel: (p) => t(`poolDetail.players.positions.${p}`),
-                awardLabel: (award) =>
-                  t(`poolDetail.players.awards.${award === 'golden_boot' ? 'goldenBoot' : 'tournamentMvp'}`),
-                bracketRoundLabel: (phase) => t(`bracket.round.${phaseShortKey(phase)}`),
-                vs: t('bracket.vs'),
-                slotLabel: (slot) => t('poolDetail.players.slotLabel', { slot }),
-                pointsLabel: (n) => (n === 1 ? t('common.point') : t('common.points')),
-                ftLabel: t('poolDetail.spy.ftLabel') || 'FT',
-              }}
-              locale={locale}
-            />
-          </div>
-        ) : null}
-
-        {activeTab === 'groups' ? (
-          <div className="tabs-panel tabs-panel-compact">
-            {groups.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {groups.map((group) => {
-                  const groupMatches = matchesByGroup[group] || [];
-                  return (
-                    <Section
-                      key={group}
-                      title={t('poolDetail.groupPhase.group', { group })}
-                      collapsible
-                      defaultExpanded
-                      density="compact"
-                      tone="subtle"
-                      contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-                      style={{ padding: '0.45rem 0.55rem' }}
-                    >
-                      {groupMatches.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          {groupMatches.map((match) => {
-                            const prediction =
-                              predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
-                            const isPastDeadline = Date.now() >= poolDeadline;
-                            const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit',
-                            });
-                            const matchDate = match.matchNumber
-                              ? `P${match.matchNumber} · ${formattedDate}`
-                              : formattedDate;
-
-                            const hasResults =
-                              typeof match.homeResult === 'number' &&
-                              typeof match.awayResult === 'number';
-                            const isExactMatch = hasResults && prediction.isExactMatch === true;
-                            const isCorrectWinner =
-                              hasResults && prediction.isCorrect === true && !isExactMatch;
-                            const hasUserPrediction =
-                              prediction.homeScore !== '' && prediction.awayScore !== '';
-                            const isIncorrect =
-                              hasResults && hasUserPrediction && !prediction.isCorrect;
-                            const isIncomplete =
-                              !isPastDeadline &&
-                              !hasResults &&
-                              (prediction.homeScore === '' ||
-                                prediction.awayScore === '' ||
-                                (prediction.homeScore === 0 && prediction.awayScore === 0));
-
-                            let state: MatchPredictionState;
-                            let badgeLabel: string | undefined;
-                            if (isExactMatch) {
-                              state = 'exact';
-                              badgeLabel = t('poolDetail.match.exactBadge');
-                            } else if (isCorrectWinner) {
-                              state = 'correct-winner';
-                              badgeLabel = t('poolDetail.match.correctWinnerBadge');
-                            } else if (isIncorrect) {
-                              state = 'incorrect';
-                              badgeLabel = t('poolDetail.match.incorrectBadge');
-                            } else if (hasResults && !hasUserPrediction) {
-                              state = 'pending';
-                              badgeLabel = t('poolDetail.match.pendingBadge');
-                            } else if (!hasResults && isPastDeadline) {
-                              state = 'locked';
-                              badgeLabel = t('poolDetail.deadline.passedShort');
-                            } else if (isIncomplete) {
-                              state = 'incomplete';
-                              badgeLabel = t('poolDetail.match.incomplete');
-                            } else {
-                              state = 'open';
-                            }
-
-                            return (
-                              <MatchPredictionCard
-                                key={match.matchId}
-                                matchDate={matchDate}
-                                homeTeamName={countryWithFlag(match.homeTeamName)}
-                                awayTeamName={countryWithFlag(match.awayTeamName)}
-                                homeScore={prediction.homeScore}
-                                awayScore={prediction.awayScore}
-                                homeResult={match.homeResult ?? undefined}
-                                awayResult={match.awayResult ?? undefined}
-                                pointsEarned={prediction.points || 0}
-                                state={state}
-                                badgeLabel={badgeLabel}
-                                disabled={isPastDeadline}
-                                saving={submitting === match.matchId}
-                                compact
-                                onChange={(side, value) => handleScoreChange(match.matchId, side, value)}
-                                labels={matchPredictionLabels}
-                              />
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '0.75rem', margin: 0 }}>
-                          {t('poolDetail.groupPhase.noMatches')}
-                        </p>
-                      )}
-                    </Section>
-                  );
-                })}
-              </div>
-            ) : (
-              <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-                {t('poolDetail.groupPhase.noMatches')}
-              </p>
-            )}
-          </div>
-        ) : null}
-
-        {activeTab === 'final' ? (
-          <div className="tabs-panel">
-            {Object.keys(bracket).length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleResetBracketDefaults}
-                    disabled={isPastPoolDeadline || resettingBracketDefaults}
-                    loading={resettingBracketDefaults}
+      {activeTab === 'groups' ? (
+        <div className="tabs-panel tabs-panel-compact">
+          {groups.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {groups.map((group) => {
+                const groupMatches = matchesByGroup[group] || [];
+                return (
+                  <Section
+                    key={group}
+                    title={t('poolDetail.groupPhase.group', { group })}
+                    collapsible
+                    defaultExpanded
+                    density="compact"
+                    tone="subtle"
+                    contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
+                    style={{ padding: '0.45rem 0.55rem' }}
                   >
-                    {resettingBracketDefaults
-                      ? t('poolDetail.finalPhase.resettingDefaults')
-                      : t('poolDetail.finalPhase.resetDefaults')}
-                  </Button>
-                </div>
-                <BracketVisualization
-                  bracket={bracket}
-                  teams={teams}
-                  poolId={poolId}
-                  mode="user"
-                  bracketPredictions={effectiveBracketPredictions}
-                  candidateOptions={bracketProjection.candidateOptions}
-                  deadline={poolDeadline}
-                  exactPositionPoints={bracketScoringConfig.exactPositionPoints}
-                  correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
-                  roundScoring={bracketScoringConfig.rounds}
-                  onPredictionChange={async (
-                    bracketMatchId: string,
-                    side: 'home' | 'away' | 'winner',
-                    teamId: string,
-                    teamName: string,
-                  ) => {
-                    if (Date.now() >= poolDeadline) {
-                      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
-                      return;
-                    }
+                    {groupMatches.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {groupMatches.map((match) => {
+                          const prediction =
+                            predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
+                          const isPastDeadline = Date.now() >= poolDeadline;
+                          const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          });
+                          const matchDate = match.matchNumber
+                            ? `P${match.matchNumber} · ${formattedDate}`
+                            : formattedDate;
 
-                    try {
-                      const prediction = effectiveBracketPredictions[bracketMatchId];
-                      const updates: any = {
-                        predictedWinnerTeamId: prediction?.predictedWinnerTeamId || '',
-                        predictedWinnerTeamName: prediction?.predictedWinnerTeamName || '',
-                      };
-                      if (side === 'home') {
-                        updates.homeTeamId = teamId;
-                        updates.homeTeamName = teamName;
-                        updates.awayTeamId = prediction?.awayTeamId || '';
-                        updates.awayTeamName = prediction?.awayTeamName || '';
-                        if (
-                          updates.predictedWinnerTeamId &&
-                          updates.predictedWinnerTeamId !== teamId &&
-                          updates.predictedWinnerTeamId !== updates.awayTeamId
-                        ) {
-                          updates.predictedWinnerTeamId = '';
-                          updates.predictedWinnerTeamName = '';
-                        }
-                      } else if (side === 'away') {
-                        updates.homeTeamId = prediction?.homeTeamId || '';
-                        updates.homeTeamName = prediction?.homeTeamName || '';
-                        updates.awayTeamId = teamId;
-                        updates.awayTeamName = teamName;
-                        if (
-                          updates.predictedWinnerTeamId &&
-                          updates.predictedWinnerTeamId !== updates.homeTeamId &&
-                          updates.predictedWinnerTeamId !== teamId
-                        ) {
-                          updates.predictedWinnerTeamId = '';
-                          updates.predictedWinnerTeamName = '';
-                        }
-                      } else {
-                        updates.homeTeamId = prediction?.homeTeamId || '';
-                        updates.homeTeamName = prediction?.homeTeamName || '';
-                        updates.awayTeamId = prediction?.awayTeamId || '';
-                        updates.awayTeamName = prediction?.awayTeamName || '';
-                        updates.predictedWinnerTeamId = teamId;
-                        updates.predictedWinnerTeamName = teamName;
-                      }
+                          const hasResults =
+                            typeof match.homeResult === 'number' &&
+                            typeof match.awayResult === 'number';
+                          const isExactMatch = hasResults && prediction.isExactMatch === true;
+                          const isCorrectWinner =
+                            hasResults && prediction.isCorrect === true && !isExactMatch;
+                          const hasUserPrediction =
+                            prediction.homeScore !== '' && prediction.awayScore !== '';
+                          const isIncorrect =
+                            hasResults && hasUserPrediction && !prediction.isCorrect;
+                          const isIncomplete =
+                            !isPastDeadline &&
+                            !hasResults &&
+                            (prediction.homeScore === '' ||
+                              prediction.awayScore === '' ||
+                              (prediction.homeScore === 0 && prediction.awayScore === 0));
 
-                      const response = await apiClient.post(
-                        `/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`,
-                        updates,
-                      );
+                          let state: MatchPredictionState;
+                          let badgeLabel: string | undefined;
+                          if (isExactMatch) {
+                            state = 'exact';
+                            badgeLabel = t('poolDetail.match.exactBadge');
+                          } else if (isCorrectWinner) {
+                            state = 'correct-winner';
+                            badgeLabel = t('poolDetail.match.correctWinnerBadge');
+                          } else if (isIncorrect) {
+                            state = 'incorrect';
+                            badgeLabel = t('poolDetail.match.incorrectBadge');
+                          } else if (hasResults && !hasUserPrediction) {
+                            state = 'pending';
+                            badgeLabel = t('poolDetail.match.pendingBadge');
+                          } else if (!hasResults && isPastDeadline) {
+                            state = 'locked';
+                            badgeLabel = t('poolDetail.deadline.passedShort');
+                          } else if (isIncomplete) {
+                            state = 'incomplete';
+                            badgeLabel = t('poolDetail.match.incomplete');
+                          } else {
+                            state = 'open';
+                          }
 
-                      setBracketPredictions((prev) => ({
-                        ...prev,
-                        [bracketMatchId]: response.data || { ...prediction, ...updates },
-                      }));
+                          return (
+                            <MatchPredictionCard
+                              key={match.matchId}
+                              matchDate={matchDate}
+                              homeTeamName={match.homeTeamName}
+                              awayTeamName={match.awayTeamName}
+                              homeScore={prediction.homeScore}
+                              awayScore={prediction.awayScore}
+                              pointsEarned={prediction.points || 0}
+                              state={state}
+                              badgeLabel={badgeLabel}
+                              disabled={isPastDeadline}
+                              onChange={(side, value) => handleScoreChange(match.matchId, side, value)}
+                              isPastDeadline={isPastDeadline}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '0.75rem', margin: 0 }}>
+                        {t('poolDetail.groupPhase.noMatches')}
+                      </p>
+                    )}
+                  </Section>
+                );
+              })}
+            </div>
+          ) : (
+            <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+              {t('poolDetail.groupPhase.noMatches')}
+            </p>
+          )}
+        </div>
+      ) : null}
 
-                      toast.success(t('poolDetail.finalPhase.predictionSaved'));
-                    } catch (err: any) {
-                      toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
-                    }
-                  }}
-                />
+      {activeTab === 'final' ? (
+        <div className="tabs-panel">
+          {Object.keys(bracket).length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetBracketDefaults}
+                  disabled={isPastPoolDeadline || resettingBracketDefaults}
+                  loading={resettingBracketDefaults}
+                >
+                  {resettingBracketDefaults
+                    ? t('poolDetail.finalPhase.resettingDefaults')
+                    : t('poolDetail.finalPhase.resetDefaults')}
+                </Button>
               </div>
-            ) : (
-              <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-                {t('poolDetail.finalPhase.bracketUnavailable')}
-              </p>
-            )}
-          </div>
-        ) : null}
+              <BracketVisualization
+                bracket={bracket}
+                teams={teams}
+                poolId={poolId}
+                mode="user"
+                bracketPredictions={effectiveBracketPredictions}
+                candidateOptions={bracketProjection.candidateOptions}
+                deadline={poolDeadline}
+                exactPositionPoints={bracketScoringConfig.exactPositionPoints}
+                correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
+                roundScoring={bracketScoringConfig.rounds}
+                onPredictionChange={async (
+                  bracketMatchId: string,
+                  side: 'home' | 'away' | 'winner',
+                  teamId: string,
+                  teamName: string,
+                ) => {
+                  if (Date.now() >= poolDeadline) {
+                    toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+                    return;
+                  }
 
-        {activeTab === 'players' ? (
-          <div className="tabs-panel">
-            {players.length > 0 ? (
-              <>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '0.65rem',
-                  marginBottom: '0.9rem',
+                  try {
+                    const prediction = effectiveBracketPredictions[bracketMatchId];
+                    const updates: any = {
+                      predictedWinnerTeamId: prediction?.predictedWinnerTeamId || '',
+                      predictedWinnerTeamName: prediction?.predictedWinnerTeamName || '',
+                    };
+                    if (side === 'home') {
+                      updates.homeTeamId = teamId;
+                      updates.homeTeamName = teamName;
+                      updates.awayTeamId = prediction?.awayTeamId || '';
+                      updates.awayTeamName = prediction?.awayTeamName || '';
+                      if (
+                        updates.predictedWinnerTeamId &&
+                        updates.predictedWinnerTeamId !== teamId &&
+                        updates.predictedWinnerTeamId !== updates.awayTeamId
+                      ) {
+                        updates.predictedWinnerTeamId = '';
+                        updates.predictedWinnerTeamName = '';
+                      }
+                    } else if (side === 'away') {
+                      updates.homeTeamId = prediction?.homeTeamId || '';
+                      updates.homeTeamName = prediction?.homeTeamName || '';
+                      updates.awayTeamId = teamId;
+                      updates.awayTeamName = teamName;
+                      if (
+                        updates.predictedWinnerTeamId &&
+                        updates.predictedWinnerTeamId !== updates.homeTeamId &&
+                        updates.predictedWinnerTeamId !== teamId
+                      ) {
+                        updates.predictedWinnerTeamId = '';
+                        updates.predictedWinnerTeamName = '';
+                      }
+                    } else {
+                      updates.homeTeamId = prediction?.homeTeamId || '';
+                      updates.homeTeamName = prediction?.homeTeamName || '';
+                      updates.awayTeamId = prediction?.awayTeamId || '';
+                      updates.awayTeamName = prediction?.awayTeamName || '';
+                      updates.predictedWinnerTeamId = teamId;
+                      updates.predictedWinnerTeamName = teamName;
+                    }
+
+                    const response = await apiClient.post(
+                      `/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`,
+                      updates,
+                    );
+
+                    setBracketPredictions((prev) => ({
+                      ...prev,
+                      [bracketMatchId]: response.data || { ...prediction, ...updates },
+                    }));
+
+                    toast.success(t('poolDetail.finalPhase.predictionSaved'));
+                  } catch (err: any) {
+                    toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
+                  }
                 }}
-              >
-                {PLAYER_AWARDS.map((award) => {
-                  const selected = playerAwardSelections[award.key];
-                  const isSaving = savingPlayerSlot === `award:${award.key}`;
-                  return (
-                    <article
-                      key={award.key}
+              />
+            </div>
+          ) : (
+            <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+              {t('poolDetail.finalPhase.bracketUnavailable')}
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {activeTab === 'players' ? (
+        <div className="tabs-panel">
+          {players.length > 0 ? (
+            <>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.65rem',
+                marginBottom: '0.9rem',
+              }}
+            >
+              {PLAYER_AWARDS.map((award) => {
+                const selected = playerAwardSelections[award.key];
+                const isSaving = savingPlayerSlot === `award:${award.key}`;
+                return (
+                  <article
+                    key={award.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      padding: '0.65rem 0.75rem',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid rgb(var(--border))',
+                      background: 'rgb(var(--bg-elevated))',
+                      opacity: isSaving ? 0.7 : 1,
+                    }}
+                  >
+                    <span
+                      aria-hidden
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        padding: '0.65rem 0.75rem',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid rgb(var(--border))',
-                        background: 'rgb(var(--bg-elevated))',
-                        opacity: isSaving ? 0.7 : 1,
+                        width: '2.15rem',
+                        height: '2.15rem',
+                        borderRadius: '999px',
+                        display: 'grid',
+                        placeItems: 'center',
+                        border: '1px solid rgb(var(--gold) / 0.4)',
+                        fontSize: '1.05rem',
                       }}
                     >
-                      <span
-                        aria-hidden
+                      {selected?.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
+                      ) : (
+                        award.icon
+                      )}
+                    </span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, color: 'rgb(var(--fg))' }}>
+                        {t(award.labelKey)}
+                      </p>
+                      <p
                         style={{
-                          width: '2.15rem',
-                          height: '2.15rem',
-                          borderRadius: '999px',
-                          display: 'grid',
-                          placeItems: 'center',
-                          background: 'rgb(var(--gold) / 0.16)',
-                          border: '1px solid rgb(var(--gold) / 0.4)',
-                          fontSize: '1.05rem',
+                          margin: '0.1rem 0 0',
+                          fontSize: '0.7rem',
+                          color: 'rgb(var(--fg-muted))',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
                         }}
                       >
-                        {selected?.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
+                        {selected ? (
+                          <> 
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.name}</span>                           
+                            <ReactCountryFlag countryCode={countryIsoCode(selected.teamName)} svg style={{ width: '2em', height: '2em' }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.teamName}</span>
+                          </>
                         ) : (
-                          award.icon
+                          t(award.descriptionKey)
                         )}
-                      </span>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 800, color: 'rgb(var(--fg))' }}>
-                          {t(award.labelKey)}
-                        </p>
-                        <p style={{ margin: '0.1rem 0 0', fontSize: '0.7rem', color: 'rgb(var(--fg-muted))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {selected
-                            ? `${selected.flagEmoji || countryFlag(selected.teamName)} ${selected.name}`
-                            : t(award.descriptionKey)}
-                        </p>
-                      </div>
-                      {selected?.awardPoints ? (
-                        <Badge variant="gold">{t('poolDetail.players.points', { points: selected.awardPoints })}</Badge>
-                      ) : null}
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon"
-                        disabled={isSaving || isPastPoolDeadline}
-                        title={isPastPoolDeadline ? t('poolDetail.deadline.passed') : t('poolDetail.players.editTitle')}
-                        aria-label={isPastPoolDeadline ? t('poolDetail.deadline.passed') : t('poolDetail.players.editTitle')}
-                        onClick={() => {
-                          setPlayerPickerSearch('');
-                          setPlayerPicker({ kind: 'award', award: award.key });
-                        }}
-                        style={{ width: '1.8rem', height: '1.8rem', flexShrink: 0, color: 'rgb(var(--gold))' }}
+                      </p>
+                    </div>
+                    {selected?.awardPoints ? (
+                      <Badge variant="gold">{t('poolDetail.players.points', { points: selected.awardPoints })}</Badge>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-icon"
+                      disabled={isSaving || isPastPoolDeadline}
+                      title={isPastPoolDeadline ? t('poolDetail.deadline.passed') : t('poolDetail.players.editTitle')}
+                      aria-label={isPastPoolDeadline ? t('poolDetail.deadline.passed') : t('poolDetail.players.editTitle')}
+                      onClick={() => {
+                        setPlayerPickerSearch('');
+                        setPlayerPicker({ kind: 'award', award: award.key });
+                      }}
+                      style={{ width: '1.8rem', height: '1.8rem', flexShrink: 0, color: 'rgb(var(--gold))' }}
+                    >
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
                       >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                        </svg>
-                      </button>
-                    </article>
-                  );
-                })}
-              </div>
-              <div style={{ overflowX: 'auto', overflowY: 'visible', margin: '0 -0.25rem', padding: '0 0.25rem' }}>
-                {/* Soccer field. Goals sit just outside the green rectangle on
-                    the left (defended by the team) and right (attacked by the
-                    forwards). Player columns flow GK → DEF → MID → FWD. */}
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                      </svg>
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+            <div style={{ overflowX: 'auto', overflowY: 'visible', margin: '0 -0.25rem', padding: '0 0.25rem' }}>
+              {/* Soccer field. Goals sit just outside the green rectangle on
+                  the left (defended by the team) and right (attacked by the
+                  forwards). Player columns flow GK → DEF → MID → FWD. */}
+              <div
+                style={{
+                  position: 'relative',
+                  minWidth: 720,
+                  margin: '0.25rem 1.75rem',
+                  padding: '1rem 0.85rem',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '2px solid rgb(255 255 255 / 0.85)',
+                  background:
+                    'repeating-linear-gradient(90deg, rgb(var(--pitch) / 0.16) 0 60px, rgb(var(--pitch) / 0.10) 60px 120px), linear-gradient(180deg, rgb(var(--pitch) / 0.18), rgb(var(--pitch) / 0.10))',
+                  boxShadow: '0 12px 36px rgb(15 23 42 / 0.10)',
+                }}
+              >
+                {/* Field markings */}
+                <svg
+                  aria-hidden
+                  viewBox="0 0 1000 500"
+                  preserveAspectRatio="none"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <g
+                    stroke="rgb(255 255 255 / 0.85)"
+                    strokeWidth="2"
+                    fill="none"
+                    vectorEffect="non-scaling-stroke"
+                  >
+                    <line x1="500" y1="0" x2="500" y2="500" />
+                    <circle cx="500" cy="250" r="60" />
+                    <circle cx="500" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
+                    <rect x="0" y="120" width="160" height="260" />
+                    <rect x="0" y="190" width="60" height="120" />
+                    <circle cx="100" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
+                    <path d="M 160 200 A 50 50 0 0 1 160 300" />
+                    <rect x="840" y="120" width="160" height="260" />
+                    <rect x="940" y="190" width="60" height="120" />
+                    <circle cx="900" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
+                    <path d="M 840 200 A 50 50 0 0 0 840 300" />
+                    <path d="M 0 14 A 14 14 0 0 1 14 0" />
+                    <path d="M 1000 14 A 14 14 0 0 0 986 0" />
+                    <path d="M 0 486 A 14 14 0 0 0 14 500" />
+                    <path d="M 1000 486 A 14 14 0 0 0 986 500" />
+                  </g>
+                </svg>
+
+                {/* Goals (drawn outside the green field) */}
+                {(['left', 'right'] as const).map((side) => (
+                  <div
+                    key={side}
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      [side]: '-1.4rem',
+                      transform: 'translateY(-50%)',
+                      width: '1.3rem',
+                      height: '36%',
+                      background:
+                        'repeating-linear-gradient(0deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px)',
+                      border: '2px solid rgb(255 255 255 / 0.85)',
+                      ...(side === 'left'
+                        ? { borderRight: 'none', borderTopLeftRadius: 4, borderBottomLeftRadius: 4 }
+                        : { borderLeft: 'none', borderTopRightRadius: 4, borderBottomRightRadius: 4 }),
+                    }}
+                  />
+                ))}
+
+                {/* Player columns */}
                 <div
                   style={{
                     position: 'relative',
-                    minWidth: 720,
-                    margin: '0.25rem 1.75rem',
-                    padding: '1rem 0.85rem',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '2px solid rgb(255 255 255 / 0.85)',
-                    background:
-                      'repeating-linear-gradient(90deg, rgb(var(--pitch) / 0.16) 0 60px, rgb(var(--pitch) / 0.10) 60px 120px), linear-gradient(180deg, rgb(var(--pitch) / 0.18), rgb(var(--pitch) / 0.10))',
-                    boxShadow: '0 12px 36px rgb(15 23 42 / 0.10)',
+                    zIndex: 1,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                    gap: '0.75rem',
                   }}
                 >
-                  {/* Field markings */}
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 1000 500"
-                    preserveAspectRatio="none"
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <g
-                      stroke="rgb(255 255 255 / 0.85)"
-                      strokeWidth="2"
-                      fill="none"
-                      vectorEffect="non-scaling-stroke"
-                    >
-                      <line x1="500" y1="0" x2="500" y2="500" />
-                      <circle cx="500" cy="250" r="60" />
-                      <circle cx="500" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
-                      <rect x="0" y="120" width="160" height="260" />
-                      <rect x="0" y="190" width="60" height="120" />
-                      <circle cx="100" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
-                      <path d="M 160 200 A 50 50 0 0 1 160 300" />
-                      <rect x="840" y="120" width="160" height="260" />
-                      <rect x="940" y="190" width="60" height="120" />
-                      <circle cx="900" cy="250" r="3" fill="rgb(255 255 255 / 0.85)" />
-                      <path d="M 840 200 A 50 50 0 0 0 840 300" />
-                      <path d="M 0 14 A 14 14 0 0 1 14 0" />
-                      <path d="M 1000 14 A 14 14 0 0 0 986 0" />
-                      <path d="M 0 486 A 14 14 0 0 0 14 500" />
-                      <path d="M 1000 486 A 14 14 0 0 0 986 500" />
-                    </g>
-                  </svg>
-
-                  {/* Goals (drawn outside the green field) */}
-                  {(['left', 'right'] as const).map((side) => (
-                    <div
-                      key={side}
-                      aria-hidden
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        [side]: '-1.4rem',
-                        transform: 'translateY(-50%)',
-                        width: '1.3rem',
-                        height: '36%',
-                        background:
-                          'repeating-linear-gradient(0deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px), repeating-linear-gradient(90deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px)',
-                        border: '2px solid rgb(255 255 255 / 0.85)',
-                        ...(side === 'left'
-                          ? { borderRight: 'none', borderTopLeftRadius: 4, borderBottomLeftRadius: 4 }
-                          : { borderLeft: 'none', borderTopRightRadius: 4, borderBottomRightRadius: 4 }),
-                      }}
-                    />
-                  ))}
-
-                  {/* Player columns */}
-                  <div
-                    style={{
-                      position: 'relative',
-                      zIndex: 1,
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    {PLAYER_POSITIONS.map(({ key: position, labelKey }) => {
-                      const tone = POSITION_TONE[position];
-                      const options = players.filter((player) => player.position === position);
-                      return (
-                        <section
-                          key={position}
-                          style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', minWidth: 0 }}
+                  {PLAYER_POSITIONS.map(({ key: position, labelKey }) => {
+                    return (
+                      <section
+                        key={position}
+                        style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', minWidth: 0 }}
+                      >
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignSelf: 'center',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            padding: '0.25rem 0.6rem',
+                            fontSize: '0.62rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            color: 'rgb(var(--pitch))',
+                            background: 'rgb(var(--bg-elevated) / 0.95)',
+                            border: '1px solid rgb(var(--pitch) / 0.50)',
+                            borderRadius: '999px',
+                            boxShadow: '0 2px 6px rgb(15 23 42 / 0.06)',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '100%',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                          title={t(labelKey)}
                         >
                           <span
+                            aria-hidden
                             style={{
-                              display: 'inline-flex',
-                              alignSelf: 'center',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                              padding: '0.25rem 0.6rem',
-                              fontSize: '0.62rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.14em',
-                              textTransform: 'uppercase',
-                              color: tone.chipFg,
-                              background: 'rgb(var(--bg-elevated) / 0.95)',
-                              border: `1px solid ${tone.border}`,
+                              width: 6,
+                              height: 6,
                               borderRadius: '999px',
-                              boxShadow: '0 2px 6px rgb(15 23 42 / 0.06)',
-                              whiteSpace: 'nowrap',
-                              maxWidth: '100%',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
+                              background: 'rgb(var(--pitch))',
+                              flexShrink: 0,
                             }}
-                            title={t(labelKey)}
-                          >
-                            <span
-                              aria-hidden
+                          />
+                          <span className="md-only" style={{ display: 'inline' }}>{t(labelKey)}</span>
+                        </span>
+                        {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, index) => {
+                          const slot = index + 1;
+                          const selectionKey = `${position}:${slot}`;
+                          const selected = playerSelections[selectionKey];
+                          const isSaving = savingPlayerSlot === selectionKey;
+                          const editLabel = `${t('poolDetail.players.editTitle')} — ${t(labelKey)} ${slot}`;
+                          return (
+                            <article
+                              key={selectionKey}
                               style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: '999px',
-                                background: tone.label,
-                                flexShrink: 0,
+                                position: 'relative',
+                                minWidth: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.45rem',
+                                padding: '0.45rem 0.5rem',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid rgb(255 255 255 / 0.55)',
+                                borderTop: '3px solid rgb(var(--pitch))',
+                                background: 'rgb(var(--bg-elevated) / 0.62)',
+                                backdropFilter: 'blur(6px) saturate(120%)',
+                                WebkitBackdropFilter: 'blur(6px) saturate(120%)',
+                                boxShadow: '0 4px 14px rgb(15 23 42 / 0.10)',
+                                opacity: isSaving ? 0.7 : 1,
+                                transition: 'opacity 0.15s ease, background 0.15s ease',
                               }}
-                            />
-                            <span className="md-only" style={{ display: 'inline' }}>{t(labelKey)}</span>
-                          </span>
-                          {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, index) => {
-                            const slot = index + 1;
-                            const selectionKey = `${position}:${slot}`;
-                            const selected = playerSelections[selectionKey];
-                            const isSaving = savingPlayerSlot === selectionKey;
-                            const editLabel = `${t('poolDetail.players.editTitle')} — ${t(labelKey)} ${slot}`;
-                            return (
-                              <article
-                                key={selectionKey}
+                            >
+                              {selected && isPastPoolDeadline ? (
+                                <PlayerTotalPointsBadge
+                                  points={selected.totalPoints || 0}
+                                  label={t('poolDetail.players.points', { points: selected.totalPoints || 0 })}
+                                />
+                              ) : null}
+                              <div
                                 style={{
-                                  position: 'relative',
-                                  minWidth: 0,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.45rem',
-                                  padding: '0.45rem 0.5rem',
-                                  borderRadius: 'var(--radius-md)',
-                                  border: '1px solid rgb(255 255 255 / 0.55)',
-                                  borderTop: `3px solid ${tone.label}`,
-                                  background: 'rgb(var(--bg-elevated) / 0.62)',
-                                  backdropFilter: 'blur(6px) saturate(120%)',
-                                  WebkitBackdropFilter: 'blur(6px) saturate(120%)',
-                                  boxShadow: '0 4px 14px rgb(15 23 42 / 0.10)',
-                                  opacity: isSaving ? 0.7 : 1,
-                                  transition: 'opacity 0.15s ease, background 0.15s ease',
+                                  width: '2rem',
+                                  height: '2rem',
+                                  borderRadius: '999px',
+                                  overflow: 'hidden',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  flexShrink: 0,
+                                  background: 'rgb(var(--pitch) / 0.18)',
+                                  border: '1px solid rgb(var(--pitch) / 0.50)',
+                                  color: 'rgb(var(--pitch))',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 800,
                                 }}
                               >
+                                {selected?.imageUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={selected.imageUrl}
+                                    alt=""
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  />
+                                ) : selected?.name ? (
+                                  selected.name.slice(0, 2).toUpperCase()
+                                ) : (
+                                  slot
+                                )}
+                              </div>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <p
+                                  style={{
+                                    margin: 0,
+                                    fontSize: '0.74rem',
+                                    fontWeight: 700,
+                                    color: 'rgb(var(--fg))',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {selected?.name || t('poolDetail.players.emptySlot')}
+                                </p>
+                                <p
+                                  style={{
+                                    margin: '0.1rem 0 0',
+                                    fontSize: '0.66rem',
+                                    color: 'rgb(var(--fg-muted))',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                  }}
+                                >
+                                  {selected ? (
+                                    <>
+                                      <ReactCountryFlag countryCode={countryIsoCode(selected.teamName)} svg style={{ width: '2em', height: '2em' }} />
+                                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.teamName}</span>
+                                    </>
+                                  ) : (
+                                    t('poolDetail.players.slotLabel', { slot })
+                                  )}
+                                </p>
                                 {selected ? (
-                                  <PlayerTotalPointsBadge
-                                    points={selected.totalPoints || 0}
-                                    label={t('poolDetail.players.points', { points: selected.totalPoints || 0 })}
+                                  <PlayerActionSummary
+                                    player={selected}
+                                    labels={{
+                                      goals: t('poolDetail.players.actions.goals'),
+                                      missedPenalties: t('poolDetail.players.actions.missedPenalties'),
+                                      mvps: t('poolDetail.players.actions.mvps'),
+                                      penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+                                      cleanSheets: t('poolDetail.players.actions.cleanSheets'),
+                                      assists: t('poolDetail.players.actions.assists'),
+                                      yellowCards: t('poolDetail.players.actions.yellowCards'),
+                                      redCards: t('poolDetail.players.actions.redCards'),
+                                    }}
                                   />
                                 ) : null}
-                                <div
-                                  style={{
-                                    width: '2rem',
-                                    height: '2rem',
-                                    borderRadius: '999px',
-                                    overflow: 'hidden',
-                                    display: 'grid',
-                                    placeItems: 'center',
-                                    flexShrink: 0,
-                                    background: tone.tint,
-                                    border: `1px solid ${tone.border}`,
-                                    color: tone.chipFg,
-                                    fontSize: '0.7rem',
-                                    fontWeight: 800,
-                                  }}
+                              </div>
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-icon"
+                                onClick={() => {
+                                  setPlayerPickerSearch('');
+                                  setPlayerPicker({ kind: 'regular', position, slot });
+                                }}
+                                disabled={isSaving || isPastPoolDeadline}
+                                title={isPastPoolDeadline ? t('poolDetail.deadline.passed') : editLabel}
+                                aria-label={isPastPoolDeadline ? t('poolDetail.deadline.passed') : editLabel}
+                                style={{
+                                  width: '1.7rem',
+                                  height: '1.7rem',
+                                  flexShrink: 0,
+                                  color: 'rgb(var(--pitch))',
+                                }}
+                              >
+                                <svg
+                                  width="13"
+                                  height="13"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden
                                 >
-                                  {selected?.imageUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                      src={selected.imageUrl}
-                                      alt=""
-                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
-                                  ) : selected?.name ? (
-                                    selected.name.slice(0, 2).toUpperCase()
-                                  ) : (
-                                    slot
-                                  )}
-                                </div>
-                                <div style={{ minWidth: 0, flex: 1 }}>
-                                  <p
-                                    style={{
-                                      margin: 0,
-                                      fontSize: '0.74rem',
-                                      fontWeight: 700,
-                                      color: 'rgb(var(--fg))',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    {selected?.name || t('poolDetail.players.emptySlot')}
-                                  </p>
-                                  <p
-                                    style={{
-                                      margin: '0.1rem 0 0',
-                                      fontSize: '0.66rem',
-                                      color: 'rgb(var(--fg-muted))',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    {selected
-                                      ? `${selected.flagEmoji || countryFlag(selected.teamName)} ${selected.teamName}`
-                                      : t('poolDetail.players.slotLabel', { slot })}
-                                  </p>
-                                  {selected ? (
-                                    <PlayerActionSummary
-                                      player={selected}
-                                      labels={{
-                                        goals: t('poolDetail.players.actions.goals'),
-                                        missedPenalties: t('poolDetail.players.actions.missedPenalties'),
-                                        mvps: t('poolDetail.players.actions.mvps'),
-                                        penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
-                                        cleanSheets: t('poolDetail.players.actions.cleanSheets'),
-                                        assists: t('poolDetail.players.actions.assists'),
-                                        yellowCards: t('poolDetail.players.actions.yellowCards'),
-                                        redCards: t('poolDetail.players.actions.redCards'),
-                                      }}
-                                    />
-                                  ) : null}
-                                </div>
-                                <button
-                                  type="button"
-                                  className="btn btn-ghost btn-icon"
-                                  onClick={() => {
-                                    setPlayerPickerSearch('');
-                                    setPlayerPicker({ kind: 'regular', position, slot });
-                                  }}
-                                  disabled={isSaving || isPastPoolDeadline}
-                                  title={isPastPoolDeadline ? t('poolDetail.deadline.passed') : editLabel}
-                                  aria-label={isPastPoolDeadline ? t('poolDetail.deadline.passed') : editLabel}
-                                  style={{
-                                    width: '1.7rem',
-                                    height: '1.7rem',
-                                    flexShrink: 0,
-                                    color: tone.chipFg,
-                                  }}
-                                >
-                                  <svg
-                                    width="13"
-                                    height="13"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden
-                                  >
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                                  </svg>
-                                </button>
-                              </article>
-                            );
-                          })}
-                        </section>
-                      );
-                    })}
-                  </div>
+                                  <path d="M12 20h9" />
+                                  <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                                </svg>
+                              </button>
+                            </article>
+                          );
+                        })}
+                      </section>
+                    );
+                  })}
                 </div>
               </div>
-              </>
-            ) : (
-              <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-                {t('poolDetail.players.empty')}
-              </p>
-            )}
+            </div>
+            </>
+          ) : (
+            <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+              {t('poolDetail.players.empty')}
+            </p>
+          )}
 
-            <PlayerPickerModal
-              picker={playerPicker}
-              players={players}
-              selections={playerSelections}
-              awardSelections={playerAwardSelections}
-              search={playerPickerSearch}
-              onSearchChange={setPlayerPickerSearch}
-              onClose={() => setPlayerPicker(null)}
-              onPick={async (playerId) => {
-                if (!playerPicker) return;
-                if (playerPicker.kind === 'regular') {
-                  await handlePlayerSelection(playerPicker.position, playerPicker.slot, playerId);
-                } else {
-                  await handlePlayerAwardSelection(playerPicker.award, playerId);
-                }
-                setPlayerPicker(null);
-              }}
-              isSaving={savingPlayerSlot !== null}
-              labels={{
-                edit: t('poolDetail.players.editTitle'),
-                positionLabel: (p) => t(`poolDetail.players.positions.${p}`),
-                awardLabel: (award) => t(`poolDetail.players.awards.${award === 'golden_boot' ? 'goldenBoot' : 'tournamentMvp'}`),
-                awardDescription: (award) =>
-                  t(
-                    `poolDetail.players.awards.${
-                      award === 'golden_boot' ? 'goldenBootDescription' : 'tournamentMvpDescription'
-                    }`,
-                  ),
-                slotLabel: (slot: number) => t('poolDetail.players.modalDescription', { slot }),
-                searchPlaceholder: t('poolDetail.players.searchPlaceholder'),
-                clear: t('poolDetail.players.clearSelection'),
-                cancel: t('poolDetail.players.cancel'),
-                noResults: t('poolDetail.players.noResults'),
-              }}
-            />
-          </div>
-        ) : null}
+          <PlayerPickerModal
+            picker={playerPicker}
+            players={players}
+            selections={playerSelections}
+            awardSelections={playerAwardSelections}
+            search={playerPickerSearch}
+            onSearchChange={setPlayerPickerSearch}
+            onClose={() => setPlayerPicker(null)}
+            onPick={async (playerId) => {
+              if (!playerPicker) return;
+              if (playerPicker.kind === 'regular') {
+                await handlePlayerSelection(playerPicker.position, playerPicker.slot, playerId);
+              } else {
+                await handlePlayerAwardSelection(playerPicker.award, playerId);
+              }
+              setPlayerPicker(null);
+            }}
+            isSaving={savingPlayerSlot !== null}
+            labels={{
+              edit: t('poolDetail.players.editTitle'),
+              positionLabel: (p) => t(`poolDetail.players.positions.${p}`),
+              awardLabel: (award) => t(`poolDetail.players.awards.${award === 'golden_boot' ? 'goldenBoot' : 'tournamentMvp'}`),
+              awardDescription: (award) =>
+                t(
+                  `poolDetail.players.awards.${
+                    award === 'golden_boot' ? 'goldenBootDescription' : 'tournamentMvpDescription'
+                  }`,
+                ),
+              slotLabel: (slot: number) => t('poolDetail.players.modalDescription', { slot }),
+              searchPlaceholder: t('poolDetail.players.searchPlaceholder'),
+              clear: t('poolDetail.players.clearSelection'),
+              cancel: t('poolDetail.players.cancel'),
+              noResults: t('poolDetail.players.noResults'),
+            }}
+          />
         </div>
+      ) : null}
       </div>
-    </main>
+      <RulesSummaryModal
+        open={showRulesModal}
+        busy={savingRulesPreference}
+        poolName={pool.name}
+        deadlineLabel={deadlineHint}
+        groupScoring={groupScoringConfig}
+        bracketScoring={bracketScoringConfig}
+        playerScoring={playerRuleScoring}
+        entryFeeLabel={entryFee && entryFee > 0 ? formatCurrency(entryFee) : t('poolDetail.info.entryFeeFree')}
+        prizeDistribution={prizeDistribution}
+        onClose={() => setShowRulesModal(false)}
+        onDismissForever={handleDismissRulesModal}
+        t={t}
+      />
+    </>
   );
 }
 
-interface PlayerPickerLabels {
-  edit: string;
-  positionLabel: (position: PlayerPosition) => string;
-  awardLabel: (award: PlayerAward) => string;
-  awardDescription: (award: PlayerAward) => string;
-  slotLabel: (slot: number) => string;
-  searchPlaceholder: string;
-  clear: string;
-  cancel: string;
-  noResults: string;
+function pointsLabel(points: number): string {
+  return points > 0 ? `+${points}` : String(points);
+}
+
+function RulesSummaryModal({
+  open,
+  busy,
+  poolName,
+  deadlineLabel,
+  groupScoring,
+  bracketScoring,
+  playerScoring,
+  entryFeeLabel,
+  prizeDistribution,
+  onClose,
+  onDismissForever,
+  t,
+}: Readonly<{
+  open: boolean;
+  busy: boolean;
+  poolName: string;
+  deadlineLabel: string;
+  groupScoring: { winnerPoints: number; exactResultPoints: number };
+  bracketScoring: BracketScoringConfig;
+  playerScoring: ReturnType<typeof resolvePlayerRuleScoring>;
+  entryFeeLabel: string;
+  prizeDistribution: PrizePayout[];
+  onClose: () => void;
+  onDismissForever: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}>) {
+  const playerRows = [
+    {
+      label: t('poolDetail.rules.points.goals'),
+      values: playerScoring.goal,
+      icon: <FaFutbol style={ {color: 'black' } }/>
+    },
+    {
+      label: t('poolDetail.rules.points.assists'),
+      values: playerScoring.assist,
+      icon: <FaMagic style={ {color: 'black' } }/>
+    },
+    {
+      label: t('poolDetail.rules.points.cleanSheets'),
+      values: playerScoring.cleanSheet,
+      icon: <FaShieldAlt style={ {color: 'black' } }/>
+    },
+  ];
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      busy={busy}
+      size="lg"
+      title={t('poolDetail.rules.title', { pool: poolName })}
+      description={t('poolDetail.rules.description')}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
+            {t('poolDetail.rules.showAgain')}
+          </Button>
+          <Button type="button" variant="primary" onClick={onDismissForever} loading={busy}>
+            {t('poolDetail.rules.doNotShowAgain')}
+          </Button>
+        </>
+      }
+    >
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        <section className="surface" style={{ padding: '1rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.howTo.title')}</h3>
+          <div style={{ display: 'grid', gap: '0.55rem' }}>
+            {['predict', 'final', 'players', 'deadline', 'ranking'].map((key) => (
+              <div key={key} style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}>
+                {(() => {
+                  switch(key) {
+                    case 'predict':
+                      return <MdOnlinePrediction style={ {color: 'black' } }/>
+                    case 'final':
+                      return <BsFillDiagram3Fill style={ {color: 'black' } }/>
+                    case 'players':
+                      return <FaPerson style={ {color: 'black' } }/>
+                    case 'deadline':
+                      return <FaClock style={ {color: 'black' } }/>
+                    case 'ranking':
+                      return <FaMedal style={ {color: 'black' } }/>
+                  }
+                })()}
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                  {t(`poolDetail.rules.howTo.${key}`)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="surface" style={{ padding: '1rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>{t('poolDetail.rules.points.title')}</h3>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <div>
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.groupPhase')}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <Badge variant="info">
+                  {t('poolDetail.rules.points.exactResult', { points: groupScoring.exactResultPoints })}
+                </Badge>
+                <Badge variant="pitch">
+                  {t('poolDetail.rules.points.correctWinner', { points: groupScoring.winnerPoints })}
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.finalPhase')}</p>
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                {BRACKET_PHASES.map((phase) => {
+                  const round = bracketScoring.rounds[phase.key] || bracketScoring;
+                  return (
+                    <div
+                      key={phase.key}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        padding: '0.45rem 0.55rem',
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'rgb(var(--bg-subtle) / 0.68)',
+                        fontSize: '0.82rem',
+                        color: 'rgb(var(--fg-muted))',
+                      }}
+                    >
+                      <strong style={{ color: 'rgb(var(--fg))' }}>{t(phase.labelKey)}</strong>
+                      <span>
+                        {t('poolDetail.rules.points.bracketRound', {
+                          exact: round.exactPositionPoints,
+                          wrong: round.correctTeamWrongPositionPoints,
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
+                <Badge variant="gold">
+                  {t('poolDetail.rules.points.tournamentWinner', { points: bracketScoring.tournamentWinnerPoints })}
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.players')}</p>
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                {playerRows.map((row) => (
+                  <div
+                    key={row.label}
+                    style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}
+                  >
+                    {row.icon}
+                    <strong>{row.label}</strong>
+                    {PLAYER_POSITIONS.map((position) => (
+                      <span key={position.key} className="display-number" style={{ color: 'rgb(var(--fg-muted))' }}>
+                        {t(`poolDetail.players.positionShort.${position.key}`)} {pointsLabel(row.values[position.key])}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  <Badge variant="neutral">{t('poolDetail.rules.points.mvp', { points: playerScoring.mvp })}</Badge>
+                  <Badge variant="neutral">{t('poolDetail.rules.points.penaltySaved', { points: playerScoring.penaltySaved })}</Badge>
+                  <Badge variant="live">{t('poolDetail.rules.points.missedPenalty', { points: playerScoring.missedPenalty })}</Badge>
+                  <Badge variant="live">{t('poolDetail.rules.points.yellowCard', { points: playerScoring.yellowCard })}</Badge>
+                  <Badge variant="live">{t('poolDetail.rules.points.redCard', { points: playerScoring.redCard })}</Badge>
+                  <Badge variant="gold">{t('poolDetail.rules.points.goldenBoot', { points: playerScoring.award.goldenBoot })}</Badge>
+                  <Badge variant="gold">{t('poolDetail.rules.points.tournamentMvp', { points: playerScoring.award.tournamentMvp })}</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="surface" style={{ padding: '1rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.poolConfig.title')}</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+            <Badge variant="neutral">{t('poolDetail.rules.poolConfig.deadline', { deadline: deadlineLabel })}</Badge>
+            <Badge variant="neutral">{t('poolDetail.rules.poolConfig.entryFee', { fee: entryFeeLabel })}</Badge>
+            {prizeDistribution.length > 0 ? (
+              <Badge variant="gold">
+                {t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })}
+              </Badge>
+            ) : null}
+          </div>
+        </section>
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * "You at a glance" hero block at the top of the ranking tab. Shows the four
+ * numbers a member opens the app to check: their rank, their points, how many
+ * picks they still owe, and (when there's an entry fee) what they'd take home
+ * at their current standing. Each cell uses tabular figures so the column
+ * stays optically aligned as values change.
+ */
+function PersonalCommandTile({
+  rank,
+  rankSuffix,
+  points,
+  pointsLabel,
+  prizeLabel,
+  rankCaption,
+  pointsCaption,
+  prizeCaption,
+}: Readonly<{
+  rank: number | undefined;
+  rankSuffix?: string;
+  points: number;
+  pointsLabel: string;
+  prizeLabel?: string;
+  rankCaption: string;
+  pointsCaption: string;
+  prizeCaption: string;
+}>) {
+  const cells: Array<{
+    caption: string;
+    value: React.ReactNode;
+    sub?: React.ReactNode;
+    accent?: boolean;
+  }> = [
+    {
+      caption: rankCaption,
+      value: rank ? `#${rank}` : '—',
+      sub: rankSuffix,
+    },
+    {
+      caption: pointsCaption,
+      value: points,
+      sub: pointsLabel,
+      accent: true,
+    },
+  ];
+  if (prizeLabel) {
+    cells.push({
+      caption: prizeCaption,
+      value: prizeLabel,
+      sub: undefined,
+    });
+  }
+
+  return (
+    <section
+      aria-label={pointsCaption}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))`,
+        gap: '0.65rem',
+        padding: '1rem 1.1rem',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid rgb(var(--border))',
+        background:
+          'linear-gradient(135deg, rgb(var(--accent-from) / 0.06), rgb(var(--accent-to) / 0.04))',
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
+      {cells.map((cell, index) => (
+        <div
+          key={cell.caption}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+            paddingLeft: index === 0 ? 0 : '0.85rem',
+            borderLeft: index === 0 ? 'none' : '1px solid rgb(var(--border-subtle))',
+            minWidth: 0,
+          }}
+        >
+          <span
+            className="eyebrow"
+            style={{ fontSize: '0.6rem', color: 'rgb(var(--fg-subtle))' }}
+          >
+            {cell.caption}
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-display, inherit)',
+              fontSize: 'clamp(1.4rem, 3vw, 1.85rem)',
+              fontWeight: 800,
+              fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1.05,
+              color: cell.accent ? 'rgb(var(--accent-from))' : 'rgb(var(--fg))',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {cell.value}
+          </span>
+          {cell.sub ? (
+            <span
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                color: 'rgb(var(--fg-muted))',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {cell.sub}
+            </span>
+          ) : null}
+        </div>
+      ))}
+    </section>
+  );
 }
 
 function PlayerActionSummary({
   player,
   labels,
-}: {
+}: Readonly<{
   player: Pick<
     TournamentPlayer,
     | 'goals'
@@ -1609,23 +1855,21 @@ function PlayerActionSummary({
     yellowCards: string;
     redCards: string;
   };
-}) {
-  // All 8 stats render as pills regardless of value — zero-valued ones are
-  // visually muted so the user always sees what scoring categories exist.
-  const items = [
-    { key: 'goals', value: player.goals || 0, label: labels.goals, icon: '⚽' },
-    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: '🅰' },
-    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: '⭐️' },
-    { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: '🧤' },
-    { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: '🛡' },
-    { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: '🟨' },
-    { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: '🟥' },
-    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: '❌' },
+}>) {
+  const PLAYER_STAT_ACTIONS: Array<{ key: string; value: number; label: string; icon: React.ReactNode }> = [
+    { key: 'goals', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={ {color: 'black' } } size='17'/> },
+    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={ {color: 'black' } } size='17'/> },
+    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={ {color: 'gold' } } size='17'/> },
+    { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <PiBoxingGlove style={ {color: 'green' } } size='17'/> },
+    { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={ {color: 'black' } } size='17'/> },
+    { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={ {color: 'yellow', fill: 'yellow' } } size='17'/> },
+    { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={ {color: 'red', fill: 'red' } } size='17'/> },
+    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={ {color: 'red' } } size='17'/> },
   ];
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
-      {items.map((item) => {
+      {PLAYER_STAT_ACTIONS.map((item) => {
         const isZero = item.value === 0;
         return (
           <span
@@ -1635,64 +1879,26 @@ function PlayerActionSummary({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.12rem',
-              padding: '0.08rem 0.28rem',
+              gap: '0.18rem',
+              padding: '0.1rem 0.32rem',
               borderRadius: '999px',
               background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)',
               border: isZero
                 ? '1px dashed rgb(var(--border-subtle))'
                 : '1px solid rgb(var(--border-subtle))',
               color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))',
-              opacity: isZero ? 0.45 : 1,
-              filter: isZero ? 'grayscale(85%)' : 'none',
-              fontSize: '0.58rem',
+              opacity: isZero ? 0.5 : 1,
+              fontSize: '0.6rem',
               fontWeight: 800,
               lineHeight: 1,
             }}
           >
-            <span aria-hidden>{item.icon}</span>
+            {item.icon}
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
           </span>
         );
       })}
     </div>
-  );
-}
-
-/**
- * Prominent total-points pill that anchors the top-right corner of a player
- * card. Uses the gold accent so it pops against both the green pitch and the
- * neutral surface beneath the cards.
- */
-function PlayerTotalPointsBadge({ points, label }: { points: number; label: string }) {
-  return (
-    <span
-      title={label}
-      aria-label={label}
-      style={{
-        position: 'absolute',
-        top: '-0.45rem',
-        right: '-0.45rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: '1.6rem',
-        padding: '0.18rem 0.45rem',
-        borderRadius: '999px',
-        background: 'linear-gradient(135deg, rgb(var(--gold)), rgb(var(--sunset)))',
-        color: 'rgb(var(--accent-fg))',
-        fontSize: '0.72rem',
-        fontWeight: 800,
-        lineHeight: 1,
-        fontVariantNumeric: 'tabular-nums',
-        border: '2px solid rgb(var(--bg-elevated))',
-        boxShadow: '0 4px 12px rgb(15 23 42 / 0.20)',
-        zIndex: 2,
-        pointerEvents: 'none',
-      }}
-    >
-      {points}
-    </span>
   );
 }
 
@@ -1720,7 +1926,7 @@ function PlayerPickerModal({
   onPick,
   isSaving,
   labels,
-}: PlayerPickerModalProps) {
+}: Readonly<PlayerPickerModalProps>) {
   const open = picker !== null;
   const isRegular = picker?.kind === 'regular';
   const position = isRegular ? picker.position : undefined;
@@ -1860,7 +2066,7 @@ function PlayerPickerModal({
                     color: 'rgb(var(--fg-subtle))',
                   }}
                 >
-                  <span aria-hidden>{group.flagEmoji || countryFlag(group.teamName)}</span>
+                  <ReactCountryFlag countryCode={countryIsoCode(group.teamName)} svg style={{ width: '2em', height: '2em' }} />
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {group.teamName}
                   </span>
@@ -1967,24 +2173,6 @@ function PlayerPickerModal({
   );
 }
 
-interface SpyPicksLabels {
-  title: (name: string) => string;
-  description: string;
-  close: string;
-  loading: string;
-  tabs: { groups: string; final: string; players: string };
-  empty: { predictions: string; bracket: string; players: string };
-  noPick: string;
-  groupLabel: (group: string) => string;
-  positionLabel: (p: PlayerPosition) => string;
-  awardLabel: (award: PlayerAward) => string;
-  bracketRoundLabel: (phase: string) => string;
-  vs: string;
-  slotLabel: (slot: number) => string;
-  pointsLabel: (n: number) => string;
-  ftLabel: string;
-}
-
 interface SpyPicksModalProps {
   spy: {
     target: { userId: string; userName: string };
@@ -2011,12 +2199,9 @@ function SpyPicksModal({
   tournamentPlayers,
   labels,
   locale,
-}: SpyPicksModalProps) {
+}: Readonly<SpyPicksModalProps>) {
   const [tab, setTab] = useState<'groups' | 'final' | 'players'>('groups');
 
-  // Reset to default tab whenever a different user is opened. We intentionally
-  // depend on the target user id only — re-render on data/loading shouldn't
-  // bounce the active tab back to "groups".
   const targetUserId = spy?.target.userId;
   useEffect(() => {
     if (targetUserId) setTab('groups');
@@ -2137,14 +2322,14 @@ function SpyGroupsView({
   predictionByMatch,
   labels,
   locale,
-}: {
+}: Readonly<{
   data: SpyPicksData;
   groups: string[];
   matchesByGroup: Record<string, Match[]>;
   predictionByMatch: Map<string, SpyPicksData['predictions'][number]>;
   labels: SpyPicksLabels;
   locale: string;
-}) {
+}>) {
   if (data.predictions.length === 0 && groups.length === 0) {
     return <SpyEmpty text={labels.empty.predictions} />;
   }
@@ -2233,7 +2418,7 @@ function SpyGroupsView({
                         minWidth: '3.5rem',
                       }}
                     >
-                      {hasPick ? `${pick!.homeScore} – ${pick!.awayScore}` : labels.noPick}
+                      {hasPick ? `${pick.homeScore} – ${pick.awayScore}` : labels.noPick}
                     </span>
                     <span
                       style={{
@@ -2276,11 +2461,11 @@ function SpyFinalView({
   bracketStructure,
   bracketPickByMatch,
   labels,
-}: {
+}: Readonly<{
   bracketStructure: Record<string, any[]>;
   bracketPickByMatch: Map<string, SpyBracketPrediction>;
   labels: SpyPicksLabels;
-}) {
+}>) {
   const phases = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'];
   const hasAny = phases.some((p) => Array.isArray(bracketStructure[p]) && bracketStructure[p].length > 0);
   if (!hasAny) return <SpyEmpty text={labels.empty.bracket} />;
@@ -2397,12 +2582,12 @@ function SpyPlayersView({
   playerByPositionSlot,
   playerByAward,
   labels,
-}: {
+}: Readonly<{
   tournamentPlayers: TournamentPlayer[];
   playerByPositionSlot: Map<string, PlayerSelection>;
   playerByAward: Map<PlayerAward, PlayerAwardSelection>;
   labels: SpyPicksLabels;
-}) {
+}>) {
   const positions: PlayerPosition[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
   const anyPick =
     playerByAward.size > 0 ||
@@ -2488,11 +2673,11 @@ function SpyPlayerTile({
   label,
   selection,
   fallbackIcon,
-}: {
+}: Readonly<{
   label: string;
   selection?: PlayerSelection | PlayerAwardSelection;
   fallbackIcon: string | number;
-}) {
+}>) {
   return (
     <li
       style={{
@@ -2539,7 +2724,9 @@ function SpyPlayerTile({
         {selection ? (
           <span
             style={{
-              display: 'block',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
               fontSize: '0.65rem',
               color: 'rgb(var(--fg-muted))',
               overflow: 'hidden',
@@ -2547,7 +2734,8 @@ function SpyPlayerTile({
               whiteSpace: 'nowrap',
             }}
           >
-            {selection.flagEmoji || countryFlag(selection.teamName)} {selection.teamName}
+            <ReactCountryFlag countryCode={countryIsoCode(selection.teamName)} svg style={{ width: '2em', height: '2em' }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selection.teamName}</span>
           </span>
         ) : null}
       </span>
@@ -2555,7 +2743,7 @@ function SpyPlayerTile({
   );
 }
 
-function SpyEmpty({ text }: { text: string }) {
+function SpyEmpty({ text }: Readonly<{ text: string }>) {
   return (
     <p
       style={{

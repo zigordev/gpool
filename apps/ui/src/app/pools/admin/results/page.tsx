@@ -3,32 +3,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
-import { countryWithFlag } from '@/lib/country-flags';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
-
+import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
-
-interface Match {
-  matchId: string;
-  matchNumber?: number;
-  groupId: string;
-  homeTeamName: string;
-  awayTeamName: string;
-  scheduledAt: string;
-  phase: string;
-  status: string;
-  homeResult?: number | null;
-  awayResult?: number | null;
-}
+import { countryIsoCode } from '@/lib/country-flags';
+import ReactCountryFlag from 'react-country-flag';
+import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
+import { PiBoxingGlove } from 'react-icons/pi';
+import { LuRectangleVertical } from 'react-icons/lu';
+import { IoMdCloseCircle } from 'react-icons/io';
+import { Loading } from '@/components/Loading';
 
 const DEFAULT_POOL_DEADLINE = new Date('2026-06-08T00:00:00Z').getTime();
 
@@ -49,77 +41,6 @@ function fromDateTimeLocal(value: string): number {
   const ms = new Date(value).getTime();
   return Number.isFinite(ms) ? ms : DEFAULT_POOL_DEADLINE;
 }
-
-interface BracketMatch {
-  bracketMatchId: string;
-  poolId: string;
-  phase: string;
-  matchNumber: number;
-  homeTeamId?: string;
-  homeTeamName?: string;
-  awayTeamId?: string;
-  awayTeamName?: string;
-  homeSourceLabel?: string;
-  awaySourceLabel?: string;
-  homeResult?: number;
-  awayResult?: number;
-  status?: string;
-}
-
-interface Team {
-  teamId: string;
-  name: string;
-  group?: string;
-  code?: string;
-}
-
-type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
-
-interface TournamentPlayer {
-  playerId: string;
-  teamId: string;
-  teamName: string;
-  name: string;
-  position: PlayerPosition;
-  imageUrl?: string;
-  flagEmoji?: string;
-  goals?: number;
-  missedPenalties?: number;
-  mvps?: number;
-  penaltiesSaved?: number;
-  cleanSheets?: number;
-  assists?: number;
-  yellowCards?: number;
-  redCards?: number;
-  totalPoints?: number;
-}
-
-interface PoolSummary {
-  poolId: string;
-  name?: string;
-  config?: Record<string, any>;
-  memberCount?: number;
-}
-
-type AdminTab = 'configuration' | 'groups' | 'final' | 'players';
-type PrizePayout = { rank: number; percentage: number };
-type PlayerStatKey =
-  | 'goals'
-  | 'missedPenalties'
-  | 'mvps'
-  | 'penaltiesSaved'
-  | 'cleanSheets'
-  | 'assists'
-  | 'yellowCards'
-  | 'redCards';
-type BracketRoundScoring = {
-  exactPositionPoints: number;
-  correctTeamWrongPositionPoints: number;
-};
-type BracketScoringConfig = BracketRoundScoring & {
-  rounds: Record<string, BracketRoundScoring>;
-  tournamentWinnerPoints: number;
-};
 
 const PHASES = [
   { key: '16th-finals', labelKey: 'bracket.round.16th', matches: 16 },
@@ -152,15 +73,15 @@ const DEFAULT_PLAYER_SCORING = {
   },
 };
 
-const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: string; labelKey: string }> = [
-  { key: 'goals', icon: '⚽', labelKey: 'adminResults.players.actions.goals' },
-  { key: 'assists', icon: '🅰', labelKey: 'adminResults.players.actions.assists' },
-  { key: 'mvps', icon: '⭐️', labelKey: 'adminResults.players.actions.mvps' },
-  { key: 'penaltiesSaved', icon: '🧤', labelKey: 'adminResults.players.actions.penaltiesSaved' },
-  { key: 'cleanSheets', icon: '🛡', labelKey: 'adminResults.players.actions.cleanSheets' },
-  { key: 'yellowCards', icon: '🟨', labelKey: 'adminResults.players.actions.yellowCards' },
-  { key: 'redCards', icon: '🟥', labelKey: 'adminResults.players.actions.redCards' },
-  { key: 'missedPenalties', icon: '❌', labelKey: 'adminResults.players.actions.missedPenalties' },
+const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: ReactNode; labelKey: string }> = [
+  { key: 'goals', icon: <FaFutbol style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.goals' },
+  { key: 'assists', icon: <FaMagic style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.assists' },
+  { key: 'mvps', icon: <FaStar style={ {color: 'gold' } } size='17'/>, labelKey: 'adminResults.players.actions.mvps' },
+  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={ {color: 'green' } } size='17'/>, labelKey: 'adminResults.players.actions.penaltiesSaved' },
+  { key: 'cleanSheets', icon: <FaShieldAlt style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.cleanSheets' },
+  { key: 'yellowCards', icon: <LuRectangleVertical style={ {color: 'yellow', fill: 'yellow' } } size='17'/>, labelKey: 'adminResults.players.actions.yellowCards' },
+  { key: 'redCards', icon: <LuRectangleVertical style={ {color: 'red', fill: 'red' } } size='17'/>, labelKey: 'adminResults.players.actions.redCards' },
+  { key: 'missedPenalties', icon: <IoMdCloseCircle style={ {color: 'red' } } size='17'/>, labelKey: 'adminResults.players.actions.missedPenalties' },
 ];
 
 function unwrapArray<T>(value: any): T[] {
@@ -357,7 +278,6 @@ function AdminResultsContent() {
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
   const [deadlineLocal, setDeadlineLocal] = useState<string>(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
   const [entryFee, setEntryFee] = useState<number>(0);
-  const [prizeDistributionInput, setPrizeDistributionInput] = useState<string>('100');
   const [prizeDistribution, setPrizeDistribution] = useState<PrizePayout[]>([]);
   const [playerAwardWinnersConfig, setPlayerAwardWinnersConfig] = useState<{
     goldenBootPlayerIds: string[];
@@ -430,16 +350,6 @@ function AdminResultsContent() {
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
           if (typeof pool?.config?.entryFee === 'number') {
             setEntryFee(pool.config.entryFee);
-          }
-          const payouts = pool?.config?.prizeDistribution?.payouts;
-          if (Array.isArray(payouts) && payouts.length > 0) {
-            const sorted = [...payouts]
-              .filter((p: any) => p && typeof p.rank === 'number' && typeof p.percentage === 'number')
-              .sort((a: any, b: any) => a.rank - b.rank)
-              .map((p: any) => p.percentage);
-            if (sorted.length > 0) {
-              setPrizeDistributionInput(sorted.join(','));
-            }
           }
           setPrizeDistribution(normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount)));
           if (pool?.config?.scoring) {
@@ -604,20 +514,15 @@ function AdminResultsContent() {
       }
     };
 
-    if (user && user.role === 'admin') {
+    if (user?.role === 'admin') {
       fetchData();
     }
   }, [user, t]);
 
-  // Debounced auto-save: any change to the config state schedules a save 600 ms
-  // later. The snapshot diff inside autoSaveConfig short-circuits when the
-  // server already has the same values (e.g. on the first effect run after
-  // fetchData populated state) so we don't save what we just loaded.
   useEffect(() => {
     if (loading) return;
     if (!poolId || poolId === 'all-pools') return;
-    // Skip while the prize percentages don't add up to 100 — show the
-    // validation message inline instead of pushing an invalid payload.
+
     const prizeSum = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
     if (prizeDistribution.length > 0 && Math.abs(prizeSum - 100) > 0.01) return;
 
@@ -633,7 +538,6 @@ function AdminResultsContent() {
         configSaveTimer.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     scoringConfig,
     bracketScoringConfig,
@@ -659,9 +563,6 @@ function AdminResultsContent() {
       },
     }));
 
-    // Auto-save: debounce 500 ms and only fire when both scores are filled in,
-    // so a half-typed result like "3" doesn't trigger a request that would be
-    // immediately superseded by the next keystroke.
     const existing = resultSaveTimers.current[matchId];
     if (existing) clearTimeout(existing);
     const timer = setTimeout(() => {
@@ -680,7 +581,7 @@ function AdminResultsContent() {
   const autoSaveResults = async (matchId: string, homeResult: number, awayResult: number) => {
     try {
       setSubmitting(matchId);
-      const targetPoolId = poolId !== 'all-pools' ? poolId : 'all-pools';
+      const targetPoolId = poolId === 'all-pools' ? 'all-pools' : poolId;
       await apiClient.post(`/pools/${targetPoolId}/matches/${matchId}/results`, {
         homeResult,
         awayResult,
@@ -864,11 +765,7 @@ function AdminResultsContent() {
   if (loading) {
     return (
       <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
-        <div className="container-app">
-          <p style={{ color: 'rgb(var(--fg-muted))', textAlign: 'center', padding: '3rem 0' }}>
-            {t('common.loading')}
-          </p>
-        </div>
+        <Loading message={t('common.loading')} />
       </main>
     );
   }
@@ -885,202 +782,64 @@ function AdminResultsContent() {
   ];
 
   return (
-    <main style={{
-        position: 'relative',
-        minHeight: 'calc(100vh - 4rem)',
-        background: 'rgb(var(--bg))',
-      }}>
-      <div className="container-app" style={{ position: 'relative' }}>
-        <header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            marginBottom: '1.75rem',
-          }}
-        >
-          <div>
-            <p className="eyebrow" style={{ marginBottom: '0.4rem' }}>
-              {t('adminResults.title')}
-            </p>
-            <h1
-              style={{
-                fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.025em',
-              }}
-            >
-              <span className="gradient-text">{poolName}</span>
-            </h1>
-          </div>
-        </header>
-
-        <div className="tabs-frame">
-          <div
-            role="tablist"
-            aria-label={t('adminResults.tabs.label')}
-            className="tabs-list tabs-list-4"
+    <>
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '1.75rem',
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+            }}
           >
-            {tabs.map((tab) => {
-              const selected = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setActiveTab(tab.key)}
-                  className="tab-button"
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+            <span>{t('adminResults.title')}</span>
+          </h1>
+        </div>
+      </header>
 
-          {activeTab === 'configuration' ? (
-            <div className="tabs-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* 1. General configuration — deadline, entry fee, prize split */}
-            <Section
-              title={t('adminResults.config.general.title')}
-              collapsible
-              defaultExpanded
-              density="compact"
-              tone="subtle"
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                    gap: '1rem',
-                  }}
-                >
-                  <FormField
-                    label={t('adminResults.scoring.deadline')}
-                    hint={t('adminResults.scoring.deadlineHint')}
-                  >
-                    <Input
-                      type="datetime-local"
-                      value={deadlineLocal}
-                      onChange={(e) => setDeadlineLocal(e.target.value)}
-                    />
-                  </FormField>
-                  <FormField
-                    label={t('adminResults.scoring.entryFee')}
-                    hint={t('adminResults.scoring.entryFeeHint')}
-                  >
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.5"
-                      value={entryFee}
-                      onChange={(e) => {
-                        const v = parseFloat(e.target.value);
-                        setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0);
-                      }}
-                    />
-                  </FormField>
-                </div>
+      <div className="tabs-frame">
+        <div
+          role="tablist"
+          aria-label={t('adminResults.tabs.label')}
+          className="tabs-list tabs-list-4"
+        >
+          {tabs.map((tab) => {
+            const selected = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => setActiveTab(tab.key)}
+                className="tab-button"
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(180px, 260px) minmax(0, 1fr)',
-                    gap: '1rem',
-                    alignItems: 'end',
-                  }}
-                >
-                  <FormField
-                    label={t('adminResults.scoring.prizePaidPositions')}
-                    hint={t('adminResults.scoring.prizePaidPositionsHint', { count: maxPrizePaidPositions })}
-                  >
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max={maxPrizePaidPositions}
-                      value={prizeDistribution.length}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value, 10) || 0;
-                        setPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxPrizePaidPositions));
-                      }}
-                    />
-                  </FormField>
-                  <div
-                    style={{
-                      color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      paddingBottom: '0.65rem',
-                    }}
-                  >
-                    {t('adminResults.scoring.prizeTotal', { total: Number(prizeTotal.toFixed(2)) })}
-                    {prizeDistribution.length > 0 ? (
-                      <span style={{ marginLeft: '0.5rem', color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
-                        {prizeTotalInvalid
-                          ? t('adminResults.scoring.prizeTotalInvalid')
-                          : t('adminResults.scoring.prizeTotalValid')}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                {prizeDistribution.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                    {prizeDistribution.map((row, index) => (
-                      <div
-                        key={row.rank}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'minmax(7rem, 10rem) minmax(9rem, 13rem) minmax(0, 1fr)',
-                          gap: '0.65rem',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span style={{ color: 'rgb(var(--fg))', fontWeight: 700, fontSize: '0.875rem' }}>
-                          {t('adminResults.scoring.prizeRank', { rank: row.rank })}
-                        </span>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          max="100"
-                          step="0.5"
-                          value={row.percentage}
-                          invalid={prizeTotalInvalid}
-                          aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value);
-                            const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
-                            setPrizeDistribution((prev) =>
-                              prev.map((item, itemIndex) =>
-                                itemIndex === index ? { ...item, percentage } : item,
-                              ),
-                            );
-                          }}
-                        />
-                        <span style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.8125rem' }}>
-                          {t('adminResults.scoring.prizePercentage', { rank: row.rank })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </Section>
-
-            {/* 2. Group phase configuration */}
-            <Section
-              title={t('adminResults.config.groupPhase.title')}
-              collapsible
-              defaultExpanded={false}
-              density="compact"
-              tone="subtle"
-            >
+        {activeTab === 'configuration' ? (
+          <div className="tabs-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* 1. General configuration — deadline, entry fee, prize split */}
+          <Section
+            title={t('adminResults.config.general.title')}
+            collapsible
+            defaultExpanded
+            density="compact"
+            tone="subtle"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
               <div
                 style={{
                   display: 'grid',
@@ -1088,917 +847,1046 @@ function AdminResultsContent() {
                   gap: '1rem',
                 }}
               >
-                <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
+                <FormField
+                  label={t('adminResults.scoring.deadline')}
+                  hint={t('adminResults.scoring.deadlineHint')}
+                >
                   <Input
-                    type="number"
-                    inputMode="numeric"
-                    min="0"
-                    value={scoringConfig.winnerPoints}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10) || 0;
-                      setScoringConfig((prev) => ({ ...prev, winnerPoints: Math.max(0, value) }));
-                    }}
+                    type="datetime-local"
+                    value={deadlineLocal}
+                    onChange={(e) => setDeadlineLocal(e.target.value)}
                   />
                 </FormField>
-                <FormField label={t('adminResults.scoring.groupPhaseExact')}>
+                <FormField
+                  label={t('adminResults.scoring.entryFee')}
+                  hint={t('adminResults.scoring.entryFeeHint')}
+                >
                   <Input
                     type="number"
-                    inputMode="numeric"
+                    inputMode="decimal"
                     min="0"
-                    value={scoringConfig.exactResultPoints}
+                    step="0.5"
+                    value={entryFee}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value, 10) || 0;
-                      setScoringConfig((prev) => ({ ...prev, exactResultPoints: Math.max(0, value) }));
+                      const v = Number.parseFloat(e.target.value);
+                      setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0);
                     }}
                   />
                 </FormField>
               </div>
-            </Section>
 
-            {/* 3. Final phase configuration */}
-            <Section
-              title={t('adminResults.config.finalPhase.title')}
-              collapsible
-              defaultExpanded={false}
-              density="compact"
-              tone="subtle"
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(180px, 260px) minmax(0, 1fr)',
+                  gap: '1rem',
+                  alignItems: 'end',
+                }}
+              >
+                <FormField
+                  label={t('adminResults.scoring.prizePaidPositions')}
+                  hint={t('adminResults.scoring.prizePaidPositionsHint', { count: maxPrizePaidPositions })}
+                >
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    max={maxPrizePaidPositions}
+                    value={prizeDistribution.length}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10) || 0;
+                      setPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxPrizePaidPositions));
+                    }}
+                  />
+                </FormField>
                 <div
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(220px, 1fr)',
-                    gap: '0.75rem',
-                    padding: '0.65rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid rgb(var(--border-subtle))',
-                    background: 'rgb(var(--bg-elevated))',
+                    color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    paddingBottom: '0.65rem',
                   }}
                 >
-                  <FormField label={t('adminResults.scoring.tournamentWinner')}>
+                  {t('adminResults.scoring.prizeTotal', { total: Number(prizeTotal.toFixed(2)) })}
+                  {prizeDistribution.length > 0 ? (
+                    <span style={{ marginLeft: '0.5rem', color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
+                      {prizeTotalInvalid
+                        ? t('adminResults.scoring.prizeTotalInvalid')
+                        : t('adminResults.scoring.prizeTotalValid')}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              {prizeDistribution.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {prizeDistribution.map((row, index) => (
+                    <div
+                      key={row.rank}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(7rem, 10rem) minmax(9rem, 13rem) minmax(0, 1fr)',
+                        gap: '0.65rem',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ color: 'rgb(var(--fg))', fontWeight: 700, fontSize: '0.875rem' }}>
+                        {t('adminResults.scoring.prizeRank', { rank: row.rank })}
+                      </span>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        value={row.percentage}
+                        invalid={prizeTotalInvalid}
+                        aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                        onChange={(e) => {
+                          const value = Number.parseFloat(e.target.value);
+                          const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+                          setPrizeDistribution((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, percentage } : item,
+                            ),
+                          );
+                        }}
+                      />
+                      <span style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.8125rem' }}>
+                        {t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </Section>
+
+          {/* 2. Group phase configuration */}
+          <Section
+            title={t('adminResults.config.groupPhase.title')}
+            collapsible
+            defaultExpanded={false}
+            density="compact"
+            tone="subtle"
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '1rem',
+              }}
+            >
+              <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={scoringConfig.winnerPoints}
+                  onChange={(e) => {
+                    const value = Number.parseInt(e.target.value, 10) || 0;
+                    setScoringConfig((prev) => ({ ...prev, winnerPoints: Math.max(0, value) }));
+                  }}
+                />
+              </FormField>
+              <FormField label={t('adminResults.scoring.groupPhaseExact')}>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={scoringConfig.exactResultPoints}
+                  onChange={(e) => {
+                    const value = Number.parseInt(e.target.value, 10) || 0;
+                    setScoringConfig((prev) => ({ ...prev, exactResultPoints: Math.max(0, value) }));
+                  }}
+                />
+              </FormField>
+            </div>
+          </Section>
+
+          {/* 3. Final phase configuration */}
+          <Section
+            title={t('adminResults.config.finalPhase.title')}
+            collapsible
+            defaultExpanded={false}
+            density="compact"
+            tone="subtle"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(220px, 1fr)',
+                  gap: '0.75rem',
+                  padding: '0.65rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgb(var(--border-subtle))',
+                  background: 'rgb(var(--bg-elevated))',
+                }}
+              >
+                <FormField label={t('adminResults.scoring.tournamentWinner')}>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    value={bracketScoringConfig.tournamentWinnerPoints}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10) || 0;
+                      setBracketScoringConfig((prev) => ({
+                        ...prev,
+                        tournamentWinnerPoints: Math.max(0, value),
+                      }));
+                    }}
+                  />
+                </FormField>
+              </div>
+              {PHASES.map((phase) => {
+                const scoring = bracketScoringConfig.rounds[phase.key] || {
+                  exactPositionPoints: bracketScoringConfig.exactPositionPoints,
+                  correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints,
+                };
+                return (
+                  <div
+                    key={phase.key}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(8rem, 12rem) repeat(2, minmax(150px, 1fr))',
+                      gap: '0.75rem',
+                      alignItems: 'start',
+                      padding: '0.65rem',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid rgb(var(--border-subtle))',
+                      background: 'rgb(var(--bg-elevated))',
+                    }}
+                  >
+                    <span
+                      style={{
+                        alignSelf: 'center',
+                        color: 'rgb(var(--fg))',
+                        fontSize: '0.875rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {t(phase.labelKey)}
+                    </span>
+                    <FormField label={t('adminResults.scoring.finalExactPosition')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={scoring.exactPositionPoints}
+                        onChange={(e) => {
+                          const value = Number.parseInt(e.target.value, 10) || 0;
+                          setBracketScoringConfig((prev) => ({
+                            ...prev,
+                            rounds: {
+                              ...prev.rounds,
+                              [phase.key]: {
+                                ...(prev.rounds[phase.key] || scoring),
+                                exactPositionPoints: Math.max(0, value),
+                              },
+                            },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                    <FormField label={t('adminResults.scoring.finalCorrectWrongPosition')}>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={scoring.correctTeamWrongPositionPoints}
+                        onChange={(e) => {
+                          const value = Number.parseInt(e.target.value, 10) || 0;
+                          setBracketScoringConfig((prev) => ({
+                            ...prev,
+                            rounds: {
+                              ...prev.rounds,
+                              [phase.key]: {
+                                ...(prev.rounds[phase.key] || scoring),
+                                correctTeamWrongPositionPoints: Math.max(0, value),
+                              },
+                            },
+                          }));
+                        }}
+                      />
+                    </FormField>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+
+          {/* 4. Players configuration */}
+          <Section
+            title={t('adminResults.config.players.title')}
+            collapsible
+            defaultExpanded={false}
+            density="compact"
+            tone="subtle"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.goalsByPosition')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField label={t('adminResults.players.scoring.goalGoalkeeper')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.goal.goalkeeper}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, goalkeeper: value } }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.goalDefender')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.goal.defender}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, defender: value } }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.goalMidfielder')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.goal.midfielder}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, midfielder: value } }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.goalForward')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.goal.forward}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, forward: value } }));
+                      }}
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.assistsByPosition')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField label={t('adminResults.players.scoring.assistGoalkeeper')}>
                     <Input
                       type="number"
                       inputMode="numeric"
                       min="0"
-                      value={bracketScoringConfig.tournamentWinnerPoints}
+                      value={playerScoringConfig.assist.goalkeeper}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value, 10) || 0;
-                        setBracketScoringConfig((prev) => ({
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
                           ...prev,
-                          tournamentWinnerPoints: Math.max(0, value),
+                          assist: { ...prev.assist, goalkeeper: Math.max(0, value) },
+                        }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.assistDefender')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.assist.defender}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          assist: { ...prev.assist, defender: Math.max(0, value) },
+                        }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.assistMidfielder')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.assist.midfielder}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          assist: { ...prev.assist, midfielder: Math.max(0, value) },
+                        }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.assistForward')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.assist.forward}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          assist: { ...prev.assist, forward: Math.max(0, value) },
                         }));
                       }}
                     />
                   </FormField>
                 </div>
-                {PHASES.map((phase) => {
-                  const scoring = bracketScoringConfig.rounds[phase.key] || {
-                    exactPositionPoints: bracketScoringConfig.exactPositionPoints,
-                    correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints,
-                  };
-                  return (
-                    <div
-                      key={phase.key}
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.individualActions')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField label={t('adminResults.players.scoring.missedPenalty')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.missedPenalty}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, missedPenalty: value }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.mvp')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.mvp}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, mvp: value }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.penaltySaved')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.penaltySaved}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, penaltySaved: value }));
+                      }}
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.discipline')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField
+                    label={t('adminResults.players.scoring.yellowCard')}
+                    hint={t('adminResults.players.scoring.cardHint')}
+                  >
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.yellowCard}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10);
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          yellowCard: Number.isFinite(value) ? value : 0,
+                        }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t('adminResults.players.scoring.redCard')}
+                    hint={t('adminResults.players.scoring.cardHint')}
+                  >
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.redCard}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10);
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          redCard: Number.isFinite(value) ? value : 0,
+                        }));
+                      }}
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.cleanSheetsByPosition')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField label={t('adminResults.players.scoring.cleanSheetGoalkeeper')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.cleanSheet.goalkeeper}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, goalkeeper: Math.max(0, value) } }));
+                      }}
+                      min="0"
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.cleanSheetDefender')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.cleanSheet.defender}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, defender: Math.max(0, value) } }));
+                      }}
+                      min="0"
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.cleanSheetMidfielder')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.cleanSheet.midfielder}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, midfielder: Math.max(0, value) } }));
+                      }}
+                      min="0"
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.cleanSheetForward')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={playerScoringConfig.cleanSheet.forward}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, forward: Math.max(0, value) } }));
+                      }}
+                      min="0"
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.awards')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  <FormField label={t('adminResults.players.scoring.goldenBoot')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.award.goldenBoot}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          award: { ...prev.award, goldenBoot: Math.max(0, value) },
+                        }));
+                      }}
+                    />
+                  </FormField>
+                  <FormField label={t('adminResults.players.scoring.tournamentMvp')}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.award.tournamentMvp}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPlayerScoringConfig((prev) => ({
+                          ...prev,
+                          award: { ...prev.award, tournamentMvp: Math.max(0, value) },
+                        }));
+                      }}
+                    />
+                  </FormField>
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgb(var(--fg-subtle))',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  {t('adminResults.config.players.subgroups.awardWinners')}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+                  <FormField
+                    label={t('adminResults.players.awardWinners.goldenBoot')}
+                    hint={t('adminResults.players.awardWinners.goldenBootHint')}
+                  >
+                    <select
+                      multiple
+                      value={playerAwardWinnersConfig.goldenBootPlayerIds}
+                      onChange={(e) => {
+                        const selected = Array.from(e.currentTarget.selectedOptions).map((option) => option.value);
+                        setPlayerAwardWinnersConfig((prev) => ({ ...prev, goldenBootPlayerIds: selected }));
+                      }}
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'minmax(8rem, 12rem) repeat(2, minmax(150px, 1fr))',
-                        gap: '0.75rem',
-                        alignItems: 'start',
-                        padding: '0.65rem',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid rgb(var(--border-subtle))',
+                        width: '100%',
+                        minHeight: '8rem',
+                        padding: '0.55rem 0.7rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid rgb(var(--border))',
                         background: 'rgb(var(--bg-elevated))',
+                        color: 'rgb(var(--fg))',
                       }}
                     >
-                      <span
-                        style={{
-                          alignSelf: 'center',
-                          color: 'rgb(var(--fg))',
-                          fontSize: '0.875rem',
-                          fontWeight: 800,
-                        }}
-                      >
-                        {t(phase.labelKey)}
-                      </span>
-                      <FormField label={t('adminResults.scoring.finalExactPosition')}>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min="0"
-                          value={scoring.exactPositionPoints}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value, 10) || 0;
-                            setBracketScoringConfig((prev) => ({
-                              ...prev,
-                              rounds: {
-                                ...prev.rounds,
-                                [phase.key]: {
-                                  ...(prev.rounds[phase.key] || scoring),
-                                  exactPositionPoints: Math.max(0, value),
-                                },
-                              },
-                            }));
-                          }}
-                        />
-                      </FormField>
-                      <FormField label={t('adminResults.scoring.finalCorrectWrongPosition')}>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min="0"
-                          value={scoring.correctTeamWrongPositionPoints}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value, 10) || 0;
-                            setBracketScoringConfig((prev) => ({
-                              ...prev,
-                              rounds: {
-                                ...prev.rounds,
-                                [phase.key]: {
-                                  ...(prev.rounds[phase.key] || scoring),
-                                  correctTeamWrongPositionPoints: Math.max(0, value),
-                                },
-                              },
-                            }));
-                          }}
-                        />
-                      </FormField>
-                    </div>
-                  );
-                })}
-              </div>
-            </Section>
-
-            {/* 4. Players configuration */}
-            <Section
-              title={t('adminResults.config.players.title')}
-              collapsible
-              defaultExpanded={false}
-              density="compact"
-              tone="subtle"
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
+                      {players.map((player) => (
+                        <option key={player.playerId} value={player.playerId}>
+                          <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} /> - {player.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField
+                    label={t('adminResults.players.awardWinners.tournamentMvp')}
+                    hint={t('adminResults.players.awardWinners.tournamentMvpHint')}
                   >
-                    {t('adminResults.config.players.subgroups.goalsByPosition')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField label={t('adminResults.players.scoring.goalGoalkeeper')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.goal.goalkeeper}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, goalkeeper: value } }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.goalDefender')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.goal.defender}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, defender: value } }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.goalMidfielder')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.goal.midfielder}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, midfielder: value } }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.goalForward')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.goal.forward}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, goal: { ...prev.goal, forward: value } }));
-                        }}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.assistsByPosition')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField label={t('adminResults.players.scoring.assistGoalkeeper')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.assist.goalkeeper}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            assist: { ...prev.assist, goalkeeper: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.assistDefender')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.assist.defender}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            assist: { ...prev.assist, defender: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.assistMidfielder')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.assist.midfielder}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            assist: { ...prev.assist, midfielder: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.assistForward')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.assist.forward}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            assist: { ...prev.assist, forward: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.individualActions')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField label={t('adminResults.players.scoring.missedPenalty')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.missedPenalty}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, missedPenalty: value }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.mvp')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.mvp}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, mvp: value }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.penaltySaved')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.penaltySaved}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, penaltySaved: value }));
-                        }}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.discipline')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField
-                      label={t('adminResults.players.scoring.yellowCard')}
-                      hint={t('adminResults.players.scoring.cardHint')}
+                    <select
+                      value={playerAwardWinnersConfig.tournamentMvpPlayerId}
+                      onChange={(e) =>
+                        setPlayerAwardWinnersConfig((prev) => ({
+                          ...prev,
+                          tournamentMvpPlayerId: e.currentTarget.value,
+                        }))
+                      }
+                      style={{
+                        width: '100%',
+                        padding: '0.55rem 0.7rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid rgb(var(--border))',
+                        background: 'rgb(var(--bg-elevated))',
+                        color: 'rgb(var(--fg))',
+                      }}
                     >
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.yellowCard}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10);
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            yellowCard: Number.isFinite(value) ? value : 0,
-                          }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField
-                      label={t('adminResults.players.scoring.redCard')}
-                      hint={t('adminResults.players.scoring.cardHint')}
-                    >
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.redCard}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10);
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            redCard: Number.isFinite(value) ? value : 0,
-                          }));
-                        }}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.cleanSheetsByPosition')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField label={t('adminResults.players.scoring.cleanSheetGoalkeeper')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.cleanSheet.goalkeeper}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, goalkeeper: Math.max(0, value) } }));
-                        }}
-                        min="0"
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.cleanSheetDefender')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.cleanSheet.defender}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, defender: Math.max(0, value) } }));
-                        }}
-                        min="0"
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.cleanSheetMidfielder')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.cleanSheet.midfielder}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, midfielder: Math.max(0, value) } }));
-                        }}
-                        min="0"
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.cleanSheetForward')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        value={playerScoringConfig.cleanSheet.forward}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({ ...prev, cleanSheet: { ...prev.cleanSheet, forward: Math.max(0, value) } }));
-                        }}
-                        min="0"
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.awards')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    <FormField label={t('adminResults.players.scoring.goldenBoot')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.award.goldenBoot}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            award: { ...prev.award, goldenBoot: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                    <FormField label={t('adminResults.players.scoring.tournamentMvp')}>
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={playerScoringConfig.award.tournamentMvp}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value, 10) || 0;
-                          setPlayerScoringConfig((prev) => ({
-                            ...prev,
-                            award: { ...prev.award, tournamentMvp: Math.max(0, value) },
-                          }));
-                        }}
-                      />
-                    </FormField>
-                  </div>
-                </div>
-
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: 'rgb(var(--fg-subtle))',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('adminResults.config.players.subgroups.awardWinners')}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-                    <FormField
-                      label={t('adminResults.players.awardWinners.goldenBoot')}
-                      hint={t('adminResults.players.awardWinners.goldenBootHint')}
-                    >
-                      <select
-                        multiple
-                        value={playerAwardWinnersConfig.goldenBootPlayerIds}
-                        onChange={(e) => {
-                          const selected = Array.from(e.currentTarget.selectedOptions).map((option) => option.value);
-                          setPlayerAwardWinnersConfig((prev) => ({ ...prev, goldenBootPlayerIds: selected }));
-                        }}
-                        style={{
-                          width: '100%',
-                          minHeight: '8rem',
-                          padding: '0.55rem 0.7rem',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid rgb(var(--border))',
-                          background: 'rgb(var(--bg-elevated))',
-                          color: 'rgb(var(--fg))',
-                        }}
-                      >
-                        {players.map((player) => (
-                          <option key={player.playerId} value={player.playerId}>
-                            {countryWithFlag(player.teamName)} - {player.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormField>
-                    <FormField
-                      label={t('adminResults.players.awardWinners.tournamentMvp')}
-                      hint={t('adminResults.players.awardWinners.tournamentMvpHint')}
-                    >
-                      <select
-                        value={playerAwardWinnersConfig.tournamentMvpPlayerId}
-                        onChange={(e) =>
-                          setPlayerAwardWinnersConfig((prev) => ({
-                            ...prev,
-                            tournamentMvpPlayerId: e.currentTarget.value,
-                          }))
-                        }
-                        style={{
-                          width: '100%',
-                          padding: '0.55rem 0.7rem',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid rgb(var(--border))',
-                          background: 'rgb(var(--bg-elevated))',
-                          color: 'rgb(var(--fg))',
-                        }}
-                      >
-                        <option value="">{t('adminResults.players.awardWinners.none')}</option>
-                        {players.map((player) => (
-                          <option key={player.playerId} value={player.playerId}>
-                            {countryWithFlag(player.teamName)} - {player.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormField>
-                  </div>
+                      <option value="">{t('adminResults.players.awardWinners.none')}</option>
+                      {players.map((player) => (
+                        <option key={player.playerId} value={player.playerId}>
+                          <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} /> - {player.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
                 </div>
               </div>
-            </Section>
-
-            <div
-              aria-live="polite"
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                gap: '0.4rem',
-                minHeight: '1.4rem',
-                fontSize: '0.78rem',
-                color: 'rgb(var(--fg-muted))',
-                fontStyle: 'italic',
-              }}
-            >
-              {savingConfig ? (
-                <>
-                  <span
-                    aria-hidden
-                    className="btn-spinner"
-                    style={{ width: '0.75rem', height: '0.75rem', borderWidth: 2 }}
-                  />
-                  {t('adminResults.scoring.savingAuto')}
-                </>
-              ) : prizeTotalInvalid ? (
-                <span style={{ color: 'rgb(var(--live))', fontStyle: 'normal', fontWeight: 600 }}>
-                  {t('adminResults.scoring.prizeTotalInvalid')}
-                </span>
-              ) : poolNotSelected ? (
-                <span style={{ fontStyle: 'normal' }}>{t('adminResults.errors.selectPoolFirst')}</span>
-              ) : (
-                <span aria-hidden>{t('adminResults.scoring.savedAuto')}</span>
-              )}
             </div>
-          </div>
-        ) : null}
+          </Section>
 
-        {activeTab === 'groups' ? (
-          <div className="tabs-panel tabs-panel-compact">
-            {groups.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {groups.map((group) => {
-                  const groupMatches = matchesByGroup[group] || [];
-                  return (
-                    <Section
-                      key={group}
-                      title={t('adminResults.groupPhase.group', { group })}
-                      collapsible
-                      defaultExpanded
-                      density="compact"
-                      tone="subtle"
-                      contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-                      style={{ padding: '0.45rem 0.55rem' }}
-                    >
-                      {groupMatches.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          {groupMatches.map((match) => (
-                            <ResultEntryRow
-                              key={match.matchId}
-                              match={match}
-                              locale={locale}
-                              result={results[match.matchId] || { homeResult: '', awayResult: '' }}
-                              submitting={submitting === match.matchId}
-                              onChange={handleResultChange}
-                              savingLabel={t('common.saving')}
-                            />
-                          ))}
-                        </div>
-                      ) : null}
-                    </Section>
-                  );
-                })}
-              </div>
+          <div
+            aria-live="polite"
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              gap: '0.4rem',
+              minHeight: '1.4rem',
+              fontSize: '0.78rem',
+              color: 'rgb(var(--fg-muted))',
+              fontStyle: 'italic',
+            }}
+          >
+            {savingConfig ? (
+              <>
+                <span
+                  aria-hidden
+                  className="btn-spinner"
+                  style={{ width: '0.75rem', height: '0.75rem', borderWidth: 2 }}
+                />
+                {t('adminResults.scoring.savingAuto')}
+              </>
+            ) : prizeTotalInvalid ? (
+              <span style={{ color: 'rgb(var(--live))', fontStyle: 'normal', fontWeight: 600 }}>
+                {t('adminResults.scoring.prizeTotalInvalid')}
+              </span>
+            ) : poolNotSelected ? (
+              <span style={{ fontStyle: 'normal' }}>{t('adminResults.errors.selectPoolFirst')}</span>
             ) : (
-              <p
-                style={{
-                  color: 'rgb(var(--fg-muted))',
-                  fontSize: '0.875rem',
-                  textAlign: 'center',
-                  padding: '1.5rem',
-                  margin: 0,
-                }}
-              >
-                {t('adminResults.groupPhase.empty')}
-              </p>
+              <span aria-hidden>{t('adminResults.scoring.savedAuto')}</span>
             )}
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {activeTab === 'final' ? (
-          <div className="tabs-panel">
+      {activeTab === 'groups' ? (
+        <div className="tabs-panel tabs-panel-compact">
+          {groups.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {groups.map((group) => {
+                const groupMatches = matchesByGroup[group] || [];
+                return (
+                  <Section
+                    key={group}
+                    title={t('adminResults.groupPhase.group', { group })}
+                    collapsible
+                    defaultExpanded
+                    density="compact"
+                    tone="subtle"
+                    contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
+                    style={{ padding: '0.45rem 0.55rem' }}
+                  >
+                    {groupMatches.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {groupMatches.map((match) => (
+                          <ResultEntryRow
+                            key={match.matchId}
+                            match={match}
+                            locale={locale}
+                            result={results[match.matchId] || { homeResult: '', awayResult: '' }}
+                            submitting={submitting === match.matchId}
+                            onChange={handleResultChange}
+                            savingLabel={t('common.saving')}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                  </Section>
+                );
+              })}
+            </div>
+          ) : (
             <p
               style={{
                 color: 'rgb(var(--fg-muted))',
                 fontSize: '0.875rem',
-                margin: '0 0 1rem 0',
-                lineHeight: 1.5,
+                textAlign: 'center',
+                padding: '1.5rem',
+                margin: 0,
               }}
             >
-              {t('adminResults.finalPhase.description')}
+              {t('adminResults.groupPhase.empty')}
             </p>
-            <BracketVisualization
-              bracket={bracket}
-              teams={teams}
-              poolId={poolId}
-              mode="admin"
-              updatingMatch={updatingMatch}
-              onUpdateTeam={handleUpdateTeam}
-              onBracketResultChange={(id, h, a) => handleBracketResultChange(id, h, a)}
-              onUpdateResult={handleSaveBracketResult}
-              bracketResults={bracketResults}
-              submittingResult={submittingBracketResult}
-            />
-          </div>
-        ) : null}
+          )}
+        </div>
+      ) : null}
 
-        {activeTab === 'players' ? (
-          <div className="tabs-panel tabs-panel-compact">
-            {(() => {
-              // Build the country list from the loaded players, sorted alpha by
-              // localised team name. Cheap recompute on every render — the list
-              // is small (≤ 48 teams) and avoids stale memo invalidation.
-              const countries = Array.from(
-                players.reduce((acc, player) => {
-                  if (player.teamId && !acc.has(player.teamId)) {
-                    acc.set(player.teamId, player.teamName || player.teamId);
-                  }
-                  return acc;
-                }, new Map<string, string>()).entries(),
-              ).sort((a, b) => a[1].localeCompare(b[1], locale));
+      {activeTab === 'final' ? (
+        <div className="tabs-panel">
+          <BracketVisualization
+            bracket={bracket}
+            teams={teams}
+            poolId={poolId}
+            mode="admin"
+            updatingMatch={updatingMatch}
+            onUpdateTeam={handleUpdateTeam}
+            onBracketResultChange={(id, h, a) => handleBracketResultChange(id, h, a)}
+            onUpdateResult={handleSaveBracketResult}
+            bracketResults={bracketResults}
+            submittingResult={submittingBracketResult}
+          />
+        </div>
+      ) : null}
 
-              const search = playerFilter.trim().toLowerCase();
-              const filtered = players
-                .filter((player) =>
-                  playerCountryFilter ? player.teamId === playerCountryFilter : true,
-                )
-                .filter((player) =>
-                  search
-                    ? player.name.toLowerCase().includes(search) ||
-                      (player.teamName || '').toLowerCase().includes(search)
-                    : true,
-                );
+      {activeTab === 'players' ? (
+        <div className="tabs-panel tabs-panel-compact">
+          {(() => {
+            // Build the country list from the loaded players, sorted alpha by
+            // localised team name. Cheap recompute on every render — the list
+            // is small (≤ 48 teams) and avoids stale memo invalidation.
+            const countries = Array.from(
+              players.reduce((acc, player) => {
+                if (player.teamId && !acc.has(player.teamId)) {
+                  acc.set(player.teamId, player.teamName || player.teamId);
+                }
+                return acc;
+              }, new Map<string, string>()).entries(),
+            ).sort((a, b) => a[1].localeCompare(b[1], locale));
 
-              const filtersActive = Boolean(search) || Boolean(playerCountryFilter);
+            const search = playerFilter.trim().toLowerCase();
+            const filtered = players
+              .filter((player) =>
+                playerCountryFilter ? player.teamId === playerCountryFilter : true,
+              )
+              .filter((player) =>
+                search
+                  ? player.name.toLowerCase().includes(search) ||
+                    (player.teamName || '').toLowerCase().includes(search)
+                  : true,
+              );
 
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            const filtersActive = Boolean(search) || Boolean(playerCountryFilter);
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(180px, 1fr) minmax(160px, 220px) auto',
+                    gap: '0.6rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Input
+                    type="search"
+                    value={playerFilter}
+                    onChange={(e) => setPlayerFilter(e.target.value)}
+                    placeholder={t('adminResults.players.searchPlaceholder')}
+                    aria-label={t('adminResults.players.searchPlaceholder')}
+                  />
+                  <select
+                    value={playerCountryFilter}
+                    onChange={(e) => setPlayerCountryFilter(e.target.value)}
+                    aria-label={t('adminResults.players.countryFilterLabel')}
+                    className="input"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">{t('adminResults.players.countryAll')}</option>
+                    {countries.map(([teamId, teamName]) => (
+                      <option key={teamId} value={teamId}>
+                        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+                      </option>
+                    ))}
+                  </select>
+                  <span
+                    style={{
+                      whiteSpace: 'nowrap',
+                      color: 'rgb(var(--fg-muted))',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {t('adminResults.players.matchCount', { count: filtered.length })}
+                  </span>
+                </div>
+
+                {filtered.length > 0 ? (
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'minmax(180px, 1fr) minmax(160px, 220px) auto',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))',
                       gap: '0.6rem',
-                      alignItems: 'center',
                     }}
                   >
-                    <Input
-                      type="search"
-                      value={playerFilter}
-                      onChange={(e) => setPlayerFilter(e.target.value)}
-                      placeholder={t('adminResults.players.searchPlaceholder')}
-                      aria-label={t('adminResults.players.searchPlaceholder')}
-                    />
-                    <select
-                      value={playerCountryFilter}
-                      onChange={(e) => setPlayerCountryFilter(e.target.value)}
-                      aria-label={t('adminResults.players.countryFilterLabel')}
-                      className="input"
-                      style={{ width: '100%' }}
-                    >
-                      <option value="">{t('adminResults.players.countryAll')}</option>
-                      {countries.map(([teamId, teamName]) => (
-                        <option key={teamId} value={teamId}>
-                          {countryWithFlag(teamName)}
-                        </option>
-                      ))}
-                    </select>
+                    {filtered.map((player) => (
+                <article
+                  key={player.playerId}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr)',
+                    gap: '0.55rem',
+                    padding: '0.7rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid rgb(var(--border))',
+                    background: 'rgb(var(--bg-elevated))',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
                     <span
+                      aria-hidden
                       style={{
-                        whiteSpace: 'nowrap',
-                        color: 'rgb(var(--fg-muted))',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {t('adminResults.players.matchCount', { count: filtered.length })}
-                    </span>
-                  </div>
-
-                  {filtered.length > 0 ? (
-                    <div
-                      style={{
+                        width: '2.15rem',
+                        height: '2.15rem',
+                        borderRadius: '999px',
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))',
-                        gap: '0.6rem',
+                        placeItems: 'center',
+                        flexShrink: 0,
+                        background: 'rgb(var(--bg-subtle))',
+                        border: '1px solid rgb(var(--border))',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
                       }}
                     >
-                      {filtered.map((player) => (
-                  <article
-                    key={player.playerId}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'minmax(0, 1fr)',
-                      gap: '0.55rem',
-                      padding: '0.7rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid rgb(var(--border))',
-                      background: 'rgb(var(--bg-elevated))',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                      <span
-                        aria-hidden
+                      {player.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
+                      ) : (
+                        player.name.slice(0, 2).toUpperCase()
+                      )}
+                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontWeight: 800, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {player.name}
+                      </p>
+                      <p
                         style={{
-                          width: '2.15rem',
-                          height: '2.15rem',
-                          borderRadius: '999px',
-                          display: 'grid',
-                          placeItems: 'center',
-                          flexShrink: 0,
-                          background: 'rgb(var(--bg-subtle))',
-                          border: '1px solid rgb(var(--border))',
-                          fontSize: '0.72rem',
-                          fontWeight: 800,
+                          margin: '0.1rem 0 0',
+                          color: 'rgb(var(--fg-muted))',
+                          fontSize: '0.75rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
                         }}
                       >
-                        {player.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
-                        ) : (
-                          player.name.slice(0, 2).toUpperCase()
-                        )}
-                      </span>
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ margin: 0, fontWeight: 800, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {player.name}
-                        </p>
-                        <p style={{ margin: '0.1rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.75rem' }}>
-                          {countryWithFlag(player.teamName)} · {t(`poolDetail.players.positions.${player.position}`)}
-                        </p>
-                      </div>
-                      <Badge variant="gold" style={{ marginLeft: 'auto' }}>
-                        {t('adminResults.players.points', { points: player.totalPoints || 0 })}
-                      </Badge>
+                        <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} />
+                        {player.teamName}
+                      </p>
                     </div>
+                    <Badge variant="gold" style={{ marginLeft: 'auto' }}>
+                      {t('adminResults.players.points', { points: player.totalPoints || 0 })}
+                    </Badge>
+                  </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(5.25rem, 1fr))', gap: '0.35rem' }}>
-                      {PLAYER_STAT_ACTIONS.map((action) => {
-                        const value = player[action.key] || 0;
-                        const isUpdating = updatingPlayerStat === `${player.playerId}:${action.key}`;
-                        return (
-                          <div
-                            key={action.key}
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: '1.65rem minmax(1.3rem, 1fr) 1.65rem',
-                              alignItems: 'center',
-                              gap: '0.2rem',
-                              padding: '0.25rem',
-                              borderRadius: 'var(--radius-sm)',
-                              border: '1px solid rgb(var(--border-subtle))',
-                              background: 'rgb(var(--bg-subtle) / 0.55)',
-                            }}
-                          >
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-icon"
-                              disabled={isUpdating || value <= 0}
-                              title={t('adminResults.players.decrease')}
-                              aria-label={t('adminResults.players.decrease')}
-                              onClick={() => handlePlayerStatChange(player, action.key, -1)}
-                              style={{ width: '1.65rem', height: '1.65rem' }}
-                            >
-                              -
-                            </button>
-                            <span
-                              title={t(action.labelKey)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.18rem',
-                                fontSize: '0.72rem',
-                                fontWeight: 800,
-                                color: 'rgb(var(--fg))',
-                              }}
-                            >
-                              <span aria-hidden>{action.icon}</span>
-                              {value}
-                            </span>
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-icon"
-                              disabled={isUpdating}
-                              title={t('adminResults.players.increase')}
-                              aria-label={t('adminResults.players.increase')}
-                              onClick={() => handlePlayerStatChange(player, action.key, 1)}
-                              style={{ width: '1.65rem', height: '1.65rem' }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                      </article>
-                    ))}
-                    </div>
-                  ) : players.length === 0 ? (
-                    <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-                      {t('adminResults.players.empty')}
-                    </p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '1.5rem', margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.875rem' }}>
-                      <p style={{ margin: 0 }}>{t('adminResults.players.noResults')}</p>
-                      {filtersActive ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setPlayerFilter('');
-                            setPlayerCountryFilter('');
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(5.25rem, 1fr))', gap: '0.35rem' }}>
+                    {PLAYER_STAT_ACTIONS.map((action) => {
+                      const value = player[action.key] || 0;
+                      const isUpdating = updatingPlayerStat === `${player.playerId}:${action.key}`;
+                      return (
+                        <div
+                          key={action.key}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1.65rem minmax(1.3rem, 1fr) 1.65rem',
+                            alignItems: 'center',
+                            gap: '0.2rem',
+                            padding: '0.25rem',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid rgb(var(--border-subtle))',
+                            background: 'rgb(var(--bg-subtle) / 0.55)',
                           }}
                         >
-                          {t('adminResults.players.clearFilters')}
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        ) : null}
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-icon"
+                            disabled={isUpdating || value <= 0}
+                            title={t('adminResults.players.decrease')}
+                            aria-label={t('adminResults.players.decrease')}
+                            onClick={() => handlePlayerStatChange(player, action.key, -1)}
+                            style={{ width: '1.65rem', height: '1.65rem' }}
+                          >
+                            -
+                          </button>
+                          <span
+                            title={t(action.labelKey)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.18rem',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              color: 'rgb(var(--fg))',
+                            }}
+                          >
+                            {action.icon}
+                            {value}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-icon"
+                            disabled={isUpdating}
+                            title={t('adminResults.players.increase')}
+                            aria-label={t('adminResults.players.increase')}
+                            onClick={() => handlePlayerStatChange(player, action.key, 1)}
+                            style={{ width: '1.65rem', height: '1.65rem' }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                    </article>
+                  ))}
+                  </div>
+                ) : players.length === 0 ? (
+                  <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+                    {t('adminResults.players.empty')}
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '1.5rem', margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.875rem' }}>
+                    <p style={{ margin: 0 }}>{t('adminResults.players.noResults')}</p>
+                    {filtersActive ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setPlayerFilter('');
+                          setPlayerCountryFilter('');
+                        }}
+                      >
+                        {t('adminResults.players.clearFilters')}
+                      </Button>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
+      ) : null}
       </div>
-    </main>
+    </>
   );
 }
 
@@ -2018,7 +1906,7 @@ function ResultEntryRow({
   submitting,
   onChange,
   savingLabel,
-}: ResultEntryRowProps) {
+}: Readonly<ResultEntryRowProps>) {
   const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
     month: 'short',
     day: 'numeric',
@@ -2053,9 +1941,13 @@ function ResultEntryRow({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
           }}
         >
-          {countryWithFlag(match.homeTeamName)}
+          <ReactCountryFlag countryCode={countryIsoCode(match.homeTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeamName}</span>
         </p>
       </div>
 
@@ -2094,9 +1986,14 @@ function ResultEntryRow({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            justifyContent: 'flex-end',
           }}
         >
-          {countryWithFlag(match.awayTeamName)}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
+          <ReactCountryFlag countryCode={countryIsoCode(match.awayTeamName)} svg style={{ width: '2em', height: '2em' }} />
         </p>
       </div>
 
@@ -2156,11 +2053,11 @@ function ScoreInput({
   value,
   onChange,
   ariaLabel,
-}: {
+}: Readonly<{
   value: number | '';
   onChange: (next: string) => void;
   ariaLabel: string;
-}) {
+}>) {
   return (
     <input
       type="text"

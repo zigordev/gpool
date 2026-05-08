@@ -1,5 +1,6 @@
 'use client';
 
+import { Loading } from '@/components/Loading';
 import { Logo } from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
@@ -34,16 +35,8 @@ function LoginPageContent() {
 
   if (loading) {
     return (
-      <main
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          background: 'rgb(var(--bg))',
-        }}
-      >
-        <p style={{ color: 'rgb(var(--fg-muted))', fontWeight: 500 }}>{t('common.loading')}</p>
+      <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
+        <Loading message={t('common.loading')} />
       </main>
     );
   }

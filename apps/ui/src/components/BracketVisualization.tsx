@@ -1,46 +1,11 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { countryWithFlag } from '@/lib/country-flags';
 import { Badge } from '@/components/ui/Badge';
-
-interface BracketMatch {
-  bracketMatchId: string;
-  poolId: string;
-  phase: string;
-  matchNumber: number;
-  homeTeamId?: string;
-  homeTeamName?: string;
-  awayTeamId?: string;
-  awayTeamName?: string;
-  homeSourceLabel?: string;
-  awaySourceLabel?: string;
-  homeResult?: number;
-  awayResult?: number;
-  status?: string;
-}
-
-interface Team {
-  teamId: string;
-  name: string;
-  group?: string;
-  code?: string;
-}
-
-interface BracketPrediction {
-  homeTeamId?: string;
-  homeTeamName?: string;
-  awayTeamId?: string;
-  awayTeamName?: string;
-  predictedWinnerTeamId?: string;
-  predictedWinnerTeamName?: string;
-  points?: number;
-  homeTeamExactPosition?: boolean;
-  awayTeamExactPosition?: boolean;
-  homeTeamCorrectButWrongPosition?: boolean;
-  awayTeamCorrectButWrongPosition?: boolean;
-  tournamentWinnerCorrect?: boolean;
-}
+import { countryIsoCode } from '@/lib/country-flags';
+import ReactCountryFlag from 'react-country-flag';
+import { SlotState } from '@/types/slotState.type';
+import { Slot } from '@/types/slot.type';
 
 interface BracketVisualizationProps {
   bracket: Record<string, BracketMatch[]>;
@@ -75,14 +40,12 @@ const MATCH_GAP = 10;
 const ROUND_GAP = 24;
 const MATCH_BOX_WIDTH = 140;
 
-type Slot = 'home' | 'away';
-type SlotState = 'empty' | 'selected' | 'exact' | 'correct-wrong-position';
-
 /**
- * Per-phase visual identity. Each round gets its own accent — used for both
- * the round label chip at the top of the column and a coloured top stripe on
- * each match box. The progression goes cool-to-hot-to-trophy, giving the
- * bracket a clear sense of escalation as you move toward the final.
+ * Per-phase visual identity. We collapse onto two accents — pitch for every
+ * lead-up round, gold for the final — and let the rising opacity values across
+ * the rounds (subtle for the 16th, more saturated by the semis) create the
+ * sense of escalation. Five hues was reading as rainbow chrome; two reads as
+ * a deliberate "the closer to the trophy, the more it glows" arc.
  */
 const PHASE_TONE: Record<
   string,
@@ -91,42 +54,42 @@ const PHASE_TONE: Record<
   '16th-finals': {
     token: 'pitch',
     label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.10)',
-    border: 'rgb(var(--pitch) / 0.40)',
-    ring: 'rgb(var(--pitch) / 0.18)',
-    bg: 'rgb(var(--pitch) / 0.045)',
+    tint: 'rgb(var(--pitch) / 0.08)',
+    border: 'rgb(var(--pitch) / 0.30)',
+    ring: 'rgb(var(--pitch) / 0.12)',
+    bg: 'rgb(var(--pitch) / 0.030)',
   },
   '8th-finals': {
-    token: 'info',
-    label: 'rgb(var(--info))',
-    tint: 'rgb(var(--info) / 0.10)',
-    border: 'rgb(var(--info) / 0.40)',
-    ring: 'rgb(var(--info) / 0.18)',
-    bg: 'rgb(var(--info) / 0.045)',
+    token: 'pitch',
+    label: 'rgb(var(--pitch))',
+    tint: 'rgb(var(--pitch) / 0.10)',
+    border: 'rgb(var(--pitch) / 0.36)',
+    ring: 'rgb(var(--pitch) / 0.16)',
+    bg: 'rgb(var(--pitch) / 0.040)',
   },
   'quarter-finals': {
-    token: 'sunset',
-    label: 'rgb(var(--sunset))',
-    tint: 'rgb(var(--sunset) / 0.12)',
-    border: 'rgb(var(--sunset) / 0.45)',
-    ring: 'rgb(var(--sunset) / 0.20)',
-    bg: 'rgb(var(--sunset) / 0.05)',
+    token: 'pitch',
+    label: 'rgb(var(--pitch))',
+    tint: 'rgb(var(--pitch) / 0.13)',
+    border: 'rgb(var(--pitch) / 0.42)',
+    ring: 'rgb(var(--pitch) / 0.20)',
+    bg: 'rgb(var(--pitch) / 0.050)',
   },
   'semi-finals': {
-    token: 'live',
-    label: 'rgb(var(--live))',
-    tint: 'rgb(var(--live) / 0.10)',
-    border: 'rgb(var(--live) / 0.40)',
-    ring: 'rgb(var(--live) / 0.18)',
-    bg: 'rgb(var(--live) / 0.045)',
+    token: 'pitch',
+    label: 'rgb(var(--pitch))',
+    tint: 'rgb(var(--pitch) / 0.16)',
+    border: 'rgb(var(--pitch) / 0.50)',
+    ring: 'rgb(var(--pitch) / 0.24)',
+    bg: 'rgb(var(--pitch) / 0.060)',
   },
   finals: {
     token: 'gold',
     label: 'rgb(var(--gold))',
-    tint: 'rgb(var(--gold) / 0.14)',
+    tint: 'rgb(var(--gold) / 0.16)',
     border: 'rgb(var(--gold) / 0.55)',
     ring: 'rgb(var(--gold) / 0.25)',
-    bg: 'rgb(var(--gold) / 0.06)',
+    bg: 'rgb(var(--gold) / 0.07)',
   },
 };
 
@@ -661,17 +624,17 @@ export function BracketVisualization({
               opacity: isDisabled ? 0.7 : 1,
             }}
           >
-            <option value="" style={{ color: '#000' }}>
+            <option value="">
               {t('bracket.selectTournamentWinner')}
             </option>
             {homeTeamId ? (
-              <option value={homeTeamId} style={{ color: '#000' }}>
-                {countryWithFlag(homeTeamName || homeTeamId)}
+              <option value={homeTeamId}>
+                <ReactCountryFlag countryCode={countryIsoCode(homeTeamName)} svg style={{ width: '2em', height: '2em' }} /> {homeTeamName}
               </option>
             ) : null}
             {awayTeamId ? (
-              <option value={awayTeamId} style={{ color: '#000' }}>
-                {countryWithFlag(awayTeamName || awayTeamId)}
+              <option value={awayTeamId}>
+                <ReactCountryFlag countryCode={countryIsoCode(awayTeamName)} svg style={{ width: '2em', height: '2em' }} /> {awayTeamName}
               </option>
             ) : null}
           </select>
@@ -1019,14 +982,14 @@ function BracketSlot({
           transition: 'border-color 0.15s ease, background 0.15s ease',
         }}
       >
-        <option value="" style={{ color: '#000' }}>
+        <option value="">
           {sourceLabel || ariaLabel}
         </option>
         {teams.map((team) => {
           const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
           return (
-            <option key={team.teamId} value={team.teamId} disabled={isUnavailable} style={{ color: '#000' }}>
-              {countryWithFlag(team.name)}
+            <option key={team.teamId} value={team.teamId} disabled={isUnavailable}>
+              <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '2em', height: '2em' }} /> {team.name}
               {isUnavailable ? ` - ${t('bracket.alreadySelected')}` : ''}
             </option>
           );

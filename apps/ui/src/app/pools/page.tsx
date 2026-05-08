@@ -2,262 +2,14 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useI18n } from '@/i18n/client';
 import toast from 'react-hot-toast';
 import { rum } from '@/lib/rum';
-
-interface Pool {
-  poolId: string;
-  name: string;
-  description?: string;
-  adminUserId: string;
-  adminName?: string;
-  adminEmail?: string;
-  memberCount?: number;
-  createdAt: number;
-  isMember?: boolean;
-  userMembership?: any;
-  config: any;
-}
-
-function ownerInitials(label: string): string {
-  const trimmed = label.trim();
-  if (!trimmed) return '?';
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0]![0] + parts[1]![0]).toUpperCase();
-  return trimmed.slice(0, 2).toUpperCase();
-}
-
-function PoolCard({
-  pool,
-  isPoolAdmin,
-  isMember,
-  isDisabled,
-  requesting,
-  onOpen,
-  onAdministrate,
-  onEdit,
-  onInvite,
-  onRequestAccess,
-  t,
-}: {
-  pool: Pool;
-  isPoolAdmin: boolean;
-  isMember: boolean;
-  isDisabled: boolean;
-  requesting: boolean;
-  onOpen: () => void;
-  onAdministrate: () => void;
-  onEdit: () => void;
-  onInvite: () => void;
-  onRequestAccess: () => void;
-  t: (k: string, p?: Record<string, string | number>) => string;
-}) {
-  const ownerLabel = pool.adminName || pool.adminEmail || t('pools.card.unknownOwner');
-
-  const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
-
-  return (
-    <article
-      onClick={onOpen}
-      role={isDisabled ? undefined : 'button'}
-      tabIndex={isDisabled ? -1 : 0}
-      onKeyDown={(e) => {
-        if (isDisabled) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      aria-disabled={isDisabled || undefined}
-      className={`card ${isDisabled ? 'card-disabled' : 'card-interactive'}`}
-      style={{ padding: 0, overflow: 'hidden' }}
-    >
-      <div className="pool-cover">
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            padding: '0.65rem 0.85rem',
-            zIndex: 1,
-          }}
-        >
-          <span className="badge" style={{ background: 'rgb(255 255 255 / 0.95)', color: 'rgb(var(--pitch))', border: 'none' }}>
-            {t('pools.card.members', { count: pool.memberCount || 0 })}
-          </span>
-          {entryFee !== null ? (
-            <>
-              <span className="badge" style={{ background: 'rgb(255 255 255 / 0.95)', color: 'rgb(var(--pitch))', border: 'none' }}>
-                {t('poolDetail.info.entryFee')}: {entryFee > 0 ? `${entryFee} €` : t('poolDetail.info.entryFeeFree')}
-              </span>
-            </>
-          ) : null}
-        </div>
-        {isPoolAdmin ? (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: 'absolute',
-              top: '0.5rem',
-              right: '0.5rem',
-              display: 'flex',
-              gap: '0.25rem',
-              zIndex: 2,
-            }}
-          >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onInvite();
-              }}
-              title={t('pools.actions.inviteTitle')}
-              aria-label={t('pools.actions.inviteTitle')}
-              className="btn btn-icon"
-              style={{
-                background: 'rgb(255 255 255 / 0.95)',
-                color: 'rgb(var(--fg))',
-                border: 'none',
-                width: '2rem',
-                height: '2rem',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zm0 2a6 6 0 00-6 1 1 1 0 001 1h10a1 1 0 001-1 6 6 0 00-6-1zm8-4a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              title={t('pools.actions.editTitle')}
-              aria-label={t('pools.actions.editTitle')}
-              className="btn btn-icon"
-              style={{
-                background: 'rgb(255 255 255 / 0.95)',
-                color: 'rgb(var(--fg))',
-                border: 'none',
-                width: '2rem',
-                height: '2rem',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 000-.354l-1.086-1.086zM11.189 6.25L9.75 4.81l-6.286 6.287a.25.25 0 00-.064.108l-.558 1.953 1.953-.558a.249.249 0 00.108-.064l6.286-6.286z" />
-              </svg>
-            </button>
-          </div>
-        ) : null}
-      </div>
-
-      <div style={{ padding: '1.1rem 1.25rem 1.25rem' }}>
-        <h3
-          style={{
-            fontFamily: 'var(--font-display, inherit)',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
-            marginBottom: '0.4rem',
-            color: 'rgb(var(--fg))',
-          }}
-        >
-          {pool.name}
-        </h3>
-        {pool.description ? (
-          <p
-            style={{
-              color: 'rgb(var(--fg-muted))',
-              fontSize: '0.9rem',
-              marginBottom: '0.85rem',
-              lineHeight: 1.5,
-            }}
-          >
-            {pool.description}
-          </p>
-        ) : null}
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.65rem',
-            paddingTop: '0.85rem',
-            borderTop: '1px solid rgb(var(--border-subtle))',
-          }}
-        >
-          <span
-            aria-hidden
-            className="avatar"
-            style={{ width: '1.75rem', height: '1.75rem', fontSize: '0.7rem' }}
-          >
-            {ownerInitials(ownerLabel)}
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-            <span
-              style={{
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'rgb(var(--fg-subtle))',
-                lineHeight: 1.2,
-              }}
-            >
-              {t('pools.card.owner')}
-            </span>
-            <span
-              style={{
-                fontSize: '0.875rem',
-                color: 'rgb(var(--fg))',
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {ownerLabel}
-            </span>
-          </div>
-
-          {isDisabled ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRequestAccess();
-              }}
-              disabled={requesting}
-              className="btn btn-outline btn-sm"
-            >
-              {requesting ? t('pools.actions.requesting') : t('pools.actions.requestAccess')}
-            </button>
-          ) : null}
-          {isPoolAdmin ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdministrate();
-              }}
-              className="btn btn-primary btn-sm"
-            >
-              {t('pools.actions.administrate')}
-            </button>
-          ) : null}
-        </div>
-      </div>
-    </article>
-  );
-}
+import { PoolCard } from '@/components/pool/PoolCard';
+import { Loading } from '@/components/Loading';
 
 function PoolsContent() {
   const { user } = useAuth();
@@ -280,11 +32,7 @@ function PoolsContent() {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [requestingAccess, setRequestingAccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchPools();
-  }, []);
-
-  const fetchPools = async () => {
+  const fetchPools = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/pools');
@@ -298,7 +46,11 @@ function PoolsContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchPools();
+  }, [fetchPools]);
 
   const handleCreatePool = () => {
     setShowCreateModal(true);
@@ -441,156 +193,126 @@ function PoolsContent() {
 
   if (loading) {
     return (
-      <main
-        style={{
-          padding: '4rem 1.25rem',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '50vh',
-        }}
-      >
-        <p style={{ color: 'rgb(var(--fg-muted))', fontWeight: 500 }}>{t('pools.loading')}</p>
+      <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
+        <Loading message={t('pools.loading')} />
       </main>
     );
   }
 
   return (
-    <main
-      style={{
-        position: 'relative',
-        minHeight: 'calc(100vh - 4rem)',
-        background: 'rgb(var(--bg))',
-      }}
-    >
-      <div
-        aria-hidden
-        className="bg-mesh"
+    <>
+      <header
         style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '1.75rem',
         }}
-      />
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+            }}
+          >
+            <span>{t('pools.title')}</span>
+          </h1>
+        </div>
+        {user?.role === 'admin' ? (
+          <button type="button" onClick={handleCreatePool} className="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('pools.actions.create')}
+          </button>
+        ) : null}
+      </header>
 
-      <div className="container-app" style={{ position: 'relative' }}>
-        <header
+      {error ? (
+        <div className="field-error" role="alert" style={{ marginBottom: '1rem' }}>
+          <strong>{t('common.errorLabel')}</strong> {error}
+        </div>
+      ) : null}
+
+      {pools.length === 0 ? (
+        <div
+          className="surface"
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            marginBottom: '1.75rem',
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            background: 'rgb(var(--bg-elevated) / 0.7)',
+            backdropFilter: 'blur(8px)',
           }}
         >
-          <div>
-            <p className="eyebrow" style={{ marginBottom: '0.4rem' }}>
-              {t('pools.title')}
-            </p>
-            <h1
-              style={{
-                fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.025em',
-              }}
-            >
-              <span className="gradient-text">{t('pools.subtitle')}</span>
-            </h1>
+          <div
+            aria-hidden
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: '999px',
+              background:
+                'linear-gradient(135deg, rgb(var(--accent-from) / 0.15), rgb(var(--accent-to) / 0.15))',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '0.85rem',
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'rgb(var(--accent-from))' }}>
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2 5 9 8 18 16 18 19 9z" />
+            </svg>
           </div>
+          <p style={{ color: 'rgb(var(--fg))', fontWeight: 600, marginBottom: '0.4rem' }}>
+            {t('pools.empty.title')}
+          </p>
           {user?.role === 'admin' ? (
-            <button type="button" onClick={handleCreatePool} className="btn btn-primary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              {t('pools.actions.create')}
-            </button>
-          ) : null}
-        </header>
-
-        {error ? (
-          <div className="field-error" role="alert" style={{ marginBottom: '1rem' }}>
-            <strong>{t('common.errorLabel')}</strong> {error}
-          </div>
-        ) : null}
-
-        {pools.length === 0 ? (
-          <div
-            className="surface"
-            style={{
-              padding: '3rem 2rem',
-              textAlign: 'center',
-              background: 'rgb(var(--bg-elevated) / 0.7)',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            <div
-              aria-hidden
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: '999px',
-                background:
-                  'linear-gradient(135deg, rgb(var(--accent-from) / 0.15), rgb(var(--accent-to) / 0.15))',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '0.85rem',
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'rgb(var(--accent-from))' }}>
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 2 5 9 8 18 16 18 19 9z" />
-              </svg>
-            </div>
-            <p style={{ color: 'rgb(var(--fg))', fontWeight: 600, marginBottom: '0.4rem' }}>
-              {t('pools.empty.title')}
+            <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.9rem' }}>
+              {t('pools.empty.adminHint')}
             </p>
-            {user?.role === 'admin' ? (
-              <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.9rem' }}>
-                {t('pools.empty.adminHint')}
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
-              gap: '1.25rem',
-            }}
-          >
-            {pools.map((pool) => {
-              const isPoolAdmin = user?.role === 'admin' && user.userId === pool.adminUserId;
-              const isMember = pool.isMember || false;
-              const isDisabled = !isMember && user?.role === 'user';
-              const requesting = requestingAccess === pool.poolId;
+          ) : null}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
+            gap: '1.25rem',
+          }}
+        >
+          {pools.map((pool) => {
+            const isPoolAdmin = user?.role === 'admin' && user.userId === pool.adminUserId;
+            const isMember = pool.isMember || false;
+            const isDisabled = !isMember && user?.role === 'user';
+            const requesting = requestingAccess === pool.poolId;
 
-              return (
-                <PoolCard
-                  key={pool.poolId}
-                  pool={pool}
-                  isPoolAdmin={isPoolAdmin}
-                  isMember={isMember}
-                  isDisabled={isDisabled}
-                  requesting={requesting}
-                  onOpen={() => {
-                    if (!isDisabled) router.push(`/pools/${pool.poolId}`);
-                  }}
-                  onAdministrate={() =>
-                    router.push(`/pools/admin/results?poolId=${encodeURIComponent(pool.poolId)}`)
-                  }
-                  onEdit={() => handleEditPool(pool)}
-                  onInvite={() => handleInviteUser(pool)}
-                  onRequestAccess={() => handleRequestAccess(pool.poolId)}
-                  t={t}
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
+            return (
+              <PoolCard
+                key={pool.poolId}
+                pool={pool}
+                isPoolAdmin={isPoolAdmin}
+                isDisabled={isDisabled}
+                requesting={requesting}
+                onOpen={() => {
+                  if (!isDisabled) router.push(`/pools/${pool.poolId}`);
+                }}
+                onAdministrate={() =>
+                  router.push(`/pools/admin/results?poolId=${encodeURIComponent(pool.poolId)}`)
+                }
+                onEdit={() => handleEditPool(pool)}
+                onInvite={() => handleInviteUser(pool)}
+                onRequestAccess={() => handleRequestAccess(pool.poolId)}
+                t={t}
+              />
+            );
+          })}
+        </div>
+      )}
 
       {/* Create Pool Modal */}
       {showCreateModal ? (
@@ -759,7 +481,7 @@ function PoolsContent() {
           </div>
         </div>
       ) : null}
-    </main>
+    </>
   );
 }
 

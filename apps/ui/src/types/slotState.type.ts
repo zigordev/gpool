@@ -1,0 +1,1 @@
+export type SlotState = 'empty' | 'selected' | 'exact' | 'correct-wrong-position';

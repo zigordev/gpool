@@ -1,0 +1,1 @@
+export type PrizePayout = { rank: number; percentage: number };

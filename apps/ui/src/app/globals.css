@@ -72,6 +72,76 @@
   --accent-primary: rgb(var(--accent-from));
   --accent-secondary: rgb(var(--accent-to));
   --border-color: rgb(var(--border));
+
+  /* Motion budget — two easing curves and three duration tiers used across
+     the design system. Centralised so every tab fade, modal enter, and
+     section collapse moves in the same rhythm. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* expo-out, "settling" */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric, smooth */
+  --motion-fast: 140ms;
+  --motion: 220ms;
+  --motion-slow: 340ms;
+}
+
+/* Honour the user's reduced-motion preference. We disable transitions and
+   animations rather than try to scale them down — anything more nuanced is a
+   waste of effort for a feature most users never see. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   Motion utilities — short animation primitives that everything that wants
+   "appears" / "slides up" can opt into. They use the easing tokens defined
+   above so the rhythm stays consistent.
+   ============================================================================ */
+
+@keyframes gp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gp-slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gp-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.gp-fade-in {
+  animation: gp-fade-in var(--motion) var(--ease-out) both;
+}
+.gp-slide-up-in {
+  animation: gp-slide-up-in var(--motion) var(--ease-out) both;
+}
+.gp-pop-in {
+  animation: gp-pop-in var(--motion-fast) var(--ease-out) both;
 }
 
 /* ============================================================================
@@ -625,6 +695,11 @@ button:focus-visible,
 .tabs-panel {
   padding: 1.25rem;
   background: rgb(var(--bg-elevated));
+  /* Each tab panel is unmounted/remounted on activation, so a single
+     fade-in here gives switching a calm acknowledgement without animating
+     anything mid-tab. Honoured automatically by the prefers-reduced-motion
+     rule above. */
+  animation: gp-fade-in var(--motion) var(--ease-out) both;
 }
 
 .tabs-panel-compact {
@@ -655,6 +730,7 @@ button:focus-visible,
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
+  animation: gp-fade-in var(--motion-fast) var(--ease-out) both;
 }
 
 @media (min-width: 640px) {
@@ -673,6 +749,7 @@ button:focus-visible,
   max-height: 90vh;
   overflow-y: auto;
   padding: 1.5rem;
+  animation: gp-slide-up-in var(--motion) var(--ease-out) both;
 }
 
 @media (min-width: 640px) {

@@ -168,8 +168,8 @@ export class PoolRepository {
   async addMember(poolId: string, userId: string, role: string = 'member', userEmail?: string, userName?: string) {
     const result = await this.postgres.query(
       `
-        INSERT INTO pool_memberships (pool_id, user_id, role, status, joined_at, user_email, user_name)
-        VALUES ($1, $2, $3, 'active', NOW(), $4, $5)
+        INSERT INTO pool_memberships (pool_id, user_id, role, status, joined_at, user_email, user_name, config)
+        VALUES ($1, $2, $3, 'active', NOW(), $4, $5, '{}'::jsonb)
         ON CONFLICT (pool_id, user_id)
         DO UPDATE SET
           role = EXCLUDED.role,
@@ -183,7 +183,8 @@ export class PoolRepository {
           status,
           joined_at::text AS "joinedAt",
           user_email AS "userEmail",
-          user_name AS "userName"
+          user_name AS "userName",
+          config
       `,
       [poolId, userId, role, userEmail || '', userName || ''],
     );
@@ -201,7 +202,8 @@ export class PoolRepository {
           status,
           joined_at::text AS "joinedAt",
           user_email AS "userEmail",
-          user_name AS "userName"
+          user_name AS "userName",
+          config
         FROM pool_memberships
         WHERE pool_id = $1 AND user_id = $2
       `,
@@ -221,7 +223,8 @@ export class PoolRepository {
           status,
           joined_at::text AS "joinedAt",
           user_email AS "userEmail",
-          user_name AS "userName"
+          user_name AS "userName",
+          config
         FROM pool_memberships
         WHERE pool_id = $1
         ORDER BY joined_at ASC
@@ -242,7 +245,8 @@ export class PoolRepository {
           status,
           joined_at::text AS "joinedAt",
           user_email AS "userEmail",
-          user_name AS "userName"
+          user_name AS "userName",
+          config
         FROM pool_memberships
         WHERE user_id = $1
         ORDER BY joined_at DESC
@@ -274,9 +278,32 @@ export class PoolRepository {
           status,
           joined_at::text AS "joinedAt",
           user_email AS "userEmail",
-          user_name AS "userName"
+          user_name AS "userName",
+          config
       `,
       [poolId, userId, role],
+    );
+
+    return result.rows[0] || null;
+  }
+
+  async updateMembershipConfig(poolId: string, userId: string, config: Record<string, any>) {
+    const result = await this.postgres.query(
+      `
+        UPDATE pool_memberships
+        SET config = COALESCE(config, '{}'::jsonb) || $3::jsonb
+        WHERE pool_id = $1 AND user_id = $2
+        RETURNING
+          pool_id AS "poolId",
+          user_id AS "userId",
+          role,
+          status,
+          joined_at::text AS "joinedAt",
+          user_email AS "userEmail",
+          user_name AS "userName",
+          config
+      `,
+      [poolId, userId, JSON.stringify(config || {})],
     );
 
     return result.rows[0] || null;
