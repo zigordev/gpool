@@ -17,7 +17,7 @@ export function Badge({
   leadingIcon,
   className = '',
   ...rest
-}: Props) {
+}: Readonly<Props>) {
   const variantClass = {
     pitch: 'badge-pitch',
     sunset: 'badge-sunset',

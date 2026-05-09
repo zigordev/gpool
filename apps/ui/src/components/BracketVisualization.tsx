@@ -1,25 +1,23 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { Badge } from '@/components/ui/Badge';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { SlotState } from '@/types/slotState.type';
 import { Slot } from '@/types/slot.type';
+import Select from 'react-select';
+import { PointsBadge } from './PointsBadge';
 
 interface BracketVisualizationProps {
   bracket: Record<string, BracketMatch[]>;
   teams: Team[];
   poolId: string;
-  // Admin mode props
   mode?: 'admin' | 'user';
   updatingMatch?: string | null;
   onUpdateTeam?: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => void;
-  onBracketResultChange?: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
   onUpdateResult?: (bracketMatchId: string, homeResult: number, awayResult: number) => void;
   bracketResults?: Record<string, { homeResult: number | ''; awayResult: number | '' }>;
   submittingResult?: string | null;
-  // User mode props
   bracketPredictions?: Record<string, BracketPrediction>;
   candidateOptions?: Record<string, { home: Team[]; away: Team[] }>;
   deadline?: number;
@@ -29,7 +27,6 @@ interface BracketVisualizationProps {
     teamId: string,
     teamName: string,
   ) => void;
-  // Scoring config for displaying points
   exactPositionPoints?: number;
   correctTeamWrongPositionPoints?: number;
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
@@ -38,15 +35,8 @@ interface BracketVisualizationProps {
 const MATCH_HEIGHT = 124;
 const MATCH_GAP = 10;
 const ROUND_GAP = 24;
-const MATCH_BOX_WIDTH = 140;
+const MATCH_BOX_WIDTH = 280;
 
-/**
- * Per-phase visual identity. We collapse onto two accents — pitch for every
- * lead-up round, gold for the final — and let the rising opacity values across
- * the rounds (subtle for the 16th, more saturated by the semis) create the
- * sense of escalation. Five hues was reading as rainbow chrome; two reads as
- * a deliberate "the closer to the trophy, the more it glows" arc.
- */
 const PHASE_TONE: Record<
   string,
   { token: string; label: string; tint: string; border: string; ring: string; bg: string }
@@ -166,7 +156,7 @@ export function BracketVisualization({
   exactPositionPoints = 5,
   correctTeamWrongPositionPoints = 3,
   roundScoring = {},
-}: BracketVisualizationProps) {
+}: Readonly<BracketVisualizationProps>) {
   const { t } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
 
@@ -201,9 +191,6 @@ export function BracketVisualization({
     }
 
     if (phaseKey === 'finals') {
-      // Center the final between the left and right semis. Each side displays
-      // half of the first-round matches stacked vertically, so the visible side
-      // height is computed from one side, not the full first round.
       const totalFirstRound = allPhases['16th-finals']?.length ?? 16;
       const sideMatches = Math.max(1, Math.floor(totalFirstRound / 2));
       const sideHeight = sideMatches * MATCH_HEIGHT + (sideMatches - 1) * MATCH_GAP;
@@ -361,10 +348,6 @@ export function BracketVisualization({
                 homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
                 awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
                 points={points}
-                exactPositionPoints={roundScoring[phaseKey]?.exactPositionPoints ?? exactPositionPoints}
-                correctTeamWrongPositionPoints={
-                  roundScoring[phaseKey]?.correctTeamWrongPositionPoints ?? correctTeamWrongPositionPoints
-                }
               />
             </div>
           );
@@ -458,10 +441,6 @@ export function BracketVisualization({
           homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
           awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
           points={points}
-          exactPositionPoints={roundScoring[phaseKey]?.exactPositionPoints ?? exactPositionPoints}
-          correctTeamWrongPositionPoints={
-            roundScoring[phaseKey]?.correctTeamWrongPositionPoints ?? correctTeamWrongPositionPoints
-          }
         />
       </div>
     );
@@ -529,6 +508,41 @@ export function BracketVisualization({
       }
     };
 
+    const options = [
+      ...(homeTeamId
+        ? [{ value: homeTeamId, label: (
+              <>
+                <ReactCountryFlag
+                  countryCode={countryIsoCode(homeTeamName)}
+                  svg
+                  style={{ width: '2em', height: '2em' }}
+                />
+                <span>
+                  {` ${homeTeamName}`}
+                </span>
+              </>
+            ) 
+          }]
+        : []),
+      ...(awayTeamId
+        ? [{ value: awayTeamId, label: (
+              <>
+                <ReactCountryFlag
+                  countryCode={countryIsoCode(awayTeamName)}
+                  svg
+                  style={{ width: '2em', height: '2em' }}
+                />
+                <span>
+                  {` ${awayTeamName}`}
+                </span>
+              </>
+            )
+          }]
+        : []),
+    ];
+
+    const selectedOption = options.find((option) => option.value === selectedWinnerTeamId) ?? null;
+
     return (
       <div
         style={{
@@ -595,49 +609,40 @@ export function BracketVisualization({
           >
             {t('bracket.winner')}
           </span>
-          <select
-            aria-label={t('bracket.selectTournamentWinner')}
-            value={selectedWinnerTeamId}
-            onChange={(e) => handleWinnerChange(e.target.value)}
-            disabled={isDisabled}
-            style={{
-              width: '100%',
-              padding: '0.35rem 0.45rem',
-              border: `1px solid ${
-                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
-                  ? 'rgb(var(--gold))'
-                  : 'rgb(var(--border))'
-              }`,
-              borderRadius: 'var(--radius-sm)',
-              background:
-                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+          <Select<{ value: string; label: React.ReactNode; }, false>
+            isSearchable={false}
+            placeholder={t('bracket.selectTournamentWinner')}
+            value={selectedOption}
+            options={options}
+            isDisabled={isDisabled}
+            onChange={(option) => handleWinnerChange(option?.value ?? '')}
+            menuPortalTarget={document.body}
+            styles={{
+              control: (base) => ({
+                ...base,
+                backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
                   ? 'rgb(var(--gold) / 0.08)'
                   : isDisabled
                   ? 'rgb(var(--bg-subtle))'
                   : 'rgb(var(--bg))',
-              color: 'rgb(var(--fg))',
-              fontSize: '0.76rem',
-              fontWeight: 700,
-              appearance: 'none',
-              WebkitAppearance: 'none',
-              cursor: isDisabled ? 'not-allowed' : 'pointer',
-              opacity: isDisabled ? 0.7 : 1,
+                border: `1px solid ${
+                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                  ? 'rgb(var(--gold))'
+                  : 'rgb(var(--border))'
+              }`,
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                opacity: isDisabled ? 0.7 : 1,
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+              menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
             }}
-          >
-            <option value="">
-              {t('bracket.selectTournamentWinner')}
-            </option>
-            {homeTeamId ? (
-              <option value={homeTeamId}>
-                <ReactCountryFlag countryCode={countryIsoCode(homeTeamName)} svg style={{ width: '2em', height: '2em' }} /> {homeTeamName}
-              </option>
-            ) : null}
-            {awayTeamId ? (
-              <option value={awayTeamId}>
-                <ReactCountryFlag countryCode={countryIsoCode(awayTeamName)} svg style={{ width: '2em', height: '2em' }} /> {awayTeamName}
-              </option>
-            ) : null}
-          </select>
+          />
         </article>
       </div>
     );
@@ -779,8 +784,6 @@ interface BracketMatchBoxProps {
   homeTeamCorrectButWrongPosition?: boolean;
   awayTeamCorrectButWrongPosition?: boolean;
   points?: number;
-  exactPositionPoints?: number;
-  correctTeamWrongPositionPoints?: number;
 }
 
 function BracketMatchBox({
@@ -801,10 +804,8 @@ function BracketMatchBox({
   awayTeamExactPosition = false,
   homeTeamCorrectButWrongPosition = false,
   awayTeamCorrectButWrongPosition = false,
-  points = 0,
-  exactPositionPoints = 5,
-  correctTeamWrongPositionPoints = 3,
-}: BracketMatchBoxProps) {
+  points,
+}: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
   const { t } = useI18n();
   const isAdmin = mode === 'admin';
@@ -814,8 +815,6 @@ function BracketMatchBox({
 
   const homeTeamId = isAdmin ? match.homeTeamId : prediction?.homeTeamId || '';
   const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';
-  const homeTeamName = isAdmin ? match.homeTeamName : prediction?.homeTeamName || '';
-  const awayTeamName = isAdmin ? match.awayTeamName : prediction?.awayTeamName || '';
   const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
   const homeOptions = !isAdmin && candidateTeams ? candidateTeams.home : teams;
   const awayOptions = !isAdmin && candidateTeams ? candidateTeams.away : teams;
@@ -860,6 +859,12 @@ function BracketMatchBox({
         position: 'relative',
       }}
     >
+      {!isAdmin && points ? ( 
+        <PointsBadge
+          points={points}
+          label={t('poolDetail.players.points', { points: points })}
+        />
+      ) : null}
       <div
         style={{
           display: 'flex',
@@ -879,7 +884,6 @@ function BracketMatchBox({
         >
           {isFinal ? `${t('bracket.round.final')} · P${match.matchNumber}` : `P${match.matchNumber}`}
         </span>
-        {!isAdmin && points > 0 ? <Badge variant="gold">{points}</Badge> : null}
       </div>
 
       <BracketSlot
@@ -928,73 +932,79 @@ function BracketSlot({
   ariaLabel,
   sourceLabel,
   unavailableTeamIds,
-}: BracketSlotProps) {
+}: Readonly<BracketSlotProps>) {
   const { t } = useI18n();
   const borderColor = slotBorderColor(state);
   const isExact = state === 'exact';
   const isCorrect = state === 'correct-wrong-position';
 
-  const tintBg = isExact
-    ? 'rgb(var(--info) / 0.06)'
-    : isCorrect
-    ? 'rgb(var(--pitch) / 0.06)'
-    : disabled
-    ? 'rgb(var(--bg-subtle))'
-    : 'rgb(var(--bg))';
+  let tintBg = 'rgb(var(--bg))';
+    if (isExact) {
+      tintBg = 'rgb(var(--info) / 0.06)';
+    } else if (isCorrect) {
+      tintBg = 'rgb(var(--pitch) / 0.06)';
+    } else if (disabled) {
+      tintBg = 'rgb(var(--bg-subtle))';
+    }
+
+  const options = teams.map((team) => {
+    const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
+
+    return {
+      value: team.teamId,
+      label: (
+        <>
+          <ReactCountryFlag
+            countryCode={countryIsoCode(team.name)}
+            svg
+            style={{ width: '2em', height: '2em' }}
+          />
+          <span>
+            {` ${team.name}`}
+            {isUnavailable
+              ? ` - ${t('bracket.alreadySelected')}`
+              : ''}
+          </span>
+        </>
+      ),
+      isDisabled: isUnavailable
+    };
+  });
+
+  const selectedOption = options.find((option) => option.value === teamId) ?? null;
 
   return (
     <div style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}>
-      {sourceLabel ? (
-        <span
-          title={sourceLabel}
-          style={{
-            fontSize: '0.58rem',
-            fontWeight: 800,
-            letterSpacing: '0.08em',
-            color: 'rgb(var(--fg-muted))',
-            lineHeight: 1,
-          }}
-        >
-          {sourceLabel}
-        </span>
-      ) : null}
-      <select
-        aria-label={sourceLabel ? `${ariaLabel} ${sourceLabel}` : ariaLabel}
-        value={teamId || ''}
-        onChange={(e) => {
-          const selected = teams.find((team) => team.teamId === e.target.value);
+      <Select<{ value: string; label: React.ReactNode; }, false>
+        isSearchable={false}
+        aria-label={ariaLabel}
+        placeholder={t('bracket.selectTeam')}
+        value={selectedOption}
+        options={options}
+        isDisabled={disabled}
+        onChange={(option) => {
+          const selected = teams.find((team) => team.teamId === option?.value);
           if (selected) onChange(selected.teamId, selected.name);
         }}
-        disabled={disabled}
-        style={{
-          width: '100%',
-          padding: '0.3rem 0.4rem',
-          border: `1px solid ${borderColor}`,
-          borderRadius: 'var(--radius-sm)',
-          background: tintBg,
-          color: 'rgb(var(--fg))',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.7 : 1,
-          transition: 'border-color 0.15s ease, background 0.15s ease',
+        menuPortalTarget={document.body}
+        styles={{
+          control: (base) => ({
+            ...base,
+            backgroundColor: tintBg,
+            border: `1px solid ${borderColor}`,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.7 : 1,
+          }),
+          menu: (base) => ({
+            ...base,
+            zIndex: 9999,
+          }),
+          menuPortal: (base) => ({
+            ...base,
+            zIndex: 9999,
+          }),
         }}
-      >
-        <option value="">
-          {sourceLabel || ariaLabel}
-        </option>
-        {teams.map((team) => {
-          const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
-          return (
-            <option key={team.teamId} value={team.teamId} disabled={isUnavailable}>
-              <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '2em', height: '2em' }} /> {team.name}
-              {isUnavailable ? ` - ${t('bracket.alreadySelected')}` : ''}
-            </option>
-          );
-        })}
-      </select>
+      />
     </div>
   );
 }

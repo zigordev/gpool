@@ -4,8 +4,8 @@ import { useId } from 'react';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { useI18n } from '@/i18n/client';
-import { PlayerTotalPointsBadge } from '../PlayerTotalPointsBadge';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';
+import { PointsBadge } from '../PointsBadge';
 interface Props {
   matchDate: string;
   homeTeamName: string;
@@ -39,7 +39,7 @@ export function MatchPredictionCard({
   awayTeamName,
   homeScore,
   awayScore,
-  pointsEarned = 0,
+  pointsEarned,
   state,
   badgeLabel,
   disabled = false,
@@ -72,11 +72,12 @@ export function MatchPredictionCard({
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
       }}
     >
-      {
-        isPastDeadline && <PlayerTotalPointsBadge
+      {isPastDeadline && pointsEarned ? (
+        <PointsBadge
           points={pointsEarned}
           label={t('poolDetail.match.points', { points: pointsEarned })}
         />
+      ) : null
       }
       <p
         style={{

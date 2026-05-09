@@ -106,6 +106,14 @@
       "matchCount": "{count} jugadores",
       "noResults": "No hay jugadores que coincidan con los filtros.",
       "points": "{points} pts",
+      "positionAll": "Todas las posiciones",
+      "positions": {
+        "defender": "Defensa",
+        "forward": "Delantero",
+        "goalkeeper": "Portero",
+        "midfielder": "Mediocampista"
+      },
+      "positionyAll": "Todas las posiciones",
       "scoring": {
         "assistDefender": "Asistencia de defensa",
         "assistForward": "Asistencia de delantero",
@@ -129,7 +137,7 @@
         "tournamentMvp": "MVP del torneo",
         "yellowCard": "Tarjeta amarilla"
       },
-      "searchPlaceholder": "Buscar jugador o pais"
+      "searchPlaceholder": "Buscar jugador"
     },
     "ranking": {
       "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
@@ -178,6 +186,7 @@
     "processing": "Procesando..."
   },
   "bracket": {
+    "alreadySelected": "Equipo ya seleccionado",
     "correctTeamPoints": "✓ Equipo correcto (+{points} pts)",
     "exactPositionPoints": "✓ Posicion exacta (+{points} pts)",
     "final": "FINAL",

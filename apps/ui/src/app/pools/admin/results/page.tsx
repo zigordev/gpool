@@ -9,8 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
 import type { ReactNode } from 'react';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
@@ -21,6 +19,14 @@ import { PiBoxingGlove } from 'react-icons/pi';
 import { LuRectangleVertical } from 'react-icons/lu';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { Loading } from '@/components/Loading';
+import Select from 'react-select';
+import { PointsBadge } from '@/components/PointsBadge';
+import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { AdminTab } from '@/types/adminTab.type';
+import { BracketRoundScoring } from '@/types/bracketRoundScoring.type';
+import { BracketScoringConfig } from '@/types/bracketScoringConfig.type';
+import { PlayerStatKey } from '@/types/playerStatKey.type';
+import { PrizePayout } from '@/types/prizePayout.type';
 
 const DEFAULT_POOL_DEADLINE = new Date('2026-06-08T00:00:00Z').getTime();
 
@@ -76,8 +82,8 @@ const DEFAULT_PLAYER_SCORING = {
 const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: ReactNode; labelKey: string }> = [
   { key: 'goals', icon: <FaFutbol style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.goals' },
   { key: 'assists', icon: <FaMagic style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.assists' },
-  { key: 'mvps', icon: <FaStar style={ {color: 'gold' } } size='17'/>, labelKey: 'adminResults.players.actions.mvps' },
-  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={ {color: 'green' } } size='17'/>, labelKey: 'adminResults.players.actions.penaltiesSaved' },
+  { key: 'mvps', icon: <FaStar style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.mvps' },
+  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.penaltiesSaved' },
   { key: 'cleanSheets', icon: <FaShieldAlt style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.cleanSheets' },
   { key: 'yellowCards', icon: <LuRectangleVertical style={ {color: 'yellow', fill: 'yellow' } } size='17'/>, labelKey: 'adminResults.players.actions.yellowCards' },
   { key: 'redCards', icon: <LuRectangleVertical style={ {color: 'red', fill: 'red' } } size='17'/>, labelKey: 'adminResults.players.actions.redCards' },
@@ -288,6 +294,7 @@ function AdminResultsContent() {
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerFilter, setPlayerFilter] = useState('');
   const [playerCountryFilter, setPlayerCountryFilter] = useState('');
+  const [playerPositionFilter, setPlayerPositionFilter] = useState('');
   const [updatingPlayerStat, setUpdatingPlayerStat] = useState<string | null>(null);
   const [updatingMatch, setUpdatingMatch] = useState<string | null>(null);
   const [submittingBracketResult, setSubmittingBracketResult] = useState<string | null>(null);
@@ -1476,80 +1483,6 @@ function AdminResultsContent() {
                   </FormField>
                 </div>
               </div>
-
-              <div>
-                <p
-                  style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: 'rgb(var(--fg-subtle))',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  {t('adminResults.config.players.subgroups.awardWinners')}
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-                  <FormField
-                    label={t('adminResults.players.awardWinners.goldenBoot')}
-                    hint={t('adminResults.players.awardWinners.goldenBootHint')}
-                  >
-                    <select
-                      multiple
-                      value={playerAwardWinnersConfig.goldenBootPlayerIds}
-                      onChange={(e) => {
-                        const selected = Array.from(e.currentTarget.selectedOptions).map((option) => option.value);
-                        setPlayerAwardWinnersConfig((prev) => ({ ...prev, goldenBootPlayerIds: selected }));
-                      }}
-                      style={{
-                        width: '100%',
-                        minHeight: '8rem',
-                        padding: '0.55rem 0.7rem',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid rgb(var(--border))',
-                        background: 'rgb(var(--bg-elevated))',
-                        color: 'rgb(var(--fg))',
-                      }}
-                    >
-                      {players.map((player) => (
-                        <option key={player.playerId} value={player.playerId}>
-                          <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} /> - {player.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-                  <FormField
-                    label={t('adminResults.players.awardWinners.tournamentMvp')}
-                    hint={t('adminResults.players.awardWinners.tournamentMvpHint')}
-                  >
-                    <select
-                      value={playerAwardWinnersConfig.tournamentMvpPlayerId}
-                      onChange={(e) =>
-                        setPlayerAwardWinnersConfig((prev) => ({
-                          ...prev,
-                          tournamentMvpPlayerId: e.currentTarget.value,
-                        }))
-                      }
-                      style={{
-                        width: '100%',
-                        padding: '0.55rem 0.7rem',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid rgb(var(--border))',
-                        background: 'rgb(var(--bg-elevated))',
-                        color: 'rgb(var(--fg))',
-                      }}
-                    >
-                      <option value="">{t('adminResults.players.awardWinners.none')}</option>
-                      {players.map((player) => (
-                        <option key={player.playerId} value={player.playerId}>
-                          <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} /> - {player.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-                </div>
-              </div>
             </div>
           </Section>
 
@@ -1660,38 +1593,70 @@ function AdminResultsContent() {
       {activeTab === 'players' ? (
         <div className="tabs-panel tabs-panel-compact">
           {(() => {
-            // Build the country list from the loaded players, sorted alpha by
-            // localised team name. Cheap recompute on every render — the list
-            // is small (≤ 48 teams) and avoids stale memo invalidation.
             const countries = Array.from(
-              players.reduce((acc, player) => {
+              players.reduce<Map<string, string>>((acc, player) => {
                 if (player.teamId && !acc.has(player.teamId)) {
                   acc.set(player.teamId, player.teamName || player.teamId);
                 }
                 return acc;
-              }, new Map<string, string>()).entries(),
+              }, new Map()).entries(),
             ).sort((a, b) => a[1].localeCompare(b[1], locale));
 
-            const search = playerFilter.trim().toLowerCase();
-            const filtered = players
-              .filter((player) =>
-                playerCountryFilter ? player.teamId === playerCountryFilter : true,
-              )
-              .filter((player) =>
-                search
-                  ? player.name.toLowerCase().includes(search) ||
-                    (player.teamName || '').toLowerCase().includes(search)
-                  : true,
-              );
+            const nameSearch = playerFilter.trim().toLowerCase();
+            const countrySearch = playerCountryFilter.trim().toLowerCase();
+            const positionSearch = playerPositionFilter.trim().toLowerCase();
 
-            const filtersActive = Boolean(search) || Boolean(playerCountryFilter);
+            const filtered = players.filter((player) => {
+              const playerName =
+                !nameSearch ||
+                player.name.toLowerCase().includes(nameSearch);
+              const playerCountry =
+                !countrySearch ||
+                player.teamName.toLowerCase() === countrySearch;
+              const playerPosition =
+                !positionSearch ||
+                player.position.toLowerCase() === positionSearch;
+
+              return (playerName && playerCountry && playerPosition);
+
+            });
+
+            const countryOptions = countries.map(([teamId, teamName]) => {           
+              return {
+                value: teamId,
+                label: (
+                  <>
+                    <ReactCountryFlag
+                      countryCode={countryIsoCode(teamName)}
+                      svg
+                      style={{ width: '2em', height: '2em' }}
+                    />
+                    <span>
+                      {` ${teamName}`}
+                    </span>
+                  </>
+                ),
+                searchLabel: teamName
+              };
+            });
+
+            const selectedCountryOption = countryOptions.find((option) => option.value === playerCountryFilter) ?? null;
+
+            const positionOptions = [
+              { value: 'goalkeeper', label: `${t('adminResults.players.positions.goalkeeper')}`},
+              { value: 'defender', label: `${t('adminResults.players.positions.defender')}`},
+              { value: 'midfielder', label: `${t('adminResults.players.positions.midfielder')}`},
+              { value: 'forward', label: `${t('adminResults.players.positions.forward')}`}
+            ];
+
+            const selectedPositionOption = positionOptions.find((option) => option.value === playerPositionFilter) ?? null;
 
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'minmax(180px, 1fr) minmax(160px, 220px) auto',
+                    gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 260px) minmax(220px, 260px)',
                     gap: '0.6rem',
                     alignItems: 'center',
                   }}
@@ -1703,31 +1668,22 @@ function AdminResultsContent() {
                     placeholder={t('adminResults.players.searchPlaceholder')}
                     aria-label={t('adminResults.players.searchPlaceholder')}
                   />
-                  <select
-                    value={playerCountryFilter}
-                    onChange={(e) => setPlayerCountryFilter(e.target.value)}
-                    aria-label={t('adminResults.players.countryFilterLabel')}
-                    className="input"
-                    style={{ width: '100%' }}
-                  >
-                    <option value="">{t('adminResults.players.countryAll')}</option>
-                    {countries.map(([teamId, teamName]) => (
-                      <option key={teamId} value={teamId}>
-                        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
-                      </option>
-                    ))}
-                  </select>
-                  <span
-                    style={{
-                      whiteSpace: 'nowrap',
-                      color: 'rgb(var(--fg-muted))',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {t('adminResults.players.matchCount', { count: filtered.length })}
-                  </span>
+                  <Select<{ value: string; label: string; }, false>
+                    isClearable
+                    placeholder={t('adminResults.players.positionAll')}
+                    value={selectedPositionOption}
+                    options={positionOptions}
+                    onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+                  />
+                  <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+                    isClearable
+                    getOptionLabel={(option) => option.searchLabel}
+                    formatOptionLabel={(option) => option.label}
+                    placeholder={t('adminResults.players.countryAll')}
+                    value={selectedCountryOption}
+                    options={countryOptions}
+                    onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+                  />
                 </div>
 
                 {filtered.length > 0 ? (
@@ -1738,147 +1694,140 @@ function AdminResultsContent() {
                       gap: '0.6rem',
                     }}
                   >
-                    {filtered.map((player) => (
-                <article
-                  key={player.playerId}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1fr)',
-                    gap: '0.55rem',
-                    padding: '0.7rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid rgb(var(--border))',
-                    background: 'rgb(var(--bg-elevated))',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                    <span
-                      aria-hidden
+                  {filtered.map((player) => (
+                    <article
+                      key={player.playerId}
                       style={{
-                        width: '2.15rem',
-                        height: '2.15rem',
-                        borderRadius: '999px',
+                        position: 'relative',
                         display: 'grid',
-                        placeItems: 'center',
-                        flexShrink: 0,
-                        background: 'rgb(var(--bg-subtle))',
+                        gridTemplateColumns: 'minmax(0, 1fr)',
+                        gap: '0.55rem',
+                        padding: '0.7rem',
+                        borderRadius: 'var(--radius-md)',
                         border: '1px solid rgb(var(--border))',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
+                        background: 'rgb(var(--bg-elevated))',
                       }}
                     >
-                      {player.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
-                      ) : (
-                        player.name.slice(0, 2).toUpperCase()
-                      )}
-                    </span>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontWeight: 800, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {player.name}
-                      </p>
-                      <p
-                        style={{
-                          margin: '0.1rem 0 0',
-                          color: 'rgb(var(--fg-muted))',
-                          fontSize: '0.75rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                        }}
-                      >
-                        <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} />
-                        {player.teamName}
-                      </p>
-                    </div>
-                    <Badge variant="gold" style={{ marginLeft: 'auto' }}>
-                      {t('adminResults.players.points', { points: player.totalPoints || 0 })}
-                    </Badge>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(5.25rem, 1fr))', gap: '0.35rem' }}>
-                    {PLAYER_STAT_ACTIONS.map((action) => {
-                      const value = player[action.key] || 0;
-                      const isUpdating = updatingPlayerStat === `${player.playerId}:${action.key}`;
-                      return (
-                        <div
-                          key={action.key}
+                      {
+                        player.totalPoints ? (
+                          <PointsBadge
+                            points={player.totalPoints}
+                            label={t('poolDetail.players.points', { points: player.totalPoints })}
+                          />
+                        ) : null
+                      }
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                        <span
+                          aria-hidden
                           style={{
+                            width: '2.15rem',
+                            height: '2.15rem',
+                            borderRadius: '999px',
                             display: 'grid',
-                            gridTemplateColumns: '1.65rem minmax(1.3rem, 1fr) 1.65rem',
-                            alignItems: 'center',
-                            gap: '0.2rem',
-                            padding: '0.25rem',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid rgb(var(--border-subtle))',
-                            background: 'rgb(var(--bg-subtle) / 0.55)',
+                            placeItems: 'center',
+                            flexShrink: 0,
+                            background: 'rgb(var(--bg-subtle))',
+                            border: '1px solid rgb(var(--border))',
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
                           }}
                         >
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-icon"
-                            disabled={isUpdating || value <= 0}
-                            title={t('adminResults.players.decrease')}
-                            aria-label={t('adminResults.players.decrease')}
-                            onClick={() => handlePlayerStatChange(player, action.key, -1)}
-                            style={{ width: '1.65rem', height: '1.65rem' }}
-                          >
-                            -
-                          </button>
-                          <span
-                            title={t(action.labelKey)}
+                          {player.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
+                          ) : (
+                            player.name.slice(0, 2).toUpperCase()
+                          )}
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 800, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {player.name}
+                          </p>
+                          <span>
+                            {t(`adminResults.players.positions.${player.position.toString()}`)}
+                          </span>
+                          <p
                             style={{
-                              display: 'inline-flex',
+                              margin: '0.1rem 0 0',
+                              color: 'rgb(var(--fg-muted))',
+                              fontSize: '0.75rem',
+                              display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '0.18rem',
-                              fontSize: '0.72rem',
-                              fontWeight: 800,
-                              color: 'rgb(var(--fg))',
+                              gap: '0.35rem',
                             }}
                           >
-                            {action.icon}
-                            {value}
-                          </span>
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-icon"
-                            disabled={isUpdating}
-                            title={t('adminResults.players.increase')}
-                            aria-label={t('adminResults.players.increase')}
-                            onClick={() => handlePlayerStatChange(player, action.key, 1)}
-                            style={{ width: '1.65rem', height: '1.65rem' }}
-                          >
-                            +
-                          </button>
+                            <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} />
+                            {player.teamName}
+                          </p>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(5.25rem, 1fr))', gap: '0.35rem' }}>
+                        {PLAYER_STAT_ACTIONS.map((action) => {
+                          const value = player[action.key] || 0;
+                          const isUpdating = updatingPlayerStat === `${player.playerId}:${action.key}`;
+                          return (
+                            <div
+                              key={action.key}
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '1.65rem minmax(1.3rem, 1fr) 1.65rem',
+                                alignItems: 'center',
+                                gap: '0.2rem',
+                                padding: '0.25rem',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid rgb(var(--border-subtle))',
+                                background: 'rgb(var(--bg-subtle) / 0.55)',
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-icon"
+                                disabled={isUpdating || value <= 0}
+                                title={t('adminResults.players.decrease')}
+                                aria-label={t('adminResults.players.decrease')}
+                                onClick={() => handlePlayerStatChange(player, action.key, -1)}
+                                style={{ width: '1.65rem', height: '1.65rem' }}
+                              >
+                                -
+                              </button>
+                              <span
+                                title={t(action.labelKey)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '0.18rem',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  color: 'rgb(var(--fg))',
+                                }}
+                              >
+                                {action.icon}
+                                {value}
+                              </span>
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-icon"
+                                disabled={isUpdating}
+                                title={t('adminResults.players.increase')}
+                                aria-label={t('adminResults.players.increase')}
+                                onClick={() => handlePlayerStatChange(player, action.key, 1)}
+                                style={{ width: '1.65rem', height: '1.65rem' }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </article>
                   ))}
                   </div>
-                ) : players.length === 0 ? (
+                ) : (
                   <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
                     {t('adminResults.players.empty')}
                   </p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '1.5rem', margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.875rem' }}>
-                    <p style={{ margin: 0 }}>{t('adminResults.players.noResults')}</p>
-                    {filtersActive ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setPlayerFilter('');
-                          setPlayerCountryFilter('');
-                        }}
-                      >
-                        {t('adminResults.players.clearFilters')}
-                      </Button>
-                    ) : null}
-                  </div>
                 )}
               </div>
             );
@@ -1894,18 +1843,14 @@ interface ResultEntryRowProps {
   match: Match;
   locale: string;
   result: { homeResult: number | ''; awayResult: number | '' };
-  submitting: boolean;
   onChange: (matchId: string, side: 'home' | 'away', value: string) => void;
-  savingLabel: string;
 }
 
 function ResultEntryRow({
   match,
   locale,
   result,
-  submitting,
   onChange,
-  savingLabel,
 }: Readonly<ResultEntryRowProps>) {
   const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
     month: 'short',
@@ -1915,8 +1860,6 @@ function ResultEntryRow({
     minute: '2-digit',
   });
   const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
-  const alreadyHadResult =
-    typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
 
   return (
     <article
@@ -2020,30 +1963,6 @@ function ResultEntryRow({
         >
           {matchDate}
         </span>
-        {submitting ? (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.3rem',
-              color: 'rgb(var(--fg-muted))',
-              fontWeight: 600,
-              fontStyle: 'italic',
-            }}
-            aria-live="polite"
-          >
-            <span
-              aria-hidden
-              className="btn-spinner"
-              style={{ width: '0.7rem', height: '0.7rem', borderWidth: 2 }}
-            />
-            {savingLabel}
-          </span>
-        ) : alreadyHadResult ? (
-          <Badge variant="info" style={{ fontSize: '0.6rem', padding: '0.05rem 0.4rem' }}>
-            FT
-          </Badge>
-        ) : null}
       </div>
     </article>
   );

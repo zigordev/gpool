@@ -1,4 +1,4 @@
-export function PlayerTotalPointsBadge({ points, label }: Readonly<{ points: number; label: string }>) {
+export function PointsBadge({ points, label }: Readonly<{ points: number; label: string }>) {
   return (
     <span
       title={label}
