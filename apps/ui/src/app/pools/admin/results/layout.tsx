@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
@@ -13,6 +13,8 @@ function AdminNav() {
   const { t } = useI18n();
   const { setCenter } = useNavCenter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const poolId = searchParams.get('poolId');
 
   const routes = [
     { segment: 'configuration', label: t('adminResults.tabs.configuration') },
@@ -25,24 +27,25 @@ function AdminNav() {
     setCenter(
       <nav aria-label={t('adminResults.tabs.label')} className="floating-nav">
         {routes.map((route) => {
-          const href = `/pools/admin/results/${route.segment}`;
-          const active = pathname === href || pathname.startsWith(href + '/');
+          const base = `/pools/admin/results/${route.segment}`;
+          const href = poolId ? `${base}?poolId=${encodeURIComponent(poolId)}` : base;
+          const active = pathname === base || pathname.startsWith(base + '/');
           return (
-            <a
+            <Link
               key={route.segment}
               href={href}
               aria-current={active ? 'page' : undefined}
               className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
             >
               {route.label}
-            </a>
+            </Link>
           );
         })}
       </nav>,
     );
     return () => setCenter(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, poolId]);
 
   return null;
 }

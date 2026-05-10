@@ -1,10 +1,13 @@
 import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaMedal } from "react-icons/fa";
-import { FaPerson } from "react-icons/fa6";
+import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaMedal, FaStar } from "react-icons/fa";
+import { FaDollarSign, FaPerson } from "react-icons/fa6";
+import { GiLeatherBoot } from "react-icons/gi";
+import { IoMdCloseCircle } from "react-icons/io";
+import { LuRectangleVertical } from "react-icons/lu";
 import { MdOnlinePrediction } from "react-icons/md";
-import { Badge } from "./ui/Badge";
+import { PiBoxingGlove } from "react-icons/pi";
 import { PlayerPosition } from "@/types/playerPosition.type";
 import { useI18n } from "@/i18n/client";
 
@@ -61,6 +64,24 @@ export function Rules({
     return (
         <div style={{ display: 'grid', gap: '1rem' }}>
             <section className="surface" style={{ padding: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.poolConfig.title')}</h3>
+              <div style={{ display: 'grid', gap: '0.55rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}>
+                  <FaClock style={ {color: 'black' } }/> 
+                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                    <strong>{t('poolDetail.rules.poolConfig.deadline')}</strong>
+                    {deadlineLabel}
+                  </p>
+                  <FaDollarSign style={ {color: 'black' } }/> 
+                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                    <strong>{t('poolDetail.rules.poolConfig.entryFee')}</strong>
+                    {`${entryFeeLabel}€ (${t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })})`}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="surface" style={{ padding: '1rem' }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.howTo.title')}</h3>
               <div style={{ display: 'grid', gap: '0.55rem' }}>
                 {['predict', 'final', 'players', 'deadline', 'ranking'].map((key) => (
@@ -89,95 +110,101 @@ export function Rules({
     
             <section className="surface" style={{ padding: '1rem' }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>{t('poolDetail.rules.points.title')}</h3>
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                <div>
-                  <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.groupPhase')}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                    <Badge variant="info">
-                      {t('poolDetail.rules.points.exactResult', { points: groupScoring.exactResultPoints })}
-                    </Badge>
-                    <Badge variant="pitch">
-                      {t('poolDetail.rules.points.correctWinner', { points: groupScoring.winnerPoints })}
-                    </Badge>
-                  </div>
-                </div>
-    
+              <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.groupPhase')}</p>
+              <div style={{ display: 'grid', gap: '0.55rem' }}>
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                  <strong>{t('poolDetail.rules.points.correctWinner')}</strong>
+                  {`+ ${groupScoring.winnerPoints}`}
+                </p>
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                  <strong>{t('poolDetail.rules.points.exactResult')}</strong>
+                  {`+ ${groupScoring.exactResultPoints}`}
+                </p>
+
                 <div>
                   <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.finalPhase')}</p>
-                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <div style={{ display: 'grid', gap: '0.55rem' }}>
                     {BRACKET_PHASES.map((phase) => {
                       const round = bracketScoring.rounds[phase.key] || bracketScoring;
                       return (
-                        <div
-                          key={phase.key}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            gap: '0.75rem',
-                            padding: '0.45rem 0.55rem',
-                            borderRadius: 'var(--radius-sm)',
-                            background: 'rgb(var(--bg-subtle) / 0.68)',
-                            fontSize: '0.82rem',
-                            color: 'rgb(var(--fg-muted))',
-                          }}
-                        >
-                          <strong style={{ color: 'rgb(var(--fg))' }}>{t(phase.labelKey)}</strong>
-                          <span>
-                            {t('poolDetail.rules.points.bracketRound', {
-                              exact: round.exactPositionPoints,
-                              wrong: round.correctTeamWrongPositionPoints,
-                            })}
-                          </span>
-                        </div>
+                        <p key={phase.key} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                          <strong>{t(phase.labelKey)}: </strong>
+                          {t('poolDetail.rules.points.bracketRound', { exact: round.exactPositionPoints, wrong: round.correctTeamWrongPositionPoints })}
+                        </p>
                       );
                     })}
-                    <Badge variant="gold">
-                      {t('poolDetail.rules.points.tournamentWinner', { points: bracketScoring.tournamentWinnerPoints })}
-                    </Badge>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <strong>{t('poolDetail.rules.points.tournamentWinner')}</strong>
+                      {`+ ${bracketScoring.tournamentWinnerPoints}`}
+                    </p>
                   </div>
                 </div>
-    
+
                 <div>
                   <p className="eyebrow" style={{ marginBottom: '0.35rem' }}>{t('poolDetail.tabs.players')}</p>
-                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <div style={{ display: 'grid', gap: '0.55rem' }}>
                     {playerRows.map((row) => (
-                      <div
-                        key={row.label}
-                        style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}
-                      >
-                        {row.icon}
-                        <strong>{row.label}</strong>
-                        {PLAYER_POSITIONS.map((position) => (
-                          <span key={position.key} className="display-number" style={{ color: 'rgb(var(--fg-muted))' }}>
-                            {t(`poolDetail.players.positionShort.${position.key}`)} {pointsLabel(row.values[position.key])}
-                          </span>
+                      <p key={row.label} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                          {row.icon}
+                          <strong>{row.label}</strong>
+                        </span>
+                        {PLAYER_POSITIONS.map((position, i) => (
+                          <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
                         ))}
-                      </div>
+                      </p>
                     ))}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                      <Badge variant="neutral">{t('poolDetail.rules.points.mvp', { points: playerScoring.mvp })}</Badge>
-                      <Badge variant="neutral">{t('poolDetail.rules.points.penaltySaved', { points: playerScoring.penaltySaved })}</Badge>
-                      <Badge variant="live">{t('poolDetail.rules.points.missedPenalty', { points: playerScoring.missedPenalty })}</Badge>
-                      <Badge variant="live">{t('poolDetail.rules.points.yellowCard', { points: playerScoring.yellowCard })}</Badge>
-                      <Badge variant="live">{t('poolDetail.rules.points.redCard', { points: playerScoring.redCard })}</Badge>
-                      <Badge variant="gold">{t('poolDetail.rules.points.goldenBoot', { points: playerScoring.award.goldenBoot })}</Badge>
-                      <Badge variant="gold">{t('poolDetail.rules.points.tournamentMvp', { points: playerScoring.award.tournamentMvp })}</Badge>
-                    </div>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <FaStar style={{ color: 'black' }} />
+                        <strong>{t('poolDetail.rules.points.mvp')}</strong>
+                      </span>
+                      {`+ ${playerScoring.mvp}`}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <PiBoxingGlove style={{ color: 'black' }} />
+                        <strong>{t('poolDetail.rules.points.penaltySaved')}</strong>
+                      </span>
+                      {`+ ${playerScoring.penaltySaved}`}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <IoMdCloseCircle style={{ color: 'red' }} />
+                        <strong>{t('poolDetail.rules.points.missedPenalty')}</strong>
+                      </span>
+                      {playerScoring.missedPenalty}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />
+                        <strong>{t('poolDetail.rules.points.yellowCard')}</strong>
+                      </span>
+                      {playerScoring.yellowCard}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <LuRectangleVertical style={{ color: 'red', fill: 'red' }} />
+                        <strong>{t('poolDetail.rules.points.redCard')}</strong>
+                      </span>
+                      {playerScoring.redCard}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <GiLeatherBoot style={{ color: 'gold' }} />
+                        <strong>{t('poolDetail.rules.points.goldenBoot')}</strong>
+                      </span>
+                      {`+ ${playerScoring.award.goldenBoot}`}
+                    </p>
+                    <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <FaStar style={{ color: 'gold' }} />
+                        <strong>{t('poolDetail.rules.points.tournamentMvp')}</strong>
+                      </span>
+                      {`+ ${playerScoring.award.tournamentMvp}`}
+                    </p>
                   </div>
                 </div>
-              </div>
-            </section>
-    
-            <section className="surface" style={{ padding: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.poolConfig.title')}</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-                <Badge variant="neutral">{t('poolDetail.rules.poolConfig.deadline', { deadline: deadlineLabel })}</Badge>
-                <Badge variant="neutral">{t('poolDetail.rules.poolConfig.entryFee', { fee: entryFeeLabel })}</Badge>
-                {prizeDistribution.length > 0 ? (
-                  <Badge variant="gold">
-                    {t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })}
-                  </Badge>
-                ) : null}
               </div>
             </section>
           </div>

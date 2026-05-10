@@ -156,9 +156,13 @@
   margin: 0;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 html,
 body {
-  max-width: 100vw;
+  max-width: 100%;
   overflow-x: hidden;
   background-color: rgb(var(--bg));
   color: rgb(var(--fg));
@@ -333,18 +337,14 @@ button:focus-visible,
 }
 
 .btn-primary {
-  background: linear-gradient(
-    100deg,
-    rgb(var(--accent-from)),
-    rgb(var(--accent-to))
-  );
-  color: rgb(var(--accent-fg));
-  box-shadow: var(--shadow-glow);
+  background: rgb(var(--pitch));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: var(--shadow-glow), var(--shadow-md);
-  filter: brightness(1.04);
+  background: rgb(var(--pitch) / 0.88);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-solid {
@@ -509,11 +509,7 @@ button:focus-visible,
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--accent-from)) 0%,
-    rgb(var(--accent-to)) 100%
-  );
+  background: rgb(var(--pitch));
 }
 
 .pool-cover::after {
@@ -706,14 +702,12 @@ button:focus-visible,
 
 /* Base: logo left, icons right — no pill nav */
 .nav-shell {
-  width: 100%;
-  max-width: 80rem;
-  margin: 0 auto;
   display: grid;
   grid-template-areas: "logo icons";
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.5rem;
+  min-height: 2.75rem;
 }
 
 /* With pill nav: true 3-column centering on desktop */

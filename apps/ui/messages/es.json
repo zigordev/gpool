@@ -140,8 +140,8 @@
       "searchPlaceholder": "Buscar jugador"
     },
     "ranking": {
-      "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
-      "title": "Clasificacion"
+      "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
+      "title": "Clasificación"
     },
     "scoring": {
       "deadline": "Fecha limite de predicciones",
@@ -333,12 +333,12 @@
       "title": "Jugadores"
     },
     "ranking": {
-      "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
+      "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
       "finalPhasePoints": "Puntos fase final",
       "groupPhasePoints": "Puntos fase grupos",
       "playerPoints": "Puntos jugadores",
       "prize": "Premio",
-      "title": "Clasificacion",
+      "title": "Clasificación",
       "totalPoints": "Puntos totales",
       "user": "Usuario"
     },
@@ -346,35 +346,35 @@
       "description": "Resumen rapido de como jugar esta porra y de la puntuacion configurada ahora mismo.",
       "doNotShowAgain": "No volver a mostrar",
       "howTo": {
-        "deadline": "La fecha limite bloquea cambios en grupos, fase final y jugadores.",
-        "final": "La fase final se rellena inicialmente desde tus predicciones de grupos, pero puedes ajustar las selecciones validas de cada casilla.",
+        "deadline": "La fecha limite bloquea cualquier tipo de cambio después de la misma.",
+        "final": "La fase final se rellena inicialmente desde tus predicciones de la fase de grupos. Puedes realizar cambios con respecto a la selección automática.",
         "players": "Elige 6 porteros, 6 defensas, 6 mediocampistas, 6 delanteros, Bota de oro y MVP del torneo.",
         "predict": "Predice todos los marcadores de la fase de grupos antes de la fecha limite.",
-        "ranking": "La clasificacion suma puntos de grupos, fase final, jugadores y premios individuales.",
+        "ranking": "La clasificación suma los puntos de grupos, fase final y jugadores.",
         "title": "Como se juega"
       },
       "points": {
         "assists": "Asistencias",
-        "bracketRound": "Exacto +{exact} · equipo correcto +{wrong}",
-        "cleanSheets": "Porteria a cero",
-        "correctWinner": "Ganador +{points}",
-        "exactResult": "Resultado exacto +{points}",
-        "goals": "Goles",
-        "goldenBoot": "Bota de oro +{points}",
-        "missedPenalty": "Penalti fallado {points}",
-        "mvp": "MVP partido +{points}",
-        "penaltySaved": "Penalti parado +{points}",
-        "redCard": "Roja {points}",
+        "bracketRound": "Lado correcto del cuadro +{exact} / Lado incorrecto del cuadro +{wrong}",
+        "cleanSheets": "Porteria a cero: ",
+        "correctWinner": "Ganador: ",
+        "exactResult": "Resultado exacto: ",
+        "goals": "Goles: ",
+        "goldenBoot": "Bota de oro: ",
+        "missedPenalty": "Penalti fallado: ",
+        "mvp": "MVP partido: ",
+        "penaltySaved": "Penalti parado: ",
+        "redCard": "Tarjeta roja: ",
         "title": "Sistema de puntos",
-        "tournamentMvp": "MVP torneo +{points}",
-        "tournamentWinner": "Ganador del torneo +{points}",
-        "yellowCard": "Amarilla {points}"
+        "tournamentMvp": "MVP torneo: ",
+        "tournamentWinner": "Ganador del torneo: ",
+        "yellowCard": "Tarjeta amarilla: "
       },
       "poolConfig": {
-        "deadline": "Fecha limite: {deadline}",
-        "entryFee": "Cuota: {fee}",
+        "deadline": "Fecha limite: ",
+        "entryFee": "Cuota: ",
         "prizes": "{count} posiciones con premio",
-        "title": "Configuracion de esta porra"
+        "title": "General"
       },
       "savePreferenceError": "No se pudo guardar la preferencia",
       "showAgain": "Cerrar",
@@ -407,7 +407,7 @@
       "label": "Secciones de la porra",
       "missingCount": "{count} pendientes",
       "players": "Jugadores",
-      "ranking": "Clasificacion",
+      "ranking": "Clasificación",
       "rules": "Reglas",
       "totalPoints": "{count} puntos"
     },

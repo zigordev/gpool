@@ -201,26 +201,17 @@ function PoolsContent() {
 
   return (
     <>
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          marginBottom: '1.75rem',
-        }}
-      >
       {user?.role === 'admin' ? (
-        <button type="button" onClick={handleCreatePool} className="btn btn-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {t('pools.actions.create')}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.75rem' }}>
+          <button type="button" onClick={handleCreatePool} className="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('pools.actions.create')}
+          </button>
+        </div>
       ) : null}
-      </header>
 
       {error ? (
         <div className="field-error" role="alert" style={{ marginBottom: '1rem' }}>

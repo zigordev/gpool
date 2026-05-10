@@ -37,7 +37,7 @@ function PoolNav() {
           const href = `/pools/${poolId}/${route.segment}`;
           const active = pathname === href || pathname.startsWith(href + '/');
           return (
-            <a
+            <Link
               key={route.segment}
               href={href}
               aria-current={active ? 'page' : undefined}
@@ -60,7 +60,7 @@ function PoolNav() {
                   {route.missingCount}
                 </Badge>
               ) : null}
-            </a>
+            </Link>
           );
         })}
       </nav>,

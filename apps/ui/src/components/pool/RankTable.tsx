@@ -35,17 +35,19 @@ export function RankTable({
   return (
     <div
       style={{
-        overflow: 'hidden',
+        overflow: 'clip',
         borderRadius: 'var(--radius-md)',
         border: '1px solid rgb(var(--border))',
         background: 'rgb(var(--bg-elevated))',
         boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
       }}
     >
+      <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
       <table
         style={{
           width: '100%',
           borderCollapse: 'collapse',
+          minWidth: '540px',
         }}
       >
         <thead>
@@ -55,18 +57,18 @@ export function RankTable({
               borderBottom: '1px solid rgb(var(--border))',
             }}
           >
-            <th style={thStyle}></th>
-            <th style={{ ...thStyle, textAlign: 'left' }}>{t('poolDetail.ranking.user')}</th>
-            <th>
+            <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 3, background: 'rgb(var(--bg-subtle))' }}></th>
+            <th style={{ ...thStyle, textAlign: 'left', minWidth: '10rem', position: 'sticky', left: '3.6rem', zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}>{t('poolDetail.ranking.user')}</th>
+            <th style={thStyle}>
               {t('poolDetail.ranking.groupPhasePoints')}
             </th>
-            <th>
+            <th style={thStyle}>
               {t('poolDetail.ranking.finalPhasePoints')}
             </th>
-            <th>
+            <th style={thStyle}>
               {t('poolDetail.ranking.playerPoints')}
             </th>
-            <th>
+            <th style={thStyle}>
               {t('poolDetail.ranking.totalPoints')}
             </th>
             <th style={thStyle}>{t('poolDetail.ranking.prize')}</th>
@@ -95,7 +97,7 @@ export function RankTable({
                   borderBottom: '1px solid rgb(var(--border) / 0.65)',
                 }}
               >
-                <td style={tdStyle}>
+                <td style={{ ...tdStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 1, background: isCurrentUser ? 'rgb(var(--accent-from) / 0.08)' : 'rgb(var(--bg-elevated))' }}>
                   <span
                     style={{
                       display: 'inline-flex',
@@ -129,7 +131,12 @@ export function RankTable({
                     textAlign: 'left',
                     fontWeight: 600,
                     color: 'rgb(var(--fg))',
-                    maxWidth: 0,
+                    position: 'sticky',
+                    left: '3.6rem',
+                    zIndex: 1,
+                    background: isCurrentUser ? 'rgb(var(--accent-from) / 0.08)' : 'rgb(var(--bg-elevated))',
+                    boxShadow: '2px 0 4px rgb(0 0 0 / 0.06)',
+                    minWidth: '10rem',
                   }}
                 >
                   <span
@@ -207,6 +214,7 @@ export function RankTable({
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
@@ -220,6 +228,10 @@ const thStyle: React.CSSProperties = {
   color: 'rgb(var(--fg-muted))',
   textAlign: 'center',
   whiteSpace: 'nowrap',
+  position: 'sticky',
+  top: 0,
+  zIndex: 2,
+  background: 'rgb(var(--bg-subtle))',
 };
 
 const tdStyle: React.CSSProperties = {

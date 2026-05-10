@@ -91,18 +91,18 @@ export function PlayerStatsTable({
   return (
     <div
       style={{
-        overflow: 'hidden',
+        overflow: 'clip',
         borderRadius: 'var(--radius-md)',
         border: '1px solid rgb(var(--border))',
         background: 'rgb(var(--bg-elevated))',
         boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
       }}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: editable ? '860px' : '680px' }}>
           <thead>
             <tr style={{ background: 'rgb(var(--bg-subtle))', borderBottom: '1px solid rgb(var(--border))' }}>
-              <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem' }}>
+              <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}>
                 {t('poolDetail.players.title')}
               </th>
               {STAT_COLUMNS.map((col) => (
@@ -136,7 +136,7 @@ export function PlayerStatsTable({
               const isMVP = tournamentMvpPlayerId === player.playerId;
               return (
                 <tr key={player.playerId} style={{ borderBottom: '1px solid rgb(var(--border) / 0.65)' }}>
-                  <td style={{ ...tdStyle, textAlign: 'left' }}>
+                  <td style={{ ...tdStyle, textAlign: 'left', position: 'sticky', left: 0, zIndex: 1, background: 'rgb(var(--bg-elevated))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.06)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span
                         aria-hidden
@@ -327,6 +327,10 @@ const thStyle: React.CSSProperties = {
   color: 'rgb(var(--fg-muted))',
   textAlign: 'center',
   whiteSpace: 'nowrap',
+  position: 'sticky',
+  top: 0,
+  zIndex: 2,
+  background: 'rgb(var(--bg-subtle))',
 };
 
 const tdStyle: React.CSSProperties = {
