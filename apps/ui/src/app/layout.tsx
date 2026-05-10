@@ -1,4 +1,5 @@
 import { NavigationBar } from '@/components/NavigationBar'
+import { NavCenterProvider } from '@/contexts/NavCenterContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
@@ -63,8 +64,10 @@ export default async function RootLayout({
                 />
 
                 <div className="container-app" style={{ position: 'relative' }}>
-                  <NavigationBar />
-                  {children}
+                  <NavCenterProvider>
+                    <NavigationBar />
+                    {children}
+                  </NavCenterProvider>
                 </div>
               </main>
               <Toaster

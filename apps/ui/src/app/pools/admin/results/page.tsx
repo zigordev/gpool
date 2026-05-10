@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
 import { FormField } from '@/components/ui/FormField';
@@ -753,6 +754,35 @@ function AdminResultsContent() {
     }
   };
 
+  const tabs: Array<{ key: AdminTab; label: string }> = [
+    { key: 'configuration', label: t('adminResults.tabs.configuration') },
+    { key: 'groups', label: t('adminResults.tabs.groupPhase') },
+    { key: 'final', label: t('adminResults.tabs.finalPhase') },
+    { key: 'players', label: t('adminResults.tabs.players') },
+  ];
+
+  const { setCenter } = useNavCenter();
+  useLayoutEffect(() => {
+    setCenter(
+      <nav role="tablist" aria-label={t('adminResults.tabs.label')} className="floating-nav">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className="floating-nav-btn"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+    );
+    return () => setCenter(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   if (loading) {
     return (
       <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
@@ -765,12 +795,6 @@ function AdminResultsContent() {
   const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
   const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
   const prizeTotalInvalid = prizeDistribution.length > 0 && Math.abs(prizeTotal - 100) > 0.01;
-  const tabs: Array<{ key: AdminTab; label: string }> = [
-    { key: 'configuration', label: t('adminResults.tabs.configuration') },
-    { key: 'groups', label: t('adminResults.tabs.groupPhase') },
-    { key: 'final', label: t('adminResults.tabs.finalPhase') },
-    { key: 'players', label: t('adminResults.tabs.players') },
-  ];
 
   return (
     <>
@@ -797,31 +821,8 @@ function AdminResultsContent() {
         </div>
       </header>
 
-      <div className="tabs-frame">
-        <div
-          role="tablist"
-          aria-label={t('adminResults.tabs.label')}
-          className="tabs-list tabs-list-4"
-        >
-          {tabs.map((tab) => {
-            const selected = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => setActiveTab(tab.key)}
-                className="tab-button"
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab === 'configuration' ? (
-          <div className="tabs-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {activeTab === 'configuration' ? (
+          <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* 1. General configuration — deadline, entry fee, prize split */}
           <Section
             title={t('adminResults.config.general.title')}
@@ -1506,7 +1507,7 @@ function AdminResultsContent() {
       ) : null}
 
       {activeTab === 'groups' ? (
-        <div className="tabs-panel tabs-panel-compact">
+        <div className="content-panel">
           {groups.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {groups.map((group) => {
@@ -1558,7 +1559,7 @@ function AdminResultsContent() {
       ) : null}
 
       {activeTab === 'final' ? (
-        <div className="tabs-panel">
+        <div className="content-panel">
           <BracketVisualization
             bracket={bracket}
             teams={teams}
@@ -1575,7 +1576,7 @@ function AdminResultsContent() {
       ) : null}
 
       {activeTab === 'players' ? (
-        <div className="tabs-panel tabs-panel-compact">
+        <div className="content-panel">
           {(() => {
             const countries = Array.from(
               players.reduce<Map<string, string>>((acc, player) => {
@@ -1668,7 +1669,6 @@ function AdminResultsContent() {
           })()}
         </div>
       ) : null}
-      </div>
     </>
   );
 }

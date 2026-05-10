@@ -1,3 +1,5 @@
+import { IoSettings } from "react-icons/io5";
+
 export function PoolCard({
   pool,
   onOpen,
@@ -195,16 +197,13 @@ export function PoolCard({
             </button>
           ) : null}
           {isPoolAdmin ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdministrate();
-              }}
-              className="btn btn-primary btn-sm"
-            >
-              {t('pools.actions.administrate')}
-            </button>
+            <>
+              <span>{t('pools.actions.administrate')}</span>
+              <IoSettings onClick={(e) => {
+                  e.stopPropagation();
+                  onAdministrate();
+              }}/>
+            </>
           ) : null}
         </div>
       </div>

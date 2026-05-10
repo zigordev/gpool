@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +20,7 @@ function initials(value: string | undefined | null): string {
 
 export function NavigationBar() {
   const { user, logout } = useAuth();
+  const { center } = useNavCenter();
   const { t } = useI18n();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -67,11 +69,25 @@ export function NavigationBar() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          position: 'relative',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Logo size="sm" />
         </div>
+
+        {center ? (
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'auto',
+            }}
+          >
+            {center}
+          </div>
+        ) : null}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
         {user ? (

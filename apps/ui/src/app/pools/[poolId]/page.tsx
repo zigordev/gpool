@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
 import { buildBracketProjection } from '@/lib/bracket-projection';
@@ -39,6 +40,7 @@ import { PointsBadge } from '@/components/PointsBadge';
 import { RankTable } from '@/components/pool/RankTable';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { GiLeatherBoot } from 'react-icons/gi';
+import { IoSettings } from 'react-icons/io5';
 
 const BRACKET_PHASES = [
   { key: '16th-finals', labelKey: 'bracket.round.16th' },
@@ -293,6 +295,7 @@ function PoolDetailContent() {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [savingRulesPreference, setSavingRulesPreference] = useState(false);
   const [activeTab, setActiveTab] = useState<PoolTab>('ranking');
+  const router = useRouter();
 
   useEffect(() => {
     if (!poolId) {
@@ -537,21 +540,6 @@ function PoolDetailContent() {
     }
   };
 
-  const matchPredictionLabels = useMemo(
-    () => ({
-      saving: t('common.saving'),
-      incomplete: t('poolDetail.match.incomplete'),
-      exactPoints: (points: number) => t('poolDetail.match.exactResultPoints', { points }),
-      correctWinnerPoints: (points: number) =>
-        t('poolDetail.match.correctWinnerPoints', { points }),
-      incorrect: t('poolDetail.match.incorrect'),
-      result: (home: number | string, away: number | string) =>
-        t('poolDetail.match.result', { home, away }),
-      locked: t('poolDetail.deadline.passedShort'),
-    }),
-    [t],
-  );
-
   const poolDeadline = resolveDeadline(pool);
   const bracketProjection = useMemo(
     () =>
@@ -643,24 +631,7 @@ function PoolDetailContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
-        <Loading message={t('poolDetail.loading')} />
-      </main>
-    );
-  }
-
-  const memberCount = pool.memberCount ?? (pool.members ? pool.members.length : 0);
   const isPastPoolDeadline = Date.now() >= poolDeadline;
-  const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
-  const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
-  const playerRuleScoring = resolvePlayerRuleScoring(pool?.config?.playerScoring);
-  const prizeDistribution = resolvePrizeDistribution(pool);
-  const totalPrizePool = (entryFee ?? 0) * memberCount;
-  const prizeForRank = (rank: number): number =>
-    totalPrizePool > 0 ? computePrize(totalPrizePool, prizeDistribution, rank) : 0;
-  const formatCurrency = (amount: number) => formatEur(amount, locale);
   const groupMissingCount = Object.values(matchesByGroup)
     .flat()
     .filter((match) => {
@@ -679,13 +650,72 @@ function PoolDetailContent() {
     0,
     REQUIRED_PLAYER_SELECTIONS - Object.keys(playerSelections).length - playerAwardSelectionCount,
   );
-  
+
   const tabs: Array<{ key: PoolTab; label: string; missingCount?: number }> = [
     { key: 'ranking', label: t('poolDetail.tabs.ranking') },
     { key: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
     { key: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
     { key: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
   ];
+  const { setCenter } = useNavCenter();
+  useLayoutEffect(() => {
+    setCenter(
+      <nav role="tablist" aria-label={t('poolDetail.tabs.label')} className="floating-nav">
+        {tabs.map((tab) => {
+          const selected = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setActiveTab(tab.key)}
+              className="floating-nav-btn"
+            >
+              <span>{tab.label}</span>
+              {tab.missingCount ? (
+                <Badge
+                  variant="sunset"
+                  className="badge-attention"
+                  title={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
+                  aria-label={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
+                  leadingIcon={
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                      <path d="M12 9v4" /><path d="M12 17h.01" />
+                    </svg>
+                  }
+                >
+                  {tab.missingCount}
+                </Badge>
+              ) : null}
+            </button>
+          );
+        })}
+      </nav>
+    );
+    return () => setCenter(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount]);
+
+  if (loading) {
+    return (
+      <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
+        <Loading message={t('poolDetail.loading')} />
+      </main>
+    );
+  }
+
+  const memberCount = pool.memberCount ?? (pool.members ? pool.members.length : 0);
+  const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
+  const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
+  const playerRuleScoring = resolvePlayerRuleScoring(pool?.config?.playerScoring);
+  const prizeDistribution = resolvePrizeDistribution(pool);
+  const totalPrizePool = (entryFee ?? 0) * memberCount;
+  const prizeForRank = (rank: number): number =>
+    totalPrizePool > 0 ? computePrize(totalPrizePool, prizeDistribution, rank) : 0;
+  const formatCurrency = (amount: number) => formatEur(amount, locale);
+
   const deadlineHint = new Date(poolDeadline).toLocaleDateString(locale, {
     second: '2-digit',
     hour: '2-digit',
@@ -694,6 +724,8 @@ function PoolDetailContent() {
     day: 'numeric',
     year: 'numeric',
   });
+
+  const isPoolAdmin = user?.role === 'admin' && user.userId === pool.adminUserId;
 
   return (
     <>
@@ -719,6 +751,15 @@ function PoolDetailContent() {
             <span>{t('poolDetail.title')}</span>
           </h1>
         </div>
+        {isPoolAdmin ? (
+          <>
+            <span>{t('poolDetail.actions.administrate')}</span>
+            <IoSettings onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/pools/admin/results?poolId=${encodeURIComponent(pool.poolId)}`);
+            }}/>
+          </>
+        ) : null}
         <div style={{ alignSelf: 'flex-start' }}>
           <CountdownChip
             deadline={poolDeadline}
@@ -729,58 +770,8 @@ function PoolDetailContent() {
         </div>
       </header>
 
-      <div className="tabs-frame">
-        <div
-          role="tablist"
-          aria-label={t('poolDetail.tabs.label')}
-          className="tabs-list tabs-list-4"
-        >
-          {tabs.map((tab) => {
-            const selected = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => setActiveTab(tab.key)}
-                className="tab-button"
-              >
-                <span>{tab.label}</span>
-                {tab.missingCount ? (
-                  <Badge
-                    variant="sunset"
-                    className="badge-attention"
-                    title={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
-                    aria-label={t('poolDetail.tabs.missingCount', { count: tab.missingCount })}
-                    leadingIcon={
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-                        <path d="M12 9v4" />
-                        <path d="M12 17h.01" />
-                      </svg>
-                    }
-                  >
-                    {tab.missingCount}
-                  </Badge>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab === 'ranking' ? (
-          <div className="tabs-panel">
+      {activeTab === 'ranking' ? (
+          <div className="content-panel">
           {ranking.length > 0 ? (
             <RankTable
               ranking={ranking}
@@ -845,7 +836,7 @@ function PoolDetailContent() {
       ) : null}
 
       {activeTab === 'groups' ? (
-        <div className="tabs-panel tabs-panel-compact">
+        <div className="content-panel">
           {groups.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {groups.map((group) => {
@@ -957,7 +948,7 @@ function PoolDetailContent() {
       ) : null}
 
       {activeTab === 'final' ? (
-        <div className="tabs-panel">
+        <div className="content-panel">
           {Object.keys(bracket).length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1062,7 +1053,7 @@ function PoolDetailContent() {
       ) : null}
 
       {activeTab === 'players' ? (
-        <div className="tabs-panel">
+        <div className="content-panel">
           {players.length > 0 ? (
             <>
             <div style={{ overflowX: 'auto', overflowY: 'visible', margin: '0 -0.25rem', padding: '0 0.25rem' }}>
@@ -1457,7 +1448,6 @@ function PoolDetailContent() {
 
         </div>
       ) : null}
-      </div>
       <RulesSummaryModal
         open={showRulesModal}
         busy={savingRulesPreference}
