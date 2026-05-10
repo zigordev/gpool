@@ -407,6 +407,7 @@
       "missingCount": "{count} pendientes",
       "players": "Jugadores",
       "ranking": "Clasificacion",
+      "rules": "Reglas",
       "totalPoints": "{count} puntos"
     },
     "title": "Porra"

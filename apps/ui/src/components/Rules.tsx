@@ -6,15 +6,15 @@ import { FaPerson } from "react-icons/fa6";
 import { MdOnlinePrediction } from "react-icons/md";
 import { Badge } from "./ui/Badge";
 import { PlayerPosition } from "@/types/playerPosition.type";
+import { useI18n } from "@/i18n/client";
 
-function PlayerRules({
+export function Rules({
   deadlineLabel,
   groupScoring,
   bracketScoring,
   playerScoring,
   entryFeeLabel,
   prizeDistribution,
-  t,
 }: Readonly<{
   deadlineLabel: string;
   groupScoring: { winnerPoints: number; exactResultPoints: number };
@@ -22,8 +22,9 @@ function PlayerRules({
   playerScoring: ReturnType<typeof resolvePlayerRuleScoring>;
   entryFeeLabel: string;
   prizeDistribution: PrizePayout[];
-  t: (key: string, params?: Record<string, string | number>) => string;
 }>) {
+    const { t } = useI18n();
+    
     const playerRows = [
         {
           label: t('poolDetail.rules.points.goals'),
@@ -56,6 +57,10 @@ function PlayerRules({
         { key: 'semi-finals', labelKey: 'bracket.round.semi' },
         { key: 'finals', labelKey: 'bracket.round.final' },
     ] as const;
+
+    function pointsLabel(points: number): string {
+        return points > 0 ? `+${points}` : String(points);
+    }
 
     return (
         <div style={{ display: 'grid', gap: '1rem' }}>

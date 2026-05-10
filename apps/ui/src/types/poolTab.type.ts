@@ -1,1 +1,1 @@
-export type PoolTab = 'ranking' | 'groups' | 'final' | 'players';
+export type PoolTab = 'rules' | 'ranking' | 'groups' | 'final' | 'players';
