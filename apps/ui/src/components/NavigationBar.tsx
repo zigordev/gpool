@@ -249,25 +249,19 @@ export function NavigationBar() {
     <header style={{ marginBottom: subBar ? '0' : '1.75rem' }}>
       <nav
         aria-label="Primary"
-        style={{
-          width: '100%',
-          maxWidth: '80rem',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'relative',
-        }}
+        className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}
       >
-        <Logo size="sm" />
+        <div className="nav-logo-area">
+          <Logo size="sm" />
+        </div>
 
         {center ? (
-          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'auto' }}>
+          <div className="nav-center-area">
             {center}
           </div>
         ) : null}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <div className="nav-icons-area">
           <LanguageButton />
           <UserButton />
         </div>
