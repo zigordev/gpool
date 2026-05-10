@@ -18,6 +18,7 @@ interface Props {
   prizeForRank: (rank: number) => number;
   formatCurrency: (value: number) => string;
   onSpy: (entry: { userId: string; userName: string }) => Promise<void> | void;
+  spyEnabled?: boolean;
 }
 
 export function RankTable({
@@ -27,6 +28,7 @@ export function RankTable({
   prizeForRank,
   formatCurrency,
   onSpy,
+  spyEnabled = false,
 }: Readonly<Props>) {
   const { t } = useI18n();
 
@@ -55,12 +57,20 @@ export function RankTable({
           >
             <th style={thStyle}></th>
             <th style={{ ...thStyle, textAlign: 'left' }}>{t('poolDetail.ranking.user')}</th>
-            <th style={thStyle}>{t('poolDetail.ranking.groupPhasePoints')}</th>
-            <th style={thStyle}>{t('poolDetail.ranking.finalPhasePoints')}</th>
-            <th style={thStyle}>{t('poolDetail.ranking.playerPoints')}</th>
-            <th style={thStyle}>{t('poolDetail.ranking.totalPoints')}</th>
+            <th>
+              {t('poolDetail.ranking.groupPhasePoints')}
+            </th>
+            <th>
+              {t('poolDetail.ranking.finalPhasePoints')}
+            </th>
+            <th>
+              {t('poolDetail.ranking.playerPoints')}
+            </th>
+            <th>
+              {t('poolDetail.ranking.totalPoints')}
+            </th>
             <th style={thStyle}>{t('poolDetail.ranking.prize')}</th>
-            <th style={thStyle}></th>
+            {spyEnabled ? <th style={thStyle}></th> : null}
           </tr>
         </thead>
 
@@ -160,36 +170,38 @@ export function RankTable({
                   {formatCurrency(prize)}
                 </td>
 
-                <td style={tdStyle}>
-                  <button
-                    disabled={isCurrentUser}
-                    type="button"
-                    onClick={() => onSpy({ userId: entry.userId, userName: entry.userName })}
-                    aria-label={t('poolDetail.spy.action')}
-                    title={t('poolDetail.spy.action')}
-                    className="btn btn-ghost btn-icon"
-                    style={{
-                      width: '2.1rem',
-                      height: '2.1rem',
-                      color: 'rgb(var(--fg-muted))',
-                    }}
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
+                {spyEnabled ? (
+                  <td style={tdStyle}>
+                    <button
+                      disabled={isCurrentUser}
+                      type="button"
+                      onClick={() => onSpy({ userId: entry.userId, userName: entry.userName })}
+                      aria-label={t('poolDetail.spy.action')}
+                      title={t('poolDetail.spy.action')}
+                      className="btn btn-ghost btn-icon"
+                      style={{
+                        width: '2.1rem',
+                        height: '2.1rem',
+                        color: 'rgb(var(--fg-muted))',
+                      }}
                     >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                </td>
+                      <svg
+                        width="15"
+                        height="15"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             );
           })}
@@ -207,6 +219,7 @@ const thStyle: React.CSSProperties = {
   letterSpacing: '0.08em',
   color: 'rgb(var(--fg-muted))',
   textAlign: 'center',
+  whiteSpace: 'nowrap',
 };
 
 const tdStyle: React.CSSProperties = {

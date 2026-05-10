@@ -12,6 +12,8 @@ interface Props {
   awayTeamName: string;
   homeScore: number | '';
   awayScore: number | '';
+  homeResult?: number;
+  awayResult?: number;
   pointsEarned?: number;
   state: MatchPredictionState;
   badgeLabel?: string;
@@ -39,6 +41,8 @@ export function MatchPredictionCard({
   awayTeamName,
   homeScore,
   awayScore,
+  homeResult,
+  awayResult,
   pointsEarned,
   state,
   badgeLabel,
@@ -46,6 +50,7 @@ export function MatchPredictionCard({
   onChange,
   isPastDeadline,
 }: Readonly<Props>) {
+  const hasRealResult = isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
   const baseId = useId();
   const tone = STATE_TONES[state];
 
@@ -222,6 +227,7 @@ export function MatchPredictionCard({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             fontWeight: 700,
+            fontVariantNumeric: 'tabular-nums',
             color:
               state === 'exact'
                 ? 'rgb(var(--info))'
@@ -232,7 +238,7 @@ export function MatchPredictionCard({
                 : 'rgb(var(--fg-muted))',
           }}
         >
-          {badgeLabel}
+          {hasRealResult ? `${homeResult} – ${awayResult}${badgeLabel ? ' · ' : ''}` : ''}{badgeLabel}
         </span>
       </div>
     </article>

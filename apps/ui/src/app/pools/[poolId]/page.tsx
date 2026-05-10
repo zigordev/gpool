@@ -37,6 +37,7 @@ import { SpyPicksLabels } from '@/types/spyPicksLabels.interface';
 import { Loading } from '@/components/Loading';
 import { PointsBadge } from '@/components/PointsBadge';
 import { RankTable } from '@/components/pool/RankTable';
+import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { GiLeatherBoot } from 'react-icons/gi';
 
 const BRACKET_PHASES = [
@@ -788,6 +789,7 @@ function PoolDetailContent() {
               prizeForRank={prizeForRank}
               formatCurrency={formatCurrency}
               onSpy={handleStartSpy}
+              spyEnabled={isPastPoolDeadline}
             />
           ) : (
             <p
@@ -925,6 +927,8 @@ function PoolDetailContent() {
                               awayTeamName={match.awayTeamName}
                               homeScore={prediction.homeScore}
                               awayScore={prediction.awayScore}
+                              homeResult={typeof match.homeResult === 'number' ? match.homeResult : undefined}
+                              awayResult={typeof match.awayResult === 'number' ? match.awayResult : undefined}
                               pointsEarned={prediction.points || 0}
                               state={state}
                               badgeLabel={badgeLabel}
@@ -1060,6 +1064,7 @@ function PoolDetailContent() {
       {activeTab === 'players' ? (
         <div className="tabs-panel">
           {players.length > 0 ? (
+            <>
             <div style={{ overflowX: 'auto', overflowY: 'visible', margin: '0 -0.25rem', padding: '0 0.25rem' }}>
               {/* Soccer field. Goals sit just outside the green rectangle on
                   the left (defended by the team) and right (attacked by the
@@ -1436,6 +1441,14 @@ function PoolDetailContent() {
                 </div>
               </div>
             </div>
+            <PlayerStatsTable
+              players={players}
+              goldenBootPlayerIds={playerAwardSelections.golden_boot ? [(playerAwardSelections.golden_boot as any).playerId] : []}
+              tournamentMvpPlayerId={(playerAwardSelections.tournament_mvp as any)?.playerId ?? ''}
+              computeTotal={(p) => p.totalPoints ?? 0}
+              t={t}
+            />
+            </>
           ) : (
             <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
               {t('poolDetail.players.empty')}

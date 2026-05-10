@@ -8,19 +8,14 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { BracketVisualization } from '@/components/BracketVisualization';
-import type { ReactNode } from 'react';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
-import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
-import { PiBoxingGlove } from 'react-icons/pi';
-import { LuRectangleVertical } from 'react-icons/lu';
-import { IoMdCloseCircle } from 'react-icons/io';
 import { Loading } from '@/components/Loading';
+import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import Select from 'react-select';
-import { PointsBadge } from '@/components/PointsBadge';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import { AdminTab } from '@/types/adminTab.type';
 import { BracketRoundScoring } from '@/types/bracketRoundScoring.type';
@@ -78,17 +73,6 @@ const DEFAULT_PLAYER_SCORING = {
     tournamentMvp: 15,
   },
 };
-
-const PLAYER_STAT_ACTIONS: Array<{ key: PlayerStatKey; icon: ReactNode; labelKey: string }> = [
-  { key: 'goals', icon: <FaFutbol style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.goals' },
-  { key: 'assists', icon: <FaMagic style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.assists' },
-  { key: 'mvps', icon: <FaStar style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.mvps' },
-  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.penaltiesSaved' },
-  { key: 'cleanSheets', icon: <FaShieldAlt style={ {color: 'black' } } size='17'/>, labelKey: 'adminResults.players.actions.cleanSheets' },
-  { key: 'yellowCards', icon: <LuRectangleVertical style={ {color: 'yellow', fill: 'yellow' } } size='17'/>, labelKey: 'adminResults.players.actions.yellowCards' },
-  { key: 'redCards', icon: <LuRectangleVertical style={ {color: 'red', fill: 'red' } } size='17'/>, labelKey: 'adminResults.players.actions.redCards' },
-  { key: 'missedPenalties', icon: <IoMdCloseCircle style={ {color: 'red' } } size='17'/>, labelKey: 'adminResults.players.actions.missedPenalties' },
-];
 
 function unwrapArray<T>(value: any): T[] {
   if (Array.isArray(value)) return value;
@@ -1607,46 +1591,30 @@ function AdminResultsContent() {
             const positionSearch = playerPositionFilter.trim().toLowerCase();
 
             const filtered = players.filter((player) => {
-              const playerName =
-                !nameSearch ||
-                player.name.toLowerCase().includes(nameSearch);
-              const playerCountry =
-                !countrySearch ||
-                player.teamName.toLowerCase() === countrySearch;
-              const playerPosition =
-                !positionSearch ||
-                player.position.toLowerCase() === positionSearch;
-
-              return (playerName && playerCountry && playerPosition);
-
+              const playerName = !nameSearch || player.name.toLowerCase().includes(nameSearch);
+              const playerCountry = !countrySearch || player.teamName.toLowerCase() === countrySearch;
+              const playerPosition = !positionSearch || player.position.toLowerCase() === positionSearch;
+              return playerName && playerCountry && playerPosition;
             });
 
-            const countryOptions = countries.map(([teamId, teamName]) => {           
-              return {
-                value: teamId,
-                label: (
-                  <>
-                    <ReactCountryFlag
-                      countryCode={countryIsoCode(teamName)}
-                      svg
-                      style={{ width: '2em', height: '2em' }}
-                    />
-                    <span>
-                      {` ${teamName}`}
-                    </span>
-                  </>
-                ),
-                searchLabel: teamName
-              };
-            });
+            const countryOptions = countries.map(([teamId, teamName]) => ({
+              value: teamId,
+              label: (
+                <>
+                  <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+                  <span>{` ${teamName}`}</span>
+                </>
+              ),
+              searchLabel: teamName,
+            }));
 
             const selectedCountryOption = countryOptions.find((option) => option.value === playerCountryFilter) ?? null;
 
             const positionOptions = [
-              { value: 'goalkeeper', label: `${t('adminResults.players.positions.goalkeeper')}`},
-              { value: 'defender', label: `${t('adminResults.players.positions.defender')}`},
-              { value: 'midfielder', label: `${t('adminResults.players.positions.midfielder')}`},
-              { value: 'forward', label: `${t('adminResults.players.positions.forward')}`}
+              { value: 'goalkeeper', label: t('adminResults.players.positions.goalkeeper') },
+              { value: 'defender', label: t('adminResults.players.positions.defender') },
+              { value: 'midfielder', label: t('adminResults.players.positions.midfielder') },
+              { value: 'forward', label: t('adminResults.players.positions.forward') },
             ];
 
             const selectedPositionOption = positionOptions.find((option) => option.value === playerPositionFilter) ?? null;
@@ -1668,7 +1636,7 @@ function AdminResultsContent() {
                     placeholder={t('adminResults.players.searchPlaceholder')}
                     aria-label={t('adminResults.players.searchPlaceholder')}
                   />
-                  <Select<{ value: string; label: string; }, false>
+                  <Select<{ value: string; label: string }, false>
                     isClearable
                     placeholder={t('adminResults.players.positionAll')}
                     value={selectedPositionOption}
@@ -1685,150 +1653,16 @@ function AdminResultsContent() {
                     onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
                   />
                 </div>
-
-                {filtered.length > 0 ? (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))',
-                      gap: '0.6rem',
-                    }}
-                  >
-                  {filtered.map((player) => (
-                    <article
-                      key={player.playerId}
-                      style={{
-                        position: 'relative',
-                        display: 'grid',
-                        gridTemplateColumns: 'minmax(0, 1fr)',
-                        gap: '0.55rem',
-                        padding: '0.7rem',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid rgb(var(--border))',
-                        background: 'rgb(var(--bg-elevated))',
-                      }}
-                    >
-                      {
-                        player.totalPoints ? (
-                          <PointsBadge
-                            points={player.totalPoints}
-                            label={t('poolDetail.players.points', { points: player.totalPoints })}
-                          />
-                        ) : null
-                      }
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-                        <span
-                          aria-hidden
-                          style={{
-                            width: '2.15rem',
-                            height: '2.15rem',
-                            borderRadius: '999px',
-                            display: 'grid',
-                            placeItems: 'center',
-                            flexShrink: 0,
-                            background: 'rgb(var(--bg-subtle))',
-                            border: '1px solid rgb(var(--border))',
-                            fontSize: '0.72rem',
-                            fontWeight: 800,
-                          }}
-                        >
-                          {player.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '999px', objectFit: 'cover' }} />
-                          ) : (
-                            player.name.slice(0, 2).toUpperCase()
-                          )}
-                        </span>
-                        <div style={{ minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 800, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {player.name}
-                          </p>
-                          <span>
-                            {t(`adminResults.players.positions.${player.position.toString()}`)}
-                          </span>
-                          <p
-                            style={{
-                              margin: '0.1rem 0 0',
-                              color: 'rgb(var(--fg-muted))',
-                              fontSize: '0.75rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                            }}
-                          >
-                            <ReactCountryFlag countryCode={countryIsoCode(player.teamName)} svg style={{ width: '2em', height: '2em' }} />
-                            {player.teamName}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(5.25rem, 1fr))', gap: '0.35rem' }}>
-                        {PLAYER_STAT_ACTIONS.map((action) => {
-                          const value = player[action.key] || 0;
-                          const isUpdating = updatingPlayerStat === `${player.playerId}:${action.key}`;
-                          return (
-                            <div
-                              key={action.key}
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1.65rem minmax(1.3rem, 1fr) 1.65rem',
-                                alignItems: 'center',
-                                gap: '0.2rem',
-                                padding: '0.25rem',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid rgb(var(--border-subtle))',
-                                background: 'rgb(var(--bg-subtle) / 0.55)',
-                              }}
-                            >
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon"
-                                disabled={isUpdating || value <= 0}
-                                title={t('adminResults.players.decrease')}
-                                aria-label={t('adminResults.players.decrease')}
-                                onClick={() => handlePlayerStatChange(player, action.key, -1)}
-                                style={{ width: '1.65rem', height: '1.65rem' }}
-                              >
-                                -
-                              </button>
-                              <span
-                                title={t(action.labelKey)}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '0.18rem',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 800,
-                                  color: 'rgb(var(--fg))',
-                                }}
-                              >
-                                {action.icon}
-                                {value}
-                              </span>
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon"
-                                disabled={isUpdating}
-                                title={t('adminResults.players.increase')}
-                                aria-label={t('adminResults.players.increase')}
-                                onClick={() => handlePlayerStatChange(player, action.key, 1)}
-                                style={{ width: '1.65rem', height: '1.65rem' }}
-                              >
-                                +
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </article>
-                  ))}
-                  </div>
-                ) : (
-                  <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-                    {t('adminResults.players.empty')}
-                  </p>
-                )}
+                <PlayerStatsTable
+                  players={filtered}
+                  goldenBootPlayerIds={playerAwardWinnersConfig.goldenBootPlayerIds}
+                  tournamentMvpPlayerId={playerAwardWinnersConfig.tournamentMvpPlayerId}
+                  computeTotal={(p) => computePlayerPoints(p, playerScoringConfig)}
+                  t={t}
+                  editable
+                  updatingPlayerStat={updatingPlayerStat}
+                  onStatChange={handlePlayerStatChange}
+                />
               </div>
             );
           })()}
