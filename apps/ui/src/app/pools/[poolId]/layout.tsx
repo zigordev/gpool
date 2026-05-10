@@ -1,13 +1,16 @@
 'use client';
 
 import { useLayoutEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
+import { IoSettings } from 'react-icons/io5';
 import {
   PoolProvider,
   usePoolContext,
@@ -69,12 +72,91 @@ function PoolNav() {
   return null;
 }
 
+function PoolBreadcrumbs() {
+  const { t } = useI18n();
+  const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { pool, poolId, poolDeadline } = usePoolContext();
+  const { setSubBar } = useNavCenter();
+
+  const isPoolAdmin = user?.role === 'admin' && user.userId === pool?.adminUserId;
+
+  const routes = [
+    { segment: 'rules', label: t('poolDetail.tabs.rules') },
+    { segment: 'ranking', label: t('poolDetail.tabs.ranking') },
+    { segment: 'groups', label: t('poolDetail.tabs.groupPhase') },
+    { segment: 'final', label: t('poolDetail.tabs.finalPhase') },
+    { segment: 'players', label: t('poolDetail.tabs.players') },
+  ];
+
+  const activeRoute = routes.find(({ segment }) => {
+    const href = `/pools/${poolId}/${segment}`;
+    return pathname === href || pathname.startsWith(href + '/');
+  });
+
+  useLayoutEffect(() => {
+    setSubBar(
+      <div style={{ display: 'contents' }}>
+        <nav aria-label="breadcrumb" style={{ minWidth: 0 }}>
+          <ol className="breadcrumb">
+            <li><Link href="/pools">{t('pools.title')}</Link></li>
+            <li aria-hidden><span className="breadcrumb-separator">›</span></li>
+            <li>
+              <Link href={`/pools/${poolId}/ranking`}>{pool?.name ?? '…'}</Link>
+            </li>
+            {activeRoute ? (
+              <>
+                <li aria-hidden><span className="breadcrumb-separator">›</span></li>
+                <li>
+                  <span className="breadcrumb-current" aria-current="page">
+                    {activeRoute.label}
+                  </span>
+                </li>
+              </>
+            ) : null}
+          </ol>
+        </nav>
+        <div className="nav-sub-bar-actions">
+          {isPoolAdmin ? (
+            <button
+              type="button"
+              onClick={() => router.push(`/pools/admin/results?poolId=${encodeURIComponent(poolId)}`)}
+              aria-label={t('poolDetail.actions.administrate')}
+              title={t('poolDetail.actions.administrate')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: '0.25rem 0.6rem',
+                background: 'transparent',
+                border: '1px solid rgb(var(--border))',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'rgb(var(--fg-muted))',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <IoSettings size={13} aria-hidden />
+              {t('poolDetail.actions.administrate')}
+            </button>
+          ) : null}
+          <CountdownChip deadline={poolDeadline} />
+        </div>
+      </div>,
+    );
+    return () => setSubBar(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pool, isPoolAdmin, poolDeadline, poolId, pathname]);
+
+  return null;
+}
+
 function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) {
   const { t } = useI18n();
-  const {
-    loading,
-    poolDeadline,
-  } = usePoolContext();
+  const { loading } = usePoolContext();
 
   if (loading) {
     return (
@@ -87,25 +169,10 @@ function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) 
   return (
     <>
       <PoolNav />
-
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          marginBottom: '1.75rem',
-        }}
-      >
-        <div style={{ alignSelf: 'flex-start' }}>
-          <CountdownChip
-            deadline={poolDeadline}
-          />
-        </div>
-      </header>
-
-      {children}
+      <PoolBreadcrumbs />
+      <div style={{ marginTop: '1.75rem' }}>
+        {children}
+      </div>
     </>
   );
 }

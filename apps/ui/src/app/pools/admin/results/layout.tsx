@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useNavCenter } from '@/contexts/NavCenterContext';
@@ -46,6 +47,63 @@ function AdminNav() {
   return null;
 }
 
+function AdminBreadcrumbs() {
+  const { t } = useI18n();
+  const { poolId, poolName } = useAdminContext();
+  const { setSubBar } = useNavCenter();
+  const pathname = usePathname();
+
+  const routes = [
+    { segment: 'configuration', label: t('adminResults.tabs.configuration') },
+    { segment: 'groups', label: t('adminResults.tabs.groupPhase') },
+    { segment: 'final', label: t('adminResults.tabs.finalPhase') },
+    { segment: 'players', label: t('adminResults.tabs.players') },
+  ];
+
+  const activeRoute = routes.find(({ segment }) => {
+    const href = `/pools/admin/results/${segment}`;
+    return pathname === href || pathname.startsWith(href + '/');
+  });
+
+  const poolHref = poolId && poolId !== 'all-pools' ? `/pools/${poolId}/ranking` : '/pools';
+
+  useLayoutEffect(() => {
+    setSubBar(
+      <div style={{ display: 'contents' }}>
+        <nav aria-label="breadcrumb" style={{ minWidth: 0 }}>
+          <ol className="breadcrumb">
+            <li><Link href="/pools">{t('pools.title')}</Link></li>
+            <li aria-hidden><span className="breadcrumb-separator">›</span></li>
+            {poolName ? (
+              <>
+                <li><Link href={poolHref}>{poolName}</Link></li>
+                <li aria-hidden><span className="breadcrumb-separator">›</span></li>
+              </>
+            ) : null}
+            {activeRoute ? (
+              <li>
+                <span className="breadcrumb-current" aria-current="page">
+                  {activeRoute.label}
+                </span>
+              </li>
+            ) : (
+              <li>
+                <span className="breadcrumb-current" aria-current="page">
+                  {t('nav.admin')}
+                </span>
+              </li>
+            )}
+          </ol>
+        </nav>
+      </div>,
+    );
+    return () => setSubBar(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolId, poolName, pathname]);
+
+  return null;
+}
+
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const { loading } = useAdminContext();
@@ -61,7 +119,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AdminNav />
-      {children}
+      <AdminBreadcrumbs />
+      <div style={{ marginTop: '1.75rem' }}>
+        {children}
+      </div>
     </>
   );
 }

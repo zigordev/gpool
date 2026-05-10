@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/i18n/client';
 import { useEffect, useState } from 'react';
+import { Badge } from './Badge';
 
 interface Props {
   deadline: number;
@@ -49,21 +50,12 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
   }
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{
-        display: 'inline-flex',
-        flexDirection: 'column',
-        gap: '0.25rem',
-        padding: '0.85rem 1.05rem',
-        borderRadius: 'var(--radius-md)',
-        background: 'rgb(var(--sunset) / 0.10)',
-        border: `1px solid rgb(var(--sunset) / 0.30)`,
-        minWidth: '180px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+    <Badge
+      variant="sunset"
+      className="badge-attention"
+      title={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
+      aria-label={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
+      leadingIcon={
         <svg
           width="14"
           height="14"
@@ -79,31 +71,9 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        <span
-          style={{
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'rgb(var(--sunset))',
-          }}
-        >
-          {`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
-        </span>
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--font-display, inherit)',
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          color: 'rgb(var(--sunset))',
-          letterSpacing: '-0.01em',
-          lineHeight: 1.05,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {value}
-      </div>
-    </div>
+      }
+    >
+      {t('poolDetail.deadline.general')} {deadlineLocale} {'->'} {value}
+    </Badge>
   );
 }

@@ -588,6 +588,22 @@ button:focus-visible,
   will-change: transform, box-shadow;
 }
 
+/* Invert badge on active OR hovered nav item */
+.floating-nav-btn--active .badge-attention,
+.floating-nav-btn[aria-current="page"] .badge-attention,
+.floating-nav-btn:hover .badge-attention {
+  background: rgb(255 255 255 / 0.18);
+  color: white;
+  border-color: rgb(255 255 255 / 0.28);
+}
+
+/* Keep icon aligned with text color */
+.floating-nav-btn--active .badge-attention svg,
+.floating-nav-btn[aria-current="page"] .badge-attention svg,
+.floating-nav-btn:hover .badge-attention svg {
+  stroke: currentColor;
+}
+
 @keyframes badge-attention {
   0%, 7%, 100% {
     transform: translateY(0) scale(1);
@@ -630,16 +646,14 @@ button:focus-visible,
   align-items: center;
   gap: 0.25rem;
   padding: 0.3rem;
-  background: rgb(var(--bg-elevated) / 0.78);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgb(var(--border) / 0.65);
   border-radius: 999px;
-  box-shadow:
-    0 8px 32px rgb(15 23 42 / 0.10),
-    0 1px 0 rgb(255 255 255 / 0.5) inset;
   pointer-events: auto;
   flex-wrap: nowrap;
+  background: rgb(var(--bg-elevated) / 0.38);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(var(--border) / 0.85);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.06);
 }
 
 .floating-nav-btn {
@@ -649,26 +663,107 @@ button:focus-visible,
   padding: 0.5rem 1.15rem;
   border: none;
   border-radius: 999px;
+
   background: transparent;
   color: rgb(var(--fg-muted));
+
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   letter-spacing: 0.01em;
   text-decoration: none;
-  transition: color 0.15s ease, background 0.15s ease;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
-.floating-nav-btn:hover:not([aria-selected="true"]):not(.floating-nav-btn--active) {
-  background: rgb(var(--bg-subtle));
+.floating-nav-btn:hover:not(.floating-nav-btn--active) {
+  background: rgb(var(--pitch) / 0.72);
+  color: white;
+}
+
+.floating-nav-btn--active,
+.floating-nav-btn--active:hover,
+.floating-nav-btn[aria-current="page"],
+.floating-nav-btn[aria-current="page"]:hover {
+  background: rgb(var(--pitch) / 0.72);
+  color: white;
+}
+
+.pool-nav-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding-bottom: 1.25rem;
+}
+
+/* Sub-bar breadcrumb row rendered inside NavigationBar <header> */
+.nav-sub-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0 0.6rem;
+  border-top: 1px solid rgb(var(--border-subtle) / 0.6);
+  margin-top: 0.35rem;
+}
+
+/* Breadcrumb trail inside the sub-bar */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgb(var(--fg-muted));
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.breadcrumb a {
+  color: rgb(var(--fg-muted));
+  text-decoration: none;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+
+.breadcrumb a:hover {
   color: rgb(var(--fg));
 }
 
-.floating-nav-btn[aria-selected="true"],
-.floating-nav-btn--active {
-  background: rgb(var(--fg));
-  color: rgb(var(--bg));
+.breadcrumb-separator {
+  color: rgb(var(--fg-subtle));
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.breadcrumb-current {
+  color: rgb(var(--fg));
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right-hand actions in the sub-bar (admin icon, countdown chip) */
+.nav-sub-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .content-panel {
@@ -729,11 +824,7 @@ button:focus-visible,
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--accent-from)),
-    rgb(var(--accent-to))
-  );
+  background: rgb(var(--pitch) / 0.92);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;

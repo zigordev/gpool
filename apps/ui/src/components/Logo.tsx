@@ -41,8 +41,7 @@ export function Logo({ size = 'md', iconOnly = false }: LogoProps) {
           flexShrink: 0,
           borderRadius: '999px',
           overflow: 'hidden',
-          background:
-            'linear-gradient(135deg, rgb(var(--accent-from)), rgb(var(--accent-to)))',
+          background: 'rgb(var(--pitch) / 0.92)',
           boxShadow: 'var(--shadow-sm)',
           display: 'inline-flex',
           alignItems: 'center',
