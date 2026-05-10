@@ -246,7 +246,6 @@
     "deadline": {
       "general": "Fecha limite",
       "groupPhase": "Fecha limite de fase de grupos",
-      "passed": "Ya no se pueden realizar cambios",
       "passedShort": "Expirado"
     },
     "errors": {

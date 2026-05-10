@@ -19,7 +19,7 @@ export function Rules({
   deadlineLabel: string;
   groupScoring: { winnerPoints: number; exactResultPoints: number };
   bracketScoring: BracketScoringConfig;
-  playerScoring: ReturnType<typeof resolvePlayerRuleScoring>;
+  playerScoring: any;
   entryFeeLabel: string;
   prizeDistribution: PrizePayout[];
 }>) {
@@ -57,10 +57,6 @@ export function Rules({
         { key: 'semi-finals', labelKey: 'bracket.round.semi' },
         { key: 'finals', labelKey: 'bracket.round.final' },
     ] as const;
-
-    function pointsLabel(points: number): string {
-        return points > 0 ? `+${points}` : String(points);
-    }
 
     return (
         <div style={{ display: 'grid', gap: '1rem' }}>
@@ -186,4 +182,8 @@ export function Rules({
             </section>
           </div>
     );
+}
+
+function pointsLabel(points: number): string {
+    return points > 0 ? `+${points}` : String(points);
 }

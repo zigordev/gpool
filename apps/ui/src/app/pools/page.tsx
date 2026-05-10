@@ -211,26 +211,15 @@ function PoolsContent() {
           marginBottom: '1.75rem',
         }}
       >
-        <div>
-          <h1
-            style={{
-              fontSize: 'clamp(1.85rem, 3.5vw, 2.5rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.025em',
-            }}
-          >
-            <span>{t('pools.title')}</span>
-          </h1>
-        </div>
-        {user?.role === 'admin' ? (
-          <button type="button" onClick={handleCreatePool} className="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            {t('pools.actions.create')}
-          </button>
-        ) : null}
+      {user?.role === 'admin' ? (
+        <button type="button" onClick={handleCreatePool} className="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          {t('pools.actions.create')}
+        </button>
+      ) : null}
       </header>
 
       {error ? (

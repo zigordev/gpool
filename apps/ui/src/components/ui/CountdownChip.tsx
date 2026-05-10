@@ -1,12 +1,10 @@
 'use client';
 
+import { useI18n } from '@/i18n/client';
 import { useEffect, useState } from 'react';
 
 interface Props {
   deadline: number;
-  label: string;
-  dateTime?: string;
-  passedLabel: string;
 }
 
 function formatRemaining(diffMs: number): { value: string; } {
@@ -23,8 +21,18 @@ function formatRemaining(diffMs: number): { value: string; } {
   return { value: `${days}d ${hours}h ${minutes}m ${seconds}s` };
 }
 
-export function CountdownChip({ deadline, label, dateTime, passedLabel }: Props) {
+export function CountdownChip({ deadline }: Readonly<Props>) {
+  const { t, locale } = useI18n();
   const [tick, setTick] = useState(() => Date.now());
+
+  const deadlineLocale = new Date(deadline).toLocaleString(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 
   useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), 1000);
@@ -34,7 +42,7 @@ export function CountdownChip({ deadline, label, dateTime, passedLabel }: Props)
   const diff = deadline - tick;
   let value: string;
   if (diff <= 0) {
-    value = passedLabel;
+    value = t('poolDetail.deadline.passed');
   } else {
     const formatted = formatRemaining(diff);
     value = formatted.value;
@@ -80,7 +88,7 @@ export function CountdownChip({ deadline, label, dateTime, passedLabel }: Props)
             color: 'rgb(var(--sunset))',
           }}
         >
-          {`${label} -> ${dateTime}`}
+          {`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
         </span>
       </div>
       <div
