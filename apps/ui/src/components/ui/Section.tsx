@@ -141,8 +141,10 @@ export function Section({
       className={tone === 'surface' ? 'surface' : ''}
       style={{
         padding: `${padY} ${padX}`,
-        background: tone === 'subtle' ? 'rgb(var(--bg-subtle))' : undefined,
-        border: tone === 'subtle' ? '1px solid rgb(var(--border))' : undefined,
+        background: tone === 'subtle' ? 'rgb(var(--bg-elevated) / 0.80)' : undefined,
+        backdropFilter: tone === 'subtle' ? 'blur(14px) saturate(140%)' : undefined,
+        WebkitBackdropFilter: tone === 'subtle' ? 'blur(14px) saturate(140%)' : undefined,
+        border: tone === 'subtle' ? '1px solid rgb(var(--border) / 0.85)' : undefined,
         borderRadius: tone === 'subtle' ? 'var(--radius-lg)' : undefined,
         ...style,
       }}

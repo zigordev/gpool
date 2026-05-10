@@ -17,17 +17,19 @@ export default function AdminFinalPage() {
 
   return (
     <div className="content-panel">
-      <BracketVisualization
-        bracket={bracket}
-        teams={teams}
-        poolId={poolId}
-        mode="admin"
-        updatingMatch={updatingMatch}
-        onUpdateTeam={handleUpdateTeam}
-        onUpdateResult={handleSaveBracketResult}
-        bracketResults={bracketResults}
-        submittingResult={submittingBracketResult}
-      />
+      <section className="surface" style={{ padding: '1rem' }}>
+        <BracketVisualization
+          bracket={bracket}
+          teams={teams}
+          poolId={poolId}
+          mode="admin"
+          updatingMatch={updatingMatch}
+          onUpdateTeam={handleUpdateTeam}
+          onUpdateResult={handleSaveBracketResult}
+          bracketResults={bracketResults}
+          submittingResult={submittingBracketResult}
+        />
+      </section>
     </div>
   );
 }

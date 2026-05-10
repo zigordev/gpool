@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
-import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/lib/api';
 
 export default function FinalPage() {
@@ -12,26 +11,13 @@ export default function FinalPage() {
   const {
     bracket, teams, poolId, poolDeadline, isPastPoolDeadline,
     effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
-    resettingBracketDefaults, handleResetBracketDefaults, setBracketPredictions,
+    setBracketPredictions,
   } = usePoolContext();
 
   return (
     <div className="content-panel">
       {Object.keys(bracket).length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResetBracketDefaults}
-              disabled={isPastPoolDeadline || resettingBracketDefaults}
-              loading={resettingBracketDefaults}
-            >
-              {resettingBracketDefaults
-                ? t('poolDetail.finalPhase.resettingDefaults')
-                : t('poolDetail.finalPhase.resetDefaults')}
-            </Button>
-          </div>
+        <section className="surface" style={{ padding: '1rem' }}>
           <BracketVisualization
             bracket={bracket}
             teams={teams}
@@ -79,7 +65,7 @@ export default function FinalPage() {
               }
             }}
           />
-        </div>
+        </section>
       ) : (
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('poolDetail.finalPhase.bracketUnavailable')}

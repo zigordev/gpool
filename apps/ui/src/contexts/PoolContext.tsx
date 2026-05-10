@@ -190,12 +190,10 @@ interface PoolContextValue {
   setSpy: (spy: PoolContextValue['spy']) => void;
   showRulesModal: boolean;
   savingRulesPreference: boolean;
-  resettingBracketDefaults: boolean;
   handleScoreChange: (matchId: string, side: 'home' | 'away', value: string) => void;
   handleStartSpy: (target: { userId: string; userName: string }) => Promise<void>;
   handlePlayerSelection: (position: PlayerPosition, slot: number, playerId: string) => Promise<void>;
   handlePlayerAwardSelection: (award: PlayerAward, playerId: string) => Promise<void>;
-  handleResetBracketDefaults: () => Promise<void>;
   handleDismissRulesModal: () => Promise<void>;
   setBracketPredictions: React.Dispatch<React.SetStateAction<Record<string, any>>>;
 }
@@ -232,8 +230,7 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
   const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }>>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
-  const [resettingBracketDefaults, setResettingBracketDefaults] = useState(false);
-  const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?: string; code?: string }>>([]);
+const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?: string; code?: string }>>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerSelections, setPlayerSelections] = useState<Record<string, PlayerSelection>>({});
   const [playerAwardSelections, setPlayerAwardSelections] = useState<Record<PlayerAward, PlayerAwardSelection | undefined>>({
@@ -480,48 +477,6 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleResetBracketDefaults = async () => {
-    if (Date.now() >= poolDeadline) { toast.error(t('poolDetail.finalPhase.deadlinePassed')); return; }
-    try {
-      setResettingBracketDefaults(true);
-      const resetPredictions: Record<string, any> = {};
-      Object.values(bracket).flat().forEach((match: any) => {
-        resetPredictions[match.bracketMatchId] = {
-          bracketMatchId: match.bracketMatchId,
-          homeTeamId: match.homeTeamId || '',
-          homeTeamName: match.homeTeamName || '',
-          awayTeamId: match.awayTeamId || '',
-          awayTeamName: match.awayTeamName || '',
-          predictedWinnerTeamId: '',
-          predictedWinnerTeamName: '',
-        };
-      });
-      const matches = Object.values(bracket).flat() as any[];
-      const savedEntries = await Promise.all(
-        matches.map(async (match: any) => {
-          const prediction = resetPredictions[match.bracketMatchId] || {
-            bracketMatchId: match.bracketMatchId,
-            homeTeamId: '', homeTeamName: '', awayTeamId: '', awayTeamName: '',
-            predictedWinnerTeamId: '', predictedWinnerTeamName: '',
-          };
-          const response = await apiClient.post(
-            `/pools/${poolId}/bracket/matches/${match.bracketMatchId}/predict`,
-            { homeTeamId: prediction.homeTeamId || '', homeTeamName: prediction.homeTeamName || '',
-              awayTeamId: prediction.awayTeamId || '', awayTeamName: prediction.awayTeamName || '',
-              predictedWinnerTeamId: '', predictedWinnerTeamName: '' },
-          );
-          return [match.bracketMatchId, response.data] as const;
-        }),
-      );
-      setBracketPredictions(Object.fromEntries(savedEntries));
-      toast.success(t('poolDetail.finalPhase.defaultsReset'));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
-    } finally {
-      setResettingBracketDefaults(false);
-    }
-  };
-
   const handleDismissRulesModal = async () => {
     try {
       setSavingRulesPreference(true);
@@ -565,12 +520,10 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
     setSpy,
     showRulesModal,
     savingRulesPreference,
-    resettingBracketDefaults,
     handleScoreChange,
     handleStartSpy,
     handlePlayerSelection,
     handlePlayerAwardSelection,
-    handleResetBracketDefaults,
     handleDismissRulesModal,
     setBracketPredictions,
   };

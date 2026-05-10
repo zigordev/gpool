@@ -323,7 +323,6 @@ export function buildBracketProjection({
   const thirdDefaults = assignThirdPlaceDefaults(bracket, qualifiedThirds);
   const effectivePredictions: Record<string, BracketPredictionProjection> = {};
   const candidateOptions: BracketCandidateMap = {};
-  const resetPredictions: Record<string, BracketPredictionProjection> = {};
 
   PHASE_ORDER.forEach((phase) => {
     (bracket[phase] || []).forEach((match) => {
@@ -353,15 +352,6 @@ export function buildBracketProjection({
           awayTeamId,
           awayTeamName,
         };
-        resetPredictions[match.bracketMatchId] = {
-          bracketMatchId: match.bracketMatchId,
-          homeTeamId: homeDefault?.teamId || '',
-          homeTeamName: homeDefault?.name || '',
-          awayTeamId: awayDefault?.teamId || '',
-          awayTeamName: awayDefault?.name || '',
-          predictedWinnerTeamId: '',
-          predictedWinnerTeamName: '',
-        };
       } else {
         const homeTeamId = teamAllowed(existing.homeTeamId, candidates.home) ? existing.homeTeamId || '' : '';
         const homeTeamName = homeTeamId ? existing.homeTeamName || '' : '';
@@ -385,15 +375,6 @@ export function buildBracketProjection({
           predictedWinnerTeamId,
           predictedWinnerTeamName,
         };
-        resetPredictions[match.bracketMatchId] = {
-          bracketMatchId: match.bracketMatchId,
-          homeTeamId: '',
-          homeTeamName: '',
-          awayTeamId: '',
-          awayTeamName: '',
-          predictedWinnerTeamId: '',
-          predictedWinnerTeamName: '',
-        };
       }
 
       candidateOptions[match.bracketMatchId] = candidates;
@@ -403,6 +384,5 @@ export function buildBracketProjection({
   return {
     candidateOptions,
     effectivePredictions,
-    resetPredictions,
   };
 }

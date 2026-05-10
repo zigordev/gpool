@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import Select from 'react-select';
 import ReactCountryFlag from 'react-country-flag';
 import { usePoolContext, PLAYER_POSITIONS, PLAYER_AWARDS, PLAYER_SELECTION_LIMIT } from '@/contexts/PoolContext';
+import { Input } from '@/components/ui/Input';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { PointsBadge } from '@/components/PointsBadge';
 import { countryIsoCode } from '@/lib/country-flags';
@@ -47,11 +49,47 @@ function PlayerActionSummary({ player, labels }: Readonly<{
 }
 
 export default function PlayersPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const {
     players, playerSelections, playerAwardSelections, savingPlayerSlot,
     isPastPoolDeadline, handlePlayerSelection, handlePlayerAwardSelection,
   } = usePoolContext();
+
+  const [playerFilter, setPlayerFilter] = useState('');
+  const [playerPositionFilter, setPlayerPositionFilter] = useState('');
+  const [playerCountryFilter, setPlayerCountryFilter] = useState('');
+
+  const countries = Array.from(
+    players.reduce<Map<string, string>>((acc, player) => {
+      if (player.teamId && !acc.has(player.teamId)) acc.set(player.teamId, player.teamName || player.teamId);
+      return acc;
+    }, new Map()).entries(),
+  ).sort((a, b) => a[1].localeCompare(b[1], locale));
+
+  const countryOptions = countries.map(([teamId, teamName]) => ({
+    value: teamId,
+    label: (
+      <>
+        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+        <span>{` ${teamName}`}</span>
+      </>
+    ),
+    searchLabel: teamName,
+  }));
+
+  const positionOptions = [
+    { value: 'goalkeeper', label: t('poolDetail.players.positions.goalkeeper') },
+    { value: 'defender', label: t('poolDetail.players.positions.defender') },
+    { value: 'midfielder', label: t('poolDetail.players.positions.midfielder') },
+    { value: 'forward', label: t('poolDetail.players.positions.forward') },
+  ];
+
+  const filteredPlayers = players.filter((p) => {
+    const nameMatch = !playerFilter.trim() || p.name.toLowerCase().includes(playerFilter.trim().toLowerCase());
+    const positionMatch = !playerPositionFilter || p.position.toLowerCase() === playerPositionFilter;
+    const countryMatch = !playerCountryFilter || p.teamName.toLowerCase() === playerCountryFilter.toLowerCase();
+    return nameMatch && positionMatch && countryMatch;
+  });
 
   if (players.length === 0) {
     return (
@@ -65,7 +103,8 @@ export default function PlayersPage() {
 
   return (
     <div className="content-panel">
-      <div style={{ overflowX: 'auto', overflowY: 'visible', margin: '0 -0.25rem', padding: '0 0.25rem' }}>
+      <section className="surface" style={{ padding: '1rem' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
         <div style={{ position: 'relative', minWidth: 720, margin: '0.25rem 1.75rem', padding: '1rem 0.85rem', borderRadius: 'var(--radius-lg)', border: '2px solid rgb(255 255 255 / 0.85)', background: 'repeating-linear-gradient(90deg, rgb(var(--pitch) / 0.16) 0 60px, rgb(var(--pitch) / 0.10) 60px 120px), linear-gradient(180deg, rgb(var(--pitch) / 0.18), rgb(var(--pitch) / 0.10))', boxShadow: '0 12px 36px rgb(15 23 42 / 0.10)' }}>
           <svg aria-hidden viewBox="0 0 1000 500" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
             <g stroke="rgb(255 255 255 / 0.85)" strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke">
@@ -118,7 +157,7 @@ export default function PlayersPage() {
                       )}
                       filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
                       menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                      styles={{ control: (base) => ({ ...base, fontSize: '0.78rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--bg-elevated) / 0.8)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                      styles={{ control: (base) => ({ ...base, fontSize: '0.78rem', minHeight: '1.8rem', backgroundColor: 'rgb(247 252 249)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                     />
                   </div>
                   {(selected as any)?.awardPoints ? <PointsBadge points={(selected as any).awardPoints} label={t('poolDetail.players.points', { points: (selected as any).awardPoints })} /> : null}
@@ -165,7 +204,7 @@ export default function PlayersPage() {
                           )}
                           filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
                           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                          styles={{ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--bg-elevated) / 0.8)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                          styles={{ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(247 252 249)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                         />
                         {selected ? (
                           <PlayerActionSummary
@@ -181,14 +220,53 @@ export default function PlayersPage() {
             ))}
           </div>
         </div>
+        </div>
+      </section>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(180px, 1fr) minmax(180px, 240px) minmax(180px, 240px)',
+            gap: '0.6rem',
+            alignItems: 'center',
+          }}
+        >
+          <Input
+            type="search"
+            value={playerFilter}
+            onChange={(e) => setPlayerFilter(e.target.value)}
+            placeholder={t('adminResults.players.searchPlaceholder')}
+            aria-label={t('adminResults.players.searchPlaceholder')}
+          />
+          <Select<{ value: string; label: string }, false>
+            isClearable
+            placeholder={t('adminResults.players.positionAll')}
+            value={positionOptions.find((o) => o.value === playerPositionFilter) ?? null}
+            options={positionOptions}
+            onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          />
+          <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+            isClearable
+            getOptionLabel={(option) => option.searchLabel}
+            formatOptionLabel={(option) => option.label}
+            placeholder={t('adminResults.players.countryAll')}
+            value={countryOptions.find((o) => o.searchLabel === playerCountryFilter) ?? null}
+            options={countryOptions}
+            onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+          />
+        </div>
+        <PlayerStatsTable
+          players={filteredPlayers}
+          goldenBootPlayerIds={playerAwardSelections.golden_boot ? [(playerAwardSelections.golden_boot as any).playerId] : []}
+          tournamentMvpPlayerId={(playerAwardSelections.tournament_mvp as any)?.playerId ?? ''}
+          computeTotal={(p) => p.totalPoints ?? 0}
+          t={t}
+        />
       </div>
-      <PlayerStatsTable
-        players={players}
-        goldenBootPlayerIds={playerAwardSelections.golden_boot ? [(playerAwardSelections.golden_boot as any).playerId] : []}
-        tournamentMvpPlayerId={(playerAwardSelections.tournament_mvp as any)?.playerId ?? ''}
-        computeTotal={(p) => p.totalPoints ?? 0}
-        t={t}
-      />
     </div>
   );
 }

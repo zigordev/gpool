@@ -64,16 +64,6 @@ function LoginPageContent() {
           pointerEvents: 'none',
         }}
       />
-      <div
-        aria-hidden
-        className="pitch-lines"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          opacity: 0.5,
-        }}
-      />
 
       <div
         className="glass-strong"
@@ -109,7 +99,7 @@ function LoginPageContent() {
               maxWidth: '20ch',
             }}
           >
-            <span className="gradient-text">{t('login.title')}</span>
+            {t('login.title')}
           </h1>
           <p
             style={{

@@ -90,6 +90,8 @@ export default function AdminPlayersPage() {
             value={selectedPositionOption}
             options={positionOptions}
             onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           />
           <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
             isClearable
@@ -99,6 +101,8 @@ export default function AdminPlayersPage() {
             value={selectedCountryOption}
             options={countryOptions}
             onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           />
         </div>
         <PlayerStatsTable

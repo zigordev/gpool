@@ -118,14 +118,14 @@ export function PlayerStatsTable({
                   </span>
                 </th>
               ))}
-              <th style={sortableTh('totalPoints')} onClick={() => handleSort('totalPoints')}>
-                {t('poolDetail.ranking.totalPoints')}{sortIndicator('totalPoints')}
-              </th>
               <th style={thStyle} title={t('poolDetail.players.awards.goldenBoot')}>
-                <GiLeatherBoot size={15} style={{ color: 'rgb(var(--gold))' }} />
+                <GiLeatherBoot size={15} style={{ color: 'rgb(var(--yellow))' }} />
               </th>
               <th style={thStyle} title={t('poolDetail.players.awards.tournamentMvp')}>
-                <FaStar size={15} style={{ color: 'rgb(var(--gold))' }} />
+                <FaStar size={15} style={{ color: 'rgb(var(--yellow))' }} />
+              </th>
+              <th style={sortableTh('totalPoints')} onClick={() => handleSort('totalPoints')}>
+                {t('poolDetail.ranking.totalPoints')}{sortIndicator('totalPoints')}
               </th>
             </tr>
           </thead>
@@ -235,9 +235,6 @@ export function PlayerStatsTable({
                       </td>
                     );
                   })}
-
-                  <td style={numberStyleGold}>{totalPts}</td>
-
                   <td style={tdStyle}>
                     <GiLeatherBoot
                       size={20}
@@ -256,6 +253,7 @@ export function PlayerStatsTable({
                       }}
                     />
                   </td>
+                  <td style={numberStyleGold}>{totalPts}</td>
                 </tr>
               );
             })}

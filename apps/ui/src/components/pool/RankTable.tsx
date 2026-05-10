@@ -89,7 +89,7 @@ export function RankTable({
                 key={`${entry.rank}-${entry.userName}`}
                 style={{
                   background: isCurrentUser
-                    ? 'linear-gradient(100deg, rgb(var(--accent-from) / 0.08), rgb(var(--accent-to) / 0.08))'
+                    ? 'rgb(var(--accent-from) / 0.08)'
                     : 'transparent',
                   boxShadow: isCurrentUser
                     ? 'inset 3px 0 0 rgb(var(--accent-from))'

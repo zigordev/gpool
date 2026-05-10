@@ -284,8 +284,6 @@ export function BracketVisualization({
           style={{
             position: 'relative',
             flex: 1,
-            background: tone.bg,
-            borderRadius: 'var(--radius-md)',
           }}
         >
         {matches.map((match, idx) => {
@@ -624,7 +622,7 @@ export function BracketVisualization({
                   ? 'rgb(var(--gold) / 0.08)'
                   : isDisabled
                   ? 'rgb(var(--bg-subtle))'
-                  : 'rgb(var(--bg))',
+                  : 'rgb(247 252 249)',
                 border: `1px solid ${
                 prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
                   ? 'rgb(var(--gold))'
@@ -938,7 +936,7 @@ function BracketSlot({
   const isExact = state === 'exact';
   const isCorrect = state === 'correct-wrong-position';
 
-  let tintBg = 'rgb(var(--bg))';
+  let tintBg = 'rgb(247 252 249)';
     if (isExact) {
       tintBg = 'rgb(var(--info) / 0.06)';
     } else if (isCorrect) {

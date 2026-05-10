@@ -70,7 +70,7 @@ export default function ConfigurationPage() {
       {/* Final phase scoring */}
       <Section title={t('adminResults.config.finalPhase.title')} collapsible defaultExpanded={false} density="compact" tone="subtle">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr)', gap: '0.75rem', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border-subtle))', background: 'rgb(var(--bg-elevated))' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr)', gap: '0.75rem', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <FormField label={t('adminResults.scoring.tournamentWinner')}>
               <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: Math.max(0, value) })); }} />
             </FormField>
@@ -78,7 +78,7 @@ export default function ConfigurationPage() {
           {PHASES.map((phase) => {
             const scoring = bracketScoringConfig.rounds[phase.key] || { exactPositionPoints: bracketScoringConfig.exactPositionPoints, correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints };
             return (
-              <div key={phase.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(8rem, 12rem) repeat(2, minmax(150px, 1fr))', gap: '0.75rem', alignItems: 'start', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border-subtle))', background: 'rgb(var(--bg-elevated))' }}>
+              <div key={phase.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(8rem, 12rem) repeat(2, minmax(150px, 1fr))', gap: '0.75rem', alignItems: 'start', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
                 <span style={{ alignSelf: 'center', color: 'rgb(var(--fg))', fontSize: '0.875rem', fontWeight: 800 }}>{t(phase.labelKey)}</span>
                 <FormField label={t('adminResults.scoring.finalExactPosition')}>
                   <Input type="number" inputMode="numeric" min="0" value={scoring.exactPositionPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), exactPositionPoints: Math.max(0, value) } } })); }} />
@@ -115,7 +115,7 @@ export default function ConfigurationPage() {
               { label: t('adminResults.players.scoring.cleanSheetForward'), value: playerScoringConfig.cleanSheet.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, forward: Math.max(0, v) } })) },
             ]},
           ].map(({ labelKey, fields }) => (
-            <div key={labelKey}>
+            <div key={labelKey} style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t(labelKey)}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
                 {fields.map((field) => (
@@ -127,7 +127,7 @@ export default function ConfigurationPage() {
             </div>
           ))}
 
-          <div>
+          <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.individualActions')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               <FormField label={t('adminResults.players.scoring.missedPenalty')}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, missedPenalty: v })); }} /></FormField>
@@ -136,7 +136,7 @@ export default function ConfigurationPage() {
             </div>
           </div>
 
-          <div>
+          <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.discipline')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               <FormField label={t('adminResults.players.scoring.yellowCard')} hint={t('adminResults.players.scoring.cardHint')}><Input type="number" inputMode="numeric" value={playerScoringConfig.yellowCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, yellowCard: Number.isFinite(v) ? v : 0 })); }} /></FormField>
@@ -144,7 +144,7 @@ export default function ConfigurationPage() {
             </div>
           </div>
 
-          <div>
+          <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.awards')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               <FormField label={t('adminResults.players.scoring.goldenBoot')}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: Math.max(0, v) } })); }} /></FormField>
