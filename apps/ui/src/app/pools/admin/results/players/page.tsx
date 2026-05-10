@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/client';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { Input } from '@/components/ui/Input';
 import Select from 'react-select';
+import { selectStyles } from '@/lib/select-styles';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { computePlayerPoints, useAdminContext } from '@/contexts/AdminContext';
@@ -91,7 +92,7 @@ export default function AdminPlayersPage() {
             options={positionOptions}
             onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
             menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            styles={selectStyles()}
           />
           <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
             isClearable
@@ -102,7 +103,7 @@ export default function AdminPlayersPage() {
             options={countryOptions}
             onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
             menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            styles={selectStyles()}
           />
         </div>
         <PlayerStatsTable

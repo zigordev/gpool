@@ -6,6 +6,7 @@ import ReactCountryFlag from 'react-country-flag';
 import { SlotState } from '@/types/slotState.type';
 import { Slot } from '@/types/slot.type';
 import Select from 'react-select';
+import { selectStyles } from '@/lib/select-styles';
 import { PointsBadge } from './PointsBadge';
 
 interface BracketVisualizationProps {
@@ -615,31 +616,23 @@ export function BracketVisualization({
             isDisabled={isDisabled}
             onChange={(option) => handleWinnerChange(option?.value ?? '')}
             menuPortalTarget={document.body}
-            styles={{
+            styles={selectStyles({
               control: (base) => ({
                 ...base,
                 backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
                   ? 'rgb(var(--gold) / 0.08)'
                   : isDisabled
                   ? 'rgb(var(--bg-subtle))'
-                  : 'rgb(247 252 249)',
+                  : 'rgb(var(--input-bg))',
                 border: `1px solid ${
-                prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
-                  ? 'rgb(var(--gold))'
-                  : 'rgb(var(--border))'
-              }`,
+                  prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                    ? 'rgb(var(--gold))'
+                    : 'rgb(var(--border))'
+                }`,
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                 opacity: isDisabled ? 0.7 : 1,
               }),
-              menu: (base) => ({
-                ...base,
-                zIndex: 9999,
-              }),
-              menuPortal: (base) => ({
-                ...base,
-                zIndex: 9999,
-              }),
-            }}
+            })}
           />
         </article>
       </div>
@@ -936,7 +929,7 @@ function BracketSlot({
   const isExact = state === 'exact';
   const isCorrect = state === 'correct-wrong-position';
 
-  let tintBg = 'rgb(247 252 249)';
+  let tintBg = 'rgb(var(--input-bg))';
     if (isExact) {
       tintBg = 'rgb(var(--info) / 0.06)';
     } else if (isCorrect) {
@@ -985,7 +978,7 @@ function BracketSlot({
           if (selected) onChange(selected.teamId, selected.name);
         }}
         menuPortalTarget={document.body}
-        styles={{
+        styles={selectStyles({
           control: (base) => ({
             ...base,
             backgroundColor: tintBg,
@@ -993,15 +986,11 @@ function BracketSlot({
             cursor: disabled ? 'not-allowed' : 'pointer',
             opacity: disabled ? 0.7 : 1,
           }),
-          menu: (base) => ({
-            ...base,
-            zIndex: 9999,
-          }),
           menuPortal: (base) => ({
             ...base,
             zIndex: 9999,
           }),
-        }}
+        })}
       />
     </div>
   );

@@ -43,6 +43,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${display.variable}`}>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}` }} />
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
             <RUMProvider>

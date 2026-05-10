@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { FaGlobe, FaUser } from 'react-icons/fa6';
+import { FaGlobe, FaMoon, FaSun, FaUser } from 'react-icons/fa6';
 import { Logo } from './Logo';
 
 const LOCALE_META: Record<Locale, { label: string; flagCode: string }> = {
@@ -29,6 +29,39 @@ const NAV_ICON_STYLE: React.CSSProperties = {
   transition: 'background 0.15s ease',
   flexShrink: 0,
 };
+
+function ThemeButton() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggle = () => {
+    const next = !dark;
+    setDark(next);
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('gpool-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('gpool-theme', 'light');
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      onClick={toggle}
+      style={NAV_ICON_STYLE}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      {dark ? <FaSun size={18} aria-hidden /> : <FaMoon size={18} aria-hidden />}
+    </button>
+  );
+}
 
 function LanguageButton() {
   const { locale, t } = useI18n();
@@ -262,6 +295,7 @@ export function NavigationBar() {
         ) : null}
 
         <div className="nav-icons-area">
+          <ThemeButton />
           <LanguageButton />
           <UserButton />
         </div>

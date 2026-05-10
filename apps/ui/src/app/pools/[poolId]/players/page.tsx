@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { PointsBadge } from '@/components/PointsBadge';
 import { countryIsoCode } from '@/lib/country-flags';
+import { selectStyles } from '@/lib/select-styles';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
@@ -157,7 +158,7 @@ export default function PlayersPage() {
                       )}
                       filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
                       menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                      styles={{ control: (base) => ({ ...base, fontSize: '0.78rem', minHeight: '1.8rem', backgroundColor: 'rgb(247 252 249)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                      styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.78rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
                     />
                   </div>
                   {(selected as any)?.awardPoints ? <PointsBadge points={(selected as any).awardPoints} label={t('poolDetail.players.points', { points: (selected as any).awardPoints })} /> : null}
@@ -204,7 +205,7 @@ export default function PlayersPage() {
                           )}
                           filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
                           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                          styles={{ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(247 252 249)', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }), menu: (base) => ({ ...base, zIndex: 9999 }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                          styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
                         />
                         {selected ? (
                           <PlayerActionSummary
@@ -245,7 +246,7 @@ export default function PlayersPage() {
             options={positionOptions}
             onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
             menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            styles={selectStyles()}
           />
           <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
             isClearable
@@ -256,7 +257,7 @@ export default function PlayersPage() {
             options={countryOptions}
             onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
             menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={{ control: (base) => ({ ...base, backgroundColor: 'rgb(247 252 249)', borderColor: 'rgb(199 217 204)' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            styles={selectStyles()}
           />
         </div>
         <PlayerStatsTable
