@@ -77,7 +77,6 @@ export function MatchPredictionCard({
         WebkitBackdropFilter: 'blur(12px) saturate(140%)',
         border: `1px solid ${tone.border}`,
         boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
-        overflow: 'hidden',
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
       }}
     >

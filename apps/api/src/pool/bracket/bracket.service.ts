@@ -302,7 +302,7 @@ export class BracketService {
       predictedWinnerTeamId &&
       (predictedWinnerTeamId === homeTeamId || predictedWinnerTeamId === awayTeamId);
 
-    return this.poolRepository.createBracketPrediction(
+    const result = await this.poolRepository.createBracketPrediction(
       poolId,
       bracketMatchId,
       userId,
@@ -313,6 +313,14 @@ export class BracketService {
       validWinner ? predictedWinnerTeamId : '',
       validWinner ? predictedWinnerTeamName : '',
     );
+
+    // If the match already has both teams assigned (admin set them before or during predictions),
+    // immediately evaluate so the user sees their score without waiting for admin re-evaluation.
+    if (match?.homeTeamId && match?.awayTeamId) {
+      await this.evaluateBracketPredictions(bracketMatchId, match, poolId);
+    }
+
+    return result;
   }
 
   async getUserBracketPredictions(poolId: string, userId: string) {

@@ -45,13 +45,17 @@ export function selectStyles<Option = unknown, IsMulti extends boolean = false>(
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
     option: (base, state) => ({
       ...base,
-      backgroundColor: state.isSelected
+      backgroundColor: state.isDisabled
+        ? C.bgElevated
+        : state.isSelected
         ? `rgb(var(--pitch) / 0.15)`
         : state.isFocused
         ? C.bgSubtle
         : C.bgElevated,
-      color: C.fg,
-      '&:active': { backgroundColor: C.bgSubtle },
+      color: state.isDisabled ? C.fgMuted : C.fg,
+      opacity: state.isDisabled ? 0.45 : 1,
+      cursor: state.isDisabled ? 'not-allowed' : 'default',
+      '&:active': { backgroundColor: state.isDisabled ? C.bgElevated : C.bgSubtle },
     }),
     singleValue: (base) => ({ ...base, color: C.fg }),
     input: (base) => ({ ...base, color: C.fg }),

@@ -369,12 +369,19 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
         prediction?.awayScore === '' || prediction?.awayScore === undefined;
     }).length;
 
-  const finalMissingCount = Object.values(bracket)
-    .flat()
-    .filter((match: any) => {
-      const prediction = effectiveBracketPredictions[match.bracketMatchId];
-      return !prediction?.homeTeamId || !prediction?.awayTeamId;
-    }).length;
+  const baseFinalMissingCount = Object.values(bracket).flat().reduce((count, match: any) => {
+    const prediction = effectiveBracketPredictions[match.bracketMatchId];
+    return !prediction?.homeTeamId || !prediction?.awayTeamId ? count + 1 : count;
+  }, 0);
+
+  const finalsMatches = (bracket['finals'] as any[]) || [];
+  const winnerMissing = finalsMatches.reduce((count, match: any) => {
+    const effective = effectiveBracketPredictions[match.bracketMatchId];
+    const raw = bracketPredictions[match.bracketMatchId];
+    return effective?.homeTeamId && effective?.awayTeamId && !raw?.predictedWinnerTeamId ? count + 1 : count;
+  }, 0);
+
+  const finalMissingCount = baseFinalMissingCount + winnerMissing;
 
   const playerAwardSelectionCount = PLAYER_AWARDS.filter((award) => playerAwardSelections[award.key]).length;
 

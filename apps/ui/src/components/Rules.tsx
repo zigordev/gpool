@@ -1,7 +1,7 @@
 import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaMedal, FaStar } from "react-icons/fa";
+import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
 import { FaDollarSign, FaPerson } from "react-icons/fa6";
 import { GiLeatherBoot } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
@@ -134,7 +134,10 @@ export function Rules({
                       );
                     })}
                     <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-                      <strong>{t('poolDetail.rules.points.tournamentWinner')}</strong>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        <FaTrophy style={{ color: 'gold' }} />
+                        <strong>{t('poolDetail.rules.points.tournamentWinner')}</strong>
+                      </span>
                       {`+ ${bracketScoring.tournamentWinnerPoints}`}
                     </p>
                   </div>

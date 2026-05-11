@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 
 interface Props {
-  label: string;
+  label: ReactNode;
   htmlFor?: string;
   hint?: string;
   error?: string | null;

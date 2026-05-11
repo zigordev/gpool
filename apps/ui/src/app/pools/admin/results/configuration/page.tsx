@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { FaFutbol, FaMagic, FaShieldAlt, FaStar, FaClock, FaTrophy } from 'react-icons/fa';
+import { FaDollarSign } from 'react-icons/fa6';
+import { IoMdCloseCircle } from 'react-icons/io';
+import { LuRectangleVertical } from 'react-icons/lu';
+import { PiBoxingGlove } from 'react-icons/pi';
+import { GiLeatherBoot } from 'react-icons/gi';
 
 export default function ConfigurationPage() {
   const { t } = useI18n();
@@ -47,10 +53,10 @@ export default function ConfigurationPage() {
             <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} disabled={poolNotSelected} />
           </FormField>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-            <FormField label={t('adminResults.scoring.deadline')} hint={t('adminResults.scoring.deadlineHint')}>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
               <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
             </FormField>
-            <FormField label={t('adminResults.scoring.entryFee')} hint={t('adminResults.scoring.entryFeeHint')}>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
               <Input type="number" inputMode="decimal" min="0" step="0.5" value={entryFee} onChange={(e) => { const v = Number.parseFloat(e.target.value); setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }} />
             </FormField>
           </div>
@@ -97,7 +103,7 @@ export default function ConfigurationPage() {
       <Section title={t('adminResults.config.finalPhase.title')} collapsible defaultExpanded={false} density="compact" tone="subtle">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr)', gap: '0.75rem', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-            <FormField label={t('adminResults.scoring.tournamentWinner')}>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: 'gold' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
               <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: Math.max(0, value) })); }} />
             </FormField>
           </div>
@@ -122,27 +128,27 @@ export default function ConfigurationPage() {
       <Section title={t('adminResults.config.players.title')} collapsible defaultExpanded={false} density="compact" tone="subtle">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {[
-            { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', fields: [
+            { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />, fields: [
               { label: t('adminResults.players.scoring.goalGoalkeeper'), value: playerScoringConfig.goal.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, goalkeeper: v } })) },
               { label: t('adminResults.players.scoring.goalDefender'), value: playerScoringConfig.goal.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, defender: v } })) },
               { label: t('adminResults.players.scoring.goalMidfielder'), value: playerScoringConfig.goal.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, midfielder: v } })) },
               { label: t('adminResults.players.scoring.goalForward'), value: playerScoringConfig.goal.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, forward: v } })) },
             ]},
-            { labelKey: 'adminResults.config.players.subgroups.assistsByPosition', fields: [
+            { labelKey: 'adminResults.config.players.subgroups.assistsByPosition', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} />, fields: [
               { label: t('adminResults.players.scoring.assistGoalkeeper'), value: playerScoringConfig.assist.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, goalkeeper: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.assistDefender'), value: playerScoringConfig.assist.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, defender: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.assistMidfielder'), value: playerScoringConfig.assist.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, midfielder: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.assistForward'), value: playerScoringConfig.assist.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, forward: Math.max(0, v) } })) },
             ]},
-            { labelKey: 'adminResults.config.players.subgroups.cleanSheetsByPosition', fields: [
+            { labelKey: 'adminResults.config.players.subgroups.cleanSheetsByPosition', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} />, fields: [
               { label: t('adminResults.players.scoring.cleanSheetGoalkeeper'), value: playerScoringConfig.cleanSheet.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, goalkeeper: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.cleanSheetDefender'), value: playerScoringConfig.cleanSheet.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, defender: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.cleanSheetMidfielder'), value: playerScoringConfig.cleanSheet.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, midfielder: Math.max(0, v) } })) },
               { label: t('adminResults.players.scoring.cleanSheetForward'), value: playerScoringConfig.cleanSheet.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, forward: Math.max(0, v) } })) },
             ]},
-          ].map(({ labelKey, fields }) => (
+          ].map(({ labelKey, icon, fields }) => (
             <div key={labelKey} style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t(labelKey)}</p>
+              <p style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{icon}{t(labelKey)}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
                 {fields.map((field) => (
                   <FormField key={field.label} label={field.label}>
@@ -156,25 +162,25 @@ export default function ConfigurationPage() {
           <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.individualActions')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-              <FormField label={t('adminResults.players.scoring.missedPenalty')}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, missedPenalty: v })); }} /></FormField>
-              <FormField label={t('adminResults.players.scoring.mvp')}><Input type="number" inputMode="numeric" value={playerScoringConfig.mvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, mvp: v })); }} /></FormField>
-              <FormField label={t('adminResults.players.scoring.penaltySaved')}><Input type="number" inputMode="numeric" value={playerScoringConfig.penaltySaved} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, penaltySaved: v })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, missedPenalty: v })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.mvp')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.mvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, mvp: v })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.penaltySaved} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, penaltySaved: v })); }} /></FormField>
             </div>
           </div>
 
           <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.discipline')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-              <FormField label={t('adminResults.players.scoring.yellowCard')} hint={t('adminResults.players.scoring.cardHint')}><Input type="number" inputMode="numeric" value={playerScoringConfig.yellowCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, yellowCard: Number.isFinite(v) ? v : 0 })); }} /></FormField>
-              <FormField label={t('adminResults.players.scoring.redCard')} hint={t('adminResults.players.scoring.cardHint')}><Input type="number" inputMode="numeric" value={playerScoringConfig.redCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, redCard: Number.isFinite(v) ? v : 0 })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />{t('adminResults.players.scoring.yellowCard')}</span>} hint={t('adminResults.players.scoring.cardHint')}><Input type="number" inputMode="numeric" value={playerScoringConfig.yellowCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, yellowCard: Number.isFinite(v) ? v : 0 })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'red', fill: 'red' }} />{t('adminResults.players.scoring.redCard')}</span>} hint={t('adminResults.players.scoring.cardHint')}><Input type="number" inputMode="numeric" value={playerScoringConfig.redCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, redCard: Number.isFinite(v) ? v : 0 })); }} /></FormField>
             </div>
           </div>
 
           <div style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border) / 0.7)', background: 'rgb(var(--bg-elevated) / 0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.5rem' }}>{t('adminResults.config.players.subgroups.awards')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-              <FormField label={t('adminResults.players.scoring.goldenBoot')}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: Math.max(0, v) } })); }} /></FormField>
-              <FormField label={t('adminResults.players.scoring.tournamentMvp')}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: Math.max(0, v) } })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiLeatherBoot style={{ color: 'gold' }} />{t('adminResults.players.scoring.goldenBoot')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: Math.max(0, v) } })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'gold' }} />{t('adminResults.players.scoring.tournamentMvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: Math.max(0, v) } })); }} /></FormField>
             </div>
           </div>
         </div>

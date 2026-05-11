@@ -207,12 +207,10 @@ export default function PlayersPage() {
                           menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                           styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
                         />
-                        {selected ? (
-                          <PlayerActionSummary
-                            player={selected}
-                            labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
-                          />
-                        ) : null}
+                        <PlayerActionSummary
+                          player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
+                          labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                        />
                       </div>
                     </article>
                   );

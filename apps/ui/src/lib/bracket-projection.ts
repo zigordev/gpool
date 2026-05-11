@@ -386,3 +386,57 @@ export function buildBracketProjection({
     effectivePredictions,
   };
 }
+
+function adminSourceCandidates(
+  sourceLabel: string | undefined,
+  bracket: Record<string, BracketMatch[]>,
+  teams: Team[],
+): Team[] {
+  if (!sourceLabel) return teams;
+
+  // Group slot (1A, 2B, …) — filter by group
+  const direct = sourceLabel.match(/^([12])([A-L])$/);
+  if (direct) {
+    const group = direct[2];
+    const groupTeams = teams.filter((t) => t.group === group);
+    return groupTeams.length > 0 ? groupTeams : teams;
+  }
+
+  // Third-place slot (3ABCD …) — filter to teams from those groups
+  const third = sourceLabel.match(/^3([A-L]+)$/);
+  if (third) {
+    const allowedGroups = new Set(third[1].split(''));
+    const filtered = teams.filter((t) => t.group && allowedGroups.has(t.group));
+    return filtered.length > 0 ? filtered : teams;
+  }
+
+  // Winner slot (W{matchNumber}) — limit to the two teams playing in that match
+  const winnerMatchNumber = sourceMatchNumber(sourceLabel);
+  if (winnerMatchNumber !== null) {
+    const sourceMatch = matchByNumber(bracket, winnerMatchNumber);
+    if (sourceMatch) {
+      const candidates: Team[] = [];
+      const home = teams.find((t) => t.teamId === sourceMatch.homeTeamId);
+      const away = teams.find((t) => t.teamId === sourceMatch.awayTeamId);
+      if (home) candidates.push(home);
+      if (away) candidates.push(away);
+      return candidates.length > 0 ? candidates : teams;
+    }
+  }
+
+  return teams;
+}
+
+export function computeAdminCandidateOptions(
+  bracket: Record<string, BracketMatch[]>,
+  teams: Team[],
+): BracketCandidateMap {
+  const options: BracketCandidateMap = {};
+  Object.values(bracket).flat().forEach((match) => {
+    options[match.bracketMatchId] = {
+      home: adminSourceCandidates(match.homeSourceLabel, bracket, teams),
+      away: adminSourceCandidates(match.awaySourceLabel, bracket, teams),
+    };
+  });
+  return options;
+}

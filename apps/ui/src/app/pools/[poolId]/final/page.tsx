@@ -1,6 +1,7 @@
 'use client';
 
 import toast from 'react-hot-toast';
+import { useMemo } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
@@ -10,9 +11,27 @@ export default function FinalPage() {
   const { t } = useI18n();
   const {
     bracket, teams, poolId, poolDeadline, isPastPoolDeadline,
-    effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
+    bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
     setBracketPredictions,
   } = usePoolContext();
+
+  // effectiveBracketPredictions has projected team slots but lacks scoring flags
+  // (homeTeamExactPosition, etc.) which only exist in raw bracketPredictions from the API.
+  const mergedBracketPredictions = useMemo(() => {
+    const result: Record<string, any> = { ...effectiveBracketPredictions };
+    for (const [id, raw] of Object.entries(bracketPredictions)) {
+      result[id] = {
+        ...result[id],
+        homeTeamExactPosition: raw.homeTeamExactPosition,
+        awayTeamExactPosition: raw.awayTeamExactPosition,
+        homeTeamCorrectButWrongPosition: raw.homeTeamCorrectButWrongPosition,
+        awayTeamCorrectButWrongPosition: raw.awayTeamCorrectButWrongPosition,
+        tournamentWinnerCorrect: raw.tournamentWinnerCorrect,
+        points: raw.points,
+      };
+    }
+    return result;
+  }, [effectiveBracketPredictions, bracketPredictions]);
 
   return (
     <div className="content-panel">
@@ -23,7 +42,7 @@ export default function FinalPage() {
             teams={teams}
             poolId={poolId}
             mode="user"
-            bracketPredictions={effectiveBracketPredictions}
+            bracketPredictions={mergedBracketPredictions}
             candidateOptions={bracketProjection.candidateOptions}
             deadline={poolDeadline}
             exactPositionPoints={bracketScoringConfig.exactPositionPoints}
@@ -57,8 +76,12 @@ export default function FinalPage() {
                   updates.awayTeamId = prediction?.awayTeamId || ''; updates.awayTeamName = prediction?.awayTeamName || '';
                   updates.predictedWinnerTeamId = teamId; updates.predictedWinnerTeamName = teamName;
                 }
-                const response = await apiClient.post(`/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`, updates);
-                setBracketPredictions((prev) => ({ ...prev, [bracketMatchId]: response.data || { ...prediction, ...updates } }));
+                await apiClient.post(`/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`, updates);
+                // Reload all predictions so scoring flags (evaluated after save) are fresh.
+                const predsResponse = await apiClient.get(`/pools/${poolId}/bracket/predictions`);
+                const newMap: Record<string, any> = {};
+                (predsResponse.data || []).forEach((pred: any) => { newMap[pred.bracketMatchId] = pred; });
+                setBracketPredictions(newMap);
                 toast.success(t('poolDetail.finalPhase.predictionSaved'));
               } catch (err: any) {
                 toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));

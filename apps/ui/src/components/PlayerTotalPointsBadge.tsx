@@ -5,9 +5,8 @@ export function PointsBadge({ points, label }: Readonly<{ points: number; label:
       aria-label={label}
       style={{
         position: 'absolute',
-        top: 0,
-        right: 0,
-        transform: 'translate(50%, -50%)',
+        top: '-0.45rem',
+        right: '-0.45rem',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',

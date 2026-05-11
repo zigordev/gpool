@@ -41,39 +41,33 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
   }, []);
 
   const diff = deadline - tick;
-  let value: string;
-  if (diff <= 0) {
-    value = t('poolDetail.deadline.passed');
-  } else {
-    const formatted = formatRemaining(diff);
-    value = formatted.value;
-  }
-
+  
   return (
-    <Badge
-      variant="sunset"
-      className="badge-attention"
-      title={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
-      aria-label={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
-      leadingIcon={
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ color: 'rgb(var(--sunset))' }}
-          aria-hidden
-        >
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      }
-    >
-      {value}
-    </Badge>
+    diff > 0 &&
+      <Badge
+        variant="sunset"
+        className="badge-attention"
+        title={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
+        aria-label={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
+        leadingIcon={
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ color: 'rgb(var(--sunset))' }}
+            aria-hidden
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        }
+      >
+        {formatRemaining(diff).value}
+      </Badge>
   );
 }

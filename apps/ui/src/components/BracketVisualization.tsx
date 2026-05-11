@@ -8,6 +8,7 @@ import { Slot } from '@/types/slot.type';
 import Select from 'react-select';
 import { selectStyles } from '@/lib/select-styles';
 import { PointsBadge } from './PointsBadge';
+import { FaTrophy } from 'react-icons/fa';
 
 interface BracketVisualizationProps {
   bracket: Record<string, BracketMatch[]>;
@@ -33,8 +34,8 @@ interface BracketVisualizationProps {
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
 }
 
-const MATCH_HEIGHT = 124;
-const MATCH_GAP = 10;
+const MATCH_HEIGHT = 152;
+const MATCH_GAP = 14;
 const ROUND_GAP = 24;
 const MATCH_BOX_WIDTH = 280;
 
@@ -75,12 +76,12 @@ const PHASE_TONE: Record<
     bg: 'rgb(var(--pitch) / 0.060)',
   },
   finals: {
-    token: 'gold',
-    label: 'rgb(var(--gold))',
-    tint: 'rgb(var(--gold) / 0.16)',
-    border: 'rgb(var(--gold) / 0.55)',
-    ring: 'rgb(var(--gold) / 0.25)',
-    bg: 'rgb(var(--gold) / 0.07)',
+    token: 'pitch',
+    label: 'rgb(var(--pitch))',
+    tint: 'rgb(var(--pitch) / 0.16)',
+    border: 'rgb(var(--pitch) / 0.50)',
+    ring: 'rgb(var(--pitch) / 0.24)',
+    bg: 'rgb(var(--pitch) / 0.060)',
   },
 };
 
@@ -120,20 +121,24 @@ function slotState(
   selected: boolean,
   exactPosition: boolean,
   correctButWrongPosition: boolean,
+  incorrect: boolean,
 ): SlotState {
   if (!selected) return 'empty';
   if (isAdmin || !hasBothTeams) return 'selected';
   if (exactPosition) return 'exact';
   if (correctButWrongPosition) return 'correct-wrong-position';
+  if (incorrect) return 'incorrect';
   return 'selected';
 }
 
 function slotBorderColor(state: SlotState): string {
   switch (state) {
     case 'exact':
-      return 'rgb(var(--info))';
-    case 'correct-wrong-position':
       return 'rgb(var(--pitch))';
+    case 'correct-wrong-position':
+      return 'rgb(var(--info))';
+    case 'incorrect':
+      return 'rgb(var(--live))';
     case 'empty':
     default:
       return 'rgb(var(--border))';
@@ -308,14 +313,26 @@ export function BracketVisualization({
             home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
             away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
           };
-          const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
-          const homeTeamExactPosition = hasBothTeams && prediction.homeTeamExactPosition === true;
-          const awayTeamExactPosition = hasBothTeams && prediction.awayTeamExactPosition === true;
+          const hasBothTeams = mode === 'user'
+            ? Boolean(prediction.homeTeamId && prediction.awayTeamId)
+            : Boolean(match.homeTeamId && match.awayTeamId);
+          const homeTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.homeTeamExactPosition === true;
+          const awayTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.awayTeamExactPosition === true;
           const homeTeamCorrectButWrongPosition =
-            hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
+            isDeadlinePassed && hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
           const awayTeamCorrectButWrongPosition =
-            hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
-          const points = prediction.points || 0;
+            isDeadlinePassed && hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
+          const homeTeamIncorrect =
+            isDeadlinePassed &&
+            hasBothTeams &&
+            prediction.homeTeamExactPosition === false &&
+            prediction.homeTeamCorrectButWrongPosition === false;
+          const awayTeamIncorrect =
+            isDeadlinePassed &&
+            hasBothTeams &&
+            prediction.awayTeamExactPosition === false &&
+            prediction.awayTeamCorrectButWrongPosition === false;
+          const points = isDeadlinePassed ? (prediction.points || 0) : 0;
 
           return (
             <div
@@ -346,6 +363,8 @@ export function BracketVisualization({
                 awayTeamExactPosition={awayTeamExactPosition}
                 homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
                 awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
+                homeTeamIncorrect={homeTeamIncorrect}
+                awayTeamIncorrect={awayTeamIncorrect}
                 points={points}
               />
             </div>
@@ -371,14 +390,26 @@ export function BracketVisualization({
       home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
       away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
     };
-    const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
-    const homeTeamExactPosition = hasBothTeams && prediction.homeTeamExactPosition === true;
-    const awayTeamExactPosition = hasBothTeams && prediction.awayTeamExactPosition === true;
+    const hasBothTeams = mode === 'user'
+      ? Boolean(prediction.homeTeamId && prediction.awayTeamId)
+      : Boolean(match.homeTeamId && match.awayTeamId);
+    const homeTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.homeTeamExactPosition === true;
+    const awayTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.awayTeamExactPosition === true;
     const homeTeamCorrectButWrongPosition =
-      hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
+      isDeadlinePassed && hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
     const awayTeamCorrectButWrongPosition =
-      hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
-    const points = prediction.points || 0;
+      isDeadlinePassed && hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
+    const homeTeamIncorrect =
+      isDeadlinePassed &&
+      hasBothTeams &&
+      prediction.homeTeamExactPosition === false &&
+      prediction.homeTeamCorrectButWrongPosition === false;
+    const awayTeamIncorrect =
+      isDeadlinePassed &&
+      hasBothTeams &&
+      prediction.awayTeamExactPosition === false &&
+      prediction.awayTeamCorrectButWrongPosition === false;
+    const points = isDeadlinePassed ? (prediction.points || 0) : 0;
 
     return (
       <div
@@ -439,6 +470,8 @@ export function BracketVisualization({
           awayTeamExactPosition={awayTeamExactPosition}
           homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
           awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
+          homeTeamIncorrect={homeTeamIncorrect}
+          awayTeamIncorrect={awayTeamIncorrect}
           points={points}
         />
       </div>
@@ -483,8 +516,6 @@ export function BracketVisualization({
         !onUpdateResult
       : poolId === 'all-pools' ||
         Boolean(isDeadlinePassed) ||
-        !homeTeamId ||
-        !awayTeamId ||
         !onPredictionChange;
     const handleWinnerChange = (teamId: string) => {
       if (isAdmin) {
@@ -569,17 +600,7 @@ export function BracketVisualization({
               whiteSpace: 'nowrap',
             }}
           >
-            <span
-              aria-hidden
-              style={{
-                display: 'inline-block',
-                width: '6px',
-                height: '6px',
-                borderRadius: '999px',
-                background: tone.label,
-                flexShrink: 0,
-              }}
-            />
+            <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))', flexShrink: 0 }} />
             {t('bracket.winner')}
           </span>
         </div>
@@ -602,6 +623,9 @@ export function BracketVisualization({
         >
           <span
             style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
               fontSize: '0.6rem',
               fontWeight: 700,
               letterSpacing: '0.12em',
@@ -609,6 +633,7 @@ export function BracketVisualization({
               color: tone.label,
             }}
           >
+            <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))' }} />
             {t('bracket.winner')}
           </span>
           <Select<{ value: string; label: React.ReactNode; }, false>
@@ -718,20 +743,33 @@ export function BracketVisualization({
           {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals']?.slice(0, getSideSplit(bracket['semi-finals'])) || [], true, false)}
         </div>
 
-        {/* Center: Final */}
+        {/* Center: Final — absolute positioning so the final match aligns with semi-finals */}
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1.5rem',
-            height: `${maxHeight}px`,
-            justifyContent: 'center',
             position: 'relative',
+            flexShrink: 0,
+            width: `${MATCH_BOX_WIDTH}px`,
+            height: `${maxHeight}px`,
           }}
         >
-          {renderTournamentWinnerCard(bracket['finals']?.[0])}
-          {renderStandaloneMatch('finals', t('bracket.round.final'), bracket['finals']?.[0], true)}
+          {(() => {
+            const finalsMatch = bracket['finals']?.[0];
+            if (!finalsMatch) return null;
+            // renderStandaloneMatch renders its own chip (~LABEL_RESERVE height) above the match
+            // box, so positioning it at finalTop aligns the inner match box with the side columns.
+            const finalTop = getMatchTop(0, 'finals', bracket);
+            const winnerTop = Math.max(0, finalTop - 130);
+            return (
+              <>
+                <div style={{ position: 'absolute', top: `${winnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                  {renderTournamentWinnerCard(finalsMatch)}
+                </div>
+                <div style={{ position: 'absolute', top: `${finalTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                  {renderStandaloneMatch('finals', t('bracket.round.final'), finalsMatch, true)}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* Right side */}
@@ -777,6 +815,8 @@ interface BracketMatchBoxProps {
   awayTeamExactPosition?: boolean;
   homeTeamCorrectButWrongPosition?: boolean;
   awayTeamCorrectButWrongPosition?: boolean;
+  homeTeamIncorrect?: boolean;
+  awayTeamIncorrect?: boolean;
   points?: number;
 }
 
@@ -798,6 +838,8 @@ function BracketMatchBox({
   awayTeamExactPosition = false,
   homeTeamCorrectButWrongPosition = false,
   awayTeamCorrectButWrongPosition = false,
+  homeTeamIncorrect = false,
+  awayTeamIncorrect = false,
   points,
 }: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
@@ -809,9 +851,11 @@ function BracketMatchBox({
 
   const homeTeamId = isAdmin ? match.homeTeamId : prediction?.homeTeamId || '';
   const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';
-  const hasBothTeams = Boolean(match.homeTeamId && match.awayTeamId);
-  const homeOptions = !isAdmin && candidateTeams ? candidateTeams.home : teams;
-  const awayOptions = !isAdmin && candidateTeams ? candidateTeams.away : teams;
+  const hasBothTeams = isAdmin
+    ? Boolean(match.homeTeamId && match.awayTeamId)
+    : Boolean(homeTeamId && awayTeamId);
+  const homeOptions = candidateTeams?.home?.length ? candidateTeams.home : teams;
+  const awayOptions = candidateTeams?.away?.length ? candidateTeams.away : teams;
 
   const homeState: SlotState = slotState(
     isAdmin,
@@ -819,6 +863,7 @@ function BracketMatchBox({
     Boolean(homeTeamId),
     homeTeamExactPosition,
     homeTeamCorrectButWrongPosition,
+    homeTeamIncorrect,
   );
   const awayState: SlotState = slotState(
     isAdmin,
@@ -826,6 +871,7 @@ function BracketMatchBox({
     Boolean(awayTeamId),
     awayTeamExactPosition,
     awayTeamCorrectButWrongPosition,
+    awayTeamIncorrect,
   );
 
   const handleTeamChange = (side: Slot, teamId: string, teamName: string) => {
@@ -853,7 +899,6 @@ function BracketMatchBox({
         flexDirection: 'column',
         gap: '0.25rem',
         position: 'relative',
-        overflow: 'hidden',
       }}
     >
       {!isAdmin && points ? ( 
@@ -935,11 +980,15 @@ function BracketSlot({
   const isExact = state === 'exact';
   const isCorrect = state === 'correct-wrong-position';
 
+  const isIncorrect = state === 'incorrect';
+
   let tintBg = 'rgb(var(--input-bg))';
     if (isExact) {
-      tintBg = 'rgb(var(--info) / 0.06)';
-    } else if (isCorrect) {
       tintBg = 'rgb(var(--pitch) / 0.06)';
+    } else if (isCorrect) {
+      tintBg = 'rgb(var(--info) / 0.06)';
+    } else if (isIncorrect) {
+      tintBg = 'rgb(var(--live) / 0.06)';
     } else if (disabled) {
       tintBg = 'rgb(var(--bg-subtle))';
     }
@@ -998,6 +1047,17 @@ function BracketSlot({
           }),
         })}
       />
+      {sourceLabel ? (
+        <span style={{
+          fontSize: '0.58rem',
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          color: 'rgb(var(--fg-subtle))',
+          paddingLeft: '0.2rem',
+        }}>
+          {sourceLabel}
+        </span>
+      ) : null}
     </div>
   );
 }

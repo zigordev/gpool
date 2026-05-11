@@ -37,12 +37,12 @@ export default function GroupsPage() {
                       const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
 
                       const hasResults = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
-                      const isExactMatch = hasResults && prediction.isExactMatch === true;
-                      const isCorrectWinner = hasResults && prediction.isCorrect === true && !isExactMatch;
+                      const isExactMatch = isPastDeadline && hasResults && prediction.isExactMatch === true;
+                      const isCorrectWinner = isPastDeadline && hasResults && prediction.isCorrect === true && !isExactMatch;
                       const hasUserPrediction = prediction.homeScore !== '' && prediction.awayScore !== '';
-                      const isIncorrect = hasResults && hasUserPrediction && !prediction.isCorrect;
+                      const isIncorrect = isPastDeadline && hasResults && hasUserPrediction && prediction.isCorrect === false;
                       const isIncomplete =
-                        !isPastDeadline && !hasResults &&
+                        !isPastDeadline &&
                         (prediction.homeScore === '' || prediction.awayScore === '' ||
                           (prediction.homeScore === 0 && prediction.awayScore === 0));
 
@@ -51,7 +51,7 @@ export default function GroupsPage() {
                       if (isExactMatch) { state = 'exact'; badgeLabel = t('poolDetail.match.exactBadge'); }
                       else if (isCorrectWinner) { state = 'correct-winner'; badgeLabel = t('poolDetail.match.correctWinnerBadge'); }
                       else if (isIncorrect) { state = 'incorrect'; badgeLabel = t('poolDetail.match.incorrectBadge'); }
-                      else if (hasResults && !hasUserPrediction) { state = 'pending'; badgeLabel = t('poolDetail.match.pendingBadge'); }
+                      else if (hasResults && !hasUserPrediction && isPastDeadline) { state = 'pending'; badgeLabel = t('poolDetail.match.pendingBadge'); }
                       else if (!hasResults && isPastDeadline) { state = 'locked'; badgeLabel = t('poolDetail.deadline.passedShort'); }
                       else if (isIncomplete) { state = 'incomplete'; badgeLabel = t('poolDetail.match.incomplete'); }
                       else { state = 'open'; }
