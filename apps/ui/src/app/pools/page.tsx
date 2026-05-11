@@ -22,10 +22,6 @@ function PoolsContent() {
   const [poolName, setPoolName] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [editingPool, setEditingPool] = useState<Pool | null>(null);
-  const [editName, setEditName] = useState('');
-  const [updating, setUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
   const [invitingPool, setInvitingPool] = useState<Pool | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -89,47 +85,6 @@ function PoolsContent() {
       toast.error(message);
     } finally {
       setCreating(false);
-    }
-  };
-
-  const handleEditPool = (pool: Pool) => {
-    setEditingPool(pool);
-    setEditName(pool.name);
-    setUpdateError(null);
-  };
-
-  const handleCloseEditModal = () => {
-    setEditingPool(null);
-    setEditName('');
-    setUpdateError(null);
-  };
-
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPool) return;
-    if (!editName.trim() || editName.trim().length < 3) {
-      setUpdateError(t('pools.validation.nameMin'));
-      return;
-    }
-    if (editName.trim().length > 100) {
-      setUpdateError(t('pools.validation.nameMax'));
-      return;
-    }
-    try {
-      setUpdating(true);
-      setUpdateError(null);
-      await apiClient.put(`/pools/${editingPool.poolId}`, { name: editName.trim() });
-      await fetchPools();
-      rum?.trackCustomEvent('Pool Updated', { poolId: editingPool.poolId, newName: editName.trim() });
-      toast.success(t('pools.toast.updated'));
-      handleCloseEditModal();
-    } catch (err: any) {
-      console.error('Failed to update pool:', err);
-      const message = err.response?.data?.message || t('pools.errors.update');
-      setUpdateError(message);
-      toast.error(message);
-    } finally {
-      setUpdating(false);
     }
   };
 
@@ -284,7 +239,6 @@ function PoolsContent() {
                 onAdministrate={() =>
                   router.push(`/pools/admin/results?poolId=${encodeURIComponent(pool.poolId)}`)
                 }
-                onEdit={() => handleEditPool(pool)}
                 onInvite={() => handleInviteUser(pool)}
                 onRequestAccess={() => handleRequestAccess(pool.poolId)}
                 t={t}
@@ -343,62 +297,6 @@ function PoolsContent() {
                   className="btn btn-primary"
                 >
                   {creating ? t('pools.actions.creating') : t('pools.actions.create')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Edit Pool Modal */}
-      {editingPool ? (
-        <div className="modal-overlay" onClick={handleCloseEditModal}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display, inherit)',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                letterSpacing: '-0.015em',
-                marginBottom: '1.25rem',
-              }}
-            >
-              {t('pools.modal.editTitle')}
-            </h2>
-
-            <form onSubmit={handleUpdateSubmit}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label htmlFor="editPoolName" className="field-label">
-                  {t('pools.modal.poolNameLabel')}
-                </label>
-                <input
-                  id="editPoolName"
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder={t('pools.modal.poolNamePlaceholder')}
-                  disabled={updating}
-                  className="input"
-                  autoFocus
-                />
-                {updateError ? <p className="field-error">{updateError}</p> : null}
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={handleCloseEditModal}
-                  disabled={updating}
-                  className="btn btn-ghost"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={updating || !editName.trim() || editName.trim() === editingPool.name}
-                  className="btn btn-primary"
-                >
-                  {updating ? t('pools.actions.updating') : t('pools.actions.update')}
                 </button>
               </div>
             </form>

@@ -37,10 +37,11 @@ function ScoreInput({
         fontSize: '0.98rem',
         fontWeight: 700,
         color: 'rgb(var(--fg))',
-        background: 'rgb(var(--bg-elevated))',
+        background: 'rgb(var(--input-bg))',
         border: '1px solid rgb(var(--border))',
-        borderRadius: 'var(--radius-sm)',
+        borderRadius: 'var(--radius-md)',
         fontVariantNumeric: 'tabular-nums',
+        transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
       }}
     />
   );
@@ -71,9 +72,13 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
         alignItems: 'center',
         gap: '0.35rem',
         padding: '0.38rem 0.5rem',
-        background: 'rgb(var(--bg-elevated))',
+        background: 'linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))',
+        backdropFilter: 'blur(12px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
         border: '1px solid rgb(var(--border))',
+        boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
         borderRadius: 'var(--radius-sm)',
+        overflow: 'hidden',
       }}
     >
       <div style={{ minWidth: 0 }}>

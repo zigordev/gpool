@@ -72,8 +72,12 @@ export function MatchPredictionCard({
         gap: '0.25rem 0.35rem',
         padding: '0.38rem 0.5rem',
         borderRadius: 'var(--radius-sm)',
-        background: tone.tint,
+        background: `linear-gradient(var(--card-sheen), var(--card-sheen)), ${tone.tint}`,
+        backdropFilter: 'blur(12px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
         border: `1px solid ${tone.border}`,
+        boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
+        overflow: 'hidden',
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
       }}
     >
@@ -123,10 +127,11 @@ export function MatchPredictionCard({
             fontSize: '0.98rem',
             fontWeight: 700,
             color: 'rgb(var(--fg))',
-            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--bg-elevated))',
+            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--input-bg))',
             border: '1px solid rgb(var(--border))',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 'var(--radius-md)',
             fontVariantNumeric: 'tabular-nums',
+            transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
             cursor: disabled ? 'not-allowed' : 'text',
           }}
         />
@@ -162,10 +167,11 @@ export function MatchPredictionCard({
             fontSize: '0.98rem',
             fontWeight: 700,
             color: 'rgb(var(--fg))',
-            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--bg-elevated))',
+            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--input-bg))',
             border: '1px solid rgb(var(--border))',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 'var(--radius-md)',
             fontVariantNumeric: 'tabular-nums',
+            transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
             cursor: disabled ? 'not-allowed' : 'text',
           }}
         />

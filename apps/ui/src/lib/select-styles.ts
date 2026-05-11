@@ -1,4 +1,4 @@
-import type { StylesConfig } from 'react-select';
+import type { StylesConfig, GroupBase } from 'react-select';
 
 const C = {
   inputBg:   'rgb(var(--input-bg))',
@@ -10,21 +10,36 @@ const C = {
   pitch:     'rgb(var(--pitch))',
 };
 
+type AnyStyles = StylesConfig<unknown, boolean, GroupBase<unknown>>;
+
+function applyControl(base: object, state: { isFocused: boolean }): object {
+  return {
+    ...base,
+    backgroundColor: C.inputBg,
+    borderColor: state.isFocused ? 'rgb(var(--accent-from))' : C.border,
+    borderRadius: 'var(--radius-md)',
+    minHeight: '2.5rem',
+    boxShadow: state.isFocused ? '0 0 0 3px rgb(var(--accent-from) / 0.15)' : 'none',
+    transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
+    '&:hover': { borderColor: state.isFocused ? 'rgb(var(--accent-from))' : 'rgb(var(--fg-subtle))' },
+  };
+}
+
 export function selectStyles<Option = unknown, IsMulti extends boolean = false>(
   overrides?: StylesConfig<Option, IsMulti>,
 ): StylesConfig<Option, IsMulti> {
+  const { control: controlOverride, ...restOverrides } = (overrides ?? {}) as AnyStyles;
+
   return {
-    control: (base) => ({
-      ...base,
-      backgroundColor: C.inputBg,
-      borderColor: C.border,
-      boxShadow: 'none',
-      '&:hover': { borderColor: C.pitch },
-    }),
+    control: (base, state) => {
+      const ours = applyControl(base, state);
+      return controlOverride ? controlOverride(ours as never, state as never) : ours;
+    },
     menu: (base) => ({
       ...base,
       backgroundColor: C.bgElevated,
       border: `1px solid ${C.border}`,
+      borderRadius: 'var(--radius-md)',
       boxShadow: '0 4px 14px rgb(0 0 0 / 0.15)',
     }),
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -41,6 +56,6 @@ export function selectStyles<Option = unknown, IsMulti extends boolean = false>(
     singleValue: (base) => ({ ...base, color: C.fg }),
     input: (base) => ({ ...base, color: C.fg }),
     placeholder: (base) => ({ ...base, color: C.fgMuted }),
-    ...overrides,
-  };
+    ...(restOverrides as StylesConfig<Option, IsMulti>),
+  } as StylesConfig<Option, IsMulti>;
 }

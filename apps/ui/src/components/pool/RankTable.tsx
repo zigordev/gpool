@@ -215,6 +215,14 @@ export function RankTable({
         </tbody>
       </table>
       </div>
+
+      <div
+        style={{
+          padding: '0.55rem 0.75rem',
+          borderTop: '1px solid rgb(var(--border))',
+          background: 'rgb(var(--bg-subtle))',
+        }}
+      />
     </div>
   );
 }

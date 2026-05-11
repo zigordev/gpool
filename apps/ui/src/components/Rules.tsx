@@ -32,17 +32,17 @@ export function Rules({
         {
           label: t('poolDetail.rules.points.goals'),
           values: playerScoring.goal,
-          icon: <FaFutbol style={ {color: 'black' } }/>
+          icon: <FaFutbol style={ {color: 'rgb(var(--fg))' } }/>
         },
         {
           label: t('poolDetail.rules.points.assists'),
           values: playerScoring.assist,
-          icon: <FaMagic style={ {color: 'black' } }/>
+          icon: <FaMagic style={ {color: 'rgb(var(--fg))' } }/>
         },
         {
           label: t('poolDetail.rules.points.cleanSheets'),
           values: playerScoring.cleanSheet,
-          icon: <FaShieldAlt style={ {color: 'black' } }/>
+          icon: <FaShieldAlt style={ {color: 'rgb(var(--fg))' } }/>
         },
     ];
 
@@ -67,12 +67,12 @@ export function Rules({
               <h3 style={{ fontSize: '1rem', marginBottom: '0.65rem' }}>{t('poolDetail.rules.poolConfig.title')}</h3>
               <div style={{ display: 'grid', gap: '0.55rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}>
-                  <FaClock style={ {color: 'black' } }/> 
+                  <FaClock style={ {color: 'rgb(var(--fg))' } }/> 
                   <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                     <strong>{t('poolDetail.rules.poolConfig.deadline')}</strong>
                     {deadlineLabel}
                   </p>
-                  <FaDollarSign style={ {color: 'black' } }/> 
+                  <FaDollarSign style={ {color: 'rgb(var(--fg))' } }/> 
                   <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                     <strong>{t('poolDetail.rules.poolConfig.entryFee')}</strong>
                     {`${entryFeeLabel}€ (${t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })})`}
@@ -89,15 +89,15 @@ export function Rules({
                     {(() => {
                       switch(key) {
                         case 'predict':
-                          return <MdOnlinePrediction style={ {color: 'black' } }/>
+                          return <MdOnlinePrediction style={ {color: 'rgb(var(--fg))' } }/>
                         case 'final':
-                          return <BsFillDiagram3Fill style={ {color: 'black' } }/>
+                          return <BsFillDiagram3Fill style={ {color: 'rgb(var(--fg))' } }/>
                         case 'players':
-                          return <FaPerson style={ {color: 'black' } }/>
+                          return <FaPerson style={ {color: 'rgb(var(--fg))' } }/>
                         case 'deadline':
-                          return <FaClock style={ {color: 'black' } }/>
+                          return <FaClock style={ {color: 'rgb(var(--fg))' } }/>
                         case 'ranking':
-                          return <FaMedal style={ {color: 'black' } }/>
+                          return <FaMedal style={ {color: 'rgb(var(--fg))' } }/>
                       }
                     })()}
                     <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
@@ -156,14 +156,14 @@ export function Rules({
                     ))}
                     <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-                        <FaStar style={{ color: 'black' }} />
+                        <FaStar style={{ color: 'rgb(var(--fg))' }} />
                         <strong>{t('poolDetail.rules.points.mvp')}</strong>
                       </span>
                       {`+ ${playerScoring.mvp}`}
                     </p>
                     <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-                        <PiBoxingGlove style={{ color: 'black' }} />
+                        <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />
                         <strong>{t('poolDetail.rules.points.penaltySaved')}</strong>
                       </span>
                       {`+ ${playerScoring.penaltySaved}`}

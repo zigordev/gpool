@@ -23,11 +23,11 @@ function PlayerActionSummary({ player, labels }: Readonly<{
   labels: { goals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
 }>) {
   const actions = [
-    { key: 'goals', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={{ color: 'black' }} size="17" /> },
-    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'black' }} size="17" /> },
-    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'black' }} size="17" /> },
-    { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <PiBoxingGlove style={{ color: 'black' }} size="17" /> },
-    { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'black' }} size="17" /> },
+    { key: 'goals', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
+    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" /> },
+    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
+    { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} size="17" /> },
+    { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size="17" /> },
     { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size="17" /> },
     { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'red' }} size="17" /> },

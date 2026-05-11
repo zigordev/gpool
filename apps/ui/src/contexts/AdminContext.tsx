@@ -155,6 +155,7 @@ function unwrapArray<T>(value: any): T[] {
 interface AdminContextValue {
   poolId: string;
   poolName: string;
+  setPoolName: React.Dispatch<React.SetStateAction<string>>;
   poolMemberCount: number;
   loading: boolean;
   error: string | null;
@@ -224,6 +225,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const resultSaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const lastSavedConfig = useRef<string | null>(null);
   const configSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedName = useRef<string | null>(null);
+  const nameSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [results, setResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
   const [scoringConfig, setScoringConfig] = useState({ winnerPoints: 1, exactResultPoints: 3 });
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
@@ -293,6 +296,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
           const pool = { ...selectedPool, ...poolResponse.data };
           setPoolName(pool?.name);
+          lastSavedName.current = pool?.name ?? '';
           const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
           setPoolMemberCount(memberCount);
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
@@ -393,6 +397,24 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     return () => { if (configSaveTimer.current) { clearTimeout(configSaveTimer.current); configSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading]);
+
+  useEffect(() => {
+    if (loading || !poolId || poolId === 'all-pools') return;
+    if (nameSaveTimer.current) clearTimeout(nameSaveTimer.current);
+    nameSaveTimer.current = setTimeout(async () => {
+      nameSaveTimer.current = null;
+      const trimmed = poolName.trim();
+      if (!trimmed || trimmed === lastSavedName.current) return;
+      try {
+        await apiClient.put(`/pools/${poolId}`, { name: trimmed });
+        lastSavedName.current = trimmed;
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || t('pools.errors.update'));
+      }
+    }, 600);
+    return () => { if (nameSaveTimer.current) { clearTimeout(nameSaveTimer.current); nameSaveTimer.current = null; } };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolName, poolId, loading]);
 
   const autoSaveConfig = async () => {
     if (!poolId || poolId === 'all-pools') return;
@@ -506,7 +528,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const poolNotSelected = !poolId || poolId === 'all-pools';
 
   const value: AdminContextValue = {
-    poolId, poolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
+    poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
     playerScoringConfig, setPlayerScoringConfig, savingConfig,
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,

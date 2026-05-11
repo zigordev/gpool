@@ -1,25 +1,51 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/client';
 import { useAdminContext, PHASES, resizePrizeDistribution } from '@/contexts/AdminContext';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
+import { apiClient } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 export default function ConfigurationPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const {
+    poolId, poolName, setPoolName,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
-    playerScoringConfig, setPlayerScoringConfig, savingConfig,
+    playerScoringConfig, setPlayerScoringConfig,
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid, poolNotSelected,
   } = useAdminContext();
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeletePool = async () => {
+    if (!poolId || poolId === 'all-pools') return;
+    try {
+      setDeleting(true);
+      await apiClient.delete(`/pools/${poolId}`);
+      toast.success(t('adminResults.toast.poolDeleted'));
+      router.push('/pools');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.deletePool'));
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* General configuration */}
       <Section title={t('adminResults.config.general.title')} collapsible defaultExpanded density="compact" tone="subtle">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+          <FormField label={t('pools.modal.poolNameLabel')}>
+            <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} disabled={poolNotSelected} />
+          </FormField>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
             <FormField label={t('adminResults.scoring.deadline')} hint={t('adminResults.scoring.deadlineHint')}>
               <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
@@ -154,17 +180,123 @@ export default function ConfigurationPage() {
         </div>
       </Section>
 
-      <div aria-live="polite" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.4rem', minHeight: '1.4rem', fontSize: '0.78rem', color: 'rgb(var(--fg-muted))', fontStyle: 'italic' }}>
-        {savingConfig ? (
-          <><span aria-hidden className="btn-spinner" style={{ width: '0.75rem', height: '0.75rem', borderWidth: 2 }} />{t('adminResults.scoring.savingAuto')}</>
-        ) : prizeTotalInvalid ? (
-          <span style={{ color: 'rgb(var(--live))', fontStyle: 'normal', fontWeight: 600 }}>{t('adminResults.scoring.prizeTotalInvalid')}</span>
-        ) : poolNotSelected ? (
-          <span style={{ fontStyle: 'normal' }}>{t('adminResults.errors.selectPoolFirst')}</span>
-        ) : (
-          <span aria-hidden>{t('adminResults.scoring.savedAuto')}</span>
-        )}
-      </div>
+      {/* Danger zone */}
+      {!poolNotSelected && (
+        <section
+          style={{
+            padding: '1rem',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid rgb(var(--live) / 0.35)',
+            background: 'rgb(var(--live) / 0.04)',
+          }}
+        >
+          <h3 style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgb(var(--live))', marginBottom: '0.65rem' }}>
+            {t('adminResults.dangerZone.title')}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'rgb(var(--fg-muted))', lineHeight: 1.5 }}>
+              {t('adminResults.dangerZone.deletePoolDescription')}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{
+                flexShrink: 0,
+                padding: '0.45rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgb(var(--live) / 0.5)',
+                background: 'rgb(var(--live) / 0.08)',
+                color: 'rgb(var(--live))',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgb(var(--live) / 0.15)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgb(var(--live) / 0.08)'; }}
+            >
+              {t('adminResults.dangerZone.deletePoolButton')}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {showDeleteConfirm && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-pool-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            background: 'rgb(0 0 0 / 0.55)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget && !deleting) setShowDeleteConfirm(false); }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '420px',
+              background: 'rgb(var(--bg-elevated))',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid rgb(var(--live) / 0.35)',
+              boxShadow: 'var(--shadow-lg)',
+              padding: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+            }}
+          >
+            <h2 id="delete-pool-title" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'rgb(var(--fg))' }}>
+              {t('adminResults.dangerZone.confirmTitle', { name: poolName || poolId })}
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'rgb(var(--fg-muted))', lineHeight: 1.6 }}>
+              {t('adminResults.dangerZone.confirmDescription')}
+            </p>
+            <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn btn-ghost"
+                style={{ fontSize: '0.875rem' }}
+              >
+                {t('adminResults.dangerZone.cancelButton')}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeletePool}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 1.1rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  background: 'rgb(var(--live))',
+                  color: '#fff',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  opacity: deleting ? 0.7 : 1,
+                }}
+              >
+                {deleting && <span className="btn-spinner" style={{ width: '0.8rem', height: '0.8rem', borderWidth: 2, borderColor: 'rgb(255 255 255 / 0.35)', borderTopColor: '#fff' }} />}
+                {deleting ? t('adminResults.dangerZone.deleting') : t('adminResults.dangerZone.confirmButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

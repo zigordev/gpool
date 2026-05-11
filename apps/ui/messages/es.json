@@ -56,10 +56,22 @@
         "title": "Jugadores"
       }
     },
+    "dangerZone": {
+      "cancelButton": "Cancelar",
+      "confirmButton": "Sí, eliminar definitivamente",
+      "confirmDescription": "Esta acción es permanente e irreversible. Se perderán todas las predicciones, resultados y configuración.",
+      "confirmTitle": "¿Eliminar \"{name}\"?",
+      "deletePool": "Eliminar porra",
+      "deletePoolButton": "Eliminar porra",
+      "deletePoolDescription": "Esta acción eliminará permanentemente la porra y todos sus datos. No se puede deshacer.",
+      "deleting": "Eliminando...",
+      "title": "Zona de peligro"
+    },
     "defaultPoolName": "Mundial 2026",
     "errors": {
       "adminRequired": "Acceso denegado. Se requiere rol de administrador.",
       "createPhase": "No se pudo crear la fase",
+      "deletePool": "No se pudo eliminar la porra",
       "enterBothResults": "Introduce resultados para ambos equipos",
       "loadData": "No se pudieron cargar los datos",
       "prizeDistributionTotal": "La distribucion de premios debe sumar 100%",
@@ -177,6 +189,7 @@
     "toast": {
       "bracketResultSaved": "Resultado del cuadro guardado correctamente",
       "phaseCreated": "Fase {phase} creada correctamente",
+      "poolDeleted": "Porra eliminada correctamente",
       "resultsSaved": "Resultados guardados correctamente",
       "scoringSaved": "Configuracion de puntuacion guardada correctamente"
     }
@@ -229,7 +242,7 @@
     "signInWithGoogle": "Iniciar sesion con Google",
     "tagline": "Crea porras, registra predicciones y compite con tu grupo.",
     "terms": "Al continuar aceptas participar con tu cuenta de Google.",
-    "title": "Gestiona tu porra del Mundial"
+    "title": "GPool"
   },
   "logo": {
     "alt": "Logo de GPool"

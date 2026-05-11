@@ -83,19 +83,25 @@ function AdminBreadcrumbs() {
                 <li aria-hidden><span className="breadcrumb-separator">›</span></li>
               </>
             ) : null}
-            {activeRoute ? (
-              <li>
-                <span className="breadcrumb-current" aria-current="page">
-                  {activeRoute.label}
-                </span>
-              </li>
-            ) : (
-              <li>
-                <span className="breadcrumb-current" aria-current="page">
+            <li aria-hidden={!activeRoute || undefined}>
+              {activeRoute ? (
+                <Link href={poolId ? `/pools/admin/results/configuration?poolId=${encodeURIComponent(poolId)}` : '/pools/admin/results/configuration'}>
                   {t('nav.admin')}
-                </span>
-              </li>
-            )}
+                </Link>
+              ) : (
+                <span className="breadcrumb-current" aria-current="page">{t('nav.admin')}</span>
+              )}
+            </li>
+            {activeRoute ? (
+              <>
+                <li aria-hidden><span className="breadcrumb-separator">›</span></li>
+                <li>
+                  <span className="breadcrumb-current" aria-current="page">
+                    {activeRoute.label}
+                  </span>
+                </li>
+              </>
+            ) : null}
           </ol>
         </nav>
       </div>,

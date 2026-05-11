@@ -585,16 +585,19 @@ export function BracketVisualization({
         </div>
         <article
           style={{
-            background: 'rgb(var(--bg-elevated))',
+            background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
+            backdropFilter: 'blur(12px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(140%)',
             border: '1px solid rgb(var(--border))',
             borderTop: `3px solid ${tone.label}`,
-            boxShadow: `var(--shadow-sm), 0 0 0 1px ${tone.ring}`,
+            boxShadow: `inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10), 0 0 0 1px ${tone.ring}`,
             padding: '0.45rem',
             borderRadius: 'var(--radius-sm)',
             minWidth: `${MATCH_BOX_WIDTH - 8}px`,
             display: 'flex',
             flexDirection: 'column',
             gap: '0.35rem',
+            overflow: 'hidden',
           }}
         >
           <span
@@ -836,10 +839,12 @@ function BracketMatchBox({
   return (
     <article
       style={{
-        background: 'rgb(var(--bg-elevated))',
+        background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
+        backdropFilter: 'blur(12px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
         border: '1px solid rgb(var(--border))',
         borderTop: `3px solid ${phaseTone.label}`,
-        boxShadow: `var(--shadow-sm), 0 0 0 1px ${phaseTone.ring}`,
+        boxShadow: `inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10), 0 0 0 1px ${phaseTone.ring}`,
         padding: '0.35rem 0.45rem',
         borderRadius: 'var(--radius-sm)',
         minWidth: `${MATCH_BOX_WIDTH - 8}px`,
@@ -848,6 +853,7 @@ function BracketMatchBox({
         flexDirection: 'column',
         gap: '0.25rem',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       {!isAdmin && points ? ( 

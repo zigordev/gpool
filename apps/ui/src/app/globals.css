@@ -8,10 +8,10 @@
 
   /* Surfaces */
   --bg: 230 238 232;            /* sage green +40% lighter */
-  --bg-elevated: 239 246 241;
+  --bg-elevated: 241 247 243;
   --bg-subtle: 221 231 225;
   --surface-strong: 245 251 246;
-  --input-bg: 247 252 249;      /* near-white with faint green tint */
+  --input-bg: 255 255 255;      /* white */
 
   /* Foreground */
   --fg: 17 24 28;               /* deep ink */
@@ -51,6 +51,10 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 999px;
+
+  /* Glass card sheen — white overlay for the inner-card frosted effect */
+  --card-sheen: rgb(255 255 255 / 0.45);
+  --card-inset-highlight: rgb(255 255 255 / 0.65);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgb(15 23 28 / 0.05), 0 1px 1px rgb(15 23 28 / 0.04);
@@ -92,10 +96,10 @@ html.dark {
 
   /* Surfaces */
   --bg:            13 18 15;
-  --bg-elevated:   21 29 24;
+  --bg-elevated:   28 36 31;
   --bg-subtle:      9 14 11;
   --surface-strong: 28 39 32;
-  --input-bg:      25 35 29;
+  --input-bg:      38 52 44;
 
   /* Foreground */
   --fg:       218 236 222;
@@ -117,6 +121,10 @@ html.dark {
 
   /* Focus ring */
   --ring: 74 222 128;
+
+  /* Glass card sheen — much subtler on dark backgrounds */
+  --card-sheen: rgb(255 255 255 / 0.06);
+  --card-inset-highlight: rgb(255 255 255 / 0.10);
 
   /* Shadows — stronger contrast in dark contexts */
   --shadow-sm:  0 1px 3px rgb(0 0 0 / 0.30), 0 1px 2px rgb(0 0 0 / 0.20);
@@ -301,10 +309,10 @@ button:focus-visible,
 }
 
 .surface {
-  background: rgb(var(--bg-elevated) / 0.92);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid rgb(var(--border) / 0.9);
+  background: rgb(var(--bg-elevated) / 0.97);
+  backdrop-filter: blur(20px) saturate(155%);
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
+  border: 1px solid rgb(var(--border));
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -501,6 +509,14 @@ button:focus-visible,
   color: rgb(var(--fg-muted));
 }
 
+/* Uniform focus ring for any native select/input not using the .input class */
+select:focus,
+input:focus {
+  outline: none;
+  border-color: rgb(var(--accent-from));
+  box-shadow: 0 0 0 3px rgb(var(--accent-from) / 0.15);
+}
+
 .field-label {
   display: block;
   font-size: 0.8125rem;
@@ -693,7 +709,7 @@ button:focus-visible,
   clip-path: inset(0 round 999px);
   pointer-events: auto;
   flex-wrap: nowrap;
-  background: rgb(var(--bg-elevated) / 0.38);
+  background: rgb(var(--bg-elevated) / 0.90);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid rgb(var(--border) / 0.85);

@@ -73,7 +73,7 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
         </svg>
       }
     >
-      {t('poolDetail.deadline.general')} {deadlineLocale} {'->'} {value}
+      {value}
     </Badge>
   );
 }

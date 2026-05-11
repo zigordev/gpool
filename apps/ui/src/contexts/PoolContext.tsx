@@ -246,6 +246,19 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
   useEffect(() => {
     if (!poolId) { setLoading(false); return; }
 
+    setPool(null);
+    setMatchesByGroup({});
+    setGroups([]);
+    setPredictions({});
+    setRanking([]);
+    setBracket({});
+    setBracketPredictions({});
+    setTeams([]);
+    setPlayers([]);
+    setPlayerSelections({});
+    setPlayerAwardSelections({ golden_boot: undefined, tournament_mvp: undefined });
+    setSpy(null);
+
     const fetchData = async () => {
       try {
         setLoading(true);

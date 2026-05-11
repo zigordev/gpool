@@ -14,11 +14,11 @@ import { countryIsoCode } from '@/lib/country-flags';
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 
 const STAT_COLUMNS: Array<{ key: PlayerStatKey; icon: React.ReactNode; labelKey: string }> = [
-  { key: 'goals', icon: <FaFutbol style={{ color: 'black' }} size={13} />, labelKey: 'poolDetail.players.actions.goals' },
-  { key: 'assists', icon: <FaMagic style={{ color: 'black' }} size={13} />, labelKey: 'poolDetail.players.actions.assists' },
-  { key: 'mvps', icon: <FaStar style={{ color: 'black' }} size={13} />, labelKey: 'poolDetail.players.actions.mvps' },
-  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={{ color: 'black' }} size={13} />, labelKey: 'poolDetail.players.actions.penaltiesSaved' },
-  { key: 'cleanSheets', icon: <FaShieldAlt style={{ color: 'black' }} size={13} />, labelKey: 'poolDetail.players.actions.cleanSheets' },
+  { key: 'goals', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.goals' },
+  { key: 'assists', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.assists' },
+  { key: 'mvps', icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.mvps' },
+  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.penaltiesSaved' },
+  { key: 'cleanSheets', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.cleanSheets' },
   { key: 'yellowCards', icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size={13} />, labelKey: 'poolDetail.players.actions.yellowCards' },
   { key: 'redCards', icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.redCards' },
   { key: 'missedPenalties', icon: <IoMdCloseCircle style={{ color: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.missedPenalties' },
@@ -119,10 +119,10 @@ export function PlayerStatsTable({
                 </th>
               ))}
               <th style={thStyle} title={t('poolDetail.players.awards.goldenBoot')}>
-                <GiLeatherBoot size={15} style={{ color: 'rgb(var(--yellow))' }} />
+                <GiLeatherBoot size={15} style={{ color: 'gold' }} />
               </th>
               <th style={thStyle} title={t('poolDetail.players.awards.tournamentMvp')}>
-                <FaStar size={15} style={{ color: 'rgb(var(--yellow))' }} />
+                <FaStar size={15} style={{ color: 'gold' }} />
               </th>
               <th style={sortableTh('totalPoints')} onClick={() => handleSort('totalPoints')}>
                 {t('poolDetail.ranking.totalPoints')}{sortIndicator('totalPoints')}
@@ -284,10 +284,11 @@ export function PlayerStatsTable({
             style={{
               fontSize: '0.78rem',
               padding: '0.2rem 0.4rem',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius-md)',
               border: '1px solid rgb(var(--border))',
-              background: 'rgb(var(--bg-elevated))',
+              background: 'rgb(var(--input-bg))',
               color: 'rgb(var(--fg))',
+              transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
             }}
           >
             {[10, 20, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}

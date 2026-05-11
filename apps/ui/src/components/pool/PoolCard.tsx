@@ -7,7 +7,6 @@ export function PoolCard({
   isDisabled,
   requesting,
   onAdministrate,
-  onEdit,
   onInvite,
   onRequestAccess,
   t,
@@ -18,7 +17,6 @@ export function PoolCard({
   isDisabled: boolean;
   requesting: boolean;
   onAdministrate: () => void;
-  onEdit: () => void;
   onInvite: () => void;
   onRequestAccess: () => void;
   t: (k: string, p?: Record<string, string | number>) => string;
@@ -95,33 +93,12 @@ export function PoolCard({
                 <path d="M8 9a3 3 0 100-6 3 3 0 000 6zm0 2a6 6 0 00-6 1 1 1 0 001 1h10a1 1 0 001-1 6 6 0 00-6-1zm8-4a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
               </svg>
             </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              title={t('pools.actions.editTitle')}
-              aria-label={t('pools.actions.editTitle')}
-              className="btn btn-icon"
-              style={{
-                background: 'rgb(255 255 255 / 0.95)',
-                color: 'rgb(var(--fg))',
-                border: 'none',
-                width: '2rem',
-                height: '2rem',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-                <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 000-.354l-1.086-1.086zM11.189 6.25L9.75 4.81l-6.286 6.287a.25.25 0 00-.064.108l-.558 1.953 1.953-.558a.249.249 0 00.108-.064l6.286-6.286z" />
-              </svg>
-            </button>
+
           </div>
         ) : null}
       </div>
 
-      <div style={{ padding: '1.1rem 1.25rem 1.25rem' }}>
+      <div style={{ padding: '1.1rem 1.25rem 1.25rem', textAlign: 'left' }}>
         <h3
           style={{
             fontFamily: 'var(--font-display, inherit)',
@@ -130,6 +107,7 @@ export function PoolCard({
             letterSpacing: '-0.01em',
             marginBottom: '0.4rem',
             color: 'rgb(var(--fg))',
+            textAlign: 'left',
           }}
         >
           {pool.name}
@@ -197,13 +175,33 @@ export function PoolCard({
             </button>
           ) : null}
           {isPoolAdmin ? (
-            <>
-              <span>{t('pools.actions.administrate')}</span>
-              <IoSettings onClick={(e) => {
-                  e.stopPropagation();
-                  onAdministrate();
-              }}/>
-            </>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdministrate();
+              }}
+              title={t('pools.actions.administrate')}
+              aria-label={t('pools.actions.administrate')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                padding: '0.25rem 0.6rem',
+                background: 'transparent',
+                border: '1px solid rgb(var(--border))',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'rgb(var(--fg-muted))',
+                transition: 'all 0.15s ease',
+                flexShrink: 0,
+              }}
+            >
+              <IoSettings size={13} aria-hidden />
+              {t('pools.actions.administrate')}
+            </button>
           ) : null}
         </div>
       </div>
