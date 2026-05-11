@@ -1,12 +1,9 @@
-import { IoSettings } from "react-icons/io5";
-
 export function PoolCard({
   pool,
   onOpen,
   isPoolAdmin,
   isDisabled,
   requesting,
-  onAdministrate,
   onInvite,
   onRequestAccess,
   t,
@@ -16,7 +13,6 @@ export function PoolCard({
   isPoolAdmin: boolean;
   isDisabled: boolean;
   requesting: boolean;
-  onAdministrate: () => void;
   onInvite: () => void;
   onRequestAccess: () => void;
   t: (k: string, p?: Record<string, string | number>) => string;
@@ -172,35 +168,6 @@ export function PoolCard({
               className="btn btn-outline btn-sm"
             >
               {requesting ? t('pools.actions.requesting') : t('pools.actions.requestAccess')}
-            </button>
-          ) : null}
-          {isPoolAdmin ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdministrate();
-              }}
-              title={t('pools.actions.administrate')}
-              aria-label={t('pools.actions.administrate')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                padding: '0.25rem 0.6rem',
-                background: 'transparent',
-                border: '1px solid rgb(var(--border))',
-                borderRadius: '999px',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: 'rgb(var(--fg-muted))',
-                transition: 'all 0.15s ease',
-                flexShrink: 0,
-              }}
-            >
-              <IoSettings size={13} aria-hidden />
-              {t('pools.actions.administrate')}
             </button>
           ) : null}
         </div>

@@ -64,15 +64,16 @@ export default async function RootLayout({
                   }}
                 />
 
-                <div className="container-app" style={{ position: 'relative' }}>
-                  <NavCenterProvider>
-                    <NavigationBar />
+                <NavCenterProvider>
+                  <NavigationBar />
+                  <div className="container-app" style={{ position: 'relative' }}>
                     {children}
-                  </NavCenterProvider>
-                </div>
+                  </div>
+                </NavCenterProvider>
               </main>
               <Toaster
                 position="top-right"
+                containerStyle={{ zIndex: 99999 }}
                 toastOptions={{
                   duration: 4000,
                   style: {
@@ -80,8 +81,9 @@ export default async function RootLayout({
                     color: 'rgb(var(--fg))',
                     border: '1px solid rgb(var(--border))',
                     borderRadius: 'var(--radius-md)',
-                    boxShadow: 'var(--shadow-md)',
+                    boxShadow: '0 8px 24px rgb(0 0 0 / 0.25)',
                     fontWeight: 500,
+                    opacity: 1,
                   },
                   success: {
                     iconTheme: {
@@ -89,9 +91,9 @@ export default async function RootLayout({
                       secondary: 'white',
                     },
                     style: {
-                      background: 'rgb(var(--pitch) / 0.08)',
+                      background: 'color-mix(in srgb, rgb(var(--pitch)) 14%, rgb(var(--bg-elevated)))',
                       color: 'rgb(var(--pitch))',
-                      border: '1px solid rgb(var(--pitch) / 0.30)',
+                      border: '1px solid rgb(var(--pitch) / 0.40)',
                     },
                   },
                   error: {
@@ -100,9 +102,9 @@ export default async function RootLayout({
                       secondary: 'white',
                     },
                     style: {
-                      background: 'rgb(var(--live) / 0.08)',
+                      background: 'color-mix(in srgb, rgb(var(--live)) 14%, rgb(var(--bg-elevated)))',
                       color: 'rgb(var(--live))',
-                      border: '1px solid rgb(var(--live) / 0.30)',
+                      border: '1px solid rgb(var(--live) / 0.40)',
                     },
                   },
                 }}

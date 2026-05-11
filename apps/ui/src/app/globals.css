@@ -215,7 +215,7 @@ html {
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   background-color: rgb(var(--bg));
   color: rgb(var(--fg));
 }
@@ -772,6 +772,9 @@ input:focus {
   align-items: center;
   gap: 0.5rem;
   min-height: 2.75rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
 }
 
 /* With pill nav: true 3-column centering on desktop */
@@ -819,8 +822,11 @@ input:focus {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.55rem 0 0.6rem;
+  padding: 0.55rem 1.25rem 0.6rem;
   margin-top: 0.35rem;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Breadcrumb trail inside the sub-bar */
@@ -888,6 +894,21 @@ input:focus {
 .content-panel {
   padding-bottom: 1.5rem;
   animation: gp-fade-in var(--motion) var(--ease-out) both;
+}
+
+/* Config area — compact overrides for scoring/prize form sections */
+.config-area .field-label {
+  font-size: 0.72rem;
+  margin-bottom: 0.2rem;
+}
+
+.config-area .input {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8125rem;
+}
+
+.config-area p {
+  font-size: 0.7rem;
 }
 
 /* ============================================================================
@@ -968,12 +989,19 @@ input:focus {
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1.25rem;
+  padding: 0.15rem 1.25rem 1.25rem;
 }
 
 @media (min-width: 768px) {
   .container-app {
-    padding: 2rem;
+    padding: 0.25rem 2rem 2rem;
+  }
+  .nav-shell {
+    padding: 0 2rem;
+  }
+  .nav-sub-bar {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 

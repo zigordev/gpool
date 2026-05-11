@@ -199,7 +199,6 @@ interface AdminContextValue {
   handleUpdateTeam: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => Promise<void>;
   handleBracketResultChange: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
   handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
-  handleReEvaluateBracket: () => Promise<void>;
   handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => Promise<void>;
 }
 
@@ -213,7 +212,7 @@ export function useAdminContext(): AdminContextValue {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function AdminProvider({ children }: { children: React.ReactNode }) {
+export function AdminProvider({ poolId: poolIdProp, children }: { poolId?: string; children: React.ReactNode }) {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useI18n();
@@ -233,7 +232,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
   const [playerScoringConfig, setPlayerScoringConfig] = useState(DEFAULT_PLAYER_SCORING);
   const [savingConfig, setSavingConfig] = useState(false);
-  const [poolId, setPoolId] = useState<string>('all-pools');
+  const [poolId, setPoolId] = useState<string>(poolIdProp || 'all-pools');
   const [poolName, setPoolName] = useState<string>('');
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
   const [deadlineLocal, setDeadlineLocal] = useState<string>(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
@@ -262,10 +261,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [matchesResponse, poolsResponse] = await Promise.all([
-          apiClient.get(`/pools/all-pools/matches`),
-          apiClient.get('/pools').catch(() => ({ data: [] })),
-        ]);
+        const matchesResponse = await apiClient.get(`/pools/all-pools/matches`);
 
         const matchesData = matchesResponse.data || {};
         const matchesList: Match[] = matchesData.matches || [];
@@ -281,21 +277,31 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         });
         setResults(resultsMap);
 
-        const pools = unwrapArray<PoolSummary>(poolsResponse.data);
-        const requestedPoolId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('poolId') : null;
-        const selectedPool = (requestedPoolId ? pools.find((pool) => pool.poolId === requestedPoolId) : null) || pools[0];
-        if (selectedPool?.poolId) {
-          const selectedPoolId = selectedPool.poolId;
-          setPoolId(selectedPoolId);
+        let selectedPoolId: string | undefined;
 
+        if (poolIdProp) {
+          selectedPoolId = poolIdProp;
+          setPoolId(poolIdProp);
+        } else {
+          const poolsResponse = await apiClient.get('/pools').catch(() => ({ data: [] }));
+          const pools = unwrapArray<PoolSummary>(poolsResponse.data);
+          const requestedPoolId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('poolId') : null;
+          const selectedPool = (requestedPoolId ? pools.find((pool) => pool.poolId === requestedPoolId) : null) || pools[0];
+          if (selectedPool?.poolId) {
+            selectedPoolId = selectedPool.poolId;
+            setPoolId(selectedPoolId);
+          }
+        }
+
+        if (selectedPoolId) {
           const [poolResponse, bracketResponse, teamsResponse, playersResponse] = await Promise.all([
-            apiClient.get(`/pools/${selectedPoolId}`).catch(() => ({ data: selectedPool })),
+            apiClient.get(`/pools/${selectedPoolId}`).catch(() => ({ data: {} })),
             apiClient.get(`/pools/${selectedPoolId}/bracket`).catch(() => ({ data: {} })),
             apiClient.get(`/pools/${selectedPoolId}/matches/teams`).catch(() => ({ data: [] })),
             apiClient.get(`/pools/${selectedPoolId}/players`).catch(() => ({ data: { players: [] } })),
           ]);
 
-          const pool = { ...selectedPool, ...poolResponse.data };
+          const pool = { ...poolResponse.data };
           setPoolName(pool?.name);
           lastSavedName.current = pool?.name ?? '';
           const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
@@ -383,7 +389,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     };
     if (user?.role === 'admin') fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, t]);
+  }, [user, t, poolIdProp]);
+
+  useEffect(() => {
+    if (loading || entryFee !== 0) return;
+    if (prizeDistribution.length > 0) setPrizeDistribution([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryFee, loading]);
 
   useEffect(() => {
     if (loading) return;
@@ -507,16 +519,6 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleReEvaluateBracket = async () => {
-    if (!poolId || poolId === 'all-pools') { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
-    try {
-      const result = await apiClient.post(`/pools/${poolId}/bracket/re-evaluate`);
-      toast.success(`Re-evaluated ${result.data?.matchesEvaluated ?? 0} bracket matches`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to re-evaluate bracket');
-    }
-  };
-
   const handlePlayerStatChange = async (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => {
     if (!poolId || poolId === 'all-pools') { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
     const current = player[stat] || 0;
@@ -547,7 +549,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
     playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingMatch,
     submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid, poolNotSelected,
-    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange,
+    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handlePlayerStatChange,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

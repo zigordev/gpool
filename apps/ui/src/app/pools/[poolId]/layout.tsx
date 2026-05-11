@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
 import { IoSettings } from 'react-icons/io5';
+
+const MEMBER_SEGMENT_TO_ADMIN: Record<string, string> = { rules: 'rules', ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
 import {
   PoolProvider,
   usePoolContext,
@@ -75,12 +77,12 @@ function PoolNav() {
 function PoolBreadcrumbs() {
   const { t } = useI18n();
   const { user } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
   const { pool, poolId, poolDeadline } = usePoolContext();
   const { setSubBar } = useNavCenter();
 
   const isPoolAdmin = user?.role === 'admin' && user.userId === pool?.adminUserId;
+  const isAdminRoute = pathname.includes('/admin');
 
   const routes = [
     { segment: 'rules', label: t('poolDetail.tabs.rules') },
@@ -96,60 +98,69 @@ function PoolBreadcrumbs() {
   });
 
   useLayoutEffect(() => {
+    if (isAdminRoute) return;
     setSubBar(
-      <div style={{ display: 'contents' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', gap: '1rem' }}>
         <nav aria-label="breadcrumb" style={{ minWidth: 0 }}>
           <ol className="breadcrumb">
             <li><Link href="/pools">{t('pools.title')}</Link></li>
             <li aria-hidden><span className="breadcrumb-separator">›</span></li>
             <li>
-              <Link href={`/pools/${poolId}/ranking`}>{pool?.name ?? '…'}</Link>
+              <span className="breadcrumb-current" aria-current="page">{pool?.name ?? '…'}</span>
             </li>
-            {activeRoute ? (
-              <>
-                <li aria-hidden><span className="breadcrumb-separator">›</span></li>
-                <li>
-                  <span className="breadcrumb-current" aria-current="page">
-                    {activeRoute.label}
-                  </span>
-                </li>
-              </>
-            ) : null}
           </ol>
         </nav>
-        <div className="nav-sub-bar-actions">
+        <div style={{ display: 'flex', justifyContent: 'center' }}><CountdownChip deadline={poolDeadline} /></div>
+        <div className="nav-sub-bar-actions" style={{ justifySelf: 'end' }}>
           {isPoolAdmin ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/pools/admin/results?poolId=${encodeURIComponent(poolId)}`)}
-              aria-label={t('poolDetail.actions.administrate')}
-              title={t('poolDetail.actions.administrate')}
+            <div
+              role="group"
+              aria-label="View mode"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.3rem',
-                padding: '0.25rem 0.6rem',
-                background: 'transparent',
                 border: '1px solid rgb(var(--border))',
                 borderRadius: '999px',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
+                overflow: 'hidden',
+                fontSize: '0.72rem',
                 fontWeight: 600,
-                color: 'rgb(var(--fg-muted))',
-                transition: 'all 0.15s ease',
               }}
             >
-              <IoSettings size={13} aria-hidden />
-              {t('poolDetail.actions.administrate')}
-            </button>
+              <span
+                aria-current="true"
+                style={{
+                  padding: '0.22rem 0.6rem',
+                  background: 'rgb(var(--fg) / 0.10)',
+                  color: 'rgb(var(--fg))',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Member
+              </span>
+              <Link
+                href={`/pools/${poolId}/admin/${MEMBER_SEGMENT_TO_ADMIN[activeRoute?.segment || ''] || 'groups'}`}
+                style={{
+                  padding: '0.22rem 0.6rem',
+                  background: 'transparent',
+                  color: 'rgb(var(--fg-muted))',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <IoSettings size={10} aria-hidden />
+                Admin
+              </Link>
+            </div>
           ) : null}
-          <CountdownChip deadline={poolDeadline} />
         </div>
       </div>,
     );
     return () => setSubBar(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, isPoolAdmin, poolDeadline, poolId, pathname]);
+  }, [pool, isPoolAdmin, poolDeadline, poolId, pathname, isAdminRoute]);
 
   return null;
 }
@@ -157,6 +168,12 @@ function PoolBreadcrumbs() {
 function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) {
   const { t } = useI18n();
   const { loading } = usePoolContext();
+  const pathname = usePathname();
+  const isAdminRoute = pathname.includes('/admin');
+
+  if (isAdminRoute) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

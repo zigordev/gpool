@@ -279,7 +279,15 @@ export function NavigationBar() {
   if (pathname === '/login') return null;
 
   return (
-    <header style={{ marginBottom: subBar ? '0' : '1.75rem' }}>
+    <header style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      background: 'rgb(var(--bg) / 0.85)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: '1px solid rgb(var(--border) / 0.5)',
+    }}>
       <nav
         aria-label="Primary"
         className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}

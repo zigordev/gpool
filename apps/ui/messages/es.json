@@ -77,7 +77,7 @@
       "prizeDistributionTotal": "La distribucion de premios debe sumar 100%",
       "saveBracketResult": "No se pudo guardar el resultado del cuadro",
       "saveResults": "No se pudieron guardar los resultados",
-      "saveScoring": "No se pudo guardar la configuracion de puntuacion",
+      "saveScoring": "No se pudo guardar la configuración de puntuación",
       "selectPoolFirst": "Selecciona primero una porra",
       "updatePlayerStats": "No se pudieron actualizar las estadisticas del jugador",
       "updateTeam": "No se pudo actualizar el equipo"
@@ -171,10 +171,10 @@
       "prizeTotal": "Total configurado: {total}%",
       "prizeTotalInvalid": "Debe sumar 100%",
       "prizeTotalValid": "Correcto",
-      "save": "Guardar configuracion de puntuacion",
+      "save": "Guardar configuración de puntuación",
       "savedAuto": "Cambios guardados",
       "savingAuto": "Guardando cambios...",
-      "title": "Configuracion de puntuacion",
+      "title": "Configurar puntuacion",
       "tournamentWinner": "Ganador del torneo"
     },
     "tabs": {
@@ -191,7 +191,7 @@
       "phaseCreated": "Fase {phase} creada correctamente",
       "poolDeleted": "Porra eliminada correctamente",
       "resultsSaved": "Resultados guardados correctamente",
-      "scoringSaved": "Configuracion de puntuacion guardada correctamente"
+      "scoringSaved": "Configuración de puntuación guardada correctamente"
     }
   },
   "authCallback": {

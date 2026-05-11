@@ -29,8 +29,8 @@ const STATE_TONES: Record<
   open:           { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-elevated))',                   statusBadge: null },
   incomplete:     { border: 'rgb(var(--gold) / 0.55)',     tint: 'rgb(var(--gold) / 0.08)',                   statusBadge: 'gold' },
   locked:         { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-subtle))',                     statusBadge: 'neutral' },
-  exact:          { border: 'rgb(var(--info) / 0.55)',     tint: 'rgb(var(--info) / 0.08)',                   statusBadge: 'info' },
-  'correct-winner':{ border: 'rgb(var(--pitch) / 0.55)',   tint: 'rgb(var(--pitch) / 0.08)',                  statusBadge: 'pitch' },
+  exact:          { border: 'rgb(var(--pitch) / 0.55)',    tint: 'rgb(var(--pitch) / 0.08)',                  statusBadge: 'pitch' },
+  'correct-winner':{ border: 'rgb(var(--info) / 0.55)',   tint: 'rgb(var(--info) / 0.08)',                   statusBadge: 'info' },
   incorrect:      { border: 'rgb(var(--live) / 0.45)',     tint: 'rgb(var(--live) / 0.07)',                   statusBadge: 'live' },
   pending:        { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-subtle))',                     statusBadge: 'neutral' },
 };
@@ -235,9 +235,9 @@ export function MatchPredictionCard({
             fontVariantNumeric: 'tabular-nums',
             color:
               state === 'exact'
-                ? 'rgb(var(--info))'
-                : state === 'correct-winner'
                 ? 'rgb(var(--pitch))'
+                : state === 'correct-winner'
+                ? 'rgb(var(--info))'
                 : state === 'incorrect'
                 ? 'rgb(var(--live))'
                 : 'rgb(var(--fg-muted))',

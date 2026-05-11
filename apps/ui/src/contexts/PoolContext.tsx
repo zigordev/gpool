@@ -69,6 +69,8 @@ export function resolveDeadline(pool: any): number {
 }
 
 export function resolvePrizeDistribution(pool: any): PrizePayout[] {
+  const entryFee = pool?.config?.entryFee;
+  if (typeof entryFee === 'number' && entryFee === 0) return [];
   const raw = pool?.config?.prizeDistribution;
   if (raw && Array.isArray(raw.payouts) && raw.payouts.length > 0) {
     const valid = raw.payouts

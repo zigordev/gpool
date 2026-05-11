@@ -20,6 +20,7 @@ function PoolsContent() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [poolName, setPoolName] = useState('');
+  const [poolEntryFee, setPoolEntryFee] = useState(0);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [invitingPool, setInvitingPool] = useState<Pool | null>(null);
@@ -51,12 +52,14 @@ function PoolsContent() {
   const handleCreatePool = () => {
     setShowCreateModal(true);
     setPoolName('');
+    setPoolEntryFee(0);
     setCreateError(null);
   };
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setPoolName('');
+    setPoolEntryFee(0);
     setCreateError(null);
   };
 
@@ -74,6 +77,10 @@ function PoolsContent() {
       setCreating(true);
       setCreateError(null);
       const response = await apiClient.post('/pools', { name: poolName.trim() });
+      await apiClient.put(`/pools/${response.data.poolId}/configuration`, {
+        entryFee: poolEntryFee,
+        prizeDistribution: { paidPositions: 0, payouts: [] },
+      }).catch(() => {});
       await fetchPools();
       rum?.trackCustomEvent('Pool Created', { poolId: response.data.poolId, poolName: poolName.trim() });
       toast.success(t('pools.toast.created'));
@@ -236,9 +243,6 @@ function PoolsContent() {
                 onOpen={() => {
                   if (!isDisabled) router.push(`/pools/${pool.poolId}`);
                 }}
-                onAdministrate={() =>
-                  router.push(`/pools/admin/results?poolId=${encodeURIComponent(pool.poolId)}`)
-                }
                 onInvite={() => handleInviteUser(pool)}
                 onRequestAccess={() => handleRequestAccess(pool.poolId)}
                 t={t}
@@ -265,7 +269,7 @@ function PoolsContent() {
             </h2>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <label htmlFor="poolName" className="field-label">
                   {t('pools.modal.poolNameLabel')}
                 </label>
@@ -280,6 +284,22 @@ function PoolsContent() {
                   autoFocus
                 />
                 {createError ? <p className="field-error">{createError}</p> : null}
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label htmlFor="poolEntryFee" className="field-label">
+                  {t('adminResults.scoring.entryFee')}
+                </label>
+                <input
+                  id="poolEntryFee"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.5"
+                  value={poolEntryFee}
+                  onChange={(e) => { const v = Number.parseFloat(e.target.value); setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }}
+                  disabled={creating}
+                  className="input"
+                />
               </div>
 
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>

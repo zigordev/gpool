@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 
 type Density = 'default' | 'compact';
-type Tone = 'surface' | 'subtle';
+type Tone = 'surface' | 'subtle' | 'muted';
 
 interface Props {
   title: ReactNode;
@@ -50,8 +50,8 @@ export function Section({
     onExpandedChange?.(!isOpen);
   };
 
-  const padX = density === 'compact' ? '1rem' : '1.5rem';
-  const padY = density === 'compact' ? '1rem' : '1.5rem';
+  const padX = density === 'compact' ? '0.75rem' : '1.5rem';
+  const padY = density === 'compact' ? '0.65rem' : '1.5rem';
 
   const headerRow = (
     <div
@@ -87,7 +87,7 @@ export function Section({
         <h2
           style={{
             fontFamily: 'var(--font-display, inherit)',
-            fontSize: density === 'compact' ? '1.05rem' : '1.25rem',
+            fontSize: density === 'compact' ? '0.875rem' : '1.25rem',
             fontWeight: 700,
             letterSpacing: '-0.01em',
             color: 'rgb(var(--fg))',
@@ -141,11 +141,11 @@ export function Section({
       className={tone === 'surface' ? 'surface' : ''}
       style={{
         padding: `${padY} ${padX}`,
-        background: tone === 'subtle' ? 'rgb(var(--bg-elevated) / 0.80)' : undefined,
+        background: tone === 'subtle' ? 'rgb(var(--bg-elevated) / 0.80)' : tone === 'muted' ? 'rgb(var(--fg) / 0.08)' : undefined,
         backdropFilter: tone === 'subtle' ? 'blur(14px) saturate(140%)' : undefined,
         WebkitBackdropFilter: tone === 'subtle' ? 'blur(14px) saturate(140%)' : undefined,
-        border: tone === 'subtle' ? '1px solid rgb(var(--border) / 0.85)' : undefined,
-        borderRadius: tone === 'subtle' ? 'var(--radius-lg)' : undefined,
+        border: tone === 'subtle' || tone === 'muted' ? `1px solid rgb(var(--border) / ${tone === 'muted' ? '0.5' : '0.85'})` : undefined,
+        borderRadius: tone === 'subtle' || tone === 'muted' ? 'var(--radius-lg)' : undefined,
         ...style,
       }}
     >
@@ -153,8 +153,8 @@ export function Section({
       {(!collapsible || isOpen) ? (
         <div
           style={{
-            marginTop: density === 'compact' ? '0.85rem' : '1.25rem',
-            paddingTop: density === 'compact' ? '0.85rem' : '1.25rem',
+            marginTop: density === 'compact' ? '0.5rem' : '1.25rem',
+            paddingTop: density === 'compact' ? '0.5rem' : '1.25rem',
             borderTop: '1px solid rgb(var(--border-subtle))',
             ...contentStyle,
           }}
