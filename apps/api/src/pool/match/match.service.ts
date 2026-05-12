@@ -1,5 +1,12 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PoolRepository } from '../database/pool.repository';
+import { resolvePoolDeadline } from '../pool-deadline.util';
+import {
+  computePlayerAwardPoints,
+  computePlayerPoints,
+  resolvePlayerAwardWinners,
+  resolvePlayerScoring,
+} from '../player/player.service';
 
 @Injectable()
 export class MatchService {
@@ -47,17 +54,31 @@ export class MatchService {
     poolId: string,
     matchId: string,
     userId: string,
-    homeScore: number,
-    awayScore: number,
+    homeScore: number | null,
+    awayScore: number | null,
   ) {
     const match = await this.poolRepository.getMatch(matchId);
     if (!match) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
 
-    const now = Date.now();
-    if (match.deadline && now >= match.deadline) {
+    const pool = await this.poolRepository.getPool(poolId);
+    const deadline = resolvePoolDeadline(pool);
+    if (Date.now() >= deadline) {
       throw new BadRequestException('Prediction deadline has passed');
+    }
+
+    const clearingPrediction = homeScore === null && awayScore === null;
+    const partialPrediction = homeScore === null || awayScore === null;
+
+    if (partialPrediction && !clearingPrediction) {
+      throw new BadRequestException('Both scores must be provided or both must be empty');
+    }
+
+    if (clearingPrediction) {
+      const cleared = await this.poolRepository.deletePrediction(poolId, matchId, userId);
+      this.logger.log(`Prediction cleared: pool ${poolId}, match ${matchId}, user ${userId}`);
+      return cleared;
     }
 
     if (homeScore < 0 || awayScore < 0 || !Number.isInteger(homeScore) || !Number.isInteger(awayScore)) {
@@ -86,8 +107,8 @@ export class MatchService {
 
   async updateMatchResults(
     matchId: string,
-    homeResult: number,
-    awayResult: number,
+    homeResult: number | null,
+    awayResult: number | null,
     poolId?: string,
     scoringConfig?: { winnerPoints: number; exactResultPoints: number },
   ) {
@@ -96,18 +117,41 @@ export class MatchService {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
 
-    if (
+    const clearingResult = homeResult === null && awayResult === null;
+    const partialResult = homeResult === null || awayResult === null;
+
+    if (partialResult && !clearingResult) {
+      throw new BadRequestException('Both results must be provided or both must be empty');
+    }
+
+    if (!clearingResult && (
       homeResult < 0 ||
       awayResult < 0 ||
       !Number.isInteger(homeResult) ||
       !Number.isInteger(awayResult)
-    ) {
+    )) {
       throw new BadRequestException('Results must be non-negative integers');
     }
 
-    await this.poolRepository.updateMatchResults(matchId, homeResult, awayResult);
+    const updatedMatch = await this.poolRepository.updateMatchResults(matchId, homeResult, awayResult);
+    if (!updatedMatch) {
+      throw new NotFoundException(`Match with ID ${matchId} not found`);
+    }
 
-    const allPredictions = await this.poolRepository.getAllPredictionsForMatch(matchId);
+    const allPredictions = await this.poolRepository.getAllPredictionsForMatch(matchId, poolId);
+
+    if (clearingResult) {
+      await this.poolRepository.resetPredictionStatusesForMatch(matchId, poolId);
+      this.logger.log(
+        `Match results cleared and ${allPredictions.length} predictions reset for match ${matchId}`,
+      );
+
+      return {
+        ...updatedMatch,
+        predictionsEvaluated: 0,
+        predictionsReset: allPredictions.length,
+      };
+    }
 
     let winnerPoints = 1;
     let exactResultPoints = 3;
@@ -157,26 +201,44 @@ export class MatchService {
     );
 
     return {
-      matchId,
-      homeResult,
-      awayResult,
+      ...updatedMatch,
       predictionsEvaluated: allPredictions.length,
     };
   }
 
   async getPoolRanking(poolId: string) {
-    const allPredictions = await this.poolRepository.getAllPredictionsForPool(poolId);
-    const bracketPredictions = await this.poolRepository.getAllBracketPredictionsForPool(poolId);
-    const members = await this.poolRepository.getPoolMembers(poolId);
+    const [
+      pool,
+      allPredictions,
+      bracketPredictions,
+      members,
+      playerSelections,
+      playerAwardSelections,
+      tournamentPlayers,
+    ] = await Promise.all([
+      this.poolRepository.getPool(poolId),
+      this.poolRepository.getAllPredictionsForPool(poolId),
+      this.poolRepository.getAllBracketPredictionsForPool(poolId),
+      this.poolRepository.getPoolMembers(poolId),
+      this.poolRepository.getPlayerSelectionsForPool(poolId),
+      this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
+      this.poolRepository.getTournamentPlayers(),
+    ]);
 
     const memberUserIds = new Set(members.map((member: any) => member.userId));
 
-    const userPoints = new Map<string, { points: number; userName: string; userEmail?: string }>();
+    const userPoints = new Map<
+      string,
+      { userId: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; userName: string; userEmail?: string }
+    >();
     members.forEach((member: any) => {
       const email = member.userEmail || '';
       const userName = member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
       userPoints.set(member.userId, {
-        points: 0,
+        userId: member.userId,
+        groupPhasePoints: 0,
+        finalPhasePoints: 0,
+        playerPoints: 0,
         userName,
         userEmail: email,
       });
@@ -188,7 +250,7 @@ export class MatchService {
       }
       const current = userPoints.get(prediction.userId);
       if (current) {
-        current.points += prediction.points || 0;
+        current.groupPhasePoints += prediction.points || 0;
       }
     });
 
@@ -198,17 +260,42 @@ export class MatchService {
       }
       const current = userPoints.get(prediction.userId);
       if (current) {
-        current.points += prediction.points || 0;
+        current.finalPhasePoints += prediction.points || 0;
+      }
+    });
+
+    const playerScoring = resolvePlayerScoring(pool);
+    playerSelections.forEach((selection: any) => {
+      if (!memberUserIds.has(selection.userId)) {
+        return;
+      }
+      const current = userPoints.get(selection.userId);
+      if (current) {
+        current.playerPoints += computePlayerPoints(selection, playerScoring);
+      }
+    });
+
+    const awardWinners = resolvePlayerAwardWinners(pool, tournamentPlayers);
+    playerAwardSelections.forEach((selection: any) => {
+      if (!memberUserIds.has(selection.userId)) {
+        return;
+      }
+      const current = userPoints.get(selection.userId);
+      if (current) {
+        current.playerPoints += computePlayerAwardPoints(selection, awardWinners, playerScoring);
       }
     });
 
     return Array.from(userPoints.values())
-      .sort((a, b) => b.points - a.points)
+      .sort((a, b) => (b.groupPhasePoints + b.finalPhasePoints + b.playerPoints) - (a.groupPhasePoints + a.finalPhasePoints + a.playerPoints))
       .map((entry, index) => ({
         rank: index + 1,
+        userId: entry.userId,
         userName: entry.userName,
         userEmail: entry.userEmail,
-        points: entry.points,
+        groupPhasePoints: entry.groupPhasePoints,
+        finalPhasePoints: entry.finalPhasePoints,
+        playerPoints: entry.playerPoints,
       }));
   }
 }

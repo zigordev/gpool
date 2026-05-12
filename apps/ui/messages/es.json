@@ -29,44 +29,108 @@
     }
   },
   "adminResults": {
+    "config": {
+      "general": {
+        "title": "General"
+      },
+      "players": {
+        "subgroups": {
+          "assistsByPosition": "Asistencias por posicion",
+          "awards": "Premios especiales",
+          "cleanSheetsByPosition": "Porterias a cero por posicion",
+          "discipline": "Disciplina",
+          "goalsByPosition": "Goles por posicion",
+          "individualActions": "Acciones individuales"
+        }
+      }
+    },
+    "dangerZone": {
+      "cancelButton": "Cancelar",
+      "confirmButton": "Sí, eliminar definitivamente",
+      "confirmDescription": "Esta acción es permanente e irreversible. Se perderán todas las predicciones, resultados y configuración.",
+      "confirmTitle": "¿Eliminar \"{name}\"?",
+      "deletePoolButton": "Eliminar porra",
+      "deletePoolDescription": "Esta acción eliminará permanentemente la porra y todos sus datos. No se puede deshacer.",
+      "deleting": "Eliminando...",
+      "title": "Zona de peligro"
+    },
     "errors": {
       "adminRequired": "Acceso denegado. Se requiere rol de administrador.",
-      "createPhase": "No se pudo crear la fase",
+      "bracketReEvaluate": "No se pudo reevaluar la fase final",
+      "deletePool": "No se pudo eliminar la porra",
       "enterBothResults": "Introduce resultados para ambos equipos",
       "loadData": "No se pudieron cargar los datos",
       "saveBracketResult": "No se pudo guardar el resultado del cuadro",
       "saveResults": "No se pudieron guardar los resultados",
-      "saveScoring": "No se pudo guardar la configuracion de puntuacion",
+      "saveScoring": "No se pudo guardar la configuración de puntuación",
       "selectPoolFirst": "Selecciona primero una porra",
+      "updatePlayerStats": "No se pudieron actualizar las estadisticas del jugador",
       "updateTeam": "No se pudo actualizar el equipo"
-    },
-    "finalPhase": {
-      "description": "Cuadro del torneo con todas las fases. El flujo va de izquierda (dieciseisavos) hacia el centro (final).",
-      "title": "Fase final"
     },
     "groupPhase": {
       "empty": "Aun no hay partidos de fase de grupos disponibles.",
-      "group": "Grupo {group}",
-      "title": "Fase de grupos"
+      "group": "Grupo {group}"
     },
-    "ranking": {
-      "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
-      "title": "Clasificacion"
+    "players": {
+      "countryAll": "Todos los paises",
+      "decrease": "Restar accion",
+      "increase": "Sumar accion",
+      "positionAll": "Todas las posiciones",
+      "positions": {
+        "defender": "Defensa",
+        "forward": "Delantero",
+        "goalkeeper": "Portero",
+        "midfielder": "Mediocampista"
+      },
+      "scoring": {
+        "assistDefender": "Asistencia de defensa",
+        "assistForward": "Asistencia de delantero",
+        "assistGoalkeeper": "Asistencia de portero",
+        "assistMidfielder": "Asistencia de mediocampista",
+        "cleanSheetDefender": "Porteria a cero de defensa",
+        "cleanSheetForward": "Porteria a cero de delantero",
+        "cleanSheetGoalkeeper": "Porteria a cero de portero",
+        "cleanSheetMidfielder": "Porteria a cero de mediocampista",
+        "goalDefender": "Gol de defensa",
+        "goalForward": "Gol de delantero",
+        "goalGoalkeeper": "Gol de portero",
+        "goalMidfielder": "Gol de mediocampista",
+        "goldenBoot": "Bota de oro",
+        "missedPenalty": "Penalti fallado",
+        "mvp": "MVP",
+        "penaltySaved": "Penalti parado",
+        "redCard": "Tarjeta roja",
+        "tournamentMvp": "MVP del torneo",
+        "yellowCard": "Tarjeta amarilla"
+      },
+      "searchPlaceholder": "Buscar jugador"
     },
     "scoring": {
-      "finalCorrectWrongPosition": "Puntos por equipo correcto (posicion incorrecta, fase final)",
-      "finalExactPosition": "Puntos por posicion exacta (fase final)",
-      "groupPhaseExact": "Puntos por resultado exacto (fase de grupos)",
-      "groupPhaseWinner": "Puntos por ganador correcto (fase de grupos)",
-      "save": "Guardar configuracion de puntuacion",
-      "title": "Configuracion de puntuacion"
+      "deadline": "Fecha limite de predicciones",
+      "deadlineHint": "Despues de esta fecha y hora no se podran enviar ni modificar predicciones.",
+      "entryFee": "Cuota de entrada (EUR)",
+      "entryFeeHint": "Cantidad que cada participante debe abonar para entrar en la porra. Usa 0 para porras gratuitas.",
+      "finalCorrectWrongPosition": "Puntos por equipo correcto (posicion incorrecta)",
+      "finalExactPosition": "Puntos por posicion exacta correcta",
+      "groupPhaseExact": "Puntos por resultado exacto",
+      "groupPhaseWinner": "Puntos por ganador correcto",
+      "prizePaidPositions": "Puestos con premio",
+      "prizePaidPositionsHint": "Numero de posiciones del ranking que reciben premio.",
+      "prizePercentage": "Porcentaje para el puesto {rank}",
+      "prizeRank": "Puesto {rank}",
+      "prizeTotal": "Total configurado: {total}%",
+      "prizeTotalInvalid": "Debe sumar 100%",
+      "prizeTotalValid": "Correcto",
+      "title": "Configurar puntuacion",
+      "tournamentWinner": "Ganador del torneo"
     },
-    "title": "Administracion de porras",
+    "tabs": {
+      "label": "Secciones de administración"
+    },
     "toast": {
+      "bracketReEvaluated": "Fase final reevaluada correctamente",
       "bracketResultSaved": "Resultado del cuadro guardado correctamente",
-      "phaseCreated": "Fase {phase} creada correctamente",
-      "resultsSaved": "Resultados guardados correctamente",
-      "scoringSaved": "Configuracion de puntuacion guardada correctamente"
+      "poolDeleted": "Porra eliminada correctamente"
     }
   },
   "authCallback": {
@@ -74,10 +138,7 @@
     "processing": "Procesando..."
   },
   "bracket": {
-    "correctTeamPoints": "✓ Equipo correcto (+{points} pts)",
-    "exactPositionPoints": "✓ Posicion exacta (+{points} pts)",
-    "final": "FINAL",
-    "match": "Partido {number}",
+    "alreadySelected": "Equipo ya seleccionado",
     "round": {
       "16th": "Dieciseisavos",
       "8th": "Octavos",
@@ -86,19 +147,13 @@
       "semi": "Semifinales"
     },
     "selectTeam": "Selecciona equipo",
-    "totalPoints": "Total: +{points} pts",
-    "vs": "vs"
+    "selectTournamentWinner": "Selecciona ganador del torneo",
+    "winner": "Ganador"
   },
   "common": {
-    "backToPools": "Volver a porras",
     "cancel": "Cancelar",
     "errorLabel": "Error:",
-    "loading": "Cargando...",
-    "point": "punto",
-    "points": "puntos",
-    "save": "Guardar",
-    "saving": "Guardando...",
-    "update": "Actualizar"
+    "loading": "Cargando..."
   },
   "home": {
     "redirecting": "Redirigiendo..."
@@ -110,80 +165,180 @@
     }
   },
   "login": {
-    "signInWithGoogle": "Iniciar sesion con Google"
+    "eyebrow": "Haz tus porras",
+    "signInWithGoogle": "Iniciar sesion con Google",
+    "tagline": "Crea porras, registra predicciones y compite con tu grupo.",
+    "terms": "Al continuar aceptas participar con tu cuenta de Google.",
+    "title": "GPool"
   },
   "logo": {
     "alt": "Logo de GPool"
   },
   "nav": {
+    "language": "Idioma",
     "logout": "Cerrar sesion",
-    "pools": "Porras",
-    "user": "Usuario"
+    "user": "Usuario",
+    "primary": "Principal"
   },
   "poolDetail": {
-    "actions": {
-      "administrate": "Administrar"
-    },
     "deadline": {
-      "groupPhase": "Fecha limite de fase de grupos",
-      "passed": "Fecha limite superada",
+      "general": "Fecha limite",
       "passedShort": "Expirado"
     },
     "errors": {
-      "invalidPoolId": "ID de porra invalido",
-      "loadPool": "No se pudo cargar la porra",
-      "notFound": "Porra no encontrada",
+      "loadData": "No se pudieron cargar los datos",
       "savePrediction": "No se pudo guardar la prediccion"
     },
     "finalPhase": {
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
-      "predictionSaved": "Prediccion guardada",
-      "title": "Fase final"
+      "predictionSaved": "Prediccion guardada"
     },
     "groupPhase": {
       "group": "Grupo {group}",
-      "noMatches": "Aun no hay partidos disponibles.",
-      "title": "Fase de grupos"
+      "noMatches": "Aun no hay partidos disponibles."
     },
     "info": {
-      "members": "Miembros",
-      "owner": "Propietario"
+      "entryFee": "Cuota",
+      "entryFeeFree": "Gratis"
     },
     "loading": "Cargando porra...",
     "match": {
-      "correctWinnerPoints": "✓ Ganador correcto (+{points} pts)",
-      "exactResultPoints": "✓ Resultado exacto (+{points} pts)",
+      "correctWinnerBadge": "Ganador",
+      "exactBadge": "Exacto",
       "incomplete": "Incompleto",
-      "incorrect": "✗ Incorrecto (0 pts)",
-      "result": "Resultado: {home} - {away}"
+      "incorrectBadge": "Incorrecto",
+      "pendingBadge": "Sin prediccion",
+      "points": "Puntos"
+    },
+    "mode": {
+      "admin": "Administrador",
+      "label": "Modo de vista",
+      "member": "Usuario"
+    },
+    "players": {
+      "actions": {
+        "assists": "Asistencias",
+        "cleanSheets": "Porterias a cero",
+        "goals": "Goles",
+        "missedPenalties": "Penaltis fallados",
+        "mvps": "MVP",
+        "penaltiesSaved": "Penaltis parados",
+        "redCards": "Tarjetas rojas",
+        "yellowCards": "Tarjetas amarillas"
+      },
+      "awards": {
+        "goldenBoot": "Bota de oro",
+        "goldenBootDescription": "Jugador con mas goles",
+        "individual": "Premios individuales",
+        "tournamentMvp": "MVP del torneo",
+        "tournamentMvpDescription": "Mejor jugador del torneo"
+      },
+      "empty": "Aun no hay jugadores del torneo disponibles.",
+      "points": "{points} pts",
+      "positions": {
+        "defender": "Defensas",
+        "forward": "Delanteros",
+        "goalkeeper": "Porteros",
+        "midfielder": "Mediocampistas"
+      },
+      "saveError": "No se pudo guardar el jugador",
+      "slotLabel": "Puesto {slot}",
+      "tabAll": "Todos",
+      "tabSelection": "Mis jugadores",
+      "title": "Jugadores"
     },
     "ranking": {
-      "empty": "Aun no hay clasificacion. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
-      "title": "Clasificacion"
+      "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
+      "finalPhasePoints": "Puntos fase final",
+      "groupPhasePoints": "Puntos fase grupos",
+      "playerPoints": "Puntos jugadores",
+      "prize": "Premio",
+      "totalPoints": "Puntos totales"
+    },
+    "rules": {
+      "howTo": {
+        "deadline": "La fecha limite bloquea cualquier tipo de cambio después de la misma.",
+        "final": "La fase final se rellena inicialmente desde tus predicciones de la fase de grupos. Puedes realizar cambios con respecto a la selección automática.",
+        "players": "Elige 6 porteros, 6 defensas, 6 mediocampistas, 6 delanteros, Bota de oro y MVP del torneo.",
+        "predict": "Predice todos los marcadores de la fase de grupos antes de la fecha limite.",
+        "ranking": "La clasificación suma los puntos de grupos, fase final y jugadores.",
+        "title": "Como se juega"
+      },
+      "points": {
+        "assists": "Asistencias",
+        "bracketRound": "Lado correcto del cuadro +{exact} / Lado incorrecto del cuadro +{wrong}",
+        "cleanSheets": "Porteria a cero: ",
+        "correctWinner": "Ganador: ",
+        "exactResult": "Resultado exacto: ",
+        "goals": "Goles: ",
+        "goldenBoot": "Bota de oro: ",
+        "missedPenalty": "Penalti fallado: ",
+        "mvp": "MVP partido: ",
+        "penaltySaved": "Penalti parado: ",
+        "redCard": "Tarjeta roja: ",
+        "title": "Sistema de puntos",
+        "tournamentMvp": "MVP torneo: ",
+        "tournamentWinner": "Ganador del torneo: ",
+        "yellowCard": "Tarjeta amarilla: "
+      },
+      "poolConfig": {
+        "deadline": "Fecha limite: ",
+        "entryFee": "Cuota: ",
+        "prizes": "{count} posiciones con premio",
+        "title": "General"
+      }
+    },
+    "spy": {
+      "action": "Ver picks",
+      "empty": {
+        "bracket": "Aun no ha seleccionado fase final.",
+        "players": "Aun no ha seleccionado jugadores.",
+        "predictions": "Aun no ha hecho predicciones."
+      },
+      "groupLabel": "Grupo {group}",
+      "loadError": "No se pudieron cargar los picks",
+      "loading": "Cargando picks...",
+      "tabs": {
+        "final": "Fase final",
+        "groups": "Fase grupos",
+        "players": "Jugadores"
+      }
+    },
+    "tabs": {
+      "finalPhase": "Fase final",
+      "groupPhase": "Fase de grupos",
+      "label": "Secciones de la porra",
+      "missingCount": "{count} pendientes",
+      "players": "Jugadores",
+      "ranking": "Clasificación",
+      "short": {
+        "finalPhase": "Final",
+        "groupPhase": "Grupos",
+        "players": "Jugadores",
+        "ranking": "Clasif."
+      }
     }
   },
   "pools": {
     "actions": {
       "create": "Crear porra",
       "creating": "Creando...",
-      "editTitle": "Editar nombre de la porra",
       "inviteTitle": "Invitar usuario a la porra",
       "requestAccess": "Solicitar acceso",
       "requesting": "Solicitando...",
       "sendInvitation": "Enviar invitacion",
-      "sending": "Enviando...",
-      "update": "Actualizar porra",
-      "updating": "Actualizando..."
+      "sending": "Enviando..."
     },
     "card": {
-      "member": "Miembro",
       "members": "{count} miembros",
       "owner": "Propietario:",
       "unknownOwner": "Propietario desconocido"
     },
     "empty": {
       "adminHint": "Crea tu primera porra para empezar.",
+      "participatingHint": "Desactiva el filtro para ver todas las porras disponibles.",
+      "participatingTitle": "No estas participando en ninguna porra.",
       "title": "No se encontraron porras."
     },
     "errors": {
@@ -193,23 +348,24 @@
       "requestAccess": "No se pudo solicitar acceso",
       "update": "No se pudo actualizar la porra"
     },
+    "filters": {
+      "all": "Todas las porras",
+      "mine": "Mis porras",
+      "viewMode": "Vista de porras"
+    },
     "loading": "Cargando porras...",
     "modal": {
       "createTitle": "Crear porra",
-      "editTitle": "Editar nombre de porra",
       "inviteEmailLabel": "Correo electronico *",
       "inviteEmailPlaceholder": "usuario@ejemplo.com",
       "inviteTitle": "Invitar usuario a {poolName}",
       "poolNameLabel": "Nombre de la porra *",
       "poolNamePlaceholder": "Introduce el nombre de la porra (3-100 caracteres)"
     },
-    "subtitle": "Consulta y gestiona tus porras de futbol",
-    "title": "Porras",
     "toast": {
       "created": "Porra creada correctamente",
       "invitationSent": "Invitacion enviada a {email}",
-      "requestSubmitted": "Solicitud de acceso enviada. El administrador de la porra la revisara.",
-      "updated": "Porra actualizada correctamente"
+      "requestSubmitted": "Solicitud de acceso enviada. El administrador de la porra la revisara."
     },
     "validation": {
       "emailInvalid": "Introduce un correo electronico valido",
@@ -217,5 +373,10 @@
       "nameMax": "El nombre de la porra debe tener menos de 100 caracteres",
       "nameMin": "El nombre de la porra debe tener al menos 3 caracteres"
     }
+  },
+  "theme": {
+    "dark": "Oscuro",
+    "light": "Claro",
+    "toggle": "Tema"
   }
 }

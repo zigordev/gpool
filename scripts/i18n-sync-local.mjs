@@ -64,7 +64,7 @@ function runPush(repoRoot, workspace, env) {
         cwd: repoRoot,
         stdio: 'inherit',
         env,
-      },
+      }
     );
 
     child.on('exit', (code, signal) => {

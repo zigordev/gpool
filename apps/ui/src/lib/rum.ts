@@ -152,12 +152,12 @@ class RUMService {
               this.recordEvent({
                 type: 'performance',
                 name: 'DOMContentLoaded',
-                value: navEntry.domContentLoadedEventEnd - navEntry.navigationStart,
+                value: navEntry.domContentLoadedEventEnd - navEntry.startTime,
               });
               this.recordEvent({
                 type: 'performance',
                 name: 'Load',
-                value: navEntry.loadEventEnd - navEntry.navigationStart,
+                value: navEntry.loadEventEnd - navEntry.startTime,
               });
             }
           });

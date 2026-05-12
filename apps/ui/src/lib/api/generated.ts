@@ -83,6 +83,16 @@ export type ApiOperation = {
   responseCodes: ['200', '403', '404'];
 } | {
   method: 'GET';
+  path: '/api/pools/{poolId}/members/{userId}/picks';
+  operationId: 'SpyController_getMemberPicks';
+  responseCodes: ['200', '403', '404'];
+} | {
+  method: 'GET';
+  path: '/api/pools/{poolId}/players';
+  operationId: 'PlayerController_getPlayers';
+  responseCodes: ['200'];
+} | {
+  method: 'GET';
   path: '/metrics';
   operationId: 'MetricsController_getMetrics';
   responseCodes: ['200'];
@@ -171,9 +181,29 @@ export type ApiOperation = {
   path: '/api/pools/{poolId}/configuration';
   operationId: 'PoolController_updatePoolConfiguration';
   responseCodes: ['200', '403', '404'];
+} | {
+  method: 'PUT';
+  path: '/api/pools/{poolId}/membership/config';
+  operationId: 'PoolController_updateMembershipConfig';
+  responseCodes: ['200', '403', '404'];
+} | {
+  method: 'PUT';
+  path: '/api/pools/{poolId}/players/{playerId}/stats';
+  operationId: 'PlayerController_updatePlayerStats';
+  responseCodes: ['200'];
+} | {
+  method: 'PUT';
+  path: '/api/pools/{poolId}/players/award-selection';
+  operationId: 'PlayerController_updateAwardSelection';
+  responseCodes: ['200'];
+} | {
+  method: 'PUT';
+  path: '/api/pools/{poolId}/players/selection';
+  operationId: 'PlayerController_updateSelection';
+  responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 34 as const;
+export const API_OPERATION_COUNT = 40 as const;
 
 export const API_OPERATIONS = [
   {
@@ -310,6 +340,24 @@ export const API_OPERATIONS = [
       "200",
       "403",
       "404"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/pools/{poolId}/members/{userId}/picks",
+    "operationId": "SpyController_getMemberPicks",
+    "responseCodes": [
+      "200",
+      "403",
+      "404"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/pools/{poolId}/players",
+    "operationId": "PlayerController_getPlayers",
+    "responseCodes": [
+      "200"
     ]
   },
   {
@@ -474,6 +522,40 @@ export const API_OPERATIONS = [
       "200",
       "403",
       "404"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/membership/config",
+    "operationId": "PoolController_updateMembershipConfig",
+    "responseCodes": [
+      "200",
+      "403",
+      "404"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/players/{playerId}/stats",
+    "operationId": "PlayerController_updatePlayerStats",
+    "responseCodes": [
+      "200"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/players/award-selection",
+    "operationId": "PlayerController_updateAwardSelection",
+    "responseCodes": [
+      "200"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/players/selection",
+    "operationId": "PlayerController_updateSelection",
+    "responseCodes": [
+      "200"
     ]
   }
 ] as const;

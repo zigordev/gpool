@@ -101,7 +101,14 @@ export class BracketController {
   async createPrediction(
     @Param('poolId') poolId: string,
     @Param('bracketMatchId') bracketMatchId: string,
-    @Body() body: { homeTeamId: string; homeTeamName: string; awayTeamId: string; awayTeamName: string },
+    @Body() body: {
+      homeTeamId: string;
+      homeTeamName: string;
+      awayTeamId: string;
+      awayTeamName: string;
+      predictedWinnerTeamId?: string;
+      predictedWinnerTeamName?: string;
+    },
     @Req() req: Request,
   ) {
     const user = req.user as any;
@@ -113,6 +120,8 @@ export class BracketController {
       body.homeTeamName,
       body.awayTeamId,
       body.awayTeamName,
+      body.predictedWinnerTeamId,
+      body.predictedWinnerTeamName,
     );
   }
 

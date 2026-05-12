@@ -327,8 +327,34 @@ export class PoolService {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (pool.adminUserId !== userId) {
+    if (userRole !== 'admin' && pool.adminUserId !== userId) {
       throw new ForbiddenException('Only the pool administrator can update pool configuration');
+    }
+
+    const paidPositions = newConfig?.prizeDistribution?.paidPositions;
+    if (paidPositions !== undefined) {
+      const paidPositionCount = Number(paidPositions);
+      const members = await this.poolRepository.getPoolMembers(poolId);
+      if (!Number.isInteger(paidPositionCount) || paidPositionCount < 0) {
+        throw new BadRequestException('Prize paid positions must be a non-negative integer');
+      }
+      if (paidPositionCount > members.length) {
+        throw new BadRequestException(
+          `Prize paid positions cannot exceed the number of pool members (${members.length})`,
+        );
+      }
+      const payouts = Array.isArray(newConfig.prizeDistribution.payouts)
+        ? newConfig.prizeDistribution.payouts
+        : [];
+      const hasOutOfRangeRank = payouts.some((payout: any) => {
+        const rank = Number(payout?.rank);
+        return Number.isInteger(rank) && rank > members.length;
+      });
+      if (hasOutOfRangeRank) {
+        throw new BadRequestException(
+          `Prize payout ranks cannot exceed the number of pool members (${members.length})`,
+        );
+      }
     }
 
     const existingConfig = pool.config || {};
@@ -337,6 +363,25 @@ export class PoolService {
 
     this.logger.log(`Pool configuration updated: ${poolId} by ${userId}`);
     return { success: true, message: 'Pool configuration updated successfully' };
+  }
+
+  async updateMembershipConfig(poolId: string, userId: string, config: Record<string, any>) {
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+
+    const membership = await this.poolRepository.getMembership(poolId, userId);
+    if (!membership) {
+      throw new ForbiddenException('You must be a member of this pool to update membership settings');
+    }
+
+    const updated = await this.poolRepository.updateMembershipConfig(poolId, userId, config || {});
+    if (!updated) {
+      throw new BadRequestException('Failed to update membership settings');
+    }
+
+    return updated;
   }
 
   async getPoolMembers(poolId: string, userId?: string, userRole?: string) {

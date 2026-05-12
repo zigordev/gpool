@@ -39,7 +39,7 @@ COPY --from=deps-build /workspace/node_modules /workspace/node_modules
 COPY package.json /workspace/package.json
 COPY apps/ui /workspace/apps/ui
 WORKDIR /workspace/apps/ui
-RUN npm run build
+RUN mkdir -p public && npm run build
 
 FROM node:25-alpine AS prod
 WORKDIR /app

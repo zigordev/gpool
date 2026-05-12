@@ -11,14 +11,14 @@ services:
     volumes:
       - app-prod-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
       interval: 5s
       timeout: 3s
       retries: 20
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks:
       gp_shared:
         aliases:
@@ -55,11 +55,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["node", "/app/scripts/openbao-run.mjs", "--", "node", "dist/main.js"]
+    command: ['node', '/app/scripts/openbao-run.mjs', '--', 'node', 'dist/main.js']
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks:
       gp_shared:
         aliases:
@@ -84,14 +84,14 @@ services:
       - api
     command:
       [
-        "sh",
-        "-lc",
-        "until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js",
+        'sh',
+        '-lc',
+        'until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
       ]
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        labels: "com.docker.compose.project,com.docker.compose.service"
+        labels: 'com.docker.compose.project,com.docker.compose.service'
     networks:
       gp_shared:
         aliases:

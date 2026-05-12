@@ -1,0 +1,192 @@
+'use client';
+
+import { useI18n } from '@/i18n/client';
+import { Section } from '@/components/ui/Section';
+import { FormField } from '@/components/ui/FormField';
+import { Input } from '@/components/ui/Input';
+import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
+import Select from 'react-select';
+import { selectStyles } from '@/lib/select-styles';
+import { countryIsoCode } from '@/lib/country-flags';
+import ReactCountryFlag from 'react-country-flag';
+import { computePlayerPoints, useAdminContext } from '@/contexts/AdminContext';
+import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
+import { IoSettings } from 'react-icons/io5';
+import { IoMdCloseCircle } from 'react-icons/io';
+import { LuRectangleVertical } from 'react-icons/lu';
+import { PiBoxingGlove } from 'react-icons/pi';
+import { GiLeatherBoot } from 'react-icons/gi';
+
+export default function AdminPlayersPage() {
+  const { t, locale } = useI18n();
+  const {
+    players,
+    playerFilter,
+    setPlayerFilter,
+    playerCountryFilter,
+    setPlayerCountryFilter,
+    playerPositionFilter,
+    setPlayerPositionFilter,
+    playerScoringConfig,
+    setPlayerScoringConfig,
+    playerAwardWinnersConfig,
+    updatingPlayerStat,
+    handlePlayerStatChange,
+  } = useAdminContext();
+
+  const countries = Array.from(
+    players.reduce<Map<string, string>>((acc, player) => {
+      if (player.teamId && !acc.has(player.teamId)) {
+        acc.set(player.teamId, player.teamName || player.teamId);
+      }
+      return acc;
+    }, new Map()).entries(),
+  ).sort((a, b) => a[1].localeCompare(b[1], locale));
+
+  const nameSearch = playerFilter.trim().toLowerCase();
+  const countrySearch = playerCountryFilter.trim().toLowerCase();
+  const positionSearch = playerPositionFilter.trim().toLowerCase();
+
+  const filtered = players.filter((player) => {
+    const matchesName = !nameSearch || player.name.toLowerCase().includes(nameSearch);
+    const matchesCountry = !countrySearch || player.teamName.toLowerCase() === countrySearch;
+    const matchesPosition = !positionSearch || player.position.toLowerCase() === positionSearch;
+    return matchesName && matchesCountry && matchesPosition;
+  });
+
+  const countryOptions = countries.map(([teamId, teamName]) => ({
+    value: teamId,
+    label: (
+      <>
+        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+        <span>{` ${teamName}`}</span>
+      </>
+    ),
+    searchLabel: teamName,
+  }));
+
+  const selectedCountryOption = countryOptions.find((option) => option.value === playerCountryFilter) ?? null;
+
+  const positionOptions = [
+    { value: 'goalkeeper', label: t('adminResults.players.positions.goalkeeper') },
+    { value: 'defender', label: t('adminResults.players.positions.defender') },
+    { value: 'midfielder', label: t('adminResults.players.positions.midfielder') },
+    { value: 'forward', label: t('adminResults.players.positions.forward') },
+  ];
+
+  const selectedPositionOption = positionOptions.find((option) => option.value === playerPositionFilter) ?? null;
+
+  return (
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+      {/* Player scoring configuration */}
+      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+        <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {[
+            { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />, fields: [
+              { label: t('adminResults.players.scoring.goalGoalkeeper'), value: playerScoringConfig.goal.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, goalkeeper: v } })) },
+              { label: t('adminResults.players.scoring.goalDefender'), value: playerScoringConfig.goal.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, defender: v } })) },
+              { label: t('adminResults.players.scoring.goalMidfielder'), value: playerScoringConfig.goal.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, midfielder: v } })) },
+              { label: t('adminResults.players.scoring.goalForward'), value: playerScoringConfig.goal.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, forward: v } })) },
+            ]},
+            { labelKey: 'adminResults.config.players.subgroups.assistsByPosition', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} />, fields: [
+              { label: t('adminResults.players.scoring.assistGoalkeeper'), value: playerScoringConfig.assist.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, goalkeeper: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.assistDefender'), value: playerScoringConfig.assist.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, defender: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.assistMidfielder'), value: playerScoringConfig.assist.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, midfielder: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.assistForward'), value: playerScoringConfig.assist.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, forward: Math.max(0, v) } })) },
+            ]},
+            { labelKey: 'adminResults.config.players.subgroups.cleanSheetsByPosition', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} />, fields: [
+              { label: t('adminResults.players.scoring.cleanSheetGoalkeeper'), value: playerScoringConfig.cleanSheet.goalkeeper, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, goalkeeper: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.cleanSheetDefender'), value: playerScoringConfig.cleanSheet.defender, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, defender: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.cleanSheetMidfielder'), value: playerScoringConfig.cleanSheet.midfielder, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, midfielder: Math.max(0, v) } })) },
+              { label: t('adminResults.players.scoring.cleanSheetForward'), value: playerScoringConfig.cleanSheet.forward, onChange: (v: number) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, forward: Math.max(0, v) } })) },
+            ]},
+          ].map(({ labelKey, icon, fields }) => (
+            <div key={labelKey}>
+              <p style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{icon}{t(labelKey)}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                {fields.map((field) => (
+                  <FormField key={field.label} label={field.label}>
+                    <Input type="number" inputMode="numeric" min="0" value={field.value} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; field.onChange(v); }} />
+                  </FormField>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.individualActions')}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, missedPenalty: v })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.mvp')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.mvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, mvp: v })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.penaltySaved} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, penaltySaved: v })); }} /></FormField>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.discipline')}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />{t('adminResults.players.scoring.yellowCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.yellowCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, yellowCard: Number.isFinite(v) ? Math.min(0, v) : 0 })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'red', fill: 'red' }} />{t('adminResults.players.scoring.redCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.redCard} onChange={(e) => { const v = Number.parseInt(e.target.value, 10); setPlayerScoringConfig((p) => ({ ...p, redCard: Number.isFinite(v) ? Math.min(0, v) : 0 })); }} /></FormField>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.awards')}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiLeatherBoot style={{ color: 'gold' }} />{t('adminResults.players.scoring.goldenBoot')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: Math.max(0, v) } })); }} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'gold' }} />{t('adminResults.players.scoring.tournamentMvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} onChange={(e) => { const v = Number.parseInt(e.target.value, 10) || 0; setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: Math.max(0, v) } })); }} /></FormField>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Player stats table */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 260px) minmax(220px, 260px)',
+            gap: '0.6rem',
+            alignItems: 'center',
+          }}
+        >
+          <Input
+            type="search"
+            value={playerFilter}
+            onChange={(e) => setPlayerFilter(e.target.value)}
+            placeholder={t('adminResults.players.searchPlaceholder')}
+            aria-label={t('adminResults.players.searchPlaceholder')}
+          />
+          <Select<{ value: string; label: string }, false>
+            isClearable
+            placeholder={t('adminResults.players.positionAll')}
+            value={selectedPositionOption}
+            options={positionOptions}
+            onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={selectStyles()}
+          />
+          <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+            isClearable
+            getOptionLabel={(option) => option.searchLabel}
+            formatOptionLabel={(option) => option.label}
+            placeholder={t('adminResults.players.countryAll')}
+            value={selectedCountryOption}
+            options={countryOptions}
+            onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+            styles={selectStyles()}
+          />
+        </div>
+        <PlayerStatsTable
+          players={filtered}
+          goldenBootPlayerIds={playerAwardWinnersConfig.goldenBootPlayerIds}
+          tournamentMvpPlayerId={playerAwardWinnersConfig.tournamentMvpPlayerId}
+          computeTotal={(p) => computePlayerPoints(p, playerScoringConfig)}
+          t={t}
+          editable
+          updatingPlayerStat={updatingPlayerStat}
+          onStatChange={handlePlayerStatChange}
+        />
+      </div>
+    </div>
+  );
+}
