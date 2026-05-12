@@ -31,6 +31,7 @@ const NAV_ICON_STYLE: React.CSSProperties = {
 };
 
 function ThemeButton() {
+  const { t } = useI18n();
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -52,7 +53,8 @@ function ThemeButton() {
   return (
     <button
       type="button"
-      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={`${t('theme.toggle')}: ${dark ? t('theme.light') : t('theme.dark')}`}
+      title={`${t('theme.toggle')}: ${dark ? t('theme.light') : t('theme.dark')}`}
       onClick={toggle}
       style={NAV_ICON_STYLE}
       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
@@ -274,6 +276,7 @@ function UserButton() {
 
 export function NavigationBar() {
   const { center, subBar } = useNavCenter();
+  const { t } = useI18n();
   const pathname = usePathname();
 
   if (pathname === '/login') return null;
@@ -289,7 +292,7 @@ export function NavigationBar() {
         WebkitBackdropFilter: 'blur(12px)',
       }}>
         <nav
-          aria-label="Primary"
+          aria-label={t('nav.primary')}
           className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}
         >
           <div className="nav-logo-area">
