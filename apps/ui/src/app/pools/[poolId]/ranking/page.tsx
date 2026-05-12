@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePoolContext, phaseShortKey, PLAYER_AWARDS, PLAYER_POSITIONS, PLAYER_SELECTION_LIMIT } from '@/contexts/PoolContext';
+import { usePoolContext, formatEur, computePrize, resolvePrizeDistribution, PLAYER_AWARDS, PLAYER_POSITIONS, PLAYER_SELECTION_LIMIT } from '@/contexts/PoolContext';
 import { RankTable } from '@/components/pool/RankTable';
 import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { formatEur, computePrize, resolvePrizeDistribution } from '@/contexts/PoolContext';
+import { BracketVisualization } from '@/components/BracketVisualization';
+import ReactCountryFlag from 'react-country-flag';
+import { countryIsoCode } from '@/lib/country-flags';
 import { SpyPicksData } from '@/types/spyPicksData.interface';
-import { SpyPicksLabels } from '@/types/spyPicksLabels.interface';
 import { PlayerSelection } from '@/types/playerSelection.interface';
-import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerAward } from '@/types/playerAward.type';
+import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -21,8 +22,9 @@ function SpyPicksModal({
   groups,
   matchesByGroup,
   bracketStructure,
+  teams,
+  poolId,
   tournamentPlayers,
-  labels,
   locale,
 }: Readonly<{
   spy: { target: { userId: string; userName: string }; loading: boolean; error: string | null; data: SpyPicksData | null } | null;
@@ -30,10 +32,12 @@ function SpyPicksModal({
   groups: string[];
   matchesByGroup: Record<string, Match[]>;
   bracketStructure: Record<string, any[]>;
-  tournamentPlayers: TournamentPlayer[];
-  labels: SpyPicksLabels;
+  teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
+  poolId: string;
+  tournamentPlayers: any[];
   locale: string;
 }>) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<'groups' | 'final' | 'players'>('groups');
 
   const targetUserId = spy?.target.userId;
@@ -47,97 +51,142 @@ function SpyPicksModal({
   const error = spy?.error ?? null;
   const userName = spy?.target.userName ?? '';
 
-  const predictionByMatch = new Map<string, SpyPicksData['predictions'][number]>();
-  if (data) for (const p of data.predictions) predictionByMatch.set(p.matchId, p);
+  const predictionByMatch = useMemo(() => {
+    const map = new Map<string, SpyPicksData['predictions'][number]>();
+    if (data) for (const p of data.predictions) map.set(p.matchId, p);
+    return map;
+  }, [data]);
 
-  const bracketPickByMatch = new Map<string, SpyBracketPrediction>();
-  if (data) for (const p of data.bracketPredictions) bracketPickByMatch.set(p.bracketMatchId, p);
+  const spyBracketPredictions = useMemo(() => {
+    const map: Record<string, any> = {};
+    if (data) for (const p of data.bracketPredictions) map[p.bracketMatchId] = p;
+    return map;
+  }, [data]);
 
-  const playerByPositionSlot = new Map<string, PlayerSelection>();
-  const playerByAward = new Map<PlayerAward, PlayerAwardSelection>();
-  if (data) {
-    for (const sel of data.playerSelections) playerByPositionSlot.set(`${sel.position}:${sel.slot}`, sel);
-    for (const sel of data.playerAwardSelections || []) playerByAward.set(sel.award, sel);
-  }
+  const playerByPositionSlot = useMemo(() => {
+    const map = new Map<string, PlayerSelection>();
+    if (data) for (const sel of data.playerSelections) map.set(`${sel.position}:${sel.slot}`, sel);
+    return map;
+  }, [data]);
 
-  const tabButton = (key: typeof tab, label: string) => {
-    const selected = tab === key;
-    return (
-      <button
-        key={key} type="button" role="tab" aria-selected={selected} onClick={() => setTab(key)}
-        style={{
-          flex: 1, padding: '0.5rem 0.75rem', border: '1px solid transparent',
-          borderRadius: 'var(--radius-sm)',
-          background: selected ? 'rgb(var(--pitch) / 0.12)' : 'rgb(var(--bg-subtle))',
-          color: selected ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
-          fontWeight: selected ? 700 : 600, fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap',
-        }}
-      >
-        {label}
-      </button>
-    );
-  };
+  const playerByAward = useMemo(() => {
+    const map = new Map<PlayerAward, PlayerAwardSelection>();
+    if (data) for (const sel of data.playerAwardSelections || []) map.set(sel.award as PlayerAward, sel);
+    return map;
+  }, [data]);
 
   return (
-    <Modal open={open} onClose={onClose} title={userName ? labels.title(userName) : ''} description={labels.description} size="lg"
-      footer={<Button variant="ghost" onClick={onClose}>{labels.close}</Button>}
-    >
-      <div role="tablist" style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem' }}>
-        {tabButton('groups', labels.tabs.groups)}
-        {tabButton('final', labels.tabs.final)}
-        {tabButton('players', labels.tabs.players)}
+    <Modal open={open} onClose={onClose} title={userName} size="lg">
+      <div className="players-tab-bar" role="tablist" style={{ marginBottom: '1rem' }}>
+        {(['groups', 'final', 'players'] as const).map((key) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={tab === key}
+            className={`players-tab-btn${tab === key ? ' players-tab-btn--active' : ''}`}
+            onClick={() => setTab(key)}
+          >
+            {key === 'groups'
+              ? t('poolDetail.spy.tabs.groups')
+              : key === 'final'
+              ? t('poolDetail.spy.tabs.final')
+              : t('poolDetail.spy.tabs.players')}
+          </button>
+        ))}
       </div>
-      <div style={{ maxHeight: 'min(65vh, 540px)', overflowY: 'auto', paddingRight: '0.25rem' }}>
+
+      <div
+        style={{
+          maxHeight: 'min(68vh, 580px)',
+          overflowY: 'auto',
+          overflowX: 'clip',
+        }}
+      >
         {loading ? (
-          <p style={{ color: 'rgb(var(--fg-muted))', textAlign: 'center', padding: '2rem 0' }}>{labels.loading}</p>
+          <p style={{ color: 'rgb(var(--fg-muted))', textAlign: 'center', padding: '2rem 0', margin: 0 }}>
+            {t('poolDetail.spy.loading')}
+          </p>
         ) : error ? (
-          <p style={{ color: 'rgb(var(--live))', textAlign: 'center', padding: '2rem 0' }}>{error}</p>
+          <p style={{ color: 'rgb(var(--live))', textAlign: 'center', padding: '2rem 0', margin: 0 }}>{error}</p>
         ) : !data ? null : tab === 'groups' ? (
-          <SpyGroupsView data={data} groups={groups} matchesByGroup={matchesByGroup} predictionByMatch={predictionByMatch} labels={labels} locale={locale} />
+          <SpyGroupsView
+            data={data}
+            groups={groups}
+            matchesByGroup={matchesByGroup}
+            predictionByMatch={predictionByMatch}
+            locale={locale}
+          />
         ) : tab === 'final' ? (
-          <SpyFinalView bracketStructure={bracketStructure} bracketPickByMatch={bracketPickByMatch} labels={labels} />
+          <SpyFinalView
+            bracket={bracketStructure}
+            teams={teams}
+            poolId={poolId}
+            bracketPredictions={spyBracketPredictions}
+            hasPredictions={data.bracketPredictions.length > 0}
+          />
         ) : (
-          <SpyPlayersView tournamentPlayers={tournamentPlayers} playerByPositionSlot={playerByPositionSlot} playerByAward={playerByAward} labels={labels} />
+          <SpyPlayersView
+            playerByPositionSlot={playerByPositionSlot}
+            playerByAward={playerByAward}
+            hasPredictions={data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0}
+          />
         )}
       </div>
     </Modal>
   );
 }
 
-function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, labels, locale }: Readonly<{
-  data: SpyPicksData; groups: string[]; matchesByGroup: Record<string, Match[]>;
-  predictionByMatch: Map<string, SpyPicksData['predictions'][number]>; labels: SpyPicksLabels; locale: string;
+// ─── Groups tab ───────────────────────────────────────────────────────────────
+
+function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, locale }: Readonly<{
+  data: SpyPicksData;
+  groups: string[];
+  matchesByGroup: Record<string, Match[]>;
+  predictionByMatch: Map<string, SpyPicksData['predictions'][number]>;
+  locale: string;
 }>) {
-  if (data.predictions.length === 0 && groups.length === 0) return <SpyEmpty text={labels.empty.predictions} />;
+  const { t } = useI18n();
+  if (data.predictions.length === 0 && groups.length === 0) {
+    return <SpyEmpty text={t('poolDetail.spy.empty.predictions')} />;
+  }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {groups.map((group) => {
         const matches = matchesByGroup[group] || [];
         return (
-          <section key={group} style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            <header style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>
-              {labels.groupLabel(group)}
+          <section key={group} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <header style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>
+              {t('poolDetail.spy.groupLabel', { group })}
             </header>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.35rem' }}>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.3rem' }}>
               {matches.map((match) => {
                 const pick = predictionByMatch.get(match.matchId);
                 const hasPick = pick && typeof pick.homeScore === 'number' && typeof pick.awayScore === 'number';
                 const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
-                const points = pick?.points ?? 0;
-                const tone = pick?.isExactMatch === true ? 'rgb(var(--info))' : pick?.isCorrect === true ? 'rgb(var(--pitch))' : hasResult && hasPick ? 'rgb(var(--live))' : 'rgb(var(--fg-subtle))';
+                const tone = pick?.isExactMatch === true
+                  ? 'rgb(var(--info))'
+                  : pick?.isCorrect === true
+                  ? 'rgb(var(--pitch))'
+                  : hasResult && hasPick
+                  ? 'rgb(var(--live))'
+                  : 'rgb(var(--fg-subtle))';
                 const matchDate = new Date(match.scheduledAt).toLocaleString(locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                 return (
-                  <li key={match.matchId} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.55rem', padding: '0.55rem 0.7rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'rgb(var(--fg-subtle))', fontWeight: 600 }}>
+                  <li key={match.matchId} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
+                    <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: 'rgb(var(--fg-subtle))', fontWeight: 600 }}>
                       <span>{matchDate}</span>
-                      {hasResult ? <span style={{ color: 'rgb(var(--fg-muted))' }}>{labels.ftLabel} {match.homeResult}-{match.awayResult}</span> : null}
+                      {hasResult ? <span style={{ color: 'rgb(var(--fg-muted))' }}>FT {match.homeResult}–{match.awayResult}</span> : null}
                     </div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgb(var(--fg))', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeamName}</span>
-                    <span style={{ fontFamily: 'var(--font-display, inherit)', fontWeight: 800, fontSize: '0.95rem', color: tone, fontVariantNumeric: 'tabular-nums', textAlign: 'center', minWidth: '3.5rem' }}>
-                      {hasPick ? `${pick.homeScore} – ${pick.awayScore}` : labels.noPick}
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeamName}</span>
+                    <span style={{ fontFamily: 'var(--font-display, inherit)', fontWeight: 800, fontSize: '0.9rem', color: tone, fontVariantNumeric: 'tabular-nums', textAlign: 'center', minWidth: '3.5rem' }}>
+                      {hasPick ? `${pick.homeScore}–${pick.awayScore}` : '—'}
                     </span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgb(var(--fg))', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
-                    {hasPick && hasResult ? <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '0.7rem', fontWeight: 700, color: tone }}>{points > 0 ? `+${points} ${labels.pointsLabel(points)}` : '0'}</div> : null}
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
+                    {hasPick && hasResult ? (
+                      <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '0.68rem', fontWeight: 700, color: tone }}>
+                        {(pick.points ?? 0) > 0 ? `+${pick.points} pts` : '0 pts'}
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}
@@ -149,90 +198,111 @@ function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, labels
   );
 }
 
-function SpyFinalView({ bracketStructure, bracketPickByMatch, labels }: Readonly<{
-  bracketStructure: Record<string, any[]>; bracketPickByMatch: Map<string, SpyBracketPrediction>; labels: SpyPicksLabels;
+// ─── Final phase tab ──────────────────────────────────────────────────────────
+
+function SpyFinalView({ bracket, teams, poolId, bracketPredictions, hasPredictions }: Readonly<{
+  bracket: Record<string, any[]>;
+  teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
+  poolId: string;
+  bracketPredictions: Record<string, any>;
+  hasPredictions: boolean;
 }>) {
-  const phases = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'];
-  const hasAny = phases.some((p) => Array.isArray(bracketStructure[p]) && bracketStructure[p].length > 0);
-  if (!hasAny) return <SpyEmpty text={labels.empty.bracket} />;
+  const { t } = useI18n();
+  const hasStructure = Object.values(bracket).some((arr) => arr.length > 0);
+
+  if (!hasStructure) return <SpyEmpty text={t('poolDetail.spy.empty.bracket')} />;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {phases.map((phase) => {
-        const matches = (bracketStructure[phase] || []).slice().sort((a: any, b: any) => (a.matchNumber || 0) - (b.matchNumber || 0));
-        if (matches.length === 0) return null;
-        return (
-          <section key={phase} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <header style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>{labels.bracketRoundLabel(phase)}</header>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.3rem' }}>
-              {matches.map((match: any) => {
-                const pick = bracketPickByMatch.get(match.bracketMatchId);
-                const homeName = pick?.homeTeamName || '—';
-                const awayName = pick?.awayTeamName || '—';
-                const homeExact = pick?.homeTeamExactPosition === true;
-                const homeWrong = pick?.homeTeamCorrectButWrongPosition === true;
-                const awayExact = pick?.awayTeamExactPosition === true;
-                const awayWrong = pick?.awayTeamCorrectButWrongPosition === true;
-                const points = pick?.points ?? 0;
-                return (
-                  <li key={match.bracketMatchId} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.55rem', padding: '0.5rem 0.7rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: pick?.homeTeamId ? 'rgb(var(--fg))' : 'rgb(var(--fg-subtle))', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderLeft: homeExact ? '3px solid rgb(var(--info))' : homeWrong ? '3px solid rgb(var(--pitch))' : '3px solid transparent', paddingLeft: '0.4rem' }}>{homeName}</span>
-                    <span aria-hidden style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgb(var(--fg-subtle))', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{labels.vs}</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: pick?.awayTeamId ? 'rgb(var(--fg))' : 'rgb(var(--fg-subtle))', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderRight: awayExact ? '3px solid rgb(var(--info))' : awayWrong ? '3px solid rgb(var(--pitch))' : '3px solid transparent', paddingRight: '0.4rem' }}>{awayName}</span>
-                    {points > 0 ? <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '0.7rem', fontWeight: 700, color: 'rgb(var(--gold))' }}>+{points}</div> : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        );
-      })}
+    <div style={{ margin: '0 -0.25rem' }}>
+      <BracketVisualization
+        bracket={bracket}
+        teams={teams}
+        poolId={poolId}
+        mode="user"
+        bracketPredictions={bracketPredictions}
+        deadline={1}
+        candidateOptions={{}}
+      />
+      {!hasPredictions ? (
+        <p style={{ color: 'rgb(var(--fg-subtle))', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.75rem' }}>
+          {t('poolDetail.spy.empty.bracket')}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-function SpyPlayersView({ tournamentPlayers, playerByPositionSlot, playerByAward, labels }: Readonly<{
-  tournamentPlayers: TournamentPlayer[]; playerByPositionSlot: Map<string, PlayerSelection>; playerByAward: Map<PlayerAward, PlayerAwardSelection>; labels: SpyPicksLabels;
+// ─── Players tab ──────────────────────────────────────────────────────────────
+
+function SpyPlayersView({ playerByPositionSlot, playerByAward, hasPredictions }: Readonly<{
+  playerByPositionSlot: Map<string, PlayerSelection>;
+  playerByAward: Map<PlayerAward, PlayerAwardSelection>;
+  hasPredictions: boolean;
 }>) {
-  const positions: PlayerPosition[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
-  const anyPick = playerByAward.size > 0 || positions.some((p) => { for (let s = 1; s <= PLAYER_SELECTION_LIMIT; s += 1) if (playerByPositionSlot.has(`${p}:${s}`)) return true; return false; });
-  if (tournamentPlayers.length > 0 && !anyPick) return <SpyEmpty text={labels.empty.players} />;
+  const { t } = useI18n();
+
+  if (!hasPredictions) return <SpyEmpty text={t('poolDetail.spy.empty.players')} />;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        <header style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>
-          {labels.awardLabel('golden_boot')} / {labels.awardLabel('tournament_mvp')}
-        </header>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.35rem' }}>
-          {PLAYER_AWARDS.map((award) => <SpyPlayerTile key={award.key} label={labels.awardLabel(award.key)} selection={playerByAward.get(award.key)} fallbackIcon={award.icon} />)}
-        </ul>
-      </section>
-      {positions.map((position) => (
-        <section key={position} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <header style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>{labels.positionLabel(position)}</header>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.35rem' }}>
+      {/* Awards */}
+      <div>
+        <p style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>
+          {t('poolDetail.spy.tabs.players')}
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+          {PLAYER_AWARDS.map((award) => {
+            const sel = playerByAward.get(award.key as PlayerAward);
+            return (
+              <div key={award.key} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.35rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'rgb(var(--bg-subtle))', border: '1px solid rgb(var(--border))' }}>
+                <span aria-hidden style={{ fontSize: '0.9rem', flexShrink: 0 }}>{award.icon}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgb(var(--fg-muted))', flexShrink: 0, minWidth: '6rem' }}>
+                  {t(award.key === 'golden_boot' ? 'poolDetail.players.awards.goldenBoot' : 'poolDetail.players.awards.tournamentMvp')}
+                </span>
+                {sel ? (
+                  <>
+                    <ReactCountryFlag countryCode={countryIsoCode(sel.teamName)} svg style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel.name}</span>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: 'rgb(var(--fg-muted))', flexShrink: 0 }}>{sel.teamName}</span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '0.78rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* By position */}
+      {PLAYER_POSITIONS.map(({ key: position, labelKey }) => (
+        <div key={position}>
+          <p style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>
+            {t(labelKey)}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
             {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, idx) => {
               const slot = idx + 1;
-              return <SpyPlayerTile key={`${position}:${slot}`} label={labels.slotLabel(slot)} selection={playerByPositionSlot.get(`${position}:${slot}`)} fallbackIcon={slot} />;
+              const sel = playerByPositionSlot.get(`${position}:${slot}`);
+              return (
+                <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.3rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'transparent', border: sel ? '1px solid rgb(var(--border))' : '1px solid rgb(var(--border) / 0.4)' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgb(var(--fg-subtle))', width: '0.9rem', textAlign: 'right', flexShrink: 0 }}>{slot}</span>
+                  {sel ? (
+                    <>
+                      <ReactCountryFlag countryCode={countryIsoCode(sel.teamName)} svg style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel.name}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'rgb(var(--fg-muted))', flexShrink: 0 }}>{sel.teamName}</span>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle) / 0.6)' }}>—</span>
+                  )}
+                </div>
+              );
             })}
-          </ul>
-        </section>
+          </div>
+        </div>
       ))}
     </div>
-  );
-}
-
-function SpyPlayerTile({ label, selection, fallbackIcon }: Readonly<{ label: string; selection?: PlayerSelection | PlayerAwardSelection; fallbackIcon: any }>) {
-  return (
-    <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.55rem', borderRadius: 'var(--radius-sm)', background: selection ? 'rgb(var(--bg-elevated))' : 'rgb(var(--bg-subtle))', border: '1px solid rgb(var(--border))' }}>
-      <span aria-hidden style={{ width: '1.4rem', height: '1.4rem', borderRadius: '999px', background: 'rgb(var(--bg-subtle))', border: '1px solid rgb(var(--border))', display: 'inline-grid', placeItems: 'center', fontSize: '0.65rem', fontWeight: 700, color: 'rgb(var(--fg-muted))' }}>
-        {fallbackIcon}
-      </span>
-      <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: selection ? 'rgb(var(--fg))' : 'rgb(var(--fg-subtle))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {selection?.name || label}
-        </span>
-      </span>
-    </li>
   );
 }
 
@@ -248,7 +318,7 @@ export default function RankingPage() {
   const {
     ranking, spy, setSpy, handleStartSpy, isPastPoolDeadline,
     groups, matchesByGroup, bracket, players, poolDeadline,
-    pool,
+    pool, poolId, teams,
   } = usePoolContext();
 
   const prizeDistribution = resolvePrizeDistribution(pool);
@@ -282,25 +352,9 @@ export default function RankingPage() {
         groups={groups}
         matchesByGroup={matchesByGroup}
         bracketStructure={bracket}
+        teams={teams}
+        poolId={poolId}
         tournamentPlayers={players}
-        poolDeadline={poolDeadline}
-        labels={{
-          title: (name) => t('poolDetail.spy.title', { name }),
-          description: t('poolDetail.spy.description'),
-          close: t('poolDetail.spy.close'),
-          loading: t('poolDetail.spy.loading'),
-          tabs: { groups: t('poolDetail.spy.tabs.groups'), final: t('poolDetail.spy.tabs.final'), players: t('poolDetail.spy.tabs.players') },
-          empty: { predictions: t('poolDetail.spy.empty.predictions'), bracket: t('poolDetail.spy.empty.bracket'), players: t('poolDetail.spy.empty.players') },
-          noPick: t('poolDetail.spy.noPick'),
-          groupLabel: (group) => t('poolDetail.spy.groupLabel', { group }),
-          positionLabel: (p) => t(`poolDetail.players.positions.${p}`),
-          awardLabel: (award) => t(`poolDetail.players.awards.${award === 'golden_boot' ? 'goldenBoot' : 'tournamentMvp'}`),
-          bracketRoundLabel: (phase) => t(`bracket.round.${phaseShortKey(phase)}`),
-          vs: t('bracket.vs'),
-          slotLabel: (slot) => t('poolDetail.players.slotLabel', { slot }),
-          pointsLabel: (n) => (n === 1 ? t('common.point') : t('common.points')),
-          ftLabel: t('poolDetail.spy.ftLabel') || 'FT',
-        }}
         locale={locale}
       />
     </div>

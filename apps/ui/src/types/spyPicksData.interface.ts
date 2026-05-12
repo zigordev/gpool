@@ -1,4 +1,5 @@
 import { PlayerSelection } from "./playerSelection.interface";
+import { PlayerAwardSelection } from "./playerAwardSelection.interface";
 
 export interface SpyPicksData {
   user: { userId: string; userName: string; userEmail?: string };

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FaFutbol, FaMagic, FaShieldAlt, FaStar, FaClock, FaTrophy } from 'react-icons/fa';
+import { FaFutbol, FaMagic, FaShieldAlt, FaStar, FaClock, FaTrophy, FaCog } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
@@ -46,8 +46,14 @@ export default function ConfigurationPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* General configuration */}
-      <Section title={t('adminResults.config.general.title')} collapsible defaultExpanded density="compact" tone="subtle">
+      {/* Clasificación — general pool config */}
+      <Section
+        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}><FaCog style={{ opacity: 0.75 }} />Configuración</span>}
+        collapsible
+        defaultExpanded
+        density="compact"
+        tone="subtle"
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           <FormField label={t('pools.modal.poolNameLabel')}>
             <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} disabled={poolNotSelected} />
@@ -87,7 +93,7 @@ export default function ConfigurationPage() {
         </div>
       </Section>
 
-      {/* Group phase scoring */}
+      {/* Fase de grupos scoring */}
       <Section title={t('adminResults.config.groupPhase.title')} collapsible defaultExpanded={false} density="compact" tone="subtle">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>

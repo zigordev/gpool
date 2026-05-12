@@ -56,6 +56,7 @@ export default function PlayersPage() {
     isPastPoolDeadline, handlePlayerSelection, handlePlayerAwardSelection,
   } = usePoolContext();
 
+  const [activeTab, setActiveTab] = useState<'selection' | 'all'>('selection');
   const [playerFilter, setPlayerFilter] = useState('');
   const [playerPositionFilter, setPlayerPositionFilter] = useState('');
   const [playerCountryFilter, setPlayerCountryFilter] = useState('');
@@ -103,7 +104,27 @@ export default function PlayersPage() {
   }
 
   return (
-    <div className="content-panel">
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="players-tab-bar" role="tablist">
+        <button
+          role="tab"
+          aria-selected={activeTab === 'selection'}
+          className={`players-tab-btn${activeTab === 'selection' ? ' players-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('selection')}
+        >
+          {t('poolDetail.players.tabSelection')}
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === 'all'}
+          className={`players-tab-btn${activeTab === 'all' ? ' players-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          {t('poolDetail.players.tabAll')}
+        </button>
+      </div>
+
+      {activeTab === 'selection' && (
       <section className="surface" style={{ padding: '1rem' }}>
         <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
         <div style={{ position: 'relative', minWidth: 720, margin: '0.25rem 1.75rem', padding: '1rem 0.85rem', borderRadius: 'var(--radius-lg)', border: '2px solid rgb(255 255 255 / 0.85)', background: 'repeating-linear-gradient(90deg, rgb(var(--pitch) / 0.16) 0 60px, rgb(var(--pitch) / 0.10) 60px 120px), linear-gradient(180deg, rgb(var(--pitch) / 0.18), rgb(var(--pitch) / 0.10))', boxShadow: '0 12px 36px rgb(15 23 42 / 0.10)' }}>
@@ -221,7 +242,10 @@ export default function PlayersPage() {
         </div>
         </div>
       </section>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem' }}>
+      )}
+
+      {activeTab === 'all' && (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div
           style={{
             display: 'grid',
@@ -266,6 +290,7 @@ export default function PlayersPage() {
           t={t}
         />
       </div>
+      )}
     </div>
   );
 }

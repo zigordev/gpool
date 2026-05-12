@@ -11,7 +11,6 @@ import ReactCountryFlag from 'react-country-flag';
 import { useAdminContext } from '@/contexts/AdminContext';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { FaClock } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
 
 function ScoreInput({
@@ -187,9 +186,8 @@ export default function AdminGroupsPage() {
   const { t, locale } = useI18n();
   const router = useRouter();
   const {
-    poolId, poolName, setPoolName,
+    poolId, poolName,
     scoringConfig, setScoringConfig,
-    deadlineLocal, setDeadlineLocal,
     poolNotSelected,
     groups, matchesByGroup, results, handleResultChange,
   } = useAdminContext();
@@ -213,18 +211,6 @@ export default function AdminGroupsPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-      {/* General settings */}
-      <Section title={t('adminResults.config.general.title')} collapsible defaultExpanded density="compact" tone="muted">
-        <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <FormField label={t('pools.modal.poolNameLabel')}>
-            <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} disabled={poolNotSelected} />
-          </FormField>
-          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
-            <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
-          </FormField>
-        </div>
-      </Section>
 
       {/* Group phase scoring */}
       <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">

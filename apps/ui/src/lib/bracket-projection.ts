@@ -410,7 +410,9 @@ function adminSourceCandidates(
     return filtered.length > 0 ? filtered : teams;
   }
 
-  // Winner slot (W{matchNumber}) — limit to the two teams playing in that match
+  // Winner slot (W{matchNumber}) — limit to the two teams playing in that match.
+  // Return an empty array when the source match hasn't been filled yet so downstream
+  // slots show no options until their feeding match is resolved (cascade enforcement).
   const winnerMatchNumber = sourceMatchNumber(sourceLabel);
   if (winnerMatchNumber !== null) {
     const sourceMatch = matchByNumber(bracket, winnerMatchNumber);
@@ -420,8 +422,9 @@ function adminSourceCandidates(
       const away = teams.find((t) => t.teamId === sourceMatch.awayTeamId);
       if (home) candidates.push(home);
       if (away) candidates.push(away);
-      return candidates.length > 0 ? candidates : teams;
+      return candidates; // empty = source match not set yet → no options available downstream
     }
+    return []; // source match not found in bracket
   }
 
   return teams;

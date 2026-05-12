@@ -4,7 +4,7 @@ import { useI18n } from "@/i18n/client";
 
 interface RankingEntry {
   rank: number;
-  userId: string;
+  userId?: string;
   userName: string;
   groupPhasePoints: number;
   finalPhasePoints: number;
@@ -180,9 +180,9 @@ export function RankTable({
                 {spyEnabled ? (
                   <td style={tdStyle}>
                     <button
-                      disabled={isCurrentUser}
+                      disabled={isCurrentUser || !entry.userId}
                       type="button"
-                      onClick={() => onSpy({ userId: entry.userId, userName: entry.userName })}
+                      onClick={() => entry.userId && onSpy({ userId: entry.userId, userName: entry.userName })}
                       aria-label={t('poolDetail.spy.action')}
                       title={t('poolDetail.spy.action')}
                       className="btn btn-ghost btn-icon"

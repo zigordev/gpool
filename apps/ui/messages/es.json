@@ -409,8 +409,8 @@
       "noPick": "Sin pick",
       "tabs": {
         "final": "Fase final",
-        "groups": "Grupos",
-        "players": "Mi 11"
+        "groups": "Fase grupos",
+        "players": "Jugadores"
       },
       "title": "Picks de {name}"
     },

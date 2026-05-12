@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
+import { MatchPredictionState } from '@/types/matchPredictionState.type';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();

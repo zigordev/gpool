@@ -752,6 +752,50 @@ input:focus {
   color: white;
 }
 
+/* Full-width rectangular tab bar — players page */
+.players-tab-bar {
+  display: flex;
+  width: 100%;
+  background: rgb(var(--bg-elevated) / 0.90);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(var(--border) / 0.85);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.06);
+  overflow: hidden;
+}
+
+.players-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border: none;
+  background: transparent;
+  color: rgb(var(--fg-muted));
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.players-tab-btn + .players-tab-btn {
+  border-left: 1px solid rgb(var(--border) / 0.85);
+}
+
+.players-tab-btn:hover:not(.players-tab-btn--active) {
+  background: rgb(var(--pitch) / 0.08);
+  color: rgb(var(--fg));
+}
+
+.players-tab-btn--active {
+  background: rgb(var(--pitch) / 0.72);
+  color: white;
+}
+
 .pool-nav-shell {
   display: flex;
   flex-direction: column;

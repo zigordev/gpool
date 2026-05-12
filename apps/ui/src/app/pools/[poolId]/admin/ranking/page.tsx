@@ -6,12 +6,15 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { useAdminContext, resizePrizeDistribution } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
+import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import MemberRankingPage from '../../ranking/page';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();
   const {
+    poolName, setPoolName, poolNotSelected,
+    deadlineLocal, setDeadlineLocal,
     entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution,
     maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
@@ -22,13 +25,19 @@ export default function AdminRankingPage() {
 
       {/* Prize config */}
       <Section
-        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>}
+        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.config.general.title')}</span>}
         collapsible
         defaultExpanded
         density="compact"
         tone="muted"
       >
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <FormField label={t('pools.modal.poolNameLabel')}>
+            <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} disabled={poolNotSelected} />
+          </FormField>
+          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
+            <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
+          </FormField>
           <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
             <Input type="number" inputMode="decimal" min="0" step="0.5" value={entryFee} onChange={(e) => { const v = Number.parseFloat(e.target.value); setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }} />
           </FormField>

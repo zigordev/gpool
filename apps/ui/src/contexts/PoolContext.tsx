@@ -11,6 +11,8 @@ import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import { BracketScoringConfig } from '@/types/bracketScoringConfig.type';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PlayerSelection } from '@/types/playerSelection.interface';
+import { PlayerAward } from '@/types/playerAward.type';
+import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
 import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PrizePayout } from '@/types/prizePayout.type';
 import { FaStar } from 'react-icons/fa';
@@ -371,19 +373,32 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
         prediction?.awayScore === '' || prediction?.awayScore === undefined;
     }).length;
 
-  const baseFinalMissingCount = Object.values(bracket).flat().reduce((count, match: any) => {
-    const prediction = effectiveBracketPredictions[match.bracketMatchId];
-    return !prediction?.homeTeamId || !prediction?.awayTeamId ? count + 1 : count;
-  }, 0);
+  // 16th-finals are auto-filled from group projections — the user never manually picks those teams.
+  // Only count the knockout rounds the user must explicitly predict.
+  const KNOCKOUT_PHASES_FOR_COUNT = ['8th-finals', 'quarter-finals', 'semi-finals', 'finals'] as const;
+
+  const bracketTeamsMissing = KNOCKOUT_PHASES_FOR_COUNT
+    .flatMap((phase) => (bracket[phase] || []) as any[])
+    .reduce((count, match: any) => {
+      const prediction = effectiveBracketPredictions[match.bracketMatchId];
+      // Count each team slot independently so that both-empty = 2, one-empty = 1, none-empty = 0
+      if (!prediction?.homeTeamId) count++;
+      if (!prediction?.awayTeamId) count++;
+      return count;
+    }, 0);
 
   const finalsMatches = (bracket['finals'] as any[]) || [];
   const winnerMissing = finalsMatches.reduce((count, match: any) => {
     const effective = effectiveBracketPredictions[match.bracketMatchId];
     const raw = bracketPredictions[match.bracketMatchId];
-    return effective?.homeTeamId && effective?.awayTeamId && !raw?.predictedWinnerTeamId ? count + 1 : count;
+    // "has teams" is true when the cascade has resolved teams OR the user explicitly picked them in the raw prediction
+    const hasTeams =
+      (effective?.homeTeamId && effective?.awayTeamId) ||
+      (raw?.homeTeamId && raw?.awayTeamId);
+    return hasTeams && !raw?.predictedWinnerTeamId ? count + 1 : count;
   }, 0);
 
-  const finalMissingCount = baseFinalMissingCount + winnerMissing;
+  const finalMissingCount = bracketTeamsMissing + winnerMissing;
 
   const playerAwardSelectionCount = PLAYER_AWARDS.filter((award) => playerAwardSelections[award.key]).length;
 

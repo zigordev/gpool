@@ -199,6 +199,7 @@ interface AdminContextValue {
   handleUpdateTeam: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => Promise<void>;
   handleBracketResultChange: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
   handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
+  handleReEvaluateBracket: () => Promise<void>;
   handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => Promise<void>;
 }
 
@@ -535,6 +536,15 @@ export function AdminProvider({ poolId: poolIdProp, children }: { poolId?: strin
     }
   };
 
+  const handleReEvaluateBracket = async () => {
+    try {
+      await apiClient.post(`/pools/${poolId}/bracket/re-evaluate`);
+      toast.success(t('adminResults.toast.bracketReEvaluated'));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.bracketReEvaluate'));
+    }
+  };
+
   const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
   const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
   const prizeTotalInvalid = prizeDistribution.length > 0 && Math.abs(prizeTotal - 100) > 0.01;
@@ -549,7 +559,7 @@ export function AdminProvider({ poolId: poolIdProp, children }: { poolId?: strin
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
     playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingMatch,
     submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid, poolNotSelected,
-    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handlePlayerStatChange,
+    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

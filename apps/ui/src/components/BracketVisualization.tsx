@@ -854,8 +854,11 @@ function BracketMatchBox({
   const hasBothTeams = isAdmin
     ? Boolean(match.homeTeamId && match.awayTeamId)
     : Boolean(homeTeamId && awayTeamId);
-  const homeOptions = candidateTeams?.home?.length ? candidateTeams.home : teams;
-  const awayOptions = candidateTeams?.away?.length ? candidateTeams.away : teams;
+  // Use candidates from the source match. If candidates exist (even empty array), respect them —
+  // an empty array means the feeding match hasn't been filled yet (cascade not satisfied).
+  // Fall back to all teams only when no candidate data was computed at all (undefined).
+  const homeOptions = candidateTeams?.home ?? teams;
+  const awayOptions = candidateTeams?.away ?? teams;
 
   const homeState: SlotState = slotState(
     isAdmin,
