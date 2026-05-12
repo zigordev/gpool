@@ -432,17 +432,42 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
       delete resultSaveTimers.current[matchId];
       setResults((current) => {
         const r = current[matchId];
-        if (r && r.homeResult !== '' && r.awayResult !== '') void autoSaveResults(matchId, r.homeResult as number, r.awayResult as number);
+        if (r && r.homeResult !== '' && r.awayResult !== '') {
+          void autoSaveResults(matchId, r.homeResult as number, r.awayResult as number);
+        } else if (r && r.homeResult === '' && r.awayResult === '') {
+          void autoSaveResults(matchId, null, null);
+        }
         return current;
       });
     }, 500);
     resultSaveTimers.current[matchId] = timer;
   };
 
-  const autoSaveResults = async (matchId: string, homeResult: number, awayResult: number) => {
+  const autoSaveResults = async (matchId: string, homeResult: number | null, awayResult: number | null) => {
     try {
       setSubmitting(matchId);
-      await apiClient.post(`/pools/${poolId}/matches/${matchId}/results`, { homeResult, awayResult });
+      const response = await apiClient.post(`/pools/${poolId}/matches/${matchId}/results`, { homeResult, awayResult });
+      const saved = response.data;
+      if (saved?.matchId) {
+        setResults((prev) => ({
+          ...prev,
+          [saved.matchId]: {
+            homeResult: typeof saved.homeResult === 'number' ? saved.homeResult : '',
+            awayResult: typeof saved.awayResult === 'number' ? saved.awayResult : '',
+          },
+        }));
+        setMatchesByGroup((prev) => {
+          const next: Record<string, Match[]> = {};
+          for (const [group, matches] of Object.entries(prev)) {
+            next[group] = matches.map((match) =>
+              match.matchId === saved.matchId
+                ? { ...match, homeResult: saved.homeResult, awayResult: saved.awayResult, status: saved.status ?? 'completed' }
+                : match,
+            );
+          }
+          return next;
+        });
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('adminResults.errors.saveResults'));
     } finally {

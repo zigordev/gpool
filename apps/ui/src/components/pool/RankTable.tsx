@@ -1,6 +1,8 @@
 'use client';
 
 import { useI18n } from "@/i18n/client";
+import { BsFillDiagram3Fill } from "react-icons/bs";
+import { FaLayerGroup, FaPerson } from "react-icons/fa6";
 
 interface RankingEntry {
   rank: number;
@@ -44,10 +46,10 @@ export function RankTable({
     >
       <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
       <table
+        className="rank-table"
         style={{
           width: '100%',
           borderCollapse: 'collapse',
-          minWidth: '540px',
         }}
       >
         <thead>
@@ -58,15 +60,15 @@ export function RankTable({
             }}
           >
             <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 3, background: 'rgb(var(--bg-subtle))' }}></th>
-            <th style={{ ...thStyle, textAlign: 'left', minWidth: '10rem', position: 'sticky', left: '3.6rem', zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}>{t('poolDetail.ranking.user')}</th>
+            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: '3.6rem', zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}></th>
             <th style={thStyle}>
-              {t('poolDetail.ranking.groupPhasePoints')}
+              <RankHeaderIconLabel icon={<FaLayerGroup aria-hidden />} label={t('poolDetail.ranking.groupPhasePoints')} />
             </th>
             <th style={thStyle}>
-              {t('poolDetail.ranking.finalPhasePoints')}
+              <RankHeaderIconLabel icon={<BsFillDiagram3Fill aria-hidden />} label={t('poolDetail.ranking.finalPhasePoints')} />
             </th>
             <th style={thStyle}>
-              {t('poolDetail.ranking.playerPoints')}
+              <RankHeaderIconLabel icon={<FaPerson aria-hidden />} label={t('poolDetail.ranking.playerPoints')} />
             </th>
             <th style={thStyle}>
               {t('poolDetail.ranking.totalPoints')}
@@ -83,6 +85,7 @@ export function RankTable({
               entry.userName === currentUserEmail;
 
             const prize = prizeForRank(entry.rank);
+            const stickyCellBackground = 'rgb(var(--bg-elevated))';
 
             return (
               <tr
@@ -97,7 +100,7 @@ export function RankTable({
                   borderBottom: '1px solid rgb(var(--border) / 0.65)',
                 }}
               >
-                <td style={{ ...tdStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 1, background: isCurrentUser ? 'rgb(var(--accent-from) / 0.08)' : 'rgb(var(--bg-elevated))' }}>
+                <td style={{ ...tdStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 4, background: stickyCellBackground, backgroundClip: 'padding-box' }}>
                   <span
                     style={{
                       display: 'inline-flex',
@@ -126,6 +129,7 @@ export function RankTable({
                 </td>
 
                 <td
+                  className="rank-table-user-col"
                   style={{
                     ...tdStyle,
                     textAlign: 'left',
@@ -133,13 +137,14 @@ export function RankTable({
                     color: 'rgb(var(--fg))',
                     position: 'sticky',
                     left: '3.6rem',
-                    zIndex: 1,
-                    background: isCurrentUser ? 'rgb(var(--accent-from) / 0.08)' : 'rgb(var(--bg-elevated))',
-                    boxShadow: '2px 0 4px rgb(0 0 0 / 0.06)',
-                    minWidth: '10rem',
+                    zIndex: 4,
+                    background: stickyCellBackground,
+                    backgroundClip: 'padding-box',
+                    boxShadow: '4px 0 0 rgb(var(--bg-elevated)), 7px 0 10px rgb(0 0 0 / 0.10)',
                   }}
                 >
                   <span
+                    className="rank-table-user-full"
                     style={{
                       display: 'block',
                       overflow: 'hidden',
@@ -148,6 +153,13 @@ export function RankTable({
                     }}
                   >
                     {entry.userName}
+                  </span>
+                  <span
+                    className="rank-table-user-initials"
+                    title={entry.userName}
+                    aria-label={entry.userName}
+                  >
+                    {getInitials(entry.userName)}
                   </span>
                 </td>
 
@@ -225,6 +237,29 @@ export function RankTable({
       />
     </div>
   );
+}
+
+function RankHeaderIconLabel({ icon, label }: Readonly<{ icon: React.ReactNode; label: string }>) {
+  return (
+    <span className="rank-table-header-label" title={label} aria-label={label}>
+      <span className="rank-table-header-icon">{icon}</span>
+      <span className="rank-table-header-text">{label}</span>
+    </span>
+  );
+}
+
+function getInitials(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '?';
+  const displayName = trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
+  const parts = displayName
+    .split(/[\s._-]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) return trimmed.slice(0, 1).toUpperCase();
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 const thStyle: React.CSSProperties = {

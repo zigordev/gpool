@@ -54,7 +54,7 @@ export class MatchController {
   async submitPrediction(
     @Param('poolId') poolId: string,
     @Param('matchId') matchId: string,
-    @Body() body: { homeScore: number; awayScore: number },
+    @Body() body: { homeScore: number | null; awayScore: number | null },
     @Req() req: Request,
   ) {
     const user = req.user as any;
@@ -83,7 +83,7 @@ export class MatchController {
   async updateMatchResults(
     @Param('poolId') poolId: string,
     @Param('matchId') matchId: string,
-    @Body() body: { homeResult: number; awayResult: number; winnerPoints?: number; exactResultPoints?: number },
+    @Body() body: { homeResult: number | null; awayResult: number | null; winnerPoints?: number; exactResultPoints?: number },
     @Req() req: Request,
   ) {
     const user = req.user as any;

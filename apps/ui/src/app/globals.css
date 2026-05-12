@@ -811,6 +811,77 @@ input:focus {
   color: white;
 }
 
+.rank-table {
+  min-width: 540px;
+}
+
+.rank-table-user-col {
+  min-width: 10rem;
+}
+
+.rank-table-user-initials {
+  display: none;
+}
+
+.rank-table-header-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.rank-table-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  font-size: 0.92rem;
+}
+
+.rank-table-header-text {
+  display: inline;
+}
+
+@media (max-width: 520px) {
+  .rank-table {
+    min-width: 0;
+  }
+
+  .rank-table-user-col {
+    min-width: 3rem !important;
+    width: 3rem !important;
+    max-width: 3rem;
+  }
+
+  .rank-table-user-full {
+    display: none !important;
+  }
+
+  .rank-table-user-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: rgb(var(--bg-subtle));
+    border: 1px solid rgb(var(--border));
+    color: rgb(var(--fg));
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .rank-table-header-text {
+    display: none;
+  }
+
+  .rank-table-header-icon {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 360px) {
   .players-tab-btn {
     padding: 0.5rem 0.35rem;
@@ -932,7 +1003,7 @@ input:focus {
     font-size: 0.68rem;
     line-height: 1.05;
     letter-spacing: 0;
-    overflow: hidden;
+    overflow: visible;
     text-align: center;
   }
 
@@ -951,19 +1022,25 @@ input:focus {
 
   .nav-mobile-bottom-area .floating-nav-btn .badge-attention {
     position: absolute;
-    top: 0.18rem;
-    right: 0.18rem;
-    min-width: 1rem;
-    height: 1rem;
+    top: 0.08rem;
+    right: 0.08rem;
+    z-index: 1;
+    min-width: 1.35rem;
+    height: 1.05rem;
+    gap: 0.08rem;
     justify-content: center;
-    padding: 0 0.28rem;
-    font-size: 0.6rem;
+    padding: 0 0.22rem;
+    font-size: 0.58rem;
     line-height: 1;
     letter-spacing: 0;
+    text-transform: none;
   }
 
   .nav-mobile-bottom-area .floating-nav-btn .badge-attention svg {
-    display: none;
+    display: block;
+    width: 0.58rem;
+    height: 0.58rem;
+    flex-shrink: 0;
   }
 }
 

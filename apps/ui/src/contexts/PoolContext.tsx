@@ -399,12 +399,21 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
   );
 
   const autoSavePrediction = async (matchId: string, prediction: Prediction) => {
-    if (prediction.homeScore === '' || prediction.awayScore === '') return;
+    const clearingPrediction = prediction.homeScore === '' && prediction.awayScore === '';
+    if (!clearingPrediction && (prediction.homeScore === '' || prediction.awayScore === '')) return;
     try {
       const response = await apiClient.post(`/pools/${poolId}/matches/${matchId}/predict`, {
-        homeScore: Number(prediction.homeScore),
-        awayScore: Number(prediction.awayScore),
+        homeScore: clearingPrediction ? null : Number(prediction.homeScore),
+        awayScore: clearingPrediction ? null : Number(prediction.awayScore),
       });
+      if (response.data?.cleared) {
+        setPredictions((prev) => {
+          const next = { ...prev };
+          delete next[matchId];
+          return next;
+        });
+        return;
+      }
       setPredictions((prev) => ({
         ...prev,
         [matchId]: { ...prev[matchId], ...response.data },

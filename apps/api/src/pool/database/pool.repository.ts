@@ -885,6 +885,19 @@ export class PoolRepository {
     return result.rows[0];
   }
 
+  async deletePrediction(poolId: string, matchId: string, userId: string) {
+    const predictionId = `${poolId}-${matchId}-${userId}`;
+    await this.postgres.query(
+      `
+        DELETE FROM group_phase_predictions
+        WHERE prediction_id = $1
+      `,
+      [predictionId],
+    );
+
+    return { predictionId, poolId, matchId, userId, cleared: true };
+  }
+
   async getPrediction(poolId: string, matchId: string, userId: string) {
     const predictionId = `${poolId}-${matchId}-${userId}`;
 
@@ -938,20 +951,57 @@ export class PoolRepository {
     return result.rows;
   }
 
-  async updateMatchResults(matchId: string, homeResult: number, awayResult: number) {
-    await this.postgres.query(
+  async updateMatchResults(matchId: string, homeResult: number | null, awayResult: number | null) {
+    const result = await this.postgres.query(
       `
         UPDATE group_phase_matches
-        SET home_result = $2, away_result = $3, status = 'completed'
+        SET
+          home_result = $2,
+          away_result = $3,
+          status = CASE
+            WHEN $2::integer IS NULL AND $3::integer IS NULL THEN 'scheduled'
+            ELSE 'completed'
+          END
         WHERE match_id = $1
+        RETURNING
+          match_id AS "matchId",
+          match_number AS "matchNumber",
+          pool_id AS "poolId",
+          group_id AS "groupId",
+          home_team_id AS "homeTeamId",
+          away_team_id AS "awayTeamId",
+          home_team_name AS "homeTeamName",
+          away_team_name AS "awayTeamName",
+          scheduled_at::text AS "scheduledAt",
+          phase,
+          status,
+          home_result AS "homeResult",
+          away_result AS "awayResult",
+          created_at::int AS "createdAt"
       `,
       [matchId, homeResult, awayResult],
     );
 
-    return { matchId, homeResult, awayResult };
+    return result.rows[0] || null;
   }
 
-  async getAllPredictionsForMatch(matchId: string) {
+  async resetPredictionStatusesForMatch(matchId: string, poolId?: string) {
+    await this.postgres.query(
+      `
+        UPDATE group_phase_predictions
+        SET
+          is_correct = NULL,
+          is_exact_match = NULL,
+          points = 0,
+          evaluated_at = NULL
+        WHERE match_id = $1
+          AND ($2::text IS NULL OR pool_id = $2)
+      `,
+      [matchId, poolId ?? null],
+    );
+  }
+
+  async getAllPredictionsForMatch(matchId: string, poolId?: string) {
     const result = await this.postgres.query(
       `
         SELECT
@@ -969,8 +1019,9 @@ export class PoolRepository {
           evaluated_at::int AS "evaluatedAt"
         FROM group_phase_predictions
         WHERE match_id = $1
+          AND ($2::text IS NULL OR pool_id = $2)
       `,
-      [matchId],
+      [matchId, poolId ?? null],
     );
 
     return result.rows;
