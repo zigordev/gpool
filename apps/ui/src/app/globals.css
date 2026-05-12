@@ -811,6 +811,33 @@ input:focus {
   color: white;
 }
 
+.players-mobile-selection-list {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .players-selection-surface {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+
+  .players-pitch-selection {
+    display: none;
+  }
+
+  .players-mobile-selection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
 .rank-table {
   min-width: 540px;
 }
