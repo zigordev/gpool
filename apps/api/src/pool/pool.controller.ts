@@ -184,6 +184,20 @@ export class PoolController {
     return this.poolService.updatePoolConfiguration(poolId, newConfig, user.userId, user.role);
   }
 
+  @Put(':poolId/membership/config')
+  @ApiOperation({ summary: 'Update current user membership settings for a pool' })
+  @ApiResponse({ status: 200, description: 'Membership settings updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Must be a member' })
+  @ApiResponse({ status: 404, description: 'Pool not found' })
+  async updateMembershipConfig(
+    @Param('poolId') poolId: string,
+    @Body() config: Record<string, any>,
+    @Req() req: Request,
+  ) {
+    const user = req.user as any;
+    return this.poolService.updateMembershipConfig(poolId, user.userId, config);
+  }
+
   @Get(':poolId/members')
   @ApiOperation({ summary: 'Get pool members' })
   @ApiResponse({ status: 200, description: 'List of pool members' })

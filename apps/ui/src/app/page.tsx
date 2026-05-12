@@ -10,7 +10,6 @@ function HomeContent() {
   const { t } = useI18n();
 
   useEffect(() => {
-    // Redirect to pools page immediately
     router.replace('/pools');
   }, [router]);
 

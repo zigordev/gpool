@@ -1,4 +1,5 @@
 import type { Locale } from './config';
+import { DEFAULT_LOCALE } from './config';
 import { loadLocalMessages } from './local';
 import { loadRemoteMessages } from './remote';
 
@@ -8,6 +9,10 @@ export async function loadMessages(locale: Locale) {
 
   const local = await loadLocalMessages(locale);
   if (local) return local;
+
+  // Fall back to the default locale when translations for the requested locale
+  // are not yet available (e.g. 'en' while only 'es' files exist).
+  if (locale !== DEFAULT_LOCALE) return loadMessages(DEFAULT_LOCALE);
 
   throw new Error(
     `Translations not available for locale "${locale}". ` +

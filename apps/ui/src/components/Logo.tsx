@@ -6,68 +6,100 @@ import { useState } from 'react';
 import { useI18n } from '@/i18n/client';
 
 interface LogoProps {
-    size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
+  /** Hide the wordmark (icon only). Default false. */
+  iconOnly?: boolean;
 }
 
-export function Logo({ size = 'md' }: LogoProps) {
-    const [imageError, setImageError] = useState(false);
-    const { t } = useI18n();
+export function Logo({ size = 'md', iconOnly = false }: LogoProps) {
+  const [imageError, setImageError] = useState(false);
+  const { t } = useI18n();
 
-    const sizeMap = {
-        sm: { width: 40, height: 40, fontSize: '1rem' },
-        md: { width: 60, height: 60, fontSize: '1.5rem' },
-        lg: { width: 120, height: 120, fontSize: '2rem' },
-    };
+  const dim = {
+    sm: { mark: 36, font: '1rem', wordmark: '1rem' },
+    md: { mark: 48, font: '1.25rem', wordmark: '1.25rem' },
+    lg: { mark: 96, font: '2rem', wordmark: '1.875rem' },
+  }[size];
 
-    const dimensions = sizeMap[size];
+  return (
+    <Link
+      href="/"
+      aria-label="GPool"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.65rem',
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
+    >
+      <span
+        style={{
+          position: 'relative',
+          width: dim.mark,
+          height: dim.mark,
+          flexShrink: 0,
+          borderRadius: '999px',
+          overflow: 'hidden',
+          background: 'rgb(var(--pitch) / 0.92)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontFamily: 'var(--font-display, inherit)',
+          fontWeight: 800,
+          fontSize: dim.font,
+          letterSpacing: '-0.02em',
+        }}
+      >
+        {!imageError ? (
+          <Image
+            src="/logo.png"
+            alt={t('logo.alt')}
+            width={dim.mark}
+            height={dim.mark}
+            style={{
+              objectFit: 'contain',
+              width: '100%',
+              height: '100%',
+              position: 'relative',
+              zIndex: 1,
+            }}
+            priority
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <span style={{ position: 'relative', zIndex: 1 }}>GP</span>
+        )}
+      </span>
 
-    return (
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-            <div
-                style={{
-                    position: 'relative',
-                    width: dimensions.width,
-                    height: dimensions.height,
-                    flexShrink: 0,
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                }}
-            >
-                {!imageError ? (
-                    <Image
-                        src="/logo.png"
-                        alt={t('logo.alt')}
-                        width={dimensions.width}
-                        height={dimensions.height}
-                        style={{
-                            objectFit: 'contain',
-                            width: '100%',
-                            height: '100%',
-                        }}
-                        priority
-                        onError={() => setImageError(true)}
-                    />
-                ) : (
-                    // Fallback if image doesn't exist
-                    <div
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: '50%',
-                            background: `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: dimensions.fontSize,
-                            boxShadow: 'var(--shadow-md)',
-                        }}
-                    >
-                        GP
-                    </div>
-                )}
-            </div>
-        </Link>
-    );
+      {!iconOnly ? (
+        <span
+          style={{
+            display: 'inline-flex',
+            flexDirection: 'column',
+            lineHeight: 1.05,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--font-display, inherit)',
+              fontWeight: 700,
+              fontSize: dim.wordmark,
+              color: 'rgb(var(--fg))',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            GPool
+          </span>
+          {size === 'lg' ? (
+            <span className="eyebrow" style={{ marginTop: '0.25rem' }}>
+              Football pools, with friends
+            </span>
+          ) : null}
+        </span>
+      ) : null}
+    </Link>
+  );
 }

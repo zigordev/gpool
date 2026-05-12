@@ -1,11 +1,27 @@
 import { NavigationBar } from '@/components/NavigationBar'
+import { NavCenterProvider } from '@/contexts/NavCenterContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
 import { getLocale, getMessages, getTranslator } from '@/i18n/server'
 import type { Metadata } from 'next'
+import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import 'flag-icons/css/flag-icons.min.css'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const display = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: ['500', '600', '700', '800'],
+})
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslator()
@@ -18,51 +34,77 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   const locale = await getLocale()
   const messages = await getMessages(locale)
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${inter.variable} ${display.variable}`}>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}` }} />
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
             <RUMProvider>
-              <NavigationBar />
-              {children}
+              <main
+                style={{
+                  position: 'relative',
+                  minHeight: 'calc(100vh - 4rem)',
+                  background: 'rgb(var(--bg))',
+                }}
+              >
+                <div
+                  aria-hidden
+                  className="bg-mesh"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                <NavCenterProvider>
+                  <NavigationBar />
+                  <div className="container-app" style={{ position: 'relative' }}>
+                    {children}
+                  </div>
+                </NavCenterProvider>
+              </main>
               <Toaster
                 position="top-right"
+                containerStyle={{ zIndex: 99999 }}
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-color)',
+                    background: 'rgb(var(--bg-elevated))',
+                    color: 'rgb(var(--fg))',
+                    border: '1px solid rgb(var(--border))',
                     borderRadius: 'var(--radius-md)',
-                    boxShadow: 'var(--shadow-md)',
+                    boxShadow: '0 8px 24px rgb(0 0 0 / 0.25)',
+                    fontWeight: 500,
+                    opacity: 1,
                   },
                   success: {
                     iconTheme: {
-                      primary: '#4caf50',
+                      primary: 'rgb(var(--pitch))',
                       secondary: 'white',
                     },
                     style: {
-                      background: '#e8f5e9',
-                      color: '#2e7d32',
-                      border: '1px solid #81c784',
+                      background: 'color-mix(in srgb, rgb(var(--pitch)) 14%, rgb(var(--bg-elevated)))',
+                      color: 'rgb(var(--pitch))',
+                      border: '1px solid rgb(var(--pitch) / 0.40)',
                     },
                   },
                   error: {
                     iconTheme: {
-                      primary: '#f44336',
+                      primary: 'rgb(var(--live))',
                       secondary: 'white',
                     },
                     style: {
-                      background: '#ffebee',
-                      color: '#c62828',
-                      border: '1px solid #ef9a9a',
+                      background: 'color-mix(in srgb, rgb(var(--live)) 14%, rgb(var(--bg-elevated)))',
+                      color: 'rgb(var(--live))',
+                      border: '1px solid rgb(var(--live) / 0.40)',
                     },
                   },
                 }}

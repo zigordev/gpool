@@ -1,0 +1,1 @@
+export type AdminTab = 'configuration' | 'groups' | 'final' | 'players';
