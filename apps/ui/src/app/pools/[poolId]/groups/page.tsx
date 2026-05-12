@@ -1,17 +1,21 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { usePoolContext } from '@/contexts/PoolContext';
+import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';
+import { GroupScoringInfoSection } from '@/components/pool/PoolInfoSections';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
-  const { groups, matchesByGroup, predictions, poolDeadline, handleScoreChange } = usePoolContext();
+  const { groups, matchesByGroup, predictions, poolDeadline, pool, handleScoreChange } = usePoolContext();
+  const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
 
   return (
-    <div className="content-panel">
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <GroupScoringInfoSection groupScoring={groupScoringConfig} />
+
       {groups.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {groups.map((group) => {

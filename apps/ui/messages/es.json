@@ -182,7 +182,13 @@
       "finalPhase": "Fase final",
       "groupPhase": "Fase de grupos",
       "label": "Secciones de administración",
-      "players": "Jugadores"
+      "players": "Jugadores",
+      "short": {
+        "configuration": "Config.",
+        "finalPhase": "Final",
+        "groupPhase": "Grupos",
+        "players": "Jugadores"
+      }
     },
     "title": "Administración de porra",
     "titleFor": "Administración de {poolName}",
@@ -427,6 +433,13 @@
       "players": "Jugadores",
       "ranking": "Clasificación",
       "rules": "Reglas",
+      "short": {
+        "finalPhase": "Final",
+        "groupPhase": "Grupos",
+        "players": "Jugadores",
+        "ranking": "Clasif.",
+        "rules": "Reglas"
+      },
       "totalPoints": "{count} puntos"
     },
     "title": "Porra"

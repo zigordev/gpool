@@ -10,13 +10,15 @@ import { useI18n } from '@/i18n/client';
 import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
+import { BsFillDiagram3Fill } from 'react-icons/bs';
+import { FaLayerGroup, FaPerson, FaRankingStar } from 'react-icons/fa6';
 import { IoSettings } from 'react-icons/io5';
-
-const MEMBER_SEGMENT_TO_ADMIN: Record<string, string> = { rules: 'rules', ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
 import {
   PoolProvider,
   usePoolContext,
 } from '@/contexts/PoolContext';
+
+const MEMBER_SEGMENT_TO_ADMIN: Record<string, string> = { ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
 
 function PoolNav() {
   const { t } = useI18n();
@@ -24,12 +26,11 @@ function PoolNav() {
   const pathname = usePathname();
   const { poolId, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
 
-  const routes: Array<{ segment: string; label: string; missingCount?: number }> = [
-    { segment: 'rules', label: t('poolDetail.tabs.rules') },
-    { segment: 'ranking', label: t('poolDetail.tabs.ranking') },
-    { segment: 'groups', label: t('poolDetail.tabs.groupPhase'), missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
-    { segment: 'final', label: t('poolDetail.tabs.finalPhase'), missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
-    { segment: 'players', label: t('poolDetail.tabs.players'), missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
+  const routes = [
+    { segment: 'ranking', label: t('poolDetail.tabs.ranking'), shortLabel: t('poolDetail.tabs.short.ranking'), icon: FaRankingStar },
+    { segment: 'groups', label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
+    { segment: 'final', label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
+    { segment: 'players', label: t('poolDetail.tabs.players'), shortLabel: t('poolDetail.tabs.short.players'), icon: FaPerson, missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
   ];
 
   useLayoutEffect(() => {
@@ -38,6 +39,7 @@ function PoolNav() {
         {routes.map((route) => {
           const href = `/pools/${poolId}/${route.segment}`;
           const active = pathname === href || pathname.startsWith(href + '/');
+          const Icon = route.icon;
           return (
             <Link
               key={route.segment}
@@ -45,7 +47,9 @@ function PoolNav() {
               aria-current={active ? 'page' : undefined}
               className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
             >
-              <span>{route.label}</span>
+              <Icon className="floating-nav-icon" aria-hidden />
+              <span className="floating-nav-label-desktop">{route.label}</span>
+              <span className="floating-nav-label-mobile">{route.shortLabel}</span>
               {route.missingCount ? (
                 <Badge
                   variant="sunset"
@@ -85,7 +89,6 @@ function PoolBreadcrumbs() {
   const isAdminRoute = pathname.includes('/admin');
 
   const routes = [
-    { segment: 'rules', label: t('poolDetail.tabs.rules') },
     { segment: 'ranking', label: t('poolDetail.tabs.ranking') },
     { segment: 'groups', label: t('poolDetail.tabs.groupPhase') },
     { segment: 'final', label: t('poolDetail.tabs.finalPhase') },
@@ -101,15 +104,9 @@ function PoolBreadcrumbs() {
     if (isAdminRoute) return;
     setSubBar(
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', gap: '1rem' }}>
-        <nav aria-label="breadcrumb" style={{ minWidth: 0 }}>
-          <ol className="breadcrumb">
-            <li><Link href="/pools">{t('pools.title')}</Link></li>
-            <li aria-hidden><span className="breadcrumb-separator">›</span></li>
-            <li>
-              <span className="breadcrumb-current" aria-current="page">{pool?.name ?? '…'}</span>
-            </li>
-          </ol>
-        </nav>
+        <div style={{ minWidth: 0 }}>
+          <span className="nav-pool-name">{pool?.name ?? '…'}</span>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}><CountdownChip deadline={poolDeadline} /></div>
         <div className="nav-sub-bar-actions" style={{ justifySelf: 'end' }}>
           {isPoolAdmin ? (

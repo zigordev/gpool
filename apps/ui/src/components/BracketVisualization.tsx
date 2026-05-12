@@ -509,13 +509,11 @@ export function BracketVisualization({
         : ''
       : prediction.predictedWinnerTeamId || '';
     const isDisabled = isAdmin
-      ? poolId === 'all-pools' ||
-        submittingResult === match.bracketMatchId ||
+      ? submittingResult === match.bracketMatchId ||
         !homeTeamId ||
         !awayTeamId ||
         !onUpdateResult
-      : poolId === 'all-pools' ||
-        Boolean(isDeadlinePassed) ||
+      : Boolean(isDeadlinePassed) ||
         !onPredictionChange;
     const handleWinnerChange = (teamId: string) => {
       if (isAdmin) {
@@ -846,8 +844,8 @@ function BracketMatchBox({
   const { t } = useI18n();
   const isAdmin = mode === 'admin';
   const isDisabled = isAdmin
-    ? updatingMatch === match.bracketMatchId || poolId === 'all-pools'
-    : poolId === 'all-pools' || Boolean(isDeadlinePassed);
+    ? updatingMatch === match.bracketMatchId
+    : Boolean(isDeadlinePassed);
 
   const homeTeamId = isAdmin ? match.homeTeamId : prediction?.homeTeamId || '';
   const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';

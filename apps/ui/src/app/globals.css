@@ -752,6 +752,16 @@ input:focus {
   color: white;
 }
 
+.floating-nav-label-mobile {
+  display: none;
+}
+
+.floating-nav-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
 /* Full-width rectangular tab bar — players page */
 .players-tab-bar {
   display: flex;
@@ -766,11 +776,12 @@ input:focus {
 }
 
 .players-tab-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem 1rem;
+  padding: 0.55rem clamp(0.35rem, 3vw, 1rem);
   border: none;
   background: transparent;
   color: rgb(var(--fg-muted));
@@ -778,6 +789,10 @@ input:focus {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1.15;
   letter-spacing: 0.01em;
   transition: color 0.15s ease, background 0.15s ease;
 }
@@ -794,6 +809,22 @@ input:focus {
 .players-tab-btn--active {
   background: rgb(var(--pitch) / 0.72);
   color: white;
+}
+
+@media (max-width: 360px) {
+  .players-tab-btn {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.74rem;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 300px) {
+  .players-tab-btn {
+    min-height: 2.5rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 .pool-nav-shell {
@@ -841,26 +872,102 @@ input:focus {
 }
 .nav-center-area::-webkit-scrollbar { display: none; }
 
-/* Mobile: move pill nav below the logo+icons row */
+.nav-mobile-bottom-area {
+  display: none;
+}
+
+/* Mobile: move the pool section nav to a bottom tab bar */
 @media (max-width: 639px) {
   .nav-shell--has-center {
-    grid-template-areas:
-      "logo  icons"
-      "center center";
+    grid-template-areas: "logo icons";
     grid-template-columns: 1fr auto;
-    row-gap: 0.65rem;
   }
 
   .nav-center-area {
+    display: none;
+  }
+
+  .nav-mobile-bottom-area {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
     justify-content: center;
-    /* Slight fade to indicate scrollability when clipped */
-    mask-image: linear-gradient(to right, transparent 0, black 0.5rem, black calc(100% - 0.5rem), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 0.5rem, black calc(100% - 0.5rem), transparent 100%);
-    padding: 0.1rem 0.5rem;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+    overflow: visible;
+    pointer-events: auto;
+    background: rgb(var(--bg) / 0.96);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-top: 1px solid rgb(var(--border) / 0.72);
+    box-shadow: 0 -10px 24px rgb(15 23 42 / 0.08);
+  }
+
+  .nav-mobile-bottom-area .floating-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    width: min(100%, 32rem);
+    gap: 0.15rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    clip-path: none;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: auto;
+    box-shadow: none;
+  }
+
+  .nav-mobile-bottom-area .floating-nav-btn {
+    position: relative;
+    justify-content: center;
+    min-width: 0;
+    min-height: 2.55rem;
+    padding: 0.48rem 0.2rem;
+    border-radius: 1rem;
+    font-size: 0.68rem;
+    line-height: 1.05;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .floating-nav-label-desktop {
+    display: none;
+  }
+
+  .floating-nav-label-mobile {
+    display: none;
+  }
+
+  .nav-mobile-bottom-area .floating-nav-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .nav-mobile-bottom-area .floating-nav-btn .badge-attention {
+    position: absolute;
+    top: 0.18rem;
+    right: 0.18rem;
+    min-width: 1rem;
+    height: 1rem;
+    justify-content: center;
+    padding: 0 0.28rem;
+    font-size: 0.6rem;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .nav-mobile-bottom-area .floating-nav-btn .badge-attention svg {
+    display: none;
   }
 }
 
-/* Sub-bar breadcrumb row rendered inside NavigationBar <header> */
+/* Sub-bar row rendered inside NavigationBar <header> */
 .nav-sub-bar {
   display: flex;
   align-items: center;
@@ -873,47 +980,10 @@ input:focus {
   margin-right: auto;
 }
 
-/* Breadcrumb trail inside the sub-bar */
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.nav-pool-name {
+  display: block;
+  color: rgb(var(--fg));
   font-size: 0.8rem;
-  font-weight: 500;
-  color: rgb(var(--fg-muted));
-  flex-wrap: nowrap;
-  min-width: 0;
-}
-
-.breadcrumb li {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.breadcrumb a {
-  color: rgb(var(--fg-muted));
-  text-decoration: none;
-  transition: color 0.15s ease;
-  white-space: nowrap;
-}
-
-.breadcrumb a:hover {
-  color: rgb(var(--fg));
-}
-
-.breadcrumb-separator {
-  color: rgb(var(--fg-subtle));
-  font-size: 0.75rem;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.breadcrumb-current {
-  color: rgb(var(--fg));
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -1034,6 +1104,12 @@ input:focus {
   max-width: 80rem;
   margin: 0 auto;
   padding: 0.15rem 1.25rem 1.25rem;
+}
+
+@media (max-width: 639px) {
+  .container-app {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
 }
 
 @media (min-width: 768px) {

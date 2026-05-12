@@ -1,3 +1,4 @@
+import { PlayerAward } from "./playerAward.type";
 import { PlayerPosition } from "./playerPosition.type";
 
 export interface PlayerPickerLabels {

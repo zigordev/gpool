@@ -15,6 +15,7 @@ import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
 import { PiBoxingGlove } from 'react-icons/pi';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerScoringInfoSection, resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 
 type PlayerOption = { value: string; label: string; teamName: string; teamId: string; isDisabled: boolean };
 
@@ -53,8 +54,9 @@ export default function PlayersPage() {
   const { t, locale } = useI18n();
   const {
     players, playerSelections, playerAwardSelections, savingPlayerSlot,
-    isPastPoolDeadline, handlePlayerSelection, handlePlayerAwardSelection,
+    isPastPoolDeadline, pool, handlePlayerSelection, handlePlayerAwardSelection,
   } = usePoolContext();
+  const playerInfoScoring = resolvePlayerInfoScoring(pool?.config?.playerScoring);
 
   const [activeTab, setActiveTab] = useState<'selection' | 'all'>('selection');
   const [playerFilter, setPlayerFilter] = useState('');
@@ -95,7 +97,8 @@ export default function PlayersPage() {
 
   if (players.length === 0) {
     return (
-      <div className="content-panel">
+      <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('poolDetail.players.empty')}
         </p>
@@ -105,6 +108,8 @@ export default function PlayersPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
+
       <div className="players-tab-bar" role="tablist">
         <button
           role="tab"

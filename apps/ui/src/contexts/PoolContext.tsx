@@ -192,13 +192,10 @@ interface PoolContextValue {
   playersMissingCount: number;
   spy: { target: { userId: string; userName: string }; loading: boolean; error: string | null; data: SpyPicksData | null } | null;
   setSpy: (spy: PoolContextValue['spy']) => void;
-  showRulesModal: boolean;
-  savingRulesPreference: boolean;
   handleScoreChange: (matchId: string, side: 'home' | 'away', value: string) => void;
   handleStartSpy: (target: { userId: string; userName: string }) => Promise<void>;
   handlePlayerSelection: (position: PlayerPosition, slot: number, playerId: string) => Promise<void>;
   handlePlayerAwardSelection: (award: PlayerAward, playerId: string) => Promise<void>;
-  handleDismissRulesModal: () => Promise<void>;
   setBracketPredictions: React.Dispatch<React.SetStateAction<Record<string, any>>>;
 }
 
@@ -244,8 +241,6 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
   const [savingPlayerSlot, setSavingPlayerSlot] = useState<string | null>(null);
   const [spy, setSpy] = useState<PoolContextValue['spy']>(null);
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
-  const [showRulesModal, setShowRulesModal] = useState(false);
-  const [savingRulesPreference, setSavingRulesPreference] = useState(false);
 
   useEffect(() => {
     if (!poolId) { setLoading(false); return; }
@@ -287,10 +282,6 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
         ]);
 
         setPool(poolResponse.data);
-        setShowRulesModal(
-          Boolean(poolResponse.data?.userMembership) &&
-            poolResponse.data?.userMembership?.config?.rulesSummaryDismissed !== true,
-        );
 
         const matchesData = matchesResponse.data || {};
         setMatchesByGroup(matchesData.matchesByGroup || {});
@@ -514,21 +505,6 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
     }
   };
 
-  const handleDismissRulesModal = async () => {
-    try {
-      setSavingRulesPreference(true);
-      const response = await apiClient.put(`/pools/${poolId}/membership/config`, { rulesSummaryDismissed: true });
-      setPool((current: any) =>
-        current ? { ...current, userMembership: { ...(current.userMembership || {}), ...(response.data || {}) } } : current,
-      );
-    } catch {
-      // silently ignore
-    } finally {
-      setSavingRulesPreference(false);
-      setShowRulesModal(false);
-    }
-  };
-
   const value: PoolContextValue = {
     poolId,
     pool,
@@ -555,13 +531,10 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
     playersMissingCount,
     spy,
     setSpy,
-    showRulesModal,
-    savingRulesPreference,
     handleScoreChange,
     handleStartSpy,
     handlePlayerSelection,
     handlePlayerAwardSelection,
-    handleDismissRulesModal,
     setBracketPredictions,
   };
 

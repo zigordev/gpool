@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
 import { apiClient } from '@/lib/api';
+import { FinalScoringInfoSection } from '@/components/pool/PoolInfoSections';
 
 export default function FinalPage() {
   const { t } = useI18n();
@@ -34,7 +35,9 @@ export default function FinalPage() {
   }, [effectiveBracketPredictions, bracketPredictions]);
 
   return (
-    <div className="content-panel">
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
+
       {Object.keys(bracket).length > 0 ? (
         <section className="surface" style={{ padding: '1rem' }}>
           <BracketVisualization

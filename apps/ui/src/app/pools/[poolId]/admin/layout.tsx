@@ -8,6 +8,8 @@ import { useI18n } from '@/i18n/client';
 import { Loading } from '@/components/Loading';
 import { AdminProvider, fromDateTimeLocal, useAdminContext } from '@/contexts/AdminContext';
 import { CountdownChip } from '@/components/ui/CountdownChip';
+import { BsFillDiagram3Fill } from 'react-icons/bs';
+import { FaLayerGroup, FaPerson, FaRankingStar } from 'react-icons/fa6';
 import { IoSettings } from 'react-icons/io5';
 
 function AdminNav({ poolId }: { poolId: string }) {
@@ -16,11 +18,10 @@ function AdminNav({ poolId }: { poolId: string }) {
   const pathname = usePathname();
 
   const routes = [
-    { segment: 'rules',   href: `/pools/${poolId}/admin/rules`,   label: t('poolDetail.tabs.rules'),       gear: false },
-    { segment: 'ranking', href: `/pools/${poolId}/admin/ranking`, label: t('poolDetail.tabs.ranking'),     gear: true  },
-    { segment: 'groups',  href: `/pools/${poolId}/admin/groups`,  label: t('poolDetail.tabs.groupPhase'),  gear: true  },
-    { segment: 'final',   href: `/pools/${poolId}/admin/final`,   label: t('poolDetail.tabs.finalPhase'),  gear: true  },
-    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),     gear: true  },
+    { segment: 'ranking', href: `/pools/${poolId}/admin/ranking`, label: t('poolDetail.tabs.ranking'),    shortLabel: t('poolDetail.tabs.short.ranking'),    icon: FaRankingStar },
+    { segment: 'groups',  href: `/pools/${poolId}/admin/groups`,  label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup },
+    { segment: 'final',   href: `/pools/${poolId}/admin/final`,   label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill },
+    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),    shortLabel: t('poolDetail.tabs.short.players'),    icon: FaPerson },
   ];
 
   useLayoutEffect(() => {
@@ -28,6 +29,7 @@ function AdminNav({ poolId }: { poolId: string }) {
       <nav aria-label={t('adminResults.tabs.label')} className="floating-nav">
         {routes.map((route) => {
           const active = pathname === route.href || pathname.startsWith(route.href + '/');
+          const Icon = route.icon;
           return (
             <Link
               key={route.segment}
@@ -35,12 +37,9 @@ function AdminNav({ poolId }: { poolId: string }) {
               aria-current={active ? 'page' : undefined}
               className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
             >
-              {route.gear ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.28rem' }}>
-                  <IoSettings size={11} aria-hidden style={{ color: active ? 'rgb(var(--sunset))' : 'inherit' }} />
-                  {route.label}
-                </span>
-              ) : route.label}
+              <Icon className="floating-nav-icon" aria-hidden />
+              <span className="floating-nav-label-desktop">{route.label}</span>
+              <span className="floating-nav-label-mobile">{route.shortLabel}</span>
             </Link>
           );
         })}
@@ -53,7 +52,7 @@ function AdminNav({ poolId }: { poolId: string }) {
   return null;
 }
 
-const ADMIN_SEGMENT_TO_MEMBER: Record<string, string> = { rules: 'rules', ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
+const ADMIN_SEGMENT_TO_MEMBER: Record<string, string> = { ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
 
 function AdminBreadcrumbs({ poolId }: { poolId: string }) {
   const { t } = useI18n();
@@ -62,7 +61,6 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
   const pathname = usePathname();
 
   const adminRoutes = [
-    { segment: 'rules',   label: t('poolDetail.tabs.rules')       },
     { segment: 'ranking', label: t('poolDetail.tabs.ranking')     },
     { segment: 'groups',  label: t('poolDetail.tabs.groupPhase')  },
     { segment: 'final',   label: t('poolDetail.tabs.finalPhase')  },
@@ -81,13 +79,9 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
   useLayoutEffect(() => {
     setSubBar(
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', gap: '1rem' }}>
-        <nav aria-label="breadcrumb" style={{ minWidth: 0 }}>
-          <ol className="breadcrumb">
-            <li><Link href="/pools">{t('pools.title')}</Link></li>
-            <li aria-hidden><span className="breadcrumb-separator">›</span></li>
-            <li><span className="breadcrumb-current" aria-current="page">{poolName || '…'}</span></li>
-          </ol>
-        </nav>
+        <div style={{ minWidth: 0 }}>
+          <span className="nav-pool-name">{poolName || '…'}</span>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}><CountdownChip deadline={deadlineMs} /></div>
         <div className="nav-sub-bar-actions" style={{ justifySelf: 'end' }}>
           {/* Mode toggle */}

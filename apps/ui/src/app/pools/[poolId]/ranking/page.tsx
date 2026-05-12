@@ -13,6 +13,7 @@ import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
+import { GeneralPoolInfoSection } from '@/components/pool/PoolInfoSections';
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -312,7 +313,7 @@ function SpyEmpty({ text }: Readonly<{ text: string }>) {
 
 // ─── Ranking page ─────────────────────────────────────────────────────────────
 
-export default function RankingPage() {
+export function RankingContent({ showGeneralSection = true }: Readonly<{ showGeneralSection?: boolean }>) {
   const { t, locale } = useI18n();
   const { user } = useAuth();
   const {
@@ -327,9 +328,21 @@ export default function RankingPage() {
   const totalPrizePool = (entryFee ?? 0) * memberCount;
   const prizeForRank = (rank: number) => totalPrizePool > 0 ? computePrize(totalPrizePool, prizeDistribution, rank) : 0;
   const formatCurrency = (amount: number) => formatEur(amount, locale);
+  const deadlineHint = new Date(poolDeadline).toLocaleString(locale, {
+    second: '2-digit', hour: '2-digit', minute: '2-digit',
+    month: 'long', day: 'numeric', year: 'numeric',
+  });
 
   return (
-    <div className="content-panel">
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {showGeneralSection ? (
+        <GeneralPoolInfoSection
+          deadlineLabel={deadlineHint}
+          entryFeeLabel={entryFee}
+          prizeDistribution={prizeDistribution}
+        />
+      ) : null}
+
       {ranking.length > 0 ? (
         <RankTable
           ranking={ranking}
@@ -359,4 +372,8 @@ export default function RankingPage() {
       />
     </div>
   );
+}
+
+export default function RankingPage() {
+  return <RankingContent />;
 }

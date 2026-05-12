@@ -279,39 +279,46 @@ export function NavigationBar() {
   if (pathname === '/login') return null;
 
   return (
-    <header style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-      background: 'rgb(var(--bg) / 0.85)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgb(var(--border) / 0.5)',
-    }}>
-      <nav
-        aria-label="Primary"
-        className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}
-      >
-        <div className="nav-logo-area">
-          <Logo size="sm" />
-        </div>
-
-        {center ? (
-          <div className="nav-center-area">
-            {center}
+    <>
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        background: 'rgb(var(--bg) / 0.85)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}>
+        <nav
+          aria-label="Primary"
+          className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}
+        >
+          <div className="nav-logo-area">
+            <Logo size="sm" />
           </div>
+
+          {center ? (
+            <div className="nav-center-area">
+              {center}
+            </div>
+          ) : null}
+
+          <div className="nav-icons-area">
+            <ThemeButton />
+            <LanguageButton />
+            <UserButton />
+          </div>
+        </nav>
+
+        {subBar ? (
+          <div className="nav-sub-bar">{subBar}</div>
         ) : null}
+      </header>
 
-        <div className="nav-icons-area">
-          <ThemeButton />
-          <LanguageButton />
-          <UserButton />
+      {center ? (
+        <div className="nav-mobile-bottom-area" aria-hidden={false}>
+          {center}
         </div>
-      </nav>
-
-      {subBar ? (
-        <div className="nav-sub-bar">{subBar}</div>
       ) : null}
-    </header>
+    </>
   );
 }
