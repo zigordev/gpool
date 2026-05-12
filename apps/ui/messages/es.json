@@ -302,6 +302,11 @@
       "points": "Puntos",
       "result": "Resultado: {home} - {away}"
     },
+    "mode": {
+      "admin": "Administrador",
+      "label": "Modo de vista",
+      "member": "Usuario"
+    },
     "players": {
       "actions": {
         "assists": "Asistencias",
@@ -448,6 +453,8 @@
     },
     "empty": {
       "adminHint": "Crea tu primera porra para empezar.",
+      "participatingHint": "Desactiva el filtro para ver todas las porras disponibles.",
+      "participatingTitle": "No estas participando en ninguna porra.",
       "title": "No se encontraron porras."
     },
     "errors": {
@@ -456,6 +463,12 @@
       "loadPools": "No se pudieron cargar las porras",
       "requestAccess": "No se pudo solicitar acceso",
       "update": "No se pudo actualizar la porra"
+    },
+    "filters": {
+      "all": "Todas las porras",
+      "mine": "Mis porras",
+      "participatingOnly": "Solo mis porras",
+      "viewMode": "Vista de porras"
     },
     "loading": "Cargando porras...",
     "modal": {

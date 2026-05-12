@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useI18n } from '@/i18n/client';
@@ -28,6 +28,12 @@ function PoolsContent() {
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [requestingAccess, setRequestingAccess] = useState<string | null>(null);
+  const [showParticipatingOnly, setShowParticipatingOnly] = useState(false);
+
+  const visiblePools = useMemo(() => {
+    if (!showParticipatingOnly) return pools;
+    return pools.filter((pool) => pool.isMember || pool.adminUserId === user?.userId);
+  }, [pools, showParticipatingOnly, user?.userId]);
 
   const fetchPools = useCallback(async () => {
     try {
@@ -163,15 +169,85 @@ function PoolsContent() {
 
   return (
     <>
-      {user?.role === 'admin' ? (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.75rem' }}>
-          <button type="button" onClick={handleCreatePool} className="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            {t('pools.actions.create')}
-          </button>
+      {pools.length > 0 || user?.role === 'admin' ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            marginBottom: '1.75rem',
+          }}
+        >
+          {pools.length > 0 ? (
+            <div
+              role="group"
+              aria-label={t('pools.filters.viewMode')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                border: '1px solid rgb(var(--border))',
+                borderRadius: '999px',
+                overflow: 'hidden',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+              }}
+            >
+              <button
+                type="button"
+                aria-pressed={showParticipatingOnly}
+                onClick={() => setShowParticipatingOnly(true)}
+                style={{
+                  padding: '0.22rem 0.6rem',
+                  border: 0,
+                  borderRadius: 0,
+                  background: showParticipatingOnly ? 'rgb(var(--fg) / 0.10)' : 'transparent',
+                  color: showParticipatingOnly ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: 'inherit',
+                  fontWeight: 'inherit',
+                  lineHeight: 'inherit',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('pools.filters.mine')}
+              </button>
+              <button
+                type="button"
+                aria-pressed={!showParticipatingOnly}
+                onClick={() => setShowParticipatingOnly(false)}
+                style={{
+                  padding: '0.22rem 0.6rem',
+                  border: 0,
+                  borderRadius: 0,
+                  background: !showParticipatingOnly ? 'rgb(var(--fg) / 0.10)' : 'transparent',
+                  color: !showParticipatingOnly ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: 'inherit',
+                  fontWeight: 'inherit',
+                  lineHeight: 'inherit',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('pools.filters.all')}
+              </button>
+            </div>
+          ) : (
+            <span />
+          )}
+
+          {user?.role === 'admin' ? (
+            <button type="button" onClick={handleCreatePool} className="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              {t('pools.actions.create')}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -219,6 +295,23 @@ function PoolsContent() {
             </p>
           ) : null}
         </div>
+      ) : visiblePools.length === 0 ? (
+        <div
+          className="surface"
+          style={{
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            background: 'rgb(var(--bg-elevated) / 0.7)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <p style={{ color: 'rgb(var(--fg))', fontWeight: 600, marginBottom: '0.4rem' }}>
+            {t('pools.empty.participatingTitle')}
+          </p>
+          <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.9rem' }}>
+            {t('pools.empty.participatingHint')}
+          </p>
+        </div>
       ) : (
         <div
           style={{
@@ -227,7 +320,7 @@ function PoolsContent() {
             gap: '1.25rem',
           }}
         >
-          {pools.map((pool) => {
+          {visiblePools.map((pool) => {
             const isPoolAdmin = user?.role === 'admin' && user.userId === pool.adminUserId;
             const isMember = pool.isMember || false;
             const isDisabled = !isMember && user?.role === 'user';

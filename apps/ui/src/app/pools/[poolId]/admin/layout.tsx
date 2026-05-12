@@ -93,7 +93,7 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
           {/* Mode toggle */}
           <div
             role="group"
-            aria-label="View mode"
+            aria-label={t('poolDetail.mode.label')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -114,7 +114,7 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              Member
+              {t('poolDetail.mode.member')}
             </Link>
             <span
               aria-current="true"
@@ -129,7 +129,7 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
               }}
             >
               <IoSettings size={10} aria-hidden />
-              Admin
+              {t('poolDetail.mode.admin')}
             </span>
           </div>
         </div>

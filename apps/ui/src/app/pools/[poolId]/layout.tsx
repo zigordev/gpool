@@ -115,7 +115,7 @@ function PoolBreadcrumbs() {
           {isPoolAdmin ? (
             <div
               role="group"
-              aria-label="View mode"
+              aria-label={t('poolDetail.mode.label')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -135,7 +135,7 @@ function PoolBreadcrumbs() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                Member
+                {t('poolDetail.mode.member')}
               </span>
               <Link
                 href={`/pools/${poolId}/admin/${MEMBER_SEGMENT_TO_ADMIN[activeRoute?.segment || ''] || 'groups'}`}
@@ -151,7 +151,7 @@ function PoolBreadcrumbs() {
                 }}
               >
                 <IoSettings size={10} aria-hidden />
-                Admin
+                {t('poolDetail.mode.admin')}
               </Link>
             </div>
           ) : null}
