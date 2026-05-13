@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.10](https://github.com/zigorlsp7/gpool/compare/v0.1.9...v0.1.10) (2026-05-13)
+
+
+### Features
+
+* add support for english ([#54](https://github.com/zigorlsp7/gpool/issues/54)) ([19fe293](https://github.com/zigorlsp7/gpool/commit/19fe2936c28684eba1e15b42a685e3e70a9e6102))
+
 ## [0.1.9](https://github.com/zigorlsp7/gpool/compare/v0.1.8...v0.1.9) (2026-05-13)
 
 
