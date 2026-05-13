@@ -6,7 +6,7 @@ import { BracketVisualization } from '@/components/BracketVisualization';
 import { Section } from '@/components/ui/Section';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
-import { useAdminContext, PHASES } from '@/contexts/AdminContext';
+import { parseConfigNumberInput, useAdminContext, PHASES } from '@/contexts/AdminContext';
 import { computeAdminCandidateOptions } from '@/lib/bracket-projection';
 import { FaTrophy } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
@@ -43,18 +43,18 @@ export default function AdminFinalPage() {
       <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: 'gold' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
-            <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: Math.max(0, value) })); }} />
+            <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
           {PHASES.map((phase) => {
-            const scoring = bracketScoringConfig.rounds[phase.key] || { exactPositionPoints: bracketScoringConfig.exactPositionPoints, correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints };
+            const scoring = bracketScoringConfig.rounds[phase.key] || { exactPositionPoints: '', correctTeamWrongPositionPoints: '' };
             return (
               <div key={phase.key} className="admin-final-scoring-row" style={scoringRowGrid}>
                 <span className="admin-final-scoring-label" style={{ alignSelf: 'center', color: 'rgb(var(--fg-muted))', fontSize: '0.72rem', fontWeight: 700 }}>{t(phase.labelKey)}</span>
                 <FormField label={t('adminResults.scoring.finalExactPosition')}>
-                  <Input type="number" inputMode="numeric" min="0" value={scoring.exactPositionPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), exactPositionPoints: Math.max(0, value) } } })); }} />
+                  <Input type="number" inputMode="numeric" min="0" value={scoring.exactPositionPoints} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), exactPositionPoints: parseConfigNumberInput(e.target.value) } } }))} />
                 </FormField>
                 <FormField label={t('adminResults.scoring.finalCorrectWrongPosition')}>
-                  <Input type="number" inputMode="numeric" min="0" value={scoring.correctTeamWrongPositionPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), correctTeamWrongPositionPoints: Math.max(0, value) } } })); }} />
+                  <Input type="number" inputMode="numeric" min="0" value={scoring.correctTeamWrongPositionPoints} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), correctTeamWrongPositionPoints: parseConfigNumberInput(e.target.value) } } }))} />
                 </FormField>
               </div>
             );

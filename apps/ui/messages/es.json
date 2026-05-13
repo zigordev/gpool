@@ -183,6 +183,7 @@
       "finalPhase": "Fase final",
       "groupPhase": "Fase de grupos",
       "label": "Secciones de administración",
+      "missingConfigCount": "{count} configuraciones pendientes",
       "players": "Jugadores",
       "short": {
         "configuration": "Config.",
@@ -494,12 +495,18 @@
     "loading": "Cargando porras...",
     "modal": {
       "createTitle": "Crear porra",
+      "deadlineHint": "Despues de esta fecha y hora no se podran enviar ni modificar predicciones.",
+      "deadlineLabel": "Fecha limite de predicciones",
       "editTitle": "Editar nombre de porra",
+      "entryFeeHint": "Cantidad que cada participante debe abonar para entrar en la porra. Usa 0 para porras gratuitas.",
+      "entryFeeLabel": "Cuota de entrada (EUR)",
       "inviteEmailLabel": "Correo electronico *",
       "inviteEmailPlaceholder": "usuario@ejemplo.com",
       "inviteTitle": "Invitar usuario a {poolName}",
       "poolNameLabel": "Nombre de la porra *",
-      "poolNamePlaceholder": "Introduce el nombre de la porra (3-100 caracteres)"
+      "poolNamePlaceholder": "Introduce el nombre de la porra (3-100 caracteres)",
+      "prizePaidPositionsHint": "Numero de posiciones del ranking que reciben premio.",
+      "prizePaidPositionsLabel": "Puestos con premio"
     },
     "subtitle": "Consulta y gestiona tus porras de futbol",
     "title": "Porras",
