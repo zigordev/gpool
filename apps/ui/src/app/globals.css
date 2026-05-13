@@ -12,6 +12,8 @@
   --bg-subtle: 221 231 225;
   --surface-strong: 245 251 246;
   --input-bg: 255 255 255;      /* white */
+  --panel-muted-bg: rgb(var(--fg) / 0.08);
+  --panel-muted-bg-solid: 213 221 216;
 
   /* Foreground */
   --fg: 17 24 28;               /* deep ink */
@@ -100,6 +102,7 @@ html.dark {
   --bg-subtle:      9 14 11;
   --surface-strong: 28 39 32;
   --input-bg:      38 52 44;
+  --panel-muted-bg-solid: 29 35 32;
 
   /* Foreground */
   --fg:       218 236 222;
@@ -309,10 +312,8 @@ button:focus-visible,
 }
 
 .surface {
-  background: rgb(var(--bg-elevated) / 0.97);
-  backdrop-filter: blur(20px) saturate(155%);
-  -webkit-backdrop-filter: blur(20px) saturate(155%);
-  border: 1px solid rgb(var(--border));
+  background: var(--panel-muted-bg);
+  border: 1px solid rgb(var(--border) / 0.5);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
