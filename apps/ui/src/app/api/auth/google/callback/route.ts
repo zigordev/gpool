@@ -6,6 +6,7 @@ import {
   getApiBaseUrl,
   getGoogleOauthConfig,
   getRequestOrigin,
+  getStoredLocale,
 } from "@/lib/auth-session";
 
 type GoogleTokenResponse = {
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
   const transferResponse = await fetch(`${getApiBaseUrl()}/auth/google/transfer`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ accessToken }),
+    body: JSON.stringify({ accessToken, locale: await getStoredLocale() }),
     cache: "no-store",
   });
   if (!transferResponse.ok) {

@@ -67,6 +67,7 @@ function ThemeButton() {
 
 function LanguageButton() {
   const { locale, t } = useI18n();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -90,10 +91,22 @@ function LanguageButton() {
     };
   }, [open]);
 
-  const switchTo = (next: Locale) => {
+  const switchTo = async (next: Locale) => {
     setOpen(false);
     if (next === locale) return;
     document.cookie = `${LANGUAGE_COOKIE}=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
+    if (user) {
+      try {
+        await fetch('/api/proxy/auth/me/locale', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ locale: next }),
+          cache: 'no-store',
+        });
+      } catch {
+        // The cookie still updates the UI immediately; the server preference will retry on next change.
+      }
+    }
     window.location.reload();
   };
 

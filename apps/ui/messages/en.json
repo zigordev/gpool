@@ -1,0 +1,525 @@
+{
+  "acceptInvitation": {
+    "errors": {
+      "acceptFailed": "Could not accept the invitation",
+      "invalidLink": "Invalid invitation link"
+    },
+    "processing": "Processing invitation...",
+    "success": {
+      "joined": "You have joined the pool successfully"
+    }
+  },
+  "acceptRequest": {
+    "actions": {
+      "goToPools": "Go to my pools"
+    },
+    "errors": {
+      "acceptFailed": "Could not accept the access request",
+      "adminOnly": "Only administrators can accept access requests",
+      "invalidLink": "Invalid access request link"
+    },
+    "heading": {
+      "error": "Could not grant access",
+      "pending": "Processing request...",
+      "success": "Access granted"
+    },
+    "processingMessage": "Processing access request...",
+    "success": {
+      "accepted": "Access request accepted successfully"
+    }
+  },
+  "adminResults": {
+    "config": {
+      "finalPhase": {
+        "description": "Manage qualified teams and final phase results.",
+        "title": "Final phase"
+      },
+      "general": {
+        "description": "Configure the deadline, entry fee, and prize distribution.",
+        "title": "General"
+      },
+      "groupPhase": {
+        "description": "Define scoring for group phase predictions.",
+        "title": "Group phase"
+      },
+      "players": {
+        "description": "Configure player scoring and individual award winners.",
+        "subgroups": {
+          "assistsByPosition": "Assists by position",
+          "awardWinners": "Award winners",
+          "awards": "Special awards",
+          "cleanSheetsByPosition": "Clean sheets by position",
+          "discipline": "Discipline",
+          "goalsByPosition": "Goals by position",
+          "individualActions": "Individual actions"
+        },
+        "title": "Players"
+      }
+    },
+    "dangerZone": {
+      "cancelButton": "Cancel",
+      "confirmButton": "Yes, delete permanently",
+      "confirmDescription": "This action is permanent and cannot be undone. All predictions, results, and configuration will be lost.",
+      "confirmTitle": "Delete \"{name}\"?",
+      "deletePool": "Delete pool",
+      "deletePoolButton": "Delete pool",
+      "deletePoolDescription": "This action will permanently delete the pool and all its data. It cannot be undone.",
+      "deleting": "Deleting...",
+      "title": "Danger zone"
+    },
+    "defaultPoolName": "World Cup 2026",
+    "errors": {
+      "adminRequired": "Access denied. Administrator role required.",
+      "bracketReEvaluate": "Could not re-evaluate the final phase",
+      "createPhase": "Could not create the phase",
+      "deletePool": "Could not delete the pool",
+      "enterBothResults": "Enter results for both teams",
+      "loadData": "Could not load the data",
+      "prizeDistributionTotal": "Prize distribution must add up to 100%",
+      "saveBracketResult": "Could not save the bracket result",
+      "saveResults": "Could not save the results",
+      "saveScoring": "Could not save the scoring configuration",
+      "selectPoolFirst": "Select a pool first",
+      "updatePlayerStats": "Could not update player stats",
+      "updateTeam": "Could not update the team"
+    },
+    "finalPhase": {
+      "description": "Tournament bracket with all phases. The flow goes from the left (round of 32) toward the center (final).",
+      "title": "Final phase"
+    },
+    "groupPhase": {
+      "empty": "There are no group phase matches available yet.",
+      "group": "Group {group}",
+      "title": "Group phase"
+    },
+    "players": {
+      "actions": {
+        "assists": "Assists",
+        "cleanSheets": "Clean sheets",
+        "goals": "Goals",
+        "missedPenalties": "Missed penalties",
+        "mvps": "MVP",
+        "penaltiesSaved": "Penalties saved",
+        "redCards": "Red cards",
+        "yellowCards": "Yellow cards"
+      },
+      "awardWinners": {
+        "goldenBoot": "Golden Boot winners",
+        "goldenBootHint": "You can select multiple players if they share the award.",
+        "none": "None selected",
+        "tournamentMvp": "Tournament MVP",
+        "tournamentMvpHint": "There can only be one tournament MVP."
+      },
+      "clearFilters": "Clear filters",
+      "countryAll": "All countries",
+      "countryFilterLabel": "Country",
+      "decrease": "Subtract action",
+      "empty": "There are no tournament players available yet.",
+      "increase": "Add action",
+      "matchCount": "{count} players",
+      "noResults": "No players match the filters.",
+      "points": "{points} pts",
+      "positionAll": "All positions",
+      "positions": {
+        "defender": "Defender",
+        "forward": "Forward",
+        "goalkeeper": "Goalkeeper",
+        "midfielder": "Midfielder"
+      },
+      "positionyAll": "All positions",
+      "scoring": {
+        "assistDefender": "Defender assist",
+        "assistForward": "Forward assist",
+        "assistGoalkeeper": "Goalkeeper assist",
+        "assistMidfielder": "Midfielder assist",
+        "cardHint": "Use negative values to subtract points.",
+        "cleanSheet": "Goalkeeper clean sheet",
+        "cleanSheetDefender": "Defender clean sheet",
+        "cleanSheetForward": "Forward clean sheet",
+        "cleanSheetGoalkeeper": "Goalkeeper clean sheet",
+        "cleanSheetMidfielder": "Midfielder clean sheet",
+        "goalDefender": "Defender goal",
+        "goalForward": "Forward goal",
+        "goalGoalkeeper": "Goalkeeper goal",
+        "goalMidfielder": "Midfielder goal",
+        "goldenBoot": "Golden Boot",
+        "missedPenalty": "Missed penalty",
+        "mvp": "MVP",
+        "penaltySaved": "Penalty saved",
+        "redCard": "Red card",
+        "tournamentMvp": "Tournament MVP",
+        "yellowCard": "Yellow card"
+      },
+      "searchPlaceholder": "Search player"
+    },
+    "ranking": {
+      "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",
+      "title": "Ranking"
+    },
+    "scoring": {
+      "deadline": "Prediction deadline",
+      "deadlineHint": "After this date and time, predictions can no longer be submitted or changed.",
+      "entryFee": "Entry fee (EUR)",
+      "entryFeeHint": "Amount each participant must pay to enter the pool. Use 0 for free pools.",
+      "finalCorrectWrongPosition": "Points for correct team (wrong position)",
+      "finalExactPosition": "Points for exact correct position",
+      "groupPhaseExact": "Points for exact result",
+      "groupPhaseWinner": "Points for correct winner",
+      "prizePaidPositions": "Prize positions",
+      "prizePaidPositionsHint": "Number of ranking positions that receive a prize.",
+      "prizePercentage": "Percentage for position {rank}",
+      "prizeRank": "Position {rank}",
+      "prizeTotal": "Configured total: {total}%",
+      "prizeTotalInvalid": "Must add up to 100%",
+      "prizeTotalValid": "Correct",
+      "save": "Save scoring configuration",
+      "savedAuto": "Changes saved",
+      "savingAuto": "Saving changes...",
+      "title": "Configure scoring",
+      "tournamentWinner": "Tournament winner"
+    },
+    "tabs": {
+      "configuration": "Configuration",
+      "finalPhase": "Final phase",
+      "groupPhase": "Group phase",
+      "label": "Administration sections",
+      "players": "Players",
+      "short": {
+        "configuration": "Config",
+        "finalPhase": "Final",
+        "groupPhase": "Groups",
+        "players": "Players"
+      }
+    },
+    "title": "Pool administration",
+    "titleFor": "{poolName} administration",
+    "toast": {
+      "bracketReEvaluated": "Final phase re-evaluated successfully",
+      "bracketResultSaved": "Bracket result saved successfully",
+      "phaseCreated": "Phase {phase} created successfully",
+      "poolDeleted": "Pool deleted successfully",
+      "resultsSaved": "Results saved successfully",
+      "scoringSaved": "Scoring configuration saved successfully"
+    }
+  },
+  "authCallback": {
+    "authenticating": "Authenticating...",
+    "processing": "Processing..."
+  },
+  "bracket": {
+    "alreadySelected": "Team already selected",
+    "correctTeamPoints": "Correct team (+{points} pts)",
+    "exactPositionPoints": "Exact position (+{points} pts)",
+    "final": "FINAL",
+    "match": "Match {number}",
+    "round": {
+      "16th": "Round of 32",
+      "8th": "Round of 16",
+      "final": "Final",
+      "quarter": "Quarter-finals",
+      "semi": "Semi-finals"
+    },
+    "selectTeam": "Select team",
+    "selectTournamentWinner": "Select tournament winner",
+    "totalPoints": "Total: +{points} pts",
+    "vs": "vs",
+    "winner": "Winner"
+  },
+  "common": {
+    "backToPools": "Back to pools",
+    "cancel": "Cancel",
+    "errorLabel": "Error:",
+    "loading": "Loading...",
+    "point": "point",
+    "points": "points",
+    "save": "Save",
+    "saving": "Saving...",
+    "update": "Update"
+  },
+  "home": {
+    "redirecting": "Redirecting..."
+  },
+  "layout": {
+    "metadata": {
+      "description": "Real-time football pool management platform",
+      "title": "GPool - Football pool management"
+    }
+  },
+  "login": {
+    "eyebrow": "Make your picks",
+    "signInWithGoogle": "Sign in with Google",
+    "tagline": "Create pools, record predictions, and compete with your group.",
+    "terms": "By continuing, you agree to participate with your Google account.",
+    "title": "GPool"
+  },
+  "logo": {
+    "alt": "GPool logo"
+  },
+  "nav": {
+    "admin": "Administration",
+    "language": "Language",
+    "logout": "Log out",
+    "pools": "Pools",
+    "primary": "Primary",
+    "user": "User"
+  },
+  "poolDetail": {
+    "actions": {
+      "administrate": "Administrate"
+    },
+    "deadline": {
+      "general": "Deadline",
+      "groupPhase": "Group phase deadline",
+      "passed": "Changes are no longer allowed",
+      "passedShort": "Expired"
+    },
+    "errors": {
+      "invalidPoolId": "Invalid pool ID",
+      "loadData": "Could not load the data",
+      "loadPool": "Could not load the pool",
+      "notFound": "Pool not found",
+      "savePrediction": "Could not save the prediction"
+    },
+    "finalPhase": {
+      "bracketUnavailable": "The bracket is not available yet.",
+      "deadlinePassed": "The deadline has passed. Predictions can no longer be edited.",
+      "defaultsReset": "Final phase reset to default values",
+      "predictionSaved": "Prediction saved",
+      "resetDefaults": "Reset final phase",
+      "resettingDefaults": "Resetting...",
+      "title": "Final phase"
+    },
+    "groupPhase": {
+      "group": "Group {group}",
+      "noMatches": "There are no matches available yet.",
+      "title": "Group phase"
+    },
+    "info": {
+      "entryFee": "Fee",
+      "entryFeeFree": "Free",
+      "members": "Members",
+      "owner": "Owner"
+    },
+    "loading": "Loading pool...",
+    "match": {
+      "correctWinnerBadge": "Winner",
+      "correctWinnerPoints": "Correct winner (+{points} pts)",
+      "exactBadge": "Exact",
+      "exactResultPoints": "Exact result (+{points} pts)",
+      "incomplete": "Incomplete",
+      "incorrect": "Incorrect (0 pts)",
+      "incorrectBadge": "Incorrect",
+      "pendingBadge": "No prediction",
+      "points": "Points",
+      "result": "Result: {home} - {away}"
+    },
+    "mode": {
+      "admin": "Administrator",
+      "label": "View mode",
+      "member": "User"
+    },
+    "players": {
+      "actions": {
+        "assists": "Assists",
+        "cleanSheets": "Clean sheets",
+        "goals": "Goals",
+        "missedPenalties": "Missed penalties",
+        "mvps": "MVP",
+        "penaltiesSaved": "Penalties saved",
+        "redCards": "Red cards",
+        "yellowCards": "Yellow cards"
+      },
+      "awards": {
+        "goldenBoot": "Golden Boot",
+        "goldenBootDescription": "Player with the most goals",
+        "individual": "Individual awards",
+        "tournamentMvp": "Tournament MVP",
+        "tournamentMvpDescription": "Best player of the tournament"
+      },
+      "cancel": "Cancel",
+      "clearSelection": "Clear selection",
+      "editTitle": "Edit player",
+      "empty": "There are no tournament players available yet.",
+      "emptySlot": "No player",
+      "modalDescription": "Select player for slot {slot}",
+      "noResults": "No players match the search.",
+      "points": "{points} pts",
+      "positionShort": {
+        "defender": "DEF",
+        "forward": "FWD",
+        "goalkeeper": "GK",
+        "midfielder": "MID"
+      },
+      "positions": {
+        "defender": "Defenders",
+        "forward": "Forwards",
+        "goalkeeper": "Goalkeepers",
+        "midfielder": "Midfielders"
+      },
+      "saveError": "Could not save the player",
+      "searchPlaceholder": "Search by player or country",
+      "selectPlayer": "Select player",
+      "slotLabel": "Slot {slot}",
+      "tabAll": "All",
+      "tabSelection": "My players",
+      "title": "Players"
+    },
+    "ranking": {
+      "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",
+      "finalPhasePoints": "Final phase points",
+      "groupPhasePoints": "Group phase points",
+      "playerPoints": "Player points",
+      "prize": "Prize",
+      "title": "Ranking",
+      "totalPoints": "Total points",
+      "user": "User"
+    },
+    "rules": {
+      "description": "Quick summary of how to play this pool and the currently configured scoring.",
+      "doNotShowAgain": "Do not show again",
+      "howTo": {
+        "deadline": "The deadline blocks any type of change after it passes.",
+        "final": "The final phase is initially filled from your group phase predictions. You can make changes to the automatic selection.",
+        "players": "Choose 6 goalkeepers, 6 defenders, 6 midfielders, 6 forwards, Golden Boot, and tournament MVP.",
+        "predict": "Predict every group phase score before the deadline.",
+        "ranking": "The ranking adds up points from groups, final phase, and players.",
+        "title": "How to play"
+      },
+      "points": {
+        "assists": "Assists",
+        "bracketRound": "Correct side of bracket +{exact} / Wrong side of bracket +{wrong}",
+        "cleanSheets": "Clean sheet: ",
+        "correctWinner": "Winner: ",
+        "exactResult": "Exact result: ",
+        "goals": "Goals: ",
+        "goldenBoot": "Golden Boot: ",
+        "missedPenalty": "Missed penalty: ",
+        "mvp": "Match MVP: ",
+        "penaltySaved": "Penalty saved: ",
+        "redCard": "Red card: ",
+        "title": "Scoring system",
+        "tournamentMvp": "Tournament MVP: ",
+        "tournamentWinner": "Tournament winner: ",
+        "yellowCard": "Yellow card: "
+      },
+      "poolConfig": {
+        "deadline": "Deadline: ",
+        "entryFee": "Fee: ",
+        "prizes": "{count} prize positions",
+        "title": "General"
+      },
+      "savePreferenceError": "Could not save the preference",
+      "showAgain": "Close",
+      "title": "{pool} rules"
+    },
+    "spy": {
+      "action": "View picks",
+      "close": "Close",
+      "description": "Read-only view of the participant predictions.",
+      "empty": {
+        "bracket": "No final phase has been selected yet.",
+        "players": "No players have been selected yet.",
+        "predictions": "No predictions have been made yet."
+      },
+      "ftLabel": "FT",
+      "groupLabel": "Group {group}",
+      "loadError": "Could not load picks",
+      "loading": "Loading picks...",
+      "noPick": "No pick",
+      "tabs": {
+        "final": "Final phase",
+        "groups": "Group phase",
+        "players": "Players"
+      },
+      "title": "{name}'s picks"
+    },
+    "tabs": {
+      "finalPhase": "Final phase",
+      "groupPhase": "Group phase",
+      "label": "Pool sections",
+      "missingCount": "{count} pending",
+      "players": "Players",
+      "ranking": "Ranking",
+      "rules": "Rules",
+      "short": {
+        "finalPhase": "Final",
+        "groupPhase": "Groups",
+        "players": "Players",
+        "ranking": "Rank",
+        "rules": "Rules"
+      },
+      "totalPoints": "{count} points"
+    },
+    "title": "Pool"
+  },
+  "pools": {
+    "actions": {
+      "administrate": "Administrate",
+      "create": "Create pool",
+      "creating": "Creating...",
+      "editTitle": "Edit pool name",
+      "inviteTitle": "Invite user to pool",
+      "requestAccess": "Request access",
+      "requesting": "Requesting...",
+      "sendInvitation": "Send invitation",
+      "sending": "Sending...",
+      "update": "Update pool",
+      "updating": "Updating..."
+    },
+    "card": {
+      "member": "Member",
+      "members": "{count} members",
+      "owner": "Owner:",
+      "unknownOwner": "Unknown owner"
+    },
+    "empty": {
+      "adminHint": "Create your first pool to get started.",
+      "participatingHint": "Turn off the filter to see all available pools.",
+      "participatingTitle": "You are not participating in any pool.",
+      "title": "No pools found."
+    },
+    "errors": {
+      "create": "Could not create the pool",
+      "invite": "Could not invite the user",
+      "loadPools": "Could not load pools",
+      "requestAccess": "Could not request access",
+      "update": "Could not update the pool"
+    },
+    "filters": {
+      "all": "All pools",
+      "mine": "My pools",
+      "participatingOnly": "Only my pools",
+      "viewMode": "Pool view"
+    },
+    "loading": "Loading pools...",
+    "modal": {
+      "createTitle": "Create pool",
+      "editTitle": "Edit pool name",
+      "inviteEmailLabel": "Email *",
+      "inviteEmailPlaceholder": "user@example.com",
+      "inviteTitle": "Invite user to {poolName}",
+      "poolNameLabel": "Pool name *",
+      "poolNamePlaceholder": "Enter the pool name (3-100 characters)"
+    },
+    "subtitle": "Review and manage your football pools",
+    "title": "Pools",
+    "toast": {
+      "created": "Pool created successfully",
+      "invitationSent": "Invitation sent to {email}",
+      "requestSubmitted": "Access request submitted. The pool administrator will review it.",
+      "updated": "Pool updated successfully"
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email address",
+      "emailRequired": "Email is required",
+      "nameMax": "The pool name must be under 100 characters",
+      "nameMin": "The pool name must be at least 3 characters"
+    }
+  },
+  "theme": {
+    "dark": "Dark",
+    "light": "Light",
+    "system": "Auto (system)",
+    "toggle": "Theme"
+  }
+}

@@ -102,6 +102,7 @@ const BRACKET_PHASES = [
   'semi-finals',
   'finals',
 ] as const;
+const SIDE_PHASES = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals'] as const;
 
 function getParentPhase(phaseKey: string): string | null {
   switch (phaseKey) {
@@ -122,6 +123,26 @@ function getSideSplit(matches: BracketMatch[] | undefined): number {
 
 function toneFor(phase: string | undefined): typeof FALLBACK_TONE {
   return (phase && PHASE_TONE[phase]) || FALLBACK_TONE;
+}
+
+function renderConnectorPath(
+  fromX: number,
+  fromY1: number,
+  fromY2: number,
+  toX: number,
+  toY: number,
+  side: 'left' | 'right',
+): string {
+  const direction = side === 'left' ? 1 : -1;
+  const elbowX = fromX + direction * (ROUND_GAP / 2);
+  return [
+    `M ${fromX} ${fromY1}`,
+    `H ${elbowX}`,
+    `V ${fromY2}`,
+    `H ${fromX}`,
+    `M ${elbowX} ${toY}`,
+    `H ${toX}`,
+  ].join(' ');
 }
 
 function slotState(
@@ -716,6 +737,58 @@ export function BracketVisualization({
   // space below the bottom match.
   const LABEL_RESERVE = 30;
   maxHeight = Math.max(maxHeight, 140) + LABEL_RESERVE;
+  const bracketWidth = (SIDE_PHASES.length * 2 + 1) * MATCH_BOX_WIDTH + (SIDE_PHASES.length * 2) * ROUND_GAP;
+  const matchCenterY = (top: number) => LABEL_RESERVE + top + MATCH_HEIGHT / 2;
+  const connectorPaths: string[] = [];
+
+  SIDE_PHASES.slice(0, -1).forEach((phaseKey, phaseIndex) => {
+    const nextPhaseKey = SIDE_PHASES[phaseIndex + 1];
+    const phaseMatches = bracket[phaseKey] || [];
+    const nextMatches = bracket[nextPhaseKey] || [];
+    const split = getSideSplit(phaseMatches);
+    const nextSplit = getSideSplit(nextMatches);
+
+    for (let idx = 0; idx < Math.floor(split / 2); idx++) {
+      const fromTop1 = getMatchTop(idx * 2, phaseKey, bracket);
+      const fromTop2 = getMatchTop(idx * 2 + 1, phaseKey, bracket);
+      const toTop = getMatchTop(idx, nextPhaseKey, bracket);
+      const fromX = phaseIndex * (MATCH_BOX_WIDTH + ROUND_GAP) + MATCH_BOX_WIDTH;
+      const toX = (phaseIndex + 1) * (MATCH_BOX_WIDTH + ROUND_GAP);
+      connectorPaths.push(renderConnectorPath(fromX, matchCenterY(fromTop1), matchCenterY(fromTop2), toX, matchCenterY(toTop), 'left'));
+    }
+
+    for (let localIdx = 0; localIdx < Math.floor((phaseMatches.length - split) / 2); localIdx++) {
+      const sourceIndex1 = split + localIdx * 2;
+      const sourceIndex2 = split + localIdx * 2 + 1;
+      const targetIndex = nextSplit + localIdx;
+      const rightOffset =
+        getMatchTop(0, phaseKey, bracket) - getMatchTop(split, phaseKey, bracket);
+      const nextRightOffset =
+        getMatchTop(0, nextPhaseKey, bracket) - getMatchTop(nextSplit, nextPhaseKey, bracket);
+      const fromTop1 = getMatchTop(sourceIndex1, phaseKey, bracket) + rightOffset;
+      const fromTop2 = getMatchTop(sourceIndex2, phaseKey, bracket) + rightOffset;
+      const toTop = getMatchTop(targetIndex, nextPhaseKey, bracket) + nextRightOffset;
+      const fromColumnIndex = SIDE_PHASES.length + 1 + (SIDE_PHASES.length - 1 - phaseIndex);
+      const toColumnIndex = SIDE_PHASES.length + 1 + (SIDE_PHASES.length - 2 - phaseIndex);
+      const fromX = fromColumnIndex * (MATCH_BOX_WIDTH + ROUND_GAP);
+      const toX = toColumnIndex * (MATCH_BOX_WIDTH + ROUND_GAP) + MATCH_BOX_WIDTH;
+      connectorPaths.push(renderConnectorPath(fromX, matchCenterY(fromTop1), matchCenterY(fromTop2), toX, matchCenterY(toTop), 'right'));
+    }
+  });
+
+  const semiMatches = bracket['semi-finals'] || [];
+  const semiSplit = getSideSplit(semiMatches);
+  const finalTop = getMatchTop(0, 'finals', bracket);
+  const centerFinalX = SIDE_PHASES.length * (MATCH_BOX_WIDTH + ROUND_GAP);
+  if (semiSplit > 0) {
+    const leftSemiTop = getMatchTop(0, 'semi-finals', bracket);
+    connectorPaths.push(`M ${centerFinalX - ROUND_GAP} ${matchCenterY(leftSemiTop)} H ${centerFinalX}`);
+  }
+  if (semiMatches.length > semiSplit) {
+    const rightOffset = getMatchTop(0, 'semi-finals', bracket) - getMatchTop(semiSplit, 'semi-finals', bracket);
+    const rightSemiTop = getMatchTop(semiSplit, 'semi-finals', bracket) + rightOffset;
+    connectorPaths.push(`M ${centerFinalX + MATCH_BOX_WIDTH + ROUND_GAP} ${matchCenterY(rightSemiTop)} H ${centerFinalX + MATCH_BOX_WIDTH}`);
+  }
 
   return (
     <div
@@ -733,8 +806,31 @@ export function BracketVisualization({
           alignItems: 'flex-start',
           minHeight: `${maxHeight}px`,
           position: 'relative',
+          width: `${bracketWidth}px`,
         }}
       >
+        <svg
+          aria-hidden
+          width={bracketWidth}
+          height={maxHeight}
+          viewBox={`0 0 ${bracketWidth} ${maxHeight}`}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        >
+          <path
+            d={connectorPaths.join(' ')}
+            fill="none"
+            stroke="rgb(var(--fg))"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            opacity="0.9"
+          />
+        </svg>
         {/* Left side */}
         <div
           style={{
@@ -742,6 +838,8 @@ export function BracketVisualization({
             gap: `${ROUND_GAP}px`,
             alignItems: 'flex-start',
             height: `${maxHeight}px`,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           {renderRound('16th-finals', t('bracket.round.16th'), bracket['16th-finals']?.slice(0, getSideSplit(bracket['16th-finals'])) || [], true, false)}
@@ -757,6 +855,7 @@ export function BracketVisualization({
             flexShrink: 0,
             width: `${MATCH_BOX_WIDTH}px`,
             height: `${maxHeight}px`,
+            zIndex: 1,
           }}
         >
           {(() => {
@@ -786,6 +885,8 @@ export function BracketVisualization({
             gap: `${ROUND_GAP}px`,
             alignItems: 'flex-start',
             height: `${maxHeight}px`,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals']?.slice(getSideSplit(bracket['semi-finals'])) || [], false, true)}

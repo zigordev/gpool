@@ -97,6 +97,11 @@ export type ApiOperation = {
   operationId: 'MetricsController_getMetrics';
   responseCodes: ['200'];
 } | {
+  method: 'PATCH';
+  path: '/api/auth/me/locale';
+  operationId: 'AuthController_updateLocale';
+  responseCodes: ['200', '401'];
+} | {
   method: 'POST';
   path: '/api/auth/google/transfer';
   operationId: 'AuthController_googleTransfer';
@@ -203,7 +208,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 40 as const;
+export const API_OPERATION_COUNT = 41 as const;
 
 export const API_OPERATIONS = [
   {
@@ -366,6 +371,15 @@ export const API_OPERATIONS = [
     "operationId": "MetricsController_getMetrics",
     "responseCodes": [
       "200"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/auth/me/locale",
+    "operationId": "AuthController_updateLocale",
+    "responseCodes": [
+      "200",
+      "401"
     ]
   },
   {

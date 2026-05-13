@@ -13,10 +13,12 @@ const USER_ID_HEADER = 'x-auth-user-id';
 const USER_EMAIL_HEADER = 'x-auth-user-email';
 const USER_ROLE_HEADER = 'x-auth-user-role';
 const USER_NAME_HEADER = 'x-auth-user-name';
+const USER_LOCALE_HEADER = 'x-auth-user-locale';
 const USER_EXP_HEADER = 'x-auth-user-exp';
 const SIGNATURE_HEADER = 'x-auth-signature';
 
 type AuthRole = 'admin' | 'user';
+type Locale = 'es' | 'en';
 
 function normalizeEmail(value: string | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -25,6 +27,11 @@ function normalizeEmail(value: string | undefined): string {
 function normalizeRole(value: string | undefined): AuthRole | null {
   if (value === 'admin' || value === 'user') return value;
   return null;
+}
+
+function normalizeLocale(value: string | undefined): Locale {
+  const locale = value?.trim().toLowerCase().split(/[-_]/)[0];
+  return locale === 'en' ? 'en' : 'es';
 }
 
 function safeStringEqual(left: string, right: string): boolean {
@@ -43,9 +50,10 @@ function buildPayload(
   email: string,
   role: AuthRole,
   name: string,
+  locale: Locale,
   exp: string,
 ): string {
-  return `${userId}\n${email}\n${role}\n${name}\n${exp}`;
+  return `${userId}\n${email}\n${role}\n${name}\n${locale}\n${exp}`;
 }
 
 @Injectable()
@@ -63,6 +71,7 @@ export class SessionUserGuard implements CanActivate {
     const email = normalizeEmail(request.header(USER_EMAIL_HEADER));
     const role = normalizeRole(request.header(USER_ROLE_HEADER));
     const name = request.header(USER_NAME_HEADER)?.trim() || '';
+    const locale = normalizeLocale(request.header(USER_LOCALE_HEADER));
     const exp = request.header(USER_EXP_HEADER)?.trim() || '';
     const providedSignature = request.header(SIGNATURE_HEADER)?.trim() || '';
 
@@ -75,7 +84,7 @@ export class SessionUserGuard implements CanActivate {
       throw new UnauthorizedException('Session has expired');
     }
 
-    const payload = buildPayload(userId, email, role, name, exp);
+    const payload = buildPayload(userId, email, role, name, locale, exp);
     const expectedSignature = signPayload(secret, payload);
 
     if (!safeStringEqual(providedSignature, expectedSignature)) {
@@ -87,9 +96,9 @@ export class SessionUserGuard implements CanActivate {
       email,
       role,
       name: name || email.split('@')[0] || 'User',
+      locale,
     };
 
     return true;
   }
 }
-

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { DEFAULT_LOCALE, LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from "@/i18n/config";
 
 export type AuthRole = "admin" | "user";
 
@@ -11,6 +12,7 @@ export type AuthUser = {
   role: AuthRole;
   name: string | null;
   picture: string | null;
+  locale: Locale;
 };
 
 type AuthSession = {
@@ -25,6 +27,7 @@ type AuthTransferPayload = {
   role?: string;
   name?: string | null;
   picture?: string | null;
+  locale?: string | null;
   exp?: number;
   ver?: number;
 };
@@ -49,6 +52,11 @@ function normalizeEmail(value: string | null | undefined): string {
 function normalizeRole(value: string | null | undefined): AuthRole | null {
   if (value === "admin" || value === "user") return value;
   return null;
+}
+
+function normalizeLocale(value: string | null | undefined): Locale {
+  const locale = (value ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  return SUPPORTED_LOCALES.includes(locale as Locale) ? (locale as Locale) : DEFAULT_LOCALE;
 }
 
 function readSessionSecret(): string | null {
@@ -119,6 +127,7 @@ function parseTransferPayload(raw: string): AuthUser | null {
     role,
     name: parsed.name?.trim() || null,
     picture: parsed.picture?.trim() || null,
+    locale: normalizeLocale(parsed.locale),
   };
 }
 
@@ -146,6 +155,7 @@ function parseSessionPayload(raw: string): AuthSession | null {
       role,
       name: user?.name?.trim() || null,
       picture: user?.picture?.trim() || null,
+      locale: normalizeLocale(user?.locale),
     },
     exp: parsed.exp,
     ver: 1,
@@ -153,7 +163,7 @@ function parseSessionPayload(raw: string): AuthSession | null {
 }
 
 function apiHeaderPayload(session: AuthSession): string {
-  return `${session.user.userId}\n${session.user.email}\n${session.user.role}\n${session.user.name ?? ""}\n${session.exp}`;
+  return `${session.user.userId}\n${session.user.email}\n${session.user.role}\n${session.user.name ?? ""}\n${session.user.locale}\n${session.exp}`;
 }
 
 async function persistSession(session: AuthSession): Promise<void> {
@@ -346,7 +356,13 @@ export function buildApiAuthHeaders(session: AuthSession): Record<string, string
     "x-auth-user-email": session.user.email,
     "x-auth-user-role": session.user.role,
     "x-auth-user-name": session.user.name ?? "",
+    "x-auth-user-locale": session.user.locale,
     "x-auth-user-exp": String(session.exp),
     "x-auth-signature": signature,
   };
+}
+
+export async function getStoredLocale(): Promise<Locale> {
+  const cookieStore = await cookies();
+  return normalizeLocale(cookieStore.get(LANGUAGE_COOKIE)?.value);
 }
