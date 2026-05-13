@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.10](https://github.com/zigordev/gpool/compare/v0.1.9...v0.1.10) (2026-05-13)
+
+
+### Features
+
+* add support for english ([#54](https://github.com/zigordev/gpool/issues/54)) ([89fa70e](https://github.com/zigordev/gpool/commit/89fa70e5d250c838e57840bb0580519d2427d09b))
+
 ## [0.1.9](https://github.com/zigordev/gpool/compare/v0.1.8...v0.1.9) (2026-05-13)
 
 
