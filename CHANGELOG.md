@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.12](https://github.com/zigorlsp7/gpool/compare/v0.1.11...v0.1.12) (2026-05-13)
+
+
+### Bug Fixes
+
+* forms display issues ([#58](https://github.com/zigorlsp7/gpool/issues/58)) ([978434e](https://github.com/zigorlsp7/gpool/commit/978434e5d87bb7466fb8e1e36803046fe3e501b9))
+
 ## [0.1.11](https://github.com/zigorlsp7/gpool/compare/v0.1.10...v0.1.11) (2026-05-13)
 
 
