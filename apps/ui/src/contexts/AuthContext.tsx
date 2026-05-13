@@ -1,11 +1,13 @@
 'use client';
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import type { Locale } from '@/i18n/config';
 
 interface User {
     userId: string;
     email: string;
     role: string;
+    locale: Locale;
 }
 
 interface AuthContextType {

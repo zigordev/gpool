@@ -21,9 +21,11 @@ export class PostgresInitService implements OnModuleInit {
         name TEXT NOT NULL,
         picture TEXT NOT NULL DEFAULT '',
         role TEXT NOT NULL DEFAULT 'user',
+        locale TEXT NOT NULL DEFAULT 'es',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS locale TEXT NOT NULL DEFAULT 'es';
 
       CREATE TABLE IF NOT EXISTS pools (
         pool_id TEXT PRIMARY KEY,

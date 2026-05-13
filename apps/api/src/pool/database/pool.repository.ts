@@ -318,6 +318,7 @@ export class PoolRepository {
           name,
           picture,
           role,
+          locale,
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
         FROM users

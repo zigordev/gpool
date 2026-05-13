@@ -12,6 +12,12 @@ import { CreatePoolDto } from './dto/create-pool.dto';
 import { PoolRepository } from './database/pool.repository';
 import { UpdatePoolDto } from './dto/update-pool.dto';
 
+const DEFAULT_LOCALE = 'es';
+
+function normalizeLocale(value: string | null | undefined): 'es' | 'en' {
+  return value?.trim().toLowerCase().split(/[-_]/)[0] === 'en' ? 'en' : DEFAULT_LOCALE;
+}
+
 @Injectable()
 export class PoolService {
   private readonly logger = new Logger(PoolService.name);
@@ -155,6 +161,7 @@ export class PoolService {
       return { success: true, message: 'Successfully joined pool' };
     }
 
+    const adminUser = await this.poolRepository.getUser(pool.adminUserId);
     await this.notificationService.sendPoolAccessRequest({
       to: pool.adminEmail,
       poolName: pool.name,
@@ -162,6 +169,7 @@ export class PoolService {
       requesterEmail: userEmail || '',
       requesterUserId: userId,
       adminUserId: pool.adminUserId,
+      locale: normalizeLocale(adminUser?.locale),
     });
 
     this.logger.log(`Access requested to pool ${poolId} by ${userId}`);
@@ -200,6 +208,7 @@ export class PoolService {
       poolId,
       userId: targetUserId,
       userName: targetUser?.name,
+      locale: normalizeLocale(targetUser?.locale),
     });
 
     this.logger.log(`Access granted to pool ${poolId} for user ${targetUserId} by ${adminUserId}`);
@@ -220,12 +229,14 @@ export class PoolService {
       throw new ForbiddenException('Only the pool administrator can invite users');
     }
 
+    const adminUser = await this.poolRepository.getUser(invitedBy);
     await this.notificationService.sendPoolInvitation({
       to: email,
       poolName: pool.name,
       poolId,
       inviterEmail: inviterEmail || pool.adminEmail || 'Pool Administrator',
       invitedBy,
+      locale: normalizeLocale(adminUser?.locale),
     });
 
     this.logger.log(`User ${email} invited to pool ${poolId} by ${invitedBy}`);
@@ -252,6 +263,7 @@ export class PoolService {
       throw new BadRequestException('Failed to add user as member');
     }
 
+    const adminUser = await this.poolRepository.getUser(pool.adminUserId);
     await this.notificationService.sendUserAcceptedInvitation({
       to: pool.adminEmail,
       poolName: pool.name,
@@ -261,6 +273,7 @@ export class PoolService {
       userEmail: userEmail || '',
       adminUserId: pool.adminUserId,
       eventId: `${poolId}:${userId}:accepted_invitation`,
+      locale: normalizeLocale(adminUser?.locale),
     });
 
     this.logger.log(`User ${userId} accepted invitation and joined pool ${poolId}`);

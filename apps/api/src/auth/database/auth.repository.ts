@@ -7,6 +7,7 @@ export interface AuthUserRow {
   name: string;
   picture: string;
   role: string;
+  locale: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +24,7 @@ export class AuthRepository {
     name: string;
     picture?: string;
     role?: string;
+    locale?: string;
     createdAt?: string;
     updatedAt?: string;
   }): Promise<AuthUserRow> {
@@ -31,14 +33,15 @@ export class AuthRepository {
 
     const result = await this.postgres.query<AuthUserRow>(
       `
-        INSERT INTO users (user_id, email, name, picture, role, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO users (user_id, email, name, picture, role, locale, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING
           user_id AS "userId",
           email,
           name,
           picture,
           role,
+          locale,
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
       `,
@@ -48,6 +51,7 @@ export class AuthRepository {
         userData.name,
         userData.picture || '',
         userData.role || 'user',
+        userData.locale || 'es',
         createdAt,
         updatedAt,
       ],
@@ -65,6 +69,7 @@ export class AuthRepository {
           name,
           picture,
           role,
+          locale,
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
         FROM users
@@ -85,6 +90,7 @@ export class AuthRepository {
           name,
           picture,
           role,
+          locale,
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
         FROM users
@@ -106,6 +112,7 @@ export class AuthRepository {
       name: updates.name ?? currentUser.name,
       picture: updates.picture ?? currentUser.picture,
       role: updates.role ?? currentUser.role,
+      locale: updates.locale ?? currentUser.locale,
       updatedAt: new Date().toISOString(),
     };
 
@@ -116,7 +123,8 @@ export class AuthRepository {
           name = $2,
           picture = $3,
           role = $4,
-          updated_at = $5
+          locale = $5,
+          updated_at = $6
         WHERE user_id = $1
         RETURNING
           user_id AS "userId",
@@ -124,10 +132,11 @@ export class AuthRepository {
           name,
           picture,
           role,
+          locale,
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
       `,
-      [userId, next.name, next.picture, next.role, next.updatedAt],
+      [userId, next.name, next.picture, next.role, next.locale, next.updatedAt],
     );
 
     return result.rows[0];
