@@ -7,7 +7,6 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
-import { BracketScoringConfig } from '@/types/bracketScoringConfig.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { PrizePayout } from '@/types/prizePayout.type';
 
@@ -25,23 +24,95 @@ export const PHASES = [
 
 export const MAX_PAID_POSITIONS = 20;
 
-const DEFAULT_BRACKET_EXACT_POSITION_POINTS = 5;
-const DEFAULT_BRACKET_WRONG_POSITION_POINTS = 3;
-const DEFAULT_TOURNAMENT_WINNER_POINTS = 10;
+export type ConfigNumber = number | '';
+type PlayerPositionKey = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+type PositionScoring = Record<PlayerPositionKey, ConfigNumber>;
 
-export const DEFAULT_PLAYER_SCORING = {
-  goal: { goalkeeper: 10, defender: 6, midfielder: 4, forward: 3 },
-  missedPenalty: -2,
-  mvp: 5,
-  penaltySaved: 5,
-  cleanSheet: { goalkeeper: 4, defender: 3, midfielder: 1, forward: 0 },
-  assist: { goalkeeper: 0, defender: 4, midfielder: 3, forward: 2 },
-  yellowCard: -1,
-  redCard: -3,
-  award: { goldenBoot: 15, tournamentMvp: 15 },
+export type GroupScoringConfig = {
+  winnerPoints: ConfigNumber;
+  exactResultPoints: ConfigNumber;
+};
+
+export type AdminBracketRoundScoring = {
+  exactPositionPoints: ConfigNumber;
+  correctTeamWrongPositionPoints: ConfigNumber;
+};
+
+export type AdminBracketScoringConfig = AdminBracketRoundScoring & {
+  tournamentWinnerPoints: ConfigNumber;
+  rounds: Record<string, AdminBracketRoundScoring>;
+};
+
+export type AdminPlayerScoringConfig = {
+  goal: PositionScoring;
+  missedPenalty: ConfigNumber;
+  mvp: ConfigNumber;
+  penaltySaved: ConfigNumber;
+  cleanSheet: PositionScoring;
+  assist: PositionScoring;
+  yellowCard: ConfigNumber;
+  redCard: ConfigNumber;
+  award: { goldenBoot: ConfigNumber; tournamentMvp: ConfigNumber };
 };
 
 // ─── Utility functions ────────────────────────────────────────────────────────
+
+const EMPTY_GROUP_SCORING: GroupScoringConfig = { winnerPoints: '', exactResultPoints: '' };
+
+function emptyBracketScoring(): AdminBracketScoringConfig {
+  const rounds = PHASES.reduce<Record<string, AdminBracketRoundScoring>>((acc, phase) => {
+    acc[phase.key] = { exactPositionPoints: '', correctTeamWrongPositionPoints: '' };
+    return acc;
+  }, {});
+  return {
+    exactPositionPoints: '',
+    correctTeamWrongPositionPoints: '',
+    tournamentWinnerPoints: '',
+    rounds,
+  };
+}
+
+export const DEFAULT_PLAYER_SCORING: AdminPlayerScoringConfig = {
+  goal: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
+  missedPenalty: '',
+  mvp: '',
+  penaltySaved: '',
+  cleanSheet: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
+  assist: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
+  yellowCard: '',
+  redCard: '',
+  award: { goldenBoot: '', tournamentMvp: '' },
+};
+
+const POSITION_KEYS: PlayerPositionKey[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
+
+export function parseConfigNumberInput(value: string, options: { allowNegative?: boolean; max?: number } = {}): ConfigNumber {
+  if (value.trim() === '') return '';
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return '';
+  const minBound = options.allowNegative ? parsed : Math.max(0, parsed);
+  return options.max !== undefined ? Math.min(options.max, minBound) : minBound;
+}
+
+function readConfigNumber(value: unknown, options: { allowNegative?: boolean; max?: number } = {}): ConfigNumber {
+  if (value === '' || value === null || value === undefined) return '';
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return '';
+  const minBound = options.allowNegative ? parsed : Math.max(0, parsed);
+  return options.max !== undefined ? Math.min(options.max, minBound) : minBound;
+}
+
+function pointsValue(value: ConfigNumber): number {
+  return typeof value === 'number' ? value : 0;
+}
+
+function isConfiguredNumber(value: ConfigNumber): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function missingConfigCount(values: ConfigNumber[]): number {
+  return values.filter((value) => !isConfiguredNumber(value)).length;
+}
 
 export function toDateTimeLocal(ms: number): string {
   const d = new Date(ms);
@@ -86,50 +157,126 @@ export function resizePrizeDistribution(rows: PrizePayout[], count: number, maxP
   return Array.from({ length: normalizedCount }, (_, index) => ({ rank: index + 1, percentage: rows[index]?.percentage ?? 0 }));
 }
 
-export function normalizeBracketScoring(value: any): BracketScoringConfig {
-  const baseExact = Number.isFinite(value?.exactPositionPoints) ? Math.max(0, Number(value.exactPositionPoints)) : DEFAULT_BRACKET_EXACT_POSITION_POINTS;
-  const baseWrong = Number.isFinite(value?.correctTeamWrongPositionPoints) ? Math.max(0, Number(value.correctTeamWrongPositionPoints)) : DEFAULT_BRACKET_WRONG_POSITION_POINTS;
-  const tournamentWinnerPoints = Number.isFinite(value?.tournamentWinnerPoints) ? Math.max(0, Number(value.tournamentWinnerPoints)) : DEFAULT_TOURNAMENT_WINNER_POINTS;
-  const rounds = PHASES.reduce<Record<string, any>>((acc, phase) => {
+export function normalizeGroupScoring(value: any): GroupScoringConfig {
+  return {
+    winnerPoints: readConfigNumber(value?.winnerPoints),
+    exactResultPoints: readConfigNumber(value?.exactResultPoints),
+  };
+}
+
+export function normalizeBracketScoring(value: any): AdminBracketScoringConfig {
+  const baseExact = readConfigNumber(value?.exactPositionPoints);
+  const baseWrong = readConfigNumber(value?.correctTeamWrongPositionPoints);
+  const tournamentWinnerPoints = readConfigNumber(value?.tournamentWinnerPoints);
+  const rounds = PHASES.reduce<Record<string, AdminBracketRoundScoring>>((acc, phase) => {
     const round = value?.rounds?.[phase.key] || {};
+    const exactPositionPoints = readConfigNumber(round.exactPositionPoints);
+    const correctTeamWrongPositionPoints = readConfigNumber(round.correctTeamWrongPositionPoints);
     acc[phase.key] = {
-      exactPositionPoints: Number.isFinite(round.exactPositionPoints) ? Math.max(0, Number(round.exactPositionPoints)) : baseExact,
-      correctTeamWrongPositionPoints: Number.isFinite(round.correctTeamWrongPositionPoints) ? Math.max(0, Number(round.correctTeamWrongPositionPoints)) : baseWrong,
+      exactPositionPoints: isConfiguredNumber(exactPositionPoints) ? exactPositionPoints : baseExact,
+      correctTeamWrongPositionPoints: isConfiguredNumber(correctTeamWrongPositionPoints) ? correctTeamWrongPositionPoints : baseWrong,
     };
     return acc;
   }, {});
   return { exactPositionPoints: baseExact, correctTeamWrongPositionPoints: baseWrong, tournamentWinnerPoints, rounds };
 }
 
-export function resolveCleanSheetScoring(value: any): typeof DEFAULT_PLAYER_SCORING.cleanSheet {
+export function resolveCleanSheetScoring(value: any): PositionScoring {
   const legacy = Number(value);
   const source = value && typeof value === 'object' ? value : {};
+  const goalkeeper = readConfigNumber(source.goalkeeper);
   return {
-    goalkeeper: Number.isFinite(Number(source.goalkeeper)) ? Math.max(0, Number(source.goalkeeper)) : Number.isFinite(legacy) ? Math.max(0, legacy) : DEFAULT_PLAYER_SCORING.cleanSheet.goalkeeper,
-    defender: Number.isFinite(Number(source.defender)) ? Math.max(0, Number(source.defender)) : DEFAULT_PLAYER_SCORING.cleanSheet.defender,
-    midfielder: Number.isFinite(Number(source.midfielder)) ? Math.max(0, Number(source.midfielder)) : DEFAULT_PLAYER_SCORING.cleanSheet.midfielder,
-    forward: Number.isFinite(Number(source.forward)) ? Math.max(0, Number(source.forward)) : DEFAULT_PLAYER_SCORING.cleanSheet.forward,
+    goalkeeper: isConfiguredNumber(goalkeeper) ? goalkeeper : Number.isFinite(legacy) ? Math.max(0, legacy) : '',
+    defender: readConfigNumber(source.defender),
+    midfielder: readConfigNumber(source.midfielder),
+    forward: readConfigNumber(source.forward),
   };
 }
 
+export function normalizePlayerScoring(value: any): AdminPlayerScoringConfig {
+  const goal = value?.goal || {};
+  const assist = value?.assist || {};
+  return {
+    goal: {
+      goalkeeper: readConfigNumber(goal.goalkeeper),
+      defender: readConfigNumber(goal.defender),
+      midfielder: readConfigNumber(goal.midfielder),
+      forward: readConfigNumber(goal.forward),
+    },
+    missedPenalty: readConfigNumber(value?.missedPenalty, { allowNegative: true }),
+    mvp: readConfigNumber(value?.mvp),
+    penaltySaved: readConfigNumber(value?.penaltySaved),
+    cleanSheet: resolveCleanSheetScoring(value?.cleanSheet),
+    assist: {
+      goalkeeper: readConfigNumber(assist.goalkeeper),
+      defender: readConfigNumber(assist.defender),
+      midfielder: readConfigNumber(assist.midfielder),
+      forward: readConfigNumber(assist.forward),
+    },
+    yellowCard: readConfigNumber(value?.yellowCard, { allowNegative: true, max: 0 }),
+    redCard: readConfigNumber(value?.redCard, { allowNegative: true, max: 0 }),
+    award: {
+      goldenBoot: readConfigNumber(value?.award?.goldenBoot),
+      tournamentMvp: readConfigNumber(value?.award?.tournamentMvp),
+    },
+  };
+}
+
+export function groupScoringMissingCount(scoring: GroupScoringConfig): number {
+  return missingConfigCount([scoring.winnerPoints, scoring.exactResultPoints]);
+}
+
+export function bracketScoringMissingCount(scoring: AdminBracketScoringConfig): number {
+  return missingConfigCount([
+    scoring.tournamentWinnerPoints,
+    ...PHASES.flatMap((phase) => {
+      const round = scoring.rounds[phase.key] || { exactPositionPoints: '', correctTeamWrongPositionPoints: '' };
+      return [round.exactPositionPoints, round.correctTeamWrongPositionPoints];
+    }),
+  ]);
+}
+
+export function playerScoringMissingCount(scoring: AdminPlayerScoringConfig): number {
+  return missingConfigCount([
+    ...POSITION_KEYS.flatMap((position) => [scoring.goal[position], scoring.assist[position], scoring.cleanSheet[position]]),
+    scoring.missedPenalty,
+    scoring.mvp,
+    scoring.penaltySaved,
+    scoring.yellowCard,
+    scoring.redCard,
+    scoring.award.goldenBoot,
+    scoring.award.tournamentMvp,
+  ]);
+}
+
 export function buildConfigPayloadFrom(input: {
-  scoring: { winnerPoints: number; exactResultPoints: number };
-  bracketScoring: BracketScoringConfig;
-  playerScoring: typeof DEFAULT_PLAYER_SCORING;
+  scoring: GroupScoringConfig;
+  bracketScoring: AdminBracketScoringConfig;
+  playerScoring: AdminPlayerScoringConfig;
   awardWinners: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
   deadlineLocal: string;
   entryFee: number;
   prizeDistribution: PrizePayout[];
 }) {
+  const scoring = groupScoringMissingCount(input.scoring) === 0
+    ? { winnerPoints: input.scoring.winnerPoints, exactResultPoints: input.scoring.exactResultPoints }
+    : null;
+  const firstBracketRound = input.bracketScoring.rounds[PHASES[0].key];
+  const bracketScoring = bracketScoringMissingCount(input.bracketScoring) === 0
+    ? {
+        exactPositionPoints: firstBracketRound.exactPositionPoints,
+        correctTeamWrongPositionPoints: firstBracketRound.correctTeamWrongPositionPoints,
+        tournamentWinnerPoints: input.bracketScoring.tournamentWinnerPoints,
+        rounds: input.bracketScoring.rounds,
+      }
+    : null;
+  const playerScoring = playerScoringMissingCount(input.playerScoring) === 0
+    ? input.playerScoring
+    : null;
   return {
-    scoring: { winnerPoints: input.scoring.winnerPoints, exactResultPoints: input.scoring.exactResultPoints },
-    bracketScoring: {
-      exactPositionPoints: input.bracketScoring.exactPositionPoints,
-      correctTeamWrongPositionPoints: input.bracketScoring.correctTeamWrongPositionPoints,
-      tournamentWinnerPoints: input.bracketScoring.tournamentWinnerPoints,
-      rounds: input.bracketScoring.rounds,
-    },
-    playerScoring: input.playerScoring,
+    scoring,
+    bracketScoring,
+    playerScoring,
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
     entryFee: Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0,
@@ -137,11 +284,11 @@ export function buildConfigPayloadFrom(input: {
   };
 }
 
-export function computePlayerPoints(player: TournamentPlayer, scoring: typeof DEFAULT_PLAYER_SCORING): number {
-  const cleanSheetPoints = (player.cleanSheets || 0) * scoring.cleanSheet[player.position];
-  const assistPoints = (player.assists || 0) * scoring.assist[player.position];
-  const cardPoints = (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
-  return (player.goals || 0) * scoring.goal[player.position] + (player.missedPenalties || 0) * scoring.missedPenalty + (player.mvps || 0) * scoring.mvp + (player.penaltiesSaved || 0) * scoring.penaltySaved + cleanSheetPoints + assistPoints + cardPoints;
+export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlayerScoringConfig): number {
+  const cleanSheetPoints = (player.cleanSheets || 0) * pointsValue(scoring.cleanSheet[player.position]);
+  const assistPoints = (player.assists || 0) * pointsValue(scoring.assist[player.position]);
+  const cardPoints = (player.yellowCards || 0) * pointsValue(scoring.yellowCard) + (player.redCards || 0) * pointsValue(scoring.redCard);
+  return (player.goals || 0) * pointsValue(scoring.goal[player.position]) + (player.missedPenalties || 0) * pointsValue(scoring.missedPenalty) + (player.mvps || 0) * pointsValue(scoring.mvp) + (player.penaltiesSaved || 0) * pointsValue(scoring.penaltySaved) + cleanSheetPoints + assistPoints + cardPoints;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -157,12 +304,12 @@ interface AdminContextValue {
   matchesByGroup: Record<string, Match[]>;
   results: Record<string, { homeResult: number | ''; awayResult: number | '' }>;
   submitting: string | null;
-  scoringConfig: { winnerPoints: number; exactResultPoints: number };
-  setScoringConfig: React.Dispatch<React.SetStateAction<{ winnerPoints: number; exactResultPoints: number }>>;
-  bracketScoringConfig: BracketScoringConfig;
-  setBracketScoringConfig: React.Dispatch<React.SetStateAction<BracketScoringConfig>>;
-  playerScoringConfig: typeof DEFAULT_PLAYER_SCORING;
-  setPlayerScoringConfig: React.Dispatch<React.SetStateAction<typeof DEFAULT_PLAYER_SCORING>>;
+  scoringConfig: GroupScoringConfig;
+  setScoringConfig: React.Dispatch<React.SetStateAction<GroupScoringConfig>>;
+  bracketScoringConfig: AdminBracketScoringConfig;
+  setBracketScoringConfig: React.Dispatch<React.SetStateAction<AdminBracketScoringConfig>>;
+  playerScoringConfig: AdminPlayerScoringConfig;
+  setPlayerScoringConfig: React.Dispatch<React.SetStateAction<AdminPlayerScoringConfig>>;
   savingConfig: boolean;
   deadlineLocal: string;
   setDeadlineLocal: React.Dispatch<React.SetStateAction<string>>;
@@ -188,6 +335,9 @@ interface AdminContextValue {
   maxPrizePaidPositions: number;
   prizeTotal: number;
   prizeTotalInvalid: boolean;
+  groupConfigMissingCount: number;
+  finalConfigMissingCount: number;
+  playersConfigMissingCount: number;
   handleResultChange: (matchId: string, side: 'home' | 'away', value: string) => void;
   handleUpdateTeam: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => Promise<void>;
   handleBracketResultChange: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
@@ -222,9 +372,9 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const lastSavedName = useRef<string | null>(null);
   const nameSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [results, setResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
-  const [scoringConfig, setScoringConfig] = useState({ winnerPoints: 1, exactResultPoints: 3 });
-  const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
-  const [playerScoringConfig, setPlayerScoringConfig] = useState(DEFAULT_PLAYER_SCORING);
+  const [scoringConfig, setScoringConfig] = useState<GroupScoringConfig>(EMPTY_GROUP_SCORING);
+  const [bracketScoringConfig, setBracketScoringConfig] = useState<AdminBracketScoringConfig>(emptyBracketScoring());
+  const [playerScoringConfig, setPlayerScoringConfig] = useState<AdminPlayerScoringConfig>(DEFAULT_PLAYER_SCORING);
   const [savingConfig, setSavingConfig] = useState(false);
   const [poolName, setPoolName] = useState<string>('');
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
@@ -284,24 +434,14 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
           const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
           setPoolMemberCount(memberCount);
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
-          if (typeof pool?.config?.entryFee === 'number') setEntryFee(pool.config.entryFee);
+          setEntryFee(typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0);
           setPrizeDistribution(normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount)));
-
-          if (pool?.config?.scoring) setScoringConfig({ winnerPoints: pool.config.scoring.winnerPoints ?? 1, exactResultPoints: pool.config.scoring.exactResultPoints ?? 3 });
-          if (pool?.config?.bracketScoring) setBracketScoringConfig(normalizeBracketScoring(pool.config.bracketScoring));
-          if (pool?.config?.playerScoring) {
-            setPlayerScoringConfig({
-              goal: { goalkeeper: pool.config.playerScoring.goal?.goalkeeper ?? DEFAULT_PLAYER_SCORING.goal.goalkeeper, defender: pool.config.playerScoring.goal?.defender ?? DEFAULT_PLAYER_SCORING.goal.defender, midfielder: pool.config.playerScoring.goal?.midfielder ?? DEFAULT_PLAYER_SCORING.goal.midfielder, forward: pool.config.playerScoring.goal?.forward ?? DEFAULT_PLAYER_SCORING.goal.forward },
-              missedPenalty: pool.config.playerScoring.missedPenalty ?? DEFAULT_PLAYER_SCORING.missedPenalty,
-              mvp: pool.config.playerScoring.mvp ?? DEFAULT_PLAYER_SCORING.mvp,
-              penaltySaved: pool.config.playerScoring.penaltySaved ?? DEFAULT_PLAYER_SCORING.penaltySaved,
-              cleanSheet: resolveCleanSheetScoring(pool.config.playerScoring.cleanSheet),
-              assist: { goalkeeper: pool.config.playerScoring.assist?.goalkeeper ?? DEFAULT_PLAYER_SCORING.assist.goalkeeper, defender: pool.config.playerScoring.assist?.defender ?? DEFAULT_PLAYER_SCORING.assist.defender, midfielder: pool.config.playerScoring.assist?.midfielder ?? DEFAULT_PLAYER_SCORING.assist.midfielder, forward: pool.config.playerScoring.assist?.forward ?? DEFAULT_PLAYER_SCORING.assist.forward },
-              yellowCard: pool.config.playerScoring.yellowCard ?? DEFAULT_PLAYER_SCORING.yellowCard,
-              redCard: pool.config.playerScoring.redCard ?? DEFAULT_PLAYER_SCORING.redCard,
-              award: { goldenBoot: pool.config.playerScoring.award?.goldenBoot ?? DEFAULT_PLAYER_SCORING.award.goldenBoot, tournamentMvp: pool.config.playerScoring.award?.tournamentMvp ?? DEFAULT_PLAYER_SCORING.award.tournamentMvp },
-            });
-          }
+          const loadedScoring = normalizeGroupScoring(pool?.config?.scoring);
+          const loadedBracketScoring = normalizeBracketScoring(pool?.config?.bracketScoring);
+          const loadedPlayerScoring = normalizePlayerScoring(pool?.config?.playerScoring);
+          setScoringConfig(loadedScoring);
+          setBracketScoringConfig(loadedBracketScoring);
+          setPlayerScoringConfig(loadedPlayerScoring);
 
           const loadedAwardWinners = {
             goldenBootPlayerIds: Array.isArray(pool?.config?.playerAwardWinners?.goldenBootPlayerIds) ? pool.config.playerAwardWinners.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string') : [],
@@ -309,19 +449,6 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
           };
           setPlayerAwardWinnersConfig(loadedAwardWinners);
 
-          const loadedScoring = pool?.config?.scoring ? { winnerPoints: pool.config.scoring.winnerPoints ?? 1, exactResultPoints: pool.config.scoring.exactResultPoints ?? 3 } : { winnerPoints: 1, exactResultPoints: 3 };
-          const loadedBracketScoring = pool?.config?.bracketScoring ? normalizeBracketScoring(pool.config.bracketScoring) : normalizeBracketScoring({});
-          const loadedPlayerScoring = {
-            goal: { goalkeeper: pool?.config?.playerScoring?.goal?.goalkeeper ?? DEFAULT_PLAYER_SCORING.goal.goalkeeper, defender: pool?.config?.playerScoring?.goal?.defender ?? DEFAULT_PLAYER_SCORING.goal.defender, midfielder: pool?.config?.playerScoring?.goal?.midfielder ?? DEFAULT_PLAYER_SCORING.goal.midfielder, forward: pool?.config?.playerScoring?.goal?.forward ?? DEFAULT_PLAYER_SCORING.goal.forward },
-            missedPenalty: pool?.config?.playerScoring?.missedPenalty ?? DEFAULT_PLAYER_SCORING.missedPenalty,
-            mvp: pool?.config?.playerScoring?.mvp ?? DEFAULT_PLAYER_SCORING.mvp,
-            penaltySaved: pool?.config?.playerScoring?.penaltySaved ?? DEFAULT_PLAYER_SCORING.penaltySaved,
-            cleanSheet: resolveCleanSheetScoring(pool?.config?.playerScoring?.cleanSheet),
-            assist: { goalkeeper: pool?.config?.playerScoring?.assist?.goalkeeper ?? DEFAULT_PLAYER_SCORING.assist.goalkeeper, defender: pool?.config?.playerScoring?.assist?.defender ?? DEFAULT_PLAYER_SCORING.assist.defender, midfielder: pool?.config?.playerScoring?.assist?.midfielder ?? DEFAULT_PLAYER_SCORING.assist.midfielder, forward: pool?.config?.playerScoring?.assist?.forward ?? DEFAULT_PLAYER_SCORING.assist.forward },
-            yellowCard: pool?.config?.playerScoring?.yellowCard ?? DEFAULT_PLAYER_SCORING.yellowCard,
-            redCard: pool?.config?.playerScoring?.redCard ?? DEFAULT_PLAYER_SCORING.redCard,
-            award: { goldenBoot: pool?.config?.playerScoring?.award?.goldenBoot ?? DEFAULT_PLAYER_SCORING.award.goldenBoot, tournamentMvp: pool?.config?.playerScoring?.award?.tournamentMvp ?? DEFAULT_PLAYER_SCORING.award.tournamentMvp },
-          };
           const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
           const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
           const loadedPrizeDistribution = normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount));
@@ -548,6 +675,9 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
   const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
   const prizeTotalInvalid = prizeDistribution.length > 0 && Math.abs(prizeTotal - 100) > 0.01;
+  const groupConfigMissingCount = groupScoringMissingCount(scoringConfig);
+  const finalConfigMissingCount = bracketScoringMissingCount(bracketScoringConfig);
+  const playersConfigMissingCount = playerScoringMissingCount(playerScoringConfig);
   const value: AdminContextValue = {
     poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
@@ -557,6 +687,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
     playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingMatch,
     submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
+    groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount,
     handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange,
   };
 

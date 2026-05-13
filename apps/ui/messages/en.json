@@ -183,6 +183,7 @@
       "finalPhase": "Final phase",
       "groupPhase": "Group phase",
       "label": "Administration sections",
+      "missingConfigCount": "{count} pending configurations",
       "players": "Players",
       "short": {
         "configuration": "Config",
@@ -494,12 +495,18 @@
     "loading": "Loading pools...",
     "modal": {
       "createTitle": "Create pool",
+      "deadlineHint": "After this date and time, predictions can no longer be submitted or changed.",
+      "deadlineLabel": "Prediction deadline",
       "editTitle": "Edit pool name",
+      "entryFeeHint": "Amount each participant must pay to enter the pool. Use 0 for free pools.",
+      "entryFeeLabel": "Entry fee (EUR)",
       "inviteEmailLabel": "Email *",
       "inviteEmailPlaceholder": "user@example.com",
       "inviteTitle": "Invite user to {poolName}",
       "poolNameLabel": "Pool name *",
-      "poolNamePlaceholder": "Enter the pool name (3-100 characters)"
+      "poolNamePlaceholder": "Enter the pool name (3-100 characters)",
+      "prizePaidPositionsHint": "Number of ranking positions that receive a prize.",
+      "prizePaidPositionsLabel": "Prize positions"
     },
     "subtitle": "Review and manage your football pools",
     "title": "Pools",

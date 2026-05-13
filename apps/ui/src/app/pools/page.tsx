@@ -10,6 +10,18 @@ import toast from 'react-hot-toast';
 import { rum } from '@/lib/rum';
 import { PoolCard } from '@/components/pool/PoolCard';
 import { Loading } from '@/components/Loading';
+import {
+  DEFAULT_POOL_DEADLINE,
+  fromDateTimeLocal,
+  prizePaidPositionsLimit,
+  resizePrizeDistribution,
+  toDateTimeLocal,
+} from '@/contexts/AdminContext';
+import { FaClock } from 'react-icons/fa';
+import { FaDollarSign } from 'react-icons/fa6';
+import { PrizePayout } from '@/types/prizePayout.type';
+
+const CREATE_POOL_MEMBER_COUNT = 1;
 
 function PoolsContent() {
   const { user } = useAuth();
@@ -20,7 +32,9 @@ function PoolsContent() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [poolName, setPoolName] = useState('');
+  const [poolDeadlineLocal, setPoolDeadlineLocal] = useState(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
   const [poolEntryFee, setPoolEntryFee] = useState(0);
+  const [poolPrizeDistribution, setPoolPrizeDistribution] = useState<PrizePayout[]>([]);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [invitingPool, setInvitingPool] = useState<Pool | null>(null);
@@ -34,6 +48,15 @@ function PoolsContent() {
     if (!showParticipatingOnly) return pools;
     return pools.filter((pool) => pool.isMember || pool.adminUserId === user?.userId);
   }, [pools, showParticipatingOnly, user?.userId]);
+
+  const maxCreatePrizePaidPositions = prizePaidPositionsLimit(CREATE_POOL_MEMBER_COUNT);
+  const createPrizeTotal = poolPrizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
+  const createPrizeTotalInvalid = poolPrizeDistribution.length > 0 && Math.abs(createPrizeTotal - 100) > 0.01;
+
+  useEffect(() => {
+    if (poolEntryFee !== 0) return;
+    if (poolPrizeDistribution.length > 0) setPoolPrizeDistribution([]);
+  }, [poolEntryFee, poolPrizeDistribution.length]);
 
   const fetchPools = useCallback(async () => {
     try {
@@ -58,14 +81,18 @@ function PoolsContent() {
   const handleCreatePool = () => {
     setShowCreateModal(true);
     setPoolName('');
+    setPoolDeadlineLocal(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
     setPoolEntryFee(0);
+    setPoolPrizeDistribution([]);
     setCreateError(null);
   };
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setPoolName('');
+    setPoolDeadlineLocal(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
     setPoolEntryFee(0);
+    setPoolPrizeDistribution([]);
     setCreateError(null);
   };
 
@@ -79,14 +106,30 @@ function PoolsContent() {
       setCreateError(t('pools.validation.nameMax'));
       return;
     }
+    if (createPrizeTotalInvalid) {
+      setCreateError(t('adminResults.errors.prizeDistributionTotal'));
+      return;
+    }
     try {
       setCreating(true);
       setCreateError(null);
-      const response = await apiClient.post('/pools', { name: poolName.trim() });
-      await apiClient.put(`/pools/${response.data.poolId}/configuration`, {
-        entryFee: poolEntryFee,
-        prizeDistribution: { paidPositions: 0, payouts: [] },
-      }).catch(() => {});
+      const prizeDistribution = poolEntryFee > 0
+        ? {
+            paidPositions: poolPrizeDistribution.length,
+            payouts: poolPrizeDistribution.map((row, index) => ({
+              rank: index + 1,
+              percentage: Number(row.percentage.toFixed(2)),
+            })),
+          }
+        : { paidPositions: 0, payouts: [] };
+      const response = await apiClient.post('/pools', {
+        name: poolName.trim(),
+        config: {
+          deadline: fromDateTimeLocal(poolDeadlineLocal),
+          entryFee: poolEntryFee,
+          prizeDistribution,
+        },
+      });
       await fetchPools();
       rum?.trackCustomEvent('Pool Created', { poolId: response.data.poolId, poolName: poolName.trim() });
       toast.success(t('pools.toast.created'));
@@ -348,7 +391,7 @@ function PoolsContent() {
       {/* Create Pool Modal */}
       {showCreateModal ? (
         <div className="modal-overlay" onClick={handleCloseCreateModal}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
             <h2
               style={{
                 fontFamily: 'var(--font-display, inherit)',
@@ -362,37 +405,144 @@ function PoolsContent() {
             </h2>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label htmlFor="poolName" className="field-label">
-                  {t('pools.modal.poolNameLabel')}
-                </label>
-                <input
-                  id="poolName"
-                  type="text"
-                  value={poolName}
-                  onChange={(e) => setPoolName(e.target.value)}
-                  placeholder={t('pools.modal.poolNamePlaceholder')}
-                  disabled={creating}
-                  className="input"
-                  autoFocus
-                />
+              <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
+                    gap: '0.6rem',
+                    alignItems: 'start',
+                  }}
+                >
+                  <div>
+                    <label htmlFor="poolName" className="field-label">
+                      {t('pools.modal.poolNameLabel')}
+                    </label>
+                    <input
+                      id="poolName"
+                      type="text"
+                      value={poolName}
+                      onChange={(e) => setPoolName(e.target.value)}
+                      placeholder={t('pools.modal.poolNamePlaceholder')}
+                      disabled={creating}
+                      className="input"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="poolDeadline" className="field-label">
+                      <FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} />
+                      {t('pools.modal.deadlineLabel')}
+                    </label>
+                    <input
+                      id="poolDeadline"
+                      type="datetime-local"
+                      value={poolDeadlineLocal}
+                      onChange={(e) => setPoolDeadlineLocal(e.target.value)}
+                      disabled={creating}
+                      className="input"
+                    />
+                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
+                      {t('pools.modal.deadlineHint')}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
+                    gap: '0.6rem',
+                    alignItems: 'start',
+                  }}
+                >
+                  <div>
+                    <label htmlFor="poolEntryFee" className="field-label">
+                      <FaDollarSign aria-hidden style={{ color: 'rgb(var(--fg))' }} />
+                      {t('pools.modal.entryFeeLabel')}
+                    </label>
+                    <input
+                      id="poolEntryFee"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.5"
+                      value={poolEntryFee}
+                      onChange={(e) => { const v = Number.parseFloat(e.target.value); setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }}
+                      disabled={creating}
+                      className="input"
+                    />
+                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
+                      {t('pools.modal.entryFeeHint')}
+                    </p>
+                  </div>
+                  <div>
+                    <label htmlFor="poolPrizePaidPositions" className="field-label">
+                      {t('pools.modal.prizePaidPositionsLabel')}
+                    </label>
+                    <input
+                      id="poolPrizePaidPositions"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max={maxCreatePrizePaidPositions}
+                      value={poolPrizeDistribution.length}
+                      onChange={(e) => {
+                        const value = Number.parseInt(e.target.value, 10) || 0;
+                        setPoolPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxCreatePrizePaidPositions));
+                      }}
+                      disabled={creating || poolEntryFee === 0}
+                      className="input"
+                    />
+                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
+                      {t('pools.modal.prizePaidPositionsHint', { count: maxCreatePrizePaidPositions })}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
+                  {t('adminResults.scoring.prizeTotal', { total: Number(createPrizeTotal.toFixed(2)) })}
+                  {poolPrizeDistribution.length > 0 ? (
+                    <span style={{ marginLeft: '0.5rem', color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
+                      {createPrizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
+                    </span>
+                  ) : null}
+                </div>
+
+                {poolPrizeDistribution.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    {poolPrizeDistribution.map((row, index) => (
+                      <div key={row.rank} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 10rem) minmax(9rem, 13rem) minmax(0, 1fr)', gap: '0.65rem', alignItems: 'center' }}>
+                        <span style={{ color: 'rgb(var(--fg))', fontWeight: 700, fontSize: '0.875rem' }}>
+                          {t('adminResults.scoring.prizeRank', { rank: row.rank })}
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={row.percentage}
+                          aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                          onChange={(e) => {
+                            const value = Number.parseFloat(e.target.value);
+                            const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, percentage } : item));
+                          }}
+                          disabled={creating}
+                          className="input"
+                          style={{
+                            borderColor: createPrizeTotalInvalid ? 'rgb(var(--live) / 0.75)' : undefined,
+                          }}
+                        />
+                        <span style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.8125rem' }}>
+                          {t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 {createError ? <p className="field-error">{createError}</p> : null}
-              </div>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label htmlFor="poolEntryFee" className="field-label">
-                  {t('adminResults.scoring.entryFee')}
-                </label>
-                <input
-                  id="poolEntryFee"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.5"
-                  value={poolEntryFee}
-                  onChange={(e) => { const v = Number.parseFloat(e.target.value); setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }}
-                  disabled={creating}
-                  className="input"
-                />
               </div>
 
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
@@ -406,7 +556,7 @@ function PoolsContent() {
                 </button>
                 <button
                   type="submit"
-                  disabled={creating || !poolName.trim()}
+                  disabled={creating || !poolName.trim() || createPrizeTotalInvalid}
                   className="btn btn-primary"
                 >
                   {creating ? t('pools.actions.creating') : t('pools.actions.create')}
