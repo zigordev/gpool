@@ -4,6 +4,41 @@ import { PostgresService } from '../database/postgres.service';
 import { NotificationEventEnvelope, NotificationPublisherService } from './notification.publisher.service';
 
 type NotificationStatus = 'pending' | 'queued' | 'failed' | 'skipped';
+type NotificationLocale = 'es' | 'en';
+
+const DEFAULT_LOCALE: NotificationLocale = 'es';
+
+function normalizeLocale(value: string | null | undefined): NotificationLocale {
+  return value?.trim().toLowerCase().split(/[-_]/)[0] === 'en' ? 'en' : DEFAULT_LOCALE;
+}
+
+function invitationSubject(poolName: string, locale: NotificationLocale): string {
+  return locale === 'en'
+    ? `You've been invited to join ${poolName} on GPool`
+    : `Te han invitado a unirte a ${poolName} en GPool`;
+}
+
+function accessRequestSubject(poolName: string, locale: NotificationLocale): string {
+  return locale === 'en'
+    ? `Pool access request for ${poolName} on GPool`
+    : `Solicitud de acceso a ${poolName} en GPool`;
+}
+
+function accessGrantedSubject(poolName: string, locale: NotificationLocale): string {
+  return locale === 'en'
+    ? `Access granted to ${poolName} on GPool`
+    : `Acceso concedido a ${poolName} en GPool`;
+}
+
+function acceptedInvitationSubject(
+  userName: string,
+  poolName: string,
+  locale: NotificationLocale,
+): string {
+  return locale === 'en'
+    ? `${userName} accepted your invitation to ${poolName} on GPool`
+    : `${userName} ha aceptado tu invitacion a ${poolName} en GPool`;
+}
 
 @Injectable()
 export class NotificationService {
@@ -121,8 +156,10 @@ export class NotificationService {
     poolId: string;
     inviterEmail: string;
     invitedBy?: string;
+    locale?: string;
   }): Promise<void> {
-    const subject = `You've been invited to join ${data.poolName} on GPool`;
+    const locale = normalizeLocale(data.locale);
+    const subject = invitationSubject(data.poolName, locale);
     const notificationId = await this.createNotification({
       userId: data.invitedBy,
       recipient: data.to,
@@ -133,6 +170,7 @@ export class NotificationService {
         poolName: data.poolName,
         inviterEmail: data.inviterEmail,
         templateId: 'gpool.pool-invitation',
+        locale,
       },
     });
 
@@ -148,6 +186,7 @@ export class NotificationService {
       data: {
         poolName: data.poolName,
         poolId: data.poolId,
+        locale,
         inviterEmail: data.inviterEmail,
         acceptUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/pools/${data.poolId}/accept`,
         poolUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/pools/${data.poolId}`,
@@ -157,6 +196,7 @@ export class NotificationService {
         eventType: 'user_invited_to_pool',
         invitedBy: data.invitedBy,
         poolId: data.poolId,
+        locale,
       },
       requestedAt: new Date().toISOString(),
     });
@@ -169,9 +209,11 @@ export class NotificationService {
     requesterEmail: string;
     requesterUserId: string;
     adminUserId: string;
+    locale?: string;
   }): Promise<void> {
     const recipient = data.to || '';
-    const subject = `Access Request for ${data.poolName} on GPool`;
+    const locale = normalizeLocale(data.locale);
+    const subject = accessRequestSubject(data.poolName, locale);
     const notificationId = await this.createNotification({
       userId: data.adminUserId,
       recipient,
@@ -182,6 +224,7 @@ export class NotificationService {
         poolName: data.poolName,
         requesterEmail: data.requesterEmail,
         requesterUserId: data.requesterUserId,
+        locale,
       },
     });
 
@@ -206,6 +249,7 @@ export class NotificationService {
       data: {
         poolName: data.poolName,
         poolId: data.poolId,
+        locale,
         requesterEmail: data.requesterEmail,
         requesterUserId: data.requesterUserId,
         frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',
@@ -216,6 +260,7 @@ export class NotificationService {
         eventType: 'pool_access_requested',
         poolId: data.poolId,
         requesterUserId: data.requesterUserId,
+        locale,
       },
       requestedAt: new Date().toISOString(),
     });
@@ -227,9 +272,11 @@ export class NotificationService {
     poolId: string;
     userId: string;
     userName?: string;
+    locale?: string;
   }): Promise<void> {
     const recipient = data.to || '';
-    const subject = `Access granted to ${data.poolName} on GPool`;
+    const locale = normalizeLocale(data.locale);
+    const subject = accessGrantedSubject(data.poolName, locale);
     const notificationId = await this.createNotification({
       userId: data.userId,
       recipient,
@@ -238,6 +285,7 @@ export class NotificationService {
         eventType: 'pool_access_granted',
         poolId: data.poolId,
         poolName: data.poolName,
+        locale,
       },
     });
 
@@ -259,6 +307,7 @@ export class NotificationService {
       data: {
         poolName: data.poolName,
         poolId: data.poolId,
+        locale,
         userName: data.userName || 'there',
         frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',
         poolUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/pools/${data.poolId}`,
@@ -267,6 +316,7 @@ export class NotificationService {
         eventType: 'pool_access_granted',
         poolId: data.poolId,
         userId: data.userId,
+        locale,
       },
       requestedAt: new Date().toISOString(),
     });
@@ -281,15 +331,17 @@ export class NotificationService {
     userEmail: string;
     adminUserId: string;
     eventId?: string;
+    locale?: string;
   }): Promise<void> {
     const recipient = data.to || '';
+    const locale = normalizeLocale(data.locale);
 
     if (data.eventId && (await this.alreadyProcessedEvent(data.eventId))) {
       this.logger.log(`Skipping duplicate invitation-accepted notification for event ${data.eventId}`);
       return;
     }
 
-    const subject = `${data.userName} accepted your invitation to ${data.poolName} on GPool`;
+    const subject = acceptedInvitationSubject(data.userName, data.poolName, locale);
     const notificationId = await this.createNotification({
       userId: data.adminUserId,
       recipient,
@@ -301,6 +353,7 @@ export class NotificationService {
         poolName: data.poolName,
         userId: data.userId,
         userEmail: data.userEmail,
+        locale,
       },
     });
 
@@ -325,6 +378,7 @@ export class NotificationService {
       data: {
         poolName: data.poolName,
         poolId: data.poolId,
+        locale,
         userName: data.userName,
         userEmail: data.userEmail,
         frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',
@@ -335,6 +389,7 @@ export class NotificationService {
         eventType: 'user_accepted_pool_invitation',
         poolId: data.poolId,
         userId: data.userId,
+        locale,
       },
       requestedAt: new Date().toISOString(),
     });

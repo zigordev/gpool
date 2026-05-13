@@ -19,6 +19,13 @@ type SignedTransfer = {
 };
 
 const GOOGLE_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
+const DEFAULT_LOCALE = 'es';
+const SUPPORTED_LOCALES = new Set(['es', 'en']);
+
+function normalizeLocale(value: string | null | undefined): string {
+  const locale = value?.trim().toLowerCase().split(/[-_]/)[0] || DEFAULT_LOCALE;
+  return SUPPORTED_LOCALES.has(locale) ? locale : DEFAULT_LOCALE;
+}
 
 @Injectable()
 export class AuthService {
@@ -43,6 +50,7 @@ export class AuthService {
     role: string;
     name: string | null;
     picture: string | null;
+    locale: string;
   }): SignedTransfer {
     const transferPayload = {
       userId: input.userId,
@@ -50,6 +58,7 @@ export class AuthService {
       role: input.role,
       name: input.name,
       picture: input.picture,
+      locale: normalizeLocale(input.locale),
       exp: Math.floor(Date.now() / 1000) + 120,
       ver: 1 as const,
     };
@@ -58,11 +67,15 @@ export class AuthService {
     return { transfer, signature };
   }
 
-  async createGoogleTransferFromAccessToken(accessToken: string): Promise<SignedTransfer> {
+  async createGoogleTransferFromAccessToken(
+    accessToken: string,
+    locale?: string,
+  ): Promise<SignedTransfer> {
     const token = accessToken.trim();
     if (!token) {
       throw new UnauthorizedException('Missing Google access token');
     }
+    const resolvedLocale = normalizeLocale(locale);
 
     const userInfoResponse = await fetch(GOOGLE_USERINFO_ENDPOINT, {
       headers: { Authorization: `Bearer ${token}` },
@@ -94,6 +107,7 @@ export class AuthService {
         name: fullName,
         picture,
         role: 'user',
+        locale: resolvedLocale,
       });
       this.logger.log(`New user created from Google login: ${userId}`);
     } else {
@@ -111,6 +125,22 @@ export class AuthService {
       role: dbUser.role,
       name: dbUser.name || null,
       picture: dbUser.picture || null,
+      locale: dbUser.locale || DEFAULT_LOCALE,
     });
+  }
+
+  async updateLocale(userId: string, locale: string) {
+    const updated = await this.authRepository.updateUser(userId, {
+      locale: normalizeLocale(locale),
+    });
+
+    return {
+      userId: updated.userId,
+      email: updated.email,
+      role: updated.role,
+      name: updated.name || null,
+      picture: updated.picture || null,
+      locale: updated.locale || DEFAULT_LOCALE,
+    };
   }
 }
