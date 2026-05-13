@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.9](https://github.com/zigorlsp7/gpool/compare/v0.1.8...v0.1.9) (2026-05-13)
+
+
+### Bug Fixes
+
+* redirect uri fixed ([#52](https://github.com/zigorlsp7/gpool/issues/52)) ([4875558](https://github.com/zigorlsp7/gpool/commit/48755584ec31e073abeadf9ed411a507b1167ca6))
+
 ## [0.1.8](https://github.com/zigorlsp7/gpool/compare/v0.1.7...v0.1.8) (2026-05-13)
 
 
