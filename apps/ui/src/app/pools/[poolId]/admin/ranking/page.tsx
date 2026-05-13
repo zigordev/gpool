@@ -86,10 +86,10 @@ export default function AdminRankingPage() {
           {prizeDistribution.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               {prizeDistribution.map((row, index) => (
-                <div key={row.rank} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 10rem) minmax(9rem, 13rem) minmax(0, 1fr)', gap: '0.65rem', alignItems: 'center' }}>
-                  <span style={{ color: 'rgb(var(--fg))', fontWeight: 700, fontSize: '0.875rem' }}>{t('adminResults.scoring.prizeRank', { rank: row.rank })}</span>
+                <div key={row.rank} className="prize-payout-row">
+                  <span className="prize-payout-rank">{t('adminResults.scoring.prizeRank', { rank: row.rank })}</span>
                   <Input type="number" inputMode="decimal" min="0" max="100" step="0.5" value={row.percentage} invalid={prizeTotalInvalid} aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })} onChange={(e) => { const value = Number.parseFloat(e.target.value); const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0; setPrizeDistribution((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, percentage } : item)); }} />
-                  <span style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.8125rem' }}>{t('adminResults.scoring.prizePercentage', { rank: row.rank })}</span>
+                  <span className="prize-payout-hint">{t('adminResults.scoring.prizePercentage', { rank: row.rank })}</span>
                 </div>
               ))}
             </div>
