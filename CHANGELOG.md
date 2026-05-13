@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.11](https://github.com/zigorlsp7/gpool/compare/v0.1.10...v0.1.11) (2026-05-13)
+
+
+### Features
+
+* display brackets vertically ([#56](https://github.com/zigorlsp7/gpool/issues/56)) ([198d732](https://github.com/zigorlsp7/gpool/commit/198d732ff70c4f724421cd4eff3d01b14c557eec))
+
 ## [0.1.10](https://github.com/zigorlsp7/gpool/compare/v0.1.9...v0.1.10) (2026-05-13)
 
 
