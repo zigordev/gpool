@@ -6,7 +6,7 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
-import { useAdminContext } from '@/contexts/AdminContext';
+import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
 
 function ScoreInput({
@@ -192,10 +192,10 @@ export default function AdminGroupsPage() {
       <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
-            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setScoringConfig((prev) => ({ ...prev, winnerPoints: Math.max(0, value) })); }} />
+            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
           <FormField label={t('adminResults.scoring.groupPhaseExact')}>
-            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setScoringConfig((prev) => ({ ...prev, exactResultPoints: Math.max(0, value) })); }} />
+            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} onChange={(e) => setScoringConfig((prev) => ({ ...prev, exactResultPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
         </div>
       </Section>

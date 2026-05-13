@@ -29,36 +29,31 @@ const SELECTION_LIMIT = 6;
 
 export const DEFAULT_PLAYER_SCORING = {
   goal: {
-    goalkeeper: 10,
-    defender: 6,
-    midfielder: 4,
-    forward: 3,
-  },
-  missedPenalty: -2,
-  mvp: 5,
-  penaltySaved: 5,
-  cleanSheet: {
-    goalkeeper: 4,
-    defender: 3,
-    midfielder: 1,
+    goalkeeper: 0,
+    defender: 0,
+    midfielder: 0,
     forward: 0,
   },
-  // Per-position assist values. GKs default to 0 since assists are extremely
-  // rare for keepers, but the field still exists so admins can configure it.
+  missedPenalty: 0,
+  mvp: 0,
+  penaltySaved: 0,
+  cleanSheet: {
+    goalkeeper: 0,
+    defender: 0,
+    midfielder: 0,
+    forward: 0,
+  },
   assist: {
     goalkeeper: 0,
-    defender: 4,
-    midfielder: 3,
-    forward: 2,
+    defender: 0,
+    midfielder: 0,
+    forward: 0,
   },
-  // Cards subtract points. Stored as the raw signed value the admin
-  // configures (negative numbers are expected); the points calculation simply
-  // multiplies by the stat count.
-  yellowCard: -1,
-  redCard: -3,
+  yellowCard: 0,
+  redCard: 0,
   award: {
-    goldenBoot: 15,
-    tournamentMvp: 15,
+    goldenBoot: 0,
+    tournamentMvp: 0,
   },
 };
 

@@ -153,8 +153,8 @@ export class MatchService {
       };
     }
 
-    let winnerPoints = 1;
-    let exactResultPoints = 3;
+    let winnerPoints = 0;
+    let exactResultPoints = 0;
 
     if (poolId) {
       const pool = await this.poolRepository.getPool(poolId);

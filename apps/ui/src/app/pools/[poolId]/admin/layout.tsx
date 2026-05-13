@@ -6,6 +6,7 @@ import { useParams, usePathname } from 'next/navigation';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { Loading } from '@/components/Loading';
+import { Badge } from '@/components/ui/Badge';
 import { AdminProvider, fromDateTimeLocal, useAdminContext } from '@/contexts/AdminContext';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
@@ -16,38 +17,59 @@ function AdminNav({ poolId }: { poolId: string }) {
   const { t } = useI18n();
   const { setCenter } = useNavCenter();
   const pathname = usePathname();
+  const { deadlineLocal, groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount } = useAdminContext();
+  const deadlineMs = fromDateTimeLocal(deadlineLocal);
 
   const routes = [
     { segment: 'ranking', href: `/pools/${poolId}/admin/ranking`, label: t('poolDetail.tabs.ranking'),    shortLabel: t('poolDetail.tabs.short.ranking'),    icon: FaRankingStar },
-    { segment: 'groups',  href: `/pools/${poolId}/admin/groups`,  label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup },
-    { segment: 'final',   href: `/pools/${poolId}/admin/final`,   label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill },
-    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),    shortLabel: t('poolDetail.tabs.short.players'),    icon: FaPerson },
+    { segment: 'groups',  href: `/pools/${poolId}/admin/groups`,  label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: groupConfigMissingCount },
+    { segment: 'final',   href: `/pools/${poolId}/admin/final`,   label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: finalConfigMissingCount },
+    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),    shortLabel: t('poolDetail.tabs.short.players'),    icon: FaPerson, missingCount: playersConfigMissingCount },
   ];
 
   useLayoutEffect(() => {
     setCenter(
-      <nav aria-label={t('adminResults.tabs.label')} className="floating-nav">
-        {routes.map((route) => {
-          const active = pathname === route.href || pathname.startsWith(route.href + '/');
-          const Icon = route.icon;
-          return (
-            <Link
-              key={route.segment}
-              href={route.href}
-              aria-current={active ? 'page' : undefined}
-              className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
-            >
-              <Icon className="floating-nav-icon" aria-hidden />
-              <span className="floating-nav-label-desktop">{route.label}</span>
-              <span className="floating-nav-label-mobile">{route.shortLabel}</span>
-            </Link>
-          );
-        })}
-      </nav>,
+      <>
+        <div className="nav-center-mobile-countdown"><CountdownChip deadline={deadlineMs} /></div>
+        <nav aria-label={t('adminResults.tabs.label')} className="floating-nav">
+          {routes.map((route) => {
+            const active = pathname === route.href || pathname.startsWith(route.href + '/');
+            const Icon = route.icon;
+            return (
+              <Link
+                key={route.segment}
+                href={route.href}
+                aria-current={active ? 'page' : undefined}
+                className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
+              >
+                <Icon className="floating-nav-icon" aria-hidden />
+                <span className="floating-nav-label-desktop">{route.label}</span>
+                <span className="floating-nav-label-mobile">{route.shortLabel}</span>
+                {route.missingCount ? (
+                  <Badge
+                    variant="sunset"
+                    className="badge-attention"
+                    title={t('adminResults.tabs.missingConfigCount', { count: route.missingCount })}
+                    aria-label={t('adminResults.tabs.missingConfigCount', { count: route.missingCount })}
+                    leadingIcon={
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                        <path d="M12 9v4" /><path d="M12 17h.01" />
+                      </svg>
+                    }
+                  >
+                    {route.missingCount}
+                  </Badge>
+                ) : null}
+              </Link>
+            );
+          })}
+        </nav>
+      </>,
     );
     return () => setCenter(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, poolId]);
+  }, [pathname, poolId, deadlineLocal, groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount]);
 
   return null;
 }
@@ -78,12 +100,12 @@ function AdminBreadcrumbs({ poolId }: { poolId: string }) {
 
   useLayoutEffect(() => {
     setSubBar(
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', gap: '1rem' }}>
-        <div style={{ minWidth: 0 }}>
+      <div className="pool-header-strip">
+        <div className="pool-header-name">
           <span className="nav-pool-name">{poolName || '…'}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center' }}><CountdownChip deadline={deadlineMs} /></div>
-        <div className="nav-sub-bar-actions" style={{ justifySelf: 'end' }}>
+        <div className="pool-header-countdown"><CountdownChip deadline={deadlineMs} /></div>
+        <div className="nav-sub-bar-actions pool-header-actions">
           {/* Mode toggle */}
           <div
             role="group"
@@ -152,7 +174,7 @@ function AdminLayoutInner({ poolId, children }: { poolId: string; children: Reac
     <>
       <AdminNav poolId={poolId} />
       <AdminBreadcrumbs poolId={poolId} />
-      <div style={{ marginTop: '1.75rem' }}>
+      <div style={{ marginTop: '0.65rem' }}>
         {children}
       </div>
     </>

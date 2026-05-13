@@ -274,15 +274,15 @@ const BRACKET_PHASES = [
 ] as const;
 
 const DEFAULT_PLAYER_RULE_SCORING = {
-  goal: { goalkeeper: 10, defender: 6, midfielder: 4, forward: 3 },
-  missedPenalty: -2,
-  mvp: 5,
-  penaltySaved: 5,
-  cleanSheet: { goalkeeper: 4, defender: 3, midfielder: 1, forward: 0 },
-  assist: { goalkeeper: 0, defender: 4, midfielder: 3, forward: 2 },
-  yellowCard: -1,
-  redCard: -3,
-  award: { goldenBoot: 15, tournamentMvp: 15 },
+  goal: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
+  missedPenalty: 0,
+  mvp: 0,
+  penaltySaved: 0,
+  cleanSheet: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
+  assist: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
+  yellowCard: 0,
+  redCard: 0,
+  award: { goldenBoot: 0, tournamentMvp: 0 },
 };
 
 function pointsLabel(points: number): string {

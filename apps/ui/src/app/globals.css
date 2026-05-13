@@ -481,14 +481,27 @@ button:focus-visible,
    ============================================================================ */
 
 .input {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 2.5rem;
   padding: 0.625rem 0.875rem;
   background: rgb(var(--input-bg));
   border: 1px solid rgb(var(--border));
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
+  line-height: 1.25;
   color: rgb(var(--fg));
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.input[type="date"],
+.input[type="datetime-local"],
+.input[type="month"],
+.input[type="time"] {
+  min-width: 0;
 }
 
 .input::placeholder {
@@ -519,11 +532,26 @@ input:focus {
 }
 
 .field-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  min-height: 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
+  line-height: 1.2;
   color: rgb(var(--fg));
   margin-bottom: 0.4rem;
+}
+
+.field-label > span {
+  min-width: 0;
+}
+
+.field-label svg {
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
 }
 
 .field-error {
@@ -975,6 +1003,10 @@ input:focus {
   display: none;
 }
 
+.nav-center-mobile-countdown {
+  display: none;
+}
+
 /* Mobile: move the pool section nav to a bottom tab bar */
 @media (max-width: 639px) {
   .nav-shell--has-center {
@@ -1070,6 +1102,32 @@ input:focus {
     height: 0.58rem;
     flex-shrink: 0;
   }
+
+  .nav-mobile-bottom-area .nav-center-mobile-countdown {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .nav-shell--has-center {
+    grid-template-areas: "logo center icons";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .nav-center-area {
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .nav-center-area .floating-nav {
+    display: none;
+  }
+
+  .nav-center-mobile-countdown {
+    display: flex;
+    justify-content: center;
+  }
 }
 
 /* Sub-bar row rendered inside NavigationBar <header> */
@@ -1095,6 +1153,29 @@ input:focus {
   text-overflow: ellipsis;
 }
 
+.pool-header-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.pool-header-name {
+  min-width: 0;
+  justify-self: start;
+}
+
+.pool-header-countdown {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+}
+
+.pool-header-actions {
+  justify-self: end;
+}
+
 /* Right-hand actions in the sub-bar (admin icon, countdown chip) */
 .nav-sub-bar-actions {
   display: flex;
@@ -1110,6 +1191,17 @@ input:focus {
   }
 }
 
+@media (max-width: 639px) {
+  .pool-header-strip {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+  }
+
+  .pool-header-countdown {
+    display: none;
+  }
+}
+
 .content-panel {
   padding-bottom: 1.5rem;
   animation: gp-fade-in var(--motion) var(--ease-out) both;
@@ -1122,6 +1214,7 @@ input:focus {
 }
 
 .config-area .input {
+  height: 2rem;
   padding: 0.3rem 0.55rem;
   font-size: 0.8125rem;
 }

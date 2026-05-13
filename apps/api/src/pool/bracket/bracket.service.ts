@@ -42,16 +42,16 @@ function resolveRoundScoring(
       override?.exactPositionPoints ??
       roundScoring.exactPositionPoints ??
       bracketScoring?.exactPositionPoints ??
-      5,
+      0,
     correctTeamWrongPositionPoints:
       override?.correctTeamWrongPositionPoints ??
       roundScoring.correctTeamWrongPositionPoints ??
       bracketScoring?.correctTeamWrongPositionPoints ??
-      3,
+      0,
     tournamentWinnerPoints:
       override?.tournamentWinnerPoints ??
       bracketScoring?.tournamentWinnerPoints ??
-      10,
+      0,
   };
 }
 
