@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7](https://github.com/zigorlsp7/gpool/compare/v0.1.6...v0.1.7) (2026-05-13)
+
+
+### Features
+
+* added multiple functionalities ([#48](https://github.com/zigorlsp7/gpool/issues/48)) ([8ea40ea](https://github.com/zigorlsp7/gpool/commit/8ea40ea29709a7056b806c752a73b1e259e8d431))
+
 ## [0.1.6](https://github.com/zigorlsp7/gpool/compare/v0.1.5...v0.1.6) (2026-04-28)
 
 ### Bug Fixes
