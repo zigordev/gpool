@@ -26,6 +26,12 @@ export default function AdminRankingPage() {
   } = useAdminContext();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const configPairGrid = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
+    gap: '0.6rem',
+    alignItems: 'start',
+  };
 
   const handleDeletePool = async () => {
     if (!poolId) return;
@@ -53,27 +59,29 @@ export default function AdminRankingPage() {
         tone="muted"
       >
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <FormField label={t('pools.modal.poolNameLabel')}>
-            <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} />
-          </FormField>
-          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
-            <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
-          </FormField>
-          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
-            <Input type="number" inputMode="decimal" min="0" step="0.5" value={entryFee} onChange={(e) => { const v = Number.parseFloat(e.target.value); setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }} />
-          </FormField>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 260px) minmax(0, 1fr)', gap: '1rem', alignItems: 'end' }}>
+          <div style={configPairGrid}>
+            <FormField label={t('pools.modal.poolNameLabel')}>
+              <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} />
+            </FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
+              <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
+            </FormField>
+          </div>
+          <div style={configPairGrid}>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
+              <Input type="number" inputMode="decimal" min="0" step="0.5" value={entryFee} onChange={(e) => { const v = Number.parseFloat(e.target.value); setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }} />
+            </FormField>
             <FormField label={t('adminResults.scoring.prizePaidPositions')} hint={t('adminResults.scoring.prizePaidPositionsHint', { count: maxPrizePaidPositions })}>
               <Input type="number" inputMode="numeric" min="0" max={maxPrizePaidPositions} value={prizeDistribution.length} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxPrizePaidPositions)); }} />
             </FormField>
-            <div style={{ color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600, paddingBottom: '0.65rem' }}>
-              {t('adminResults.scoring.prizeTotal', { total: Number(prizeTotal.toFixed(2)) })}
-              {prizeDistribution.length > 0 ? (
-                <span style={{ marginLeft: '0.5rem', color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
-                  {prizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
-                </span>
-              ) : null}
-            </div>
+          </div>
+          <div style={{ color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
+            {t('adminResults.scoring.prizeTotal', { total: Number(prizeTotal.toFixed(2)) })}
+            {prizeDistribution.length > 0 ? (
+              <span style={{ marginLeft: '0.5rem', color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
+                {prizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
+              </span>
+            ) : null}
           </div>
           {prizeDistribution.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>

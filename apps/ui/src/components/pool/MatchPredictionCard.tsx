@@ -53,6 +53,7 @@ export function MatchPredictionCard({
   const hasRealResult = isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
   const baseId = useId();
   const tone = STATE_TONES[state];
+  const hasStatusBorder = state === 'incomplete' || state === 'exact' || state === 'correct-winner' || state === 'incorrect';
 
   const { t } = useI18n()
 
@@ -75,7 +76,7 @@ export function MatchPredictionCard({
         background: `linear-gradient(var(--card-sheen), var(--card-sheen)), ${tone.tint}`,
         backdropFilter: 'blur(12px) saturate(140%)',
         WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-        border: `1px solid ${tone.border}`,
+        border: `${hasStatusBorder ? 3 : 1}px solid ${tone.border}`,
         boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
       }}

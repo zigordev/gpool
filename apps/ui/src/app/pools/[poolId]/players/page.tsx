@@ -356,48 +356,50 @@ export default function PlayersPage() {
 
       {activeTab === 'all' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(180px, 1fr) minmax(180px, 240px) minmax(180px, 240px)',
-            gap: '0.6rem',
-            alignItems: 'center',
-          }}
-        >
-          <Input
-            type="search"
-            value={playerFilter}
-            onChange={(e) => setPlayerFilter(e.target.value)}
-            placeholder={t('adminResults.players.searchPlaceholder')}
-            aria-label={t('adminResults.players.searchPlaceholder')}
-          />
-          <Select<{ value: string; label: string }, false>
-            isClearable
-            placeholder={t('adminResults.players.positionAll')}
-            value={positionOptions.find((o) => o.value === playerPositionFilter) ?? null}
-            options={positionOptions}
-            onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
-            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={selectStyles()}
-          />
-          <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
-            isClearable
-            getOptionLabel={(option) => option.searchLabel}
-            formatOptionLabel={(option) => option.label}
-            placeholder={t('adminResults.players.countryAll')}
-            value={countryOptions.find((o) => o.searchLabel === playerCountryFilter) ?? null}
-            options={countryOptions}
-            onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
-            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={selectStyles()}
-          />
-        </div>
         <PlayerStatsTable
           players={filteredPlayers}
           goldenBootPlayerIds={playerAwardSelections.golden_boot ? [(playerAwardSelections.golden_boot as any).playerId] : []}
           tournamentMvpPlayerId={(playerAwardSelections.tournament_mvp as any)?.playerId ?? ''}
           computeTotal={(p) => p.totalPoints ?? 0}
           t={t}
+          toolbar={
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.6rem',
+                alignItems: 'center',
+              }}
+            >
+              <Input
+                type="search"
+                value={playerFilter}
+                onChange={(e) => setPlayerFilter(e.target.value)}
+                placeholder={t('adminResults.players.searchPlaceholder')}
+                aria-label={t('adminResults.players.searchPlaceholder')}
+              />
+              <Select<{ value: string; label: string }, false>
+                isClearable
+                placeholder={t('adminResults.players.positionAll')}
+                value={positionOptions.find((o) => o.value === playerPositionFilter) ?? null}
+                options={positionOptions}
+                onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={selectStyles()}
+              />
+              <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+                isClearable
+                getOptionLabel={(option) => option.searchLabel}
+                formatOptionLabel={(option) => option.label}
+                placeholder={t('adminResults.players.countryAll')}
+                value={countryOptions.find((o) => o.searchLabel === playerCountryFilter) ?? null}
+                options={countryOptions}
+                onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={selectStyles()}
+              />
+            </div>
+          }
         />
       </div>
       )}

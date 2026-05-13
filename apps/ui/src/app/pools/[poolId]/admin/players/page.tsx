@@ -140,42 +140,6 @@ export default function AdminPlayersPage() {
 
       {/* Player stats table */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 260px) minmax(220px, 260px)',
-            gap: '0.6rem',
-            alignItems: 'center',
-          }}
-        >
-          <Input
-            type="search"
-            value={playerFilter}
-            onChange={(e) => setPlayerFilter(e.target.value)}
-            placeholder={t('adminResults.players.searchPlaceholder')}
-            aria-label={t('adminResults.players.searchPlaceholder')}
-          />
-          <Select<{ value: string; label: string }, false>
-            isClearable
-            placeholder={t('adminResults.players.positionAll')}
-            value={selectedPositionOption}
-            options={positionOptions}
-            onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
-            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={selectStyles()}
-          />
-          <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
-            isClearable
-            getOptionLabel={(option) => option.searchLabel}
-            formatOptionLabel={(option) => option.label}
-            placeholder={t('adminResults.players.countryAll')}
-            value={selectedCountryOption}
-            options={countryOptions}
-            onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
-            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-            styles={selectStyles()}
-          />
-        </div>
         <PlayerStatsTable
           players={filtered}
           goldenBootPlayerIds={playerAwardWinnersConfig.goldenBootPlayerIds}
@@ -185,6 +149,44 @@ export default function AdminPlayersPage() {
           editable
           updatingPlayerStat={updatingPlayerStat}
           onStatChange={handlePlayerStatChange}
+          toolbar={
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.6rem',
+                alignItems: 'center',
+              }}
+            >
+              <Input
+                type="search"
+                value={playerFilter}
+                onChange={(e) => setPlayerFilter(e.target.value)}
+                placeholder={t('adminResults.players.searchPlaceholder')}
+                aria-label={t('adminResults.players.searchPlaceholder')}
+              />
+              <Select<{ value: string; label: string }, false>
+                isClearable
+                placeholder={t('adminResults.players.positionAll')}
+                value={selectedPositionOption}
+                options={positionOptions}
+                onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={selectStyles()}
+              />
+              <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+                isClearable
+                getOptionLabel={(option) => option.searchLabel}
+                formatOptionLabel={(option) => option.label}
+                placeholder={t('adminResults.players.countryAll')}
+                value={selectedCountryOption}
+                options={countryOptions}
+                onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                styles={selectStyles()}
+              />
+            </div>
+          }
         />
       </div>
     </div>

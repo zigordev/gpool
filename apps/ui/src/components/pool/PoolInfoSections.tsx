@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
+import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
 import { FaDollarSign, FaPerson } from "react-icons/fa6";
 import { GiLeatherBoot } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
@@ -11,6 +12,15 @@ import { PiBoxingGlove } from "react-icons/pi";
 import { PlayerPosition } from "@/types/playerPosition.type";
 import { useI18n } from "@/i18n/client";
 import { Section } from "../ui/Section";
+
+function InfoSectionTitle({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+      <FaInfo size={13} aria-hidden />
+      {children}
+    </span>
+  );
+}
 
 export function GeneralPoolInfoSection({
   deadlineLabel,
@@ -24,7 +34,7 @@ export function GeneralPoolInfoSection({
     const { t } = useI18n();
 
     return (
-      <Section title={t('poolDetail.rules.poolConfig.title')} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.poolConfig.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}>
             <FaClock style={ {color: 'rgb(var(--fg))' } }/>
@@ -83,7 +93,7 @@ export function GroupScoringInfoSection({
     const { t } = useI18n();
 
     return (
-      <Section title={t('poolDetail.rules.points.title')} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             <strong>{t('poolDetail.rules.points.correctWinner')}</strong>
@@ -106,7 +116,7 @@ export function FinalScoringInfoSection({
     const { t } = useI18n();
 
     return (
-      <Section title={t('poolDetail.rules.points.title')} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           {BRACKET_PHASES.map((phase) => {
             const round = bracketScoring.rounds[phase.key] || bracketScoring;
@@ -155,7 +165,7 @@ export function PlayerScoringInfoSection({
     ];
 
     return (
-      <Section title={t('poolDetail.rules.points.title')} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           {playerRows.map((row) => (
             <p key={row.label} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>

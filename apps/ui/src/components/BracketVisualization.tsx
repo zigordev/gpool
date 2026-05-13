@@ -982,6 +982,7 @@ function BracketSlot({
   const isCorrect = state === 'correct-wrong-position';
 
   const isIncorrect = state === 'incorrect';
+  const hasStatusBorder = isExact || isCorrect || isIncorrect;
 
   let tintBg = 'rgb(var(--input-bg))';
     if (isExact) {
@@ -1038,7 +1039,7 @@ function BracketSlot({
           control: (base) => ({
             ...base,
             backgroundColor: tintBg,
-            border: `1px solid ${borderColor}`,
+            border: `${hasStatusBorder ? 3 : 1}px solid ${borderColor}`,
             cursor: disabled ? 'not-allowed' : 'pointer',
             opacity: disabled ? 0.7 : 1,
           }),
