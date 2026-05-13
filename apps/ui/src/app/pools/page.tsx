@@ -426,7 +426,6 @@ function PoolsContent() {
                       placeholder={t('pools.modal.poolNamePlaceholder')}
                       disabled={creating}
                       className="input"
-                      autoFocus
                     />
                   </div>
                   <div>
@@ -512,8 +511,8 @@ function PoolsContent() {
                 {poolPrizeDistribution.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     {poolPrizeDistribution.map((row, index) => (
-                      <div key={row.rank} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 10rem) minmax(9rem, 13rem) minmax(0, 1fr)', gap: '0.65rem', alignItems: 'center' }}>
-                        <span style={{ color: 'rgb(var(--fg))', fontWeight: 700, fontSize: '0.875rem' }}>
+                      <div key={row.rank} className="prize-payout-row">
+                        <span className="prize-payout-rank">
                           {t('adminResults.scoring.prizeRank', { rank: row.rank })}
                         </span>
                         <input
@@ -535,7 +534,7 @@ function PoolsContent() {
                             borderColor: createPrizeTotalInvalid ? 'rgb(var(--live) / 0.75)' : undefined,
                           }}
                         />
-                        <span style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.8125rem' }}>
+                        <span className="prize-payout-hint">
                           {t('adminResults.scoring.prizePercentage', { rank: row.rank })}
                         </span>
                       </div>
@@ -596,7 +595,6 @@ function PoolsContent() {
                   placeholder={t('pools.modal.inviteEmailPlaceholder')}
                   disabled={inviting}
                   className="input"
-                  autoFocus
                 />
                 {inviteError ? <p className="field-error">{inviteError}</p> : null}
               </div>

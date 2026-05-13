@@ -501,7 +501,19 @@ button:focus-visible,
 .input[type="datetime-local"],
 .input[type="month"],
 .input[type="time"] {
+  appearance: none;
+  -webkit-appearance: none;
   min-width: 0;
+  text-align: left;
+}
+
+.input::-webkit-date-and-time-value {
+  min-height: 1.25em;
+  text-align: left;
+}
+
+.input::-webkit-calendar-picker-indicator {
+  margin-left: auto;
 }
 
 .input::placeholder {
@@ -1221,6 +1233,47 @@ input:focus {
 
 .config-area p {
   font-size: 0.7rem;
+}
+
+.prize-payout-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 10rem) minmax(7rem, 13rem) minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.prize-payout-rank {
+  min-width: 0;
+  color: rgb(var(--fg));
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.prize-payout-hint {
+  min-width: 0;
+  color: rgb(var(--fg-muted));
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .input,
+  .config-area .input {
+    height: 2.5rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 1rem;
+  }
+
+  .prize-payout-row {
+    grid-template-columns: minmax(0, 1fr) minmax(5rem, 8rem);
+    gap: 0.3rem 0.65rem;
+  }
+
+  .prize-payout-hint {
+    grid-column: 1 / -1;
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 560px) {
