@@ -102,7 +102,6 @@ const BRACKET_PHASES = [
   'semi-finals',
   'finals',
 ] as const;
-const SIDE_PHASES = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals'] as const;
 
 function getParentPhase(phaseKey: string): string | null {
   switch (phaseKey) {
@@ -112,13 +111,11 @@ function getParentPhase(phaseKey: string): string | null {
       return '8th-finals';
     case 'semi-finals':
       return 'quarter-finals';
+    case 'finals':
+      return 'semi-finals';
     default:
       return null;
   }
-}
-
-function getSideSplit(matches: BracketMatch[] | undefined): number {
-  return Math.ceil((matches?.length ?? 0) / 2);
 }
 
 function toneFor(phase: string | undefined): typeof FALLBACK_TONE {
@@ -226,13 +223,6 @@ export function BracketVisualization({
       return matchIndex * (MATCH_HEIGHT + MATCH_GAP);
     }
 
-    if (phaseKey === 'finals') {
-      const totalFirstRound = allPhases['16th-finals']?.length ?? 16;
-      const sideMatches = Math.max(1, Math.floor(totalFirstRound / 2));
-      const sideHeight = sideMatches * MATCH_HEIGHT + (sideMatches - 1) * MATCH_GAP;
-      return sideHeight / 2 - MATCH_HEIGHT / 2;
-    }
-
     const parentPhaseKey = getParentPhase(phaseKey);
     if (!parentPhaseKey) {
       return matchIndex * (MATCH_HEIGHT + MATCH_GAP);
@@ -257,9 +247,6 @@ export function BracketVisualization({
     phaseKey: string,
     label: string,
     matches: BracketMatch[],
-    isLeft: boolean,
-    _isRight: boolean,
-    isFinal: boolean = false,
   ) => {
     if (!matches || matches.length === 0) return null;
 
@@ -269,6 +256,7 @@ export function BracketVisualization({
       <div
         style={{
           width: `${MATCH_BOX_WIDTH}px`,
+          flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
@@ -323,20 +311,7 @@ export function BracketVisualization({
           }}
         >
         {matches.map((match, idx) => {
-          const phaseMatches = bracket[phaseKey] || [];
-          const split = getSideSplit(phaseMatches);
-          const actualIndex = isLeft || isFinal ? idx : split + idx;
-          let top = getMatchTop(actualIndex, phaseKey, bracket);
-
-          if (!isLeft && !isFinal) {
-            const firstLeftIndex = 0;
-            const firstRightIndex = split;
-            const firstLeftTop = getMatchTop(firstLeftIndex, phaseKey, bracket);
-            const firstRightTop = getMatchTop(firstRightIndex, phaseKey, bracket);
-            const offset = firstLeftTop - firstRightTop;
-            top = top + offset;
-          }
-
+          const top = getMatchTop(idx, phaseKey, bracket);
           const prediction = bracketPredictions[match.bracketMatchId] || {};
           const matchCandidates = candidateOptions[match.bracketMatchId];
           const unavailableTeamIds = {
@@ -387,7 +362,7 @@ export function BracketVisualization({
                 unavailableTeamIds={unavailableTeamIds}
                 isDeadlinePassed={isDeadlinePassed}
                 onPredictionChange={onPredictionChange}
-                isFinal={isFinal}
+                isFinal={false}
                 phaseKey={phaseKey}
                 homeTeamExactPosition={homeTeamExactPosition}
                 awayTeamExactPosition={awayTeamExactPosition}
@@ -696,39 +671,19 @@ export function BracketVisualization({
   };
 
   let maxHeight = 0;
-  const checkPhase = (phaseKey: string, isLeft: boolean) => {
+  const checkPhase = (phaseKey: string) => {
     const phaseMatches = bracket[phaseKey] || [];
     if (phaseMatches.length === 0) return;
 
-    const split = getSideSplit(phaseMatches);
-    const sideMatches = phaseKey === 'finals'
-      ? phaseMatches.length
-      : isLeft
-      ? split
-      : Math.max(0, phaseMatches.length - split);
-    const startIdx = isLeft || phaseKey === 'finals' ? 0 : split;
-
-    for (let idx = 0; idx < sideMatches; idx++) {
-      const actualIndex = isLeft ? idx : startIdx + idx;
-      let top = getMatchTop(actualIndex, phaseKey, bracket);
-
-      if (!isLeft) {
-        const firstLeftIndex = 0;
-        const firstRightIndex = startIdx;
-        const firstLeftTop = getMatchTop(firstLeftIndex, phaseKey, bracket);
-        const firstRightTop = getMatchTop(firstRightIndex, phaseKey, bracket);
-        const offset = firstLeftTop - firstRightTop;
-        top = top + offset;
-      }
-
+    for (let idx = 0; idx < phaseMatches.length; idx++) {
+      const top = getMatchTop(idx, phaseKey, bracket);
       const bottom = top + MATCH_HEIGHT;
       if (bottom > maxHeight) maxHeight = bottom;
     }
   };
 
   BRACKET_PHASES.forEach((phaseKey) => {
-    checkPhase(phaseKey, true);
-    checkPhase(phaseKey, false);
+    checkPhase(phaseKey);
   });
 
   // The match-span (`maxHeight` so far) sits inside a flex column whose first
@@ -737,58 +692,28 @@ export function BracketVisualization({
   // space below the bottom match.
   const LABEL_RESERVE = 30;
   maxHeight = Math.max(maxHeight, 140) + LABEL_RESERVE;
-  const bracketWidth = (SIDE_PHASES.length * 2 + 1) * MATCH_BOX_WIDTH + (SIDE_PHASES.length * 2) * ROUND_GAP;
+  const bracketWidth = BRACKET_PHASES.length * MATCH_BOX_WIDTH + (BRACKET_PHASES.length - 1) * ROUND_GAP;
   const matchCenterY = (top: number) => LABEL_RESERVE + top + MATCH_HEIGHT / 2;
   const connectorPaths: string[] = [];
 
-  SIDE_PHASES.slice(0, -1).forEach((phaseKey, phaseIndex) => {
-    const nextPhaseKey = SIDE_PHASES[phaseIndex + 1];
+  BRACKET_PHASES.slice(0, -1).forEach((phaseKey, phaseIndex) => {
+    const nextPhaseKey = BRACKET_PHASES[phaseIndex + 1];
     const phaseMatches = bracket[phaseKey] || [];
     const nextMatches = bracket[nextPhaseKey] || [];
-    const split = getSideSplit(phaseMatches);
-    const nextSplit = getSideSplit(nextMatches);
 
-    for (let idx = 0; idx < Math.floor(split / 2); idx++) {
-      const fromTop1 = getMatchTop(idx * 2, phaseKey, bracket);
-      const fromTop2 = getMatchTop(idx * 2 + 1, phaseKey, bracket);
-      const toTop = getMatchTop(idx, nextPhaseKey, bracket);
+    nextMatches.forEach((_match, targetIndex) => {
+      const sourceIndex1 = targetIndex * 2;
+      const sourceIndex2 = sourceIndex1 + 1;
+      if (!phaseMatches[sourceIndex1] || !phaseMatches[sourceIndex2]) return;
+
+      const fromTop1 = getMatchTop(sourceIndex1, phaseKey, bracket);
+      const fromTop2 = getMatchTop(sourceIndex2, phaseKey, bracket);
+      const toTop = getMatchTop(targetIndex, nextPhaseKey, bracket);
       const fromX = phaseIndex * (MATCH_BOX_WIDTH + ROUND_GAP) + MATCH_BOX_WIDTH;
       const toX = (phaseIndex + 1) * (MATCH_BOX_WIDTH + ROUND_GAP);
       connectorPaths.push(renderConnectorPath(fromX, matchCenterY(fromTop1), matchCenterY(fromTop2), toX, matchCenterY(toTop), 'left'));
-    }
-
-    for (let localIdx = 0; localIdx < Math.floor((phaseMatches.length - split) / 2); localIdx++) {
-      const sourceIndex1 = split + localIdx * 2;
-      const sourceIndex2 = split + localIdx * 2 + 1;
-      const targetIndex = nextSplit + localIdx;
-      const rightOffset =
-        getMatchTop(0, phaseKey, bracket) - getMatchTop(split, phaseKey, bracket);
-      const nextRightOffset =
-        getMatchTop(0, nextPhaseKey, bracket) - getMatchTop(nextSplit, nextPhaseKey, bracket);
-      const fromTop1 = getMatchTop(sourceIndex1, phaseKey, bracket) + rightOffset;
-      const fromTop2 = getMatchTop(sourceIndex2, phaseKey, bracket) + rightOffset;
-      const toTop = getMatchTop(targetIndex, nextPhaseKey, bracket) + nextRightOffset;
-      const fromColumnIndex = SIDE_PHASES.length + 1 + (SIDE_PHASES.length - 1 - phaseIndex);
-      const toColumnIndex = SIDE_PHASES.length + 1 + (SIDE_PHASES.length - 2 - phaseIndex);
-      const fromX = fromColumnIndex * (MATCH_BOX_WIDTH + ROUND_GAP);
-      const toX = toColumnIndex * (MATCH_BOX_WIDTH + ROUND_GAP) + MATCH_BOX_WIDTH;
-      connectorPaths.push(renderConnectorPath(fromX, matchCenterY(fromTop1), matchCenterY(fromTop2), toX, matchCenterY(toTop), 'right'));
-    }
+    });
   });
-
-  const semiMatches = bracket['semi-finals'] || [];
-  const semiSplit = getSideSplit(semiMatches);
-  const finalTop = getMatchTop(0, 'finals', bracket);
-  const centerFinalX = SIDE_PHASES.length * (MATCH_BOX_WIDTH + ROUND_GAP);
-  if (semiSplit > 0) {
-    const leftSemiTop = getMatchTop(0, 'semi-finals', bracket);
-    connectorPaths.push(`M ${centerFinalX - ROUND_GAP} ${matchCenterY(leftSemiTop)} H ${centerFinalX}`);
-  }
-  if (semiMatches.length > semiSplit) {
-    const rightOffset = getMatchTop(0, 'semi-finals', bracket) - getMatchTop(semiSplit, 'semi-finals', bracket);
-    const rightSemiTop = getMatchTop(semiSplit, 'semi-finals', bracket) + rightOffset;
-    connectorPaths.push(`M ${centerFinalX + MATCH_BOX_WIDTH + ROUND_GAP} ${matchCenterY(rightSemiTop)} H ${centerFinalX + MATCH_BOX_WIDTH}`);
-  }
 
   return (
     <div
@@ -831,7 +756,6 @@ export function BracketVisualization({
             opacity="0.9"
           />
         </svg>
-        {/* Left side */}
         <div
           style={{
             display: 'flex',
@@ -842,13 +766,12 @@ export function BracketVisualization({
             zIndex: 1,
           }}
         >
-          {renderRound('16th-finals', t('bracket.round.16th'), bracket['16th-finals']?.slice(0, getSideSplit(bracket['16th-finals'])) || [], true, false)}
-          {renderRound('8th-finals', t('bracket.round.8th'), bracket['8th-finals']?.slice(0, getSideSplit(bracket['8th-finals'])) || [], true, false)}
-          {renderRound('quarter-finals', t('bracket.round.quarter'), bracket['quarter-finals']?.slice(0, getSideSplit(bracket['quarter-finals'])) || [], true, false)}
-          {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals']?.slice(0, getSideSplit(bracket['semi-finals'])) || [], true, false)}
+          {renderRound('16th-finals', t('bracket.round.16th'), bracket['16th-finals'] || [])}
+          {renderRound('8th-finals', t('bracket.round.8th'), bracket['8th-finals'] || [])}
+          {renderRound('quarter-finals', t('bracket.round.quarter'), bracket['quarter-finals'] || [])}
+          {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals'] || [])}
         </div>
 
-        {/* Center: Final — absolute positioning so the final match aligns with semi-finals */}
         <div
           style={{
             position: 'relative',
@@ -876,23 +799,6 @@ export function BracketVisualization({
               </>
             );
           })()}
-        </div>
-
-        {/* Right side */}
-        <div
-          style={{
-            display: 'flex',
-            gap: `${ROUND_GAP}px`,
-            alignItems: 'flex-start',
-            height: `${maxHeight}px`,
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals']?.slice(getSideSplit(bracket['semi-finals'])) || [], false, true)}
-          {renderRound('quarter-finals', t('bracket.round.quarter'), bracket['quarter-finals']?.slice(getSideSplit(bracket['quarter-finals'])) || [], false, true)}
-          {renderRound('8th-finals', t('bracket.round.8th'), bracket['8th-finals']?.slice(getSideSplit(bracket['8th-finals'])) || [], false, true)}
-          {renderRound('16th-finals', t('bracket.round.16th'), bracket['16th-finals']?.slice(getSideSplit(bracket['16th-finals'])) || [], false, true)}
         </div>
       </div>
     </div>
