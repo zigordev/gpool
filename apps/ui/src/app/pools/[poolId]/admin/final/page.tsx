@@ -29,6 +29,12 @@ export default function AdminFinalPage() {
     () => computeAdminCandidateOptions(bracket, teams),
     [bracket, teams],
   );
+  const scoringRowGrid = {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(min(100%, 8rem), 10rem) repeat(2, minmax(min(100%, 10rem), 1fr))',
+    gap: '0.5rem',
+    alignItems: 'start',
+  };
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -42,8 +48,8 @@ export default function AdminFinalPage() {
           {PHASES.map((phase) => {
             const scoring = bracketScoringConfig.rounds[phase.key] || { exactPositionPoints: bracketScoringConfig.exactPositionPoints, correctTeamWrongPositionPoints: bracketScoringConfig.correctTeamWrongPositionPoints };
             return (
-              <div key={phase.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(7rem, 10rem) repeat(2, minmax(130px, 1fr))', gap: '0.5rem', alignItems: 'start' }}>
-                <span style={{ alignSelf: 'center', color: 'rgb(var(--fg-muted))', fontSize: '0.72rem', fontWeight: 700 }}>{t(phase.labelKey)}</span>
+              <div key={phase.key} className="admin-final-scoring-row" style={scoringRowGrid}>
+                <span className="admin-final-scoring-label" style={{ alignSelf: 'center', color: 'rgb(var(--fg-muted))', fontSize: '0.72rem', fontWeight: 700 }}>{t(phase.labelKey)}</span>
                 <FormField label={t('adminResults.scoring.finalExactPosition')}>
                   <Input type="number" inputMode="numeric" min="0" value={scoring.exactPositionPoints} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setBracketScoringConfig((prev) => ({ ...prev, rounds: { ...prev.rounds, [phase.key]: { ...(prev.rounds[phase.key] || scoring), exactPositionPoints: Math.max(0, value) } } })); }} />
                 </FormField>
