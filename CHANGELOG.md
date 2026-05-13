@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.13](https://github.com/zigordev/gpool/compare/v0.1.12...v0.1.13) (2026-05-13)
+
+
+### Bug Fixes
+
+* form display issues ([#60](https://github.com/zigordev/gpool/issues/60)) ([6ae3539](https://github.com/zigordev/gpool/commit/6ae35397589b2024fb10e62d5b3107e99c2370bd))
+
 ## [0.1.12](https://github.com/zigordev/gpool/compare/v0.1.11...v0.1.12) (2026-05-13)
 
 
