@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.14](https://github.com/zigorlsp7/gpool/compare/v0.1.13...v0.1.14) (2026-05-13)
+
+
+### Features
+
+* penbao prod config ([#63](https://github.com/zigorlsp7/gpool/issues/63)) ([a47ca49](https://github.com/zigorlsp7/gpool/commit/a47ca497160aaedff205ccc82c1de10ee34fdf8c))
+
 ## [0.1.13](https://github.com/zigorlsp7/gpool/compare/v0.1.12...v0.1.13) (2026-05-13)
 
 
