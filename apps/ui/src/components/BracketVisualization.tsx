@@ -44,45 +44,54 @@ const PHASE_TONE: Record<
   { token: string; label: string; tint: string; border: string; ring: string; bg: string }
 > = {
   '16th-finals': {
-    token: 'pitch',
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.08)',
-    border: 'rgb(var(--pitch) / 0.30)',
-    ring: 'rgb(var(--pitch) / 0.12)',
-    bg: 'rgb(var(--pitch) / 0.030)',
+    token: 'neutral',
+    label: 'rgb(var(--fg-muted))',
+    tint: 'rgb(var(--fg) / 0.06)',
+    border: 'rgb(var(--border) / 0.70)',
+    ring: 'rgb(var(--border) / 0.35)',
+    bg: 'rgb(var(--fg) / 0.020)',
   },
   '8th-finals': {
-    token: 'pitch',
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.10)',
-    border: 'rgb(var(--pitch) / 0.36)',
-    ring: 'rgb(var(--pitch) / 0.16)',
-    bg: 'rgb(var(--pitch) / 0.040)',
+    token: 'neutral',
+    label: 'rgb(var(--fg-muted))',
+    tint: 'rgb(var(--fg) / 0.06)',
+    border: 'rgb(var(--border) / 0.70)',
+    ring: 'rgb(var(--border) / 0.35)',
+    bg: 'rgb(var(--fg) / 0.020)',
   },
   'quarter-finals': {
-    token: 'pitch',
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.13)',
-    border: 'rgb(var(--pitch) / 0.42)',
-    ring: 'rgb(var(--pitch) / 0.20)',
-    bg: 'rgb(var(--pitch) / 0.050)',
+    token: 'neutral',
+    label: 'rgb(var(--fg-muted))',
+    tint: 'rgb(var(--fg) / 0.06)',
+    border: 'rgb(var(--border) / 0.70)',
+    ring: 'rgb(var(--border) / 0.35)',
+    bg: 'rgb(var(--fg) / 0.020)',
   },
   'semi-finals': {
-    token: 'pitch',
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.16)',
-    border: 'rgb(var(--pitch) / 0.50)',
-    ring: 'rgb(var(--pitch) / 0.24)',
-    bg: 'rgb(var(--pitch) / 0.060)',
+    token: 'neutral',
+    label: 'rgb(var(--fg-muted))',
+    tint: 'rgb(var(--fg) / 0.06)',
+    border: 'rgb(var(--border) / 0.70)',
+    ring: 'rgb(var(--border) / 0.35)',
+    bg: 'rgb(var(--fg) / 0.020)',
   },
   finals: {
-    token: 'pitch',
-    label: 'rgb(var(--pitch))',
-    tint: 'rgb(var(--pitch) / 0.16)',
-    border: 'rgb(var(--pitch) / 0.50)',
-    ring: 'rgb(var(--pitch) / 0.24)',
-    bg: 'rgb(var(--pitch) / 0.060)',
+    token: 'neutral',
+    label: 'rgb(var(--fg-muted))',
+    tint: 'rgb(var(--fg) / 0.06)',
+    border: 'rgb(var(--border) / 0.70)',
+    ring: 'rgb(var(--border) / 0.35)',
+    bg: 'rgb(var(--fg) / 0.020)',
   },
+};
+
+const WINNER_TONE = {
+  token: 'pitch',
+  label: 'rgb(var(--pitch))',
+  tint: 'rgb(var(--pitch) / 0.16)',
+  border: 'rgb(var(--pitch) / 0.50)',
+  ring: 'rgb(var(--pitch) / 0.24)',
+  bg: 'rgb(var(--pitch) / 0.060)',
 };
 
 const FALLBACK_TONE = PHASE_TONE['16th-finals'];
@@ -481,7 +490,7 @@ export function BracketVisualization({
   const renderTournamentWinnerCard = (match: BracketMatch | undefined) => {
     if (!match) return null;
 
-    const tone = toneFor('finals');
+    const tone = WINNER_TONE;
     const prediction = bracketPredictions[match.bracketMatchId] || {};
     const isAdmin = mode === 'admin';
     const finalResult = bracketResults[match.bracketMatchId];
