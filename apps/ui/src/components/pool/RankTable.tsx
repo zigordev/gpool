@@ -55,12 +55,12 @@ export function RankTable({
         <thead>
           <tr
             style={{
-              background: 'rgb(var(--bg-subtle))',
+              background: 'rgb(var(--panel-muted-bg-solid))',
               borderBottom: '1px solid rgb(var(--border))',
             }}
           >
-            <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 3, background: 'rgb(var(--bg-subtle))' }}></th>
-            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: '3.6rem', zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}></th>
+            <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))' }}></th>
+            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: '3.6rem', zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}></th>
             <th style={thStyle}>
               <RankHeaderIconLabel icon={<FaLayerGroup aria-hidden />} label={t('poolDetail.ranking.groupPhasePoints')} />
             </th>
@@ -232,7 +232,7 @@ export function RankTable({
         style={{
           padding: '0.55rem 0.75rem',
           borderTop: '1px solid rgb(var(--border))',
-          background: 'rgb(var(--bg-subtle))',
+          background: 'rgb(var(--panel-muted-bg-solid))',
         }}
       />
     </div>
@@ -274,7 +274,7 @@ const thStyle: React.CSSProperties = {
   position: 'sticky',
   top: 0,
   zIndex: 2,
-  background: 'rgb(var(--bg-subtle))',
+  background: 'rgb(var(--panel-muted-bg-solid))',
 };
 
 const tdStyle: React.CSSProperties = {

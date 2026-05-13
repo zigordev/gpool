@@ -33,6 +33,7 @@ interface PlayerStatsTableProps {
   editable?: boolean;
   updatingPlayerStat?: string | null;
   onStatChange?: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => void;
+  toolbar?: React.ReactNode;
 }
 
 export function PlayerStatsTable({
@@ -44,6 +45,7 @@ export function PlayerStatsTable({
   editable = false,
   updatingPlayerStat,
   onStatChange,
+  toolbar,
 }: Readonly<PlayerStatsTableProps>) {
   const [sortKey, setSortKey] = useState<PlayerSortKey>('totalPoints');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -80,14 +82,6 @@ export function PlayerStatsTable({
     color: sortKey === key ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
   });
 
-  if (players.length === 0) {
-    return (
-      <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
-        {t('poolDetail.players.empty')}
-      </p>
-    );
-  }
-
   return (
     <div
       style={{
@@ -98,11 +92,27 @@ export function PlayerStatsTable({
         boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
       }}
     >
+      {toolbar ? (
+        <div
+          style={{
+            padding: '0.75rem',
+            borderBottom: '1px solid rgb(var(--border))',
+            background: 'rgb(var(--panel-muted-bg-solid))',
+          }}
+        >
+          {toolbar}
+        </div>
+      ) : null}
+      {players.length === 0 ? (
+        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+          {t('poolDetail.players.empty')}
+        </p>
+      ) : (
       <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: editable ? '860px' : '680px' }}>
           <thead>
-            <tr style={{ background: 'rgb(var(--bg-subtle))', borderBottom: '1px solid rgb(var(--border))' }}>
-              <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 3, background: 'rgb(var(--bg-subtle))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.08)' }}>
+            <tr style={{ background: 'rgb(var(--panel-muted-bg-solid))', borderBottom: '1px solid rgb(var(--border))' }}>
+              <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}>
                 {t('poolDetail.players.title')}
               </th>
               {STAT_COLUMNS.map((col) => (
@@ -260,6 +270,7 @@ export function PlayerStatsTable({
           </tbody>
         </table>
       </div>
+      )}
 
       <div
         style={{
@@ -268,7 +279,7 @@ export function PlayerStatsTable({
           alignItems: 'center',
           padding: '0.55rem 0.75rem',
           borderTop: '1px solid rgb(var(--border))',
-          background: 'rgb(var(--bg-subtle))',
+          background: 'rgb(var(--panel-muted-bg-solid))',
           gap: '0.75rem',
           flexWrap: 'wrap',
         }}
@@ -329,7 +340,7 @@ const thStyle: React.CSSProperties = {
   position: 'sticky',
   top: 0,
   zIndex: 2,
-  background: 'rgb(var(--bg-subtle))',
+  background: 'rgb(var(--panel-muted-bg-solid))',
 };
 
 const tdStyle: React.CSSProperties = {
