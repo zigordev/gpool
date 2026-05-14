@@ -332,6 +332,12 @@
       "savePrediction": "Could not save the prediction"
     },
     "finalPhase": {
+      "autoFillConfirmAccept": "Accept",
+      "autoFillConfirmDescription": "If you accept filling the round of 32 automatically, it will be filled based on the group phase standings. Keep in mind that any selection made so far, both in the round of 32 and in any other round, will be lost.",
+      "autoFillConfirmTitle": "Fill round of 32 automatically",
+      "autoFillError": "Could not fill the round of 32 automatically",
+      "autoFillRoundOf32": "Fill round of 32 automatically",
+      "autoFillSuccess": "Round of 32 filled automatically",
       "bracketUnavailable": "The bracket is not available yet.",
       "deadlinePassed": "The deadline has passed. Predictions can no longer be edited.",
       "defaultsReset": "Final phase reset to default values",

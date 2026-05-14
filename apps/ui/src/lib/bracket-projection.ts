@@ -811,12 +811,14 @@ export function buildBracketProjection({
   teams,
   bracket,
   bracketPredictions,
+  prefillRoundOf32 = false,
 }: {
   matchesByGroup: Record<string, GroupMatchProjection[]>;
   groupPredictions: Record<string, ScorePredictionProjection>;
   teams: Team[];
   bracket: Record<string, BracketMatch[]>;
   bracketPredictions: Record<string, BracketPredictionProjection>;
+  prefillRoundOf32?: boolean;
 }) {
   const standings = computeGroupStandings(matchesByGroup, groupPredictions, teams);
   const qualifiedThirds = Object.values(standings)
@@ -839,8 +841,8 @@ export function buildBracketProjection({
       if (phase === '16th-finals') {
         const homeThird = thirdDefaults[`${match.bracketMatchId}:home`];
         const awayThird = thirdDefaults[`${match.bracketMatchId}:away`];
-        const homeDefault = homeThird || candidates.home[0];
-        const awayDefault = awayThird || candidates.away[0];
+        const homeDefault = prefillRoundOf32 ? homeThird || candidates.home[0] : undefined;
+        const awayDefault = prefillRoundOf32 ? awayThird || candidates.away[0] : undefined;
         const existingHomeAllowed = teamAllowed(existing.homeTeamId, candidates.home);
         const existingAwayAllowed = teamAllowed(existing.awayTeamId, candidates.away);
         const homeTeamId = existingHomeAllowed && existing.homeTeamId ? existing.homeTeamId : homeDefault?.teamId || '';
