@@ -332,6 +332,12 @@
       "savePrediction": "Could not save the prediction"
     },
     "finalPhase": {
+      "autoFillConfirmAccept": "Accept",
+      "autoFillConfirmDescription": "If you accept filling the round of 32 automatically, it will be filled based on the group phase standings. Keep in mind that any selection made so far, both in the round of 32 and in any other round, will be lost.",
+      "autoFillConfirmTitle": "Fill round of 32 automatically",
+      "autoFillError": "Could not fill the round of 32 automatically",
+      "autoFillRoundOf32": "Fill round of 32 automatically",
+      "autoFillSuccess": "Round of 32 filled automatically",
       "bracketUnavailable": "The bracket is not available yet.",
       "deadlinePassed": "The deadline has passed. Predictions can no longer be edited.",
       "defaultsReset": "Final phase reset to default values",
@@ -341,8 +347,23 @@
       "title": "Final phase"
     },
     "groupPhase": {
+      "bestThirdsTitle": "Best third-placed teams",
       "group": "Group {group}",
       "noMatches": "There are no matches available yet.",
+      "standings": {
+        "eliminated": "Out",
+        "goalDifference": "GD",
+        "goalsAgainst": "GA",
+        "goalsFor": "GF",
+        "group": "Group",
+        "played": "P",
+        "points": "PTS",
+        "position": "#",
+        "qualified": "Qualified",
+        "status": "Status",
+        "team": "Team"
+      },
+      "standingsTitle": "Standings from your predictions",
       "title": "Group phase"
     },
     "info": {
@@ -447,6 +468,7 @@
         "missedPenalty": "Missed penalty: ",
         "mvp": "Match MVP: ",
         "penaltySaved": "Penalty saved: ",
+        "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions.",
         "redCard": "Red card: ",
         "title": "Scoring system",
         "tournamentMvp": "Tournament MVP: ",
