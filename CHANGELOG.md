@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.16](https://github.com/zigorlsp7/gpool/compare/v0.1.15...v0.1.16) (2026-05-14)
+
+
+### Bug Fixes
+
+* restore flags in bracket country selects ([#67](https://github.com/zigorlsp7/gpool/issues/67)) ([53cdeb4](https://github.com/zigorlsp7/gpool/commit/53cdeb4d665d99035ad99ce147e6d005575dcf43))
+
 ## [0.1.15](https://github.com/zigorlsp7/gpool/compare/v0.1.14...v0.1.15) (2026-05-14)
 
 
