@@ -53,3 +53,17 @@ export function countryIsoCode(name: string | undefined | null): string {
   if (!name) return '';
   return FLAGS[name]?.iso || '';
 }
+
+export function countryTranslationKey(name: string | undefined | null): string {
+  if (!name) return '';
+  const iso = countryIsoCode(name);
+  return iso ? `countries.${iso}` : '';
+}
+
+export function countryDisplayName(name: string | undefined | null, t: (key: string) => string): string {
+  if (!name) return '';
+  const key = countryTranslationKey(name);
+  if (!key) return name;
+  const translated = t(key);
+  return translated === key ? name : translated;
+}

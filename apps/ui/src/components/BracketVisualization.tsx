@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { countryIsoCode } from '@/lib/country-flags';
+import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { SlotState } from '@/types/slotState.type';
 import { Slot } from '@/types/slot.type';
@@ -506,6 +506,8 @@ export function BracketVisualization({
     const awayTeamId = isAdmin ? match.awayTeamId || '' : prediction.awayTeamId || '';
     const homeTeamName = isAdmin ? match.homeTeamName || '' : prediction.homeTeamName || '';
     const awayTeamName = isAdmin ? match.awayTeamName || '' : prediction.awayTeamName || '';
+    const homeTeamDisplayName = countryDisplayName(homeTeamName, t);
+    const awayTeamDisplayName = countryDisplayName(awayTeamName, t);
     const selectedWinnerTeamId = isAdmin
       ? resultHome !== null && resultAway !== null && resultHome !== resultAway
         ? resultHome > resultAway
@@ -551,10 +553,11 @@ export function BracketVisualization({
                   style={{ width: '2em', height: '2em' }}
                 />
                 <span>
-                  {` ${homeTeamName}`}
+                  {` ${homeTeamDisplayName}`}
                 </span>
               </>
-            ) 
+            ),
+            displayLabel: homeTeamDisplayName,
           }]
         : []),
       ...(awayTeamId
@@ -566,10 +569,11 @@ export function BracketVisualization({
                   style={{ width: '2em', height: '2em' }}
                 />
                 <span>
-                  {` ${awayTeamName}`}
+                  {` ${awayTeamDisplayName}`}
                 </span>
               </>
-            )
+            ),
+            displayLabel: awayTeamDisplayName,
           }]
         : []),
     ];
@@ -639,11 +643,12 @@ export function BracketVisualization({
             <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))' }} />
             {t('bracket.winner')}
           </span>
-          <Select<{ value: string; label: React.ReactNode; }, false>
+          <Select<{ value: string; label: React.ReactNode; displayLabel: string }, false>
             isSearchable={false}
             placeholder={t('bracket.selectTournamentWinner')}
             value={selectedOption}
             options={options}
+            getOptionLabel={(option) => option.displayLabel}
             isDisabled={isDisabled}
             onChange={(option) => handleWinnerChange(option?.value ?? '')}
             menuPortalTarget={document.body}
@@ -1013,6 +1018,7 @@ function BracketSlot({
 
   const options = teams.map((team) => {
     const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
+    const displayName = countryDisplayName(team.name, t);
 
     return {
       value: team.teamId,
@@ -1024,13 +1030,14 @@ function BracketSlot({
             style={{ width: '2em', height: '2em' }}
           />
           <span>
-            {` ${team.name}`}
+            {` ${displayName}`}
             {isUnavailable
               ? ` - ${t('bracket.alreadySelected')}`
               : ''}
           </span>
         </>
       ),
+      displayLabel: displayName,
       isDisabled: isUnavailable
     };
   });
@@ -1039,12 +1046,13 @@ function BracketSlot({
 
   return (
     <div style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}>
-      <Select<{ value: string; label: React.ReactNode; }, false>
+      <Select<{ value: string; label: React.ReactNode; displayLabel: string; isDisabled: boolean }, false>
         isSearchable={false}
         aria-label={ariaLabel}
         placeholder={t('bracket.selectTeam')}
         value={selectedOption}
         options={options}
+        getOptionLabel={(option) => option.displayLabel}
         isDisabled={disabled}
         onChange={(option) => {
           const selected = teams.find((team) => team.teamId === option?.value);
