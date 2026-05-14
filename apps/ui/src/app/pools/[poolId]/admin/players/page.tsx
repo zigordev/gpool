@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import Select from 'react-select';
 import { selectStyles } from '@/lib/select-styles';
-import { countryIsoCode } from '@/lib/country-flags';
+import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { computePlayerPoints, parseConfigNumberInput, useAdminContext, type ConfigNumber } from '@/contexts/AdminContext';
 import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
@@ -41,7 +41,7 @@ export default function AdminPlayersPage() {
       }
       return acc;
     }, new Map()).entries(),
-  ).sort((a, b) => a[1].localeCompare(b[1], locale));
+  ).sort((a, b) => countryDisplayName(a[1], t).localeCompare(countryDisplayName(b[1], t), locale));
 
   const nameSearch = playerFilter.trim().toLowerCase();
   const countrySearch = playerCountryFilter.trim().toLowerCase();
@@ -54,16 +54,21 @@ export default function AdminPlayersPage() {
     return matchesName && matchesCountry && matchesPosition;
   });
 
-  const countryOptions = countries.map(([teamId, teamName]) => ({
-    value: teamId,
-    label: (
-      <>
-        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
-        <span>{` ${teamName}`}</span>
-      </>
-    ),
-    searchLabel: teamName,
-  }));
+  const countryOptions = countries.map(([teamId, teamName]) => {
+    const displayName = countryDisplayName(teamName, t);
+    return {
+      value: teamName,
+      label: (
+        <>
+          <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+          <span>{` ${displayName}`}</span>
+        </>
+      ),
+      teamId,
+      searchLabel: teamName,
+      displayLabel: displayName,
+    };
+  });
 
   const selectedCountryOption = countryOptions.find((option) => option.value === playerCountryFilter) ?? null;
 
@@ -177,14 +182,18 @@ export default function AdminPlayersPage() {
                 menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                 styles={selectStyles()}
               />
-              <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+              <Select<{ value: string; label: React.ReactNode; searchLabel: string; displayLabel: string }, false>
                 isClearable
-                getOptionLabel={(option) => option.searchLabel}
+                getOptionLabel={(option) => option.displayLabel}
                 formatOptionLabel={(option) => option.label}
                 placeholder={t('adminResults.players.countryAll')}
                 value={selectedCountryOption}
                 options={countryOptions}
-                onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+                onChange={(option) => setPlayerCountryFilter(option?.value ?? '')}
+                filterOption={(option, inputValue) => {
+                  const search = inputValue.toLowerCase();
+                  return option.data.displayLabel.toLowerCase().includes(search) || option.data.searchLabel.toLowerCase().includes(search);
+                }}
                 menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                 styles={selectStyles()}
               />
