@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.16](https://github.com/zigordev/gpool/compare/v0.1.15...v0.1.16) (2026-05-14)
+
+
+### Bug Fixes
+
+* restore flags in bracket country selects ([#67](https://github.com/zigordev/gpool/issues/67)) ([8e52e24](https://github.com/zigordev/gpool/commit/8e52e247f70dd08d64faf8a86492bb2335c13287))
+
 ## [0.1.15](https://github.com/zigordev/gpool/compare/v0.1.14...v0.1.15) (2026-05-14)
 
 
