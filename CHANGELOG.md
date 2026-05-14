@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.15](https://github.com/zigordev/gpool/compare/v0.1.14...v0.1.15) (2026-05-14)
+
+
+### Features
+
+* translate countries ([#65](https://github.com/zigordev/gpool/issues/65)) ([d2e015f](https://github.com/zigordev/gpool/commit/d2e015f0fea5960e655ef5c7b8539c57061a17bf))
+
 ## [0.1.14](https://github.com/zigordev/gpool/compare/v0.1.13...v0.1.14) (2026-05-13)
 
 
