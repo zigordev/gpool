@@ -332,6 +332,12 @@
       "savePrediction": "No se pudo guardar la prediccion"
     },
     "finalPhase": {
+      "autoFillConfirmAccept": "Aceptar",
+      "autoFillConfirmDescription": "Si aceptas rellenar los dieciseisavos automáticamente, se rellenarán en base a la clasificación de la fase de grupos. Ten en cuenta que cualquier selección realizada hasta el momento, tanto en la ronda de dieciseisavos como en cualquier otra, se perderá.",
+      "autoFillConfirmTitle": "Rellenar dieciseisavos automáticamente",
+      "autoFillError": "No se pudieron rellenar los dieciseisavos automáticamente",
+      "autoFillRoundOf32": "Rellenar dieciseisavos automáticamente",
+      "autoFillSuccess": "Dieciseisavos rellenados automáticamente",
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
       "defaultsReset": "Fase final reiniciada con los valores por defecto",
@@ -341,8 +347,23 @@
       "title": "Fase final"
     },
     "groupPhase": {
+      "bestThirdsTitle": "Mejores terceros",
       "group": "Grupo {group}",
       "noMatches": "Aun no hay partidos disponibles.",
+      "standings": {
+        "eliminated": "Fuera",
+        "goalDifference": "DG",
+        "goalsAgainst": "GC",
+        "goalsFor": "GF",
+        "group": "Grupo",
+        "played": "PJ",
+        "points": "PTS",
+        "position": "#",
+        "qualified": "Clasifica",
+        "status": "Estado",
+        "team": "Equipo"
+      },
+      "standingsTitle": "Clasificación según tus predicciones",
       "title": "Fase de grupos"
     },
     "info": {
@@ -447,6 +468,7 @@
         "missedPenalty": "Penalti fallado: ",
         "mvp": "MVP partido: ",
         "penaltySaved": "Penalti parado: ",
+        "predictedStandingsWarning": "Las clasificaciones mostradas no son las clasificaciones reales, sino las hipotéticas en base a tus predicciones.",
         "redCard": "Tarjeta roja: ",
         "title": "Sistema de puntos",
         "tournamentMvp": "MVP torneo: ",

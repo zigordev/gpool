@@ -1,20 +1,25 @@
 'use client';
 
 import toast from 'react-hot-toast';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { apiClient } from '@/lib/api';
+import { buildBracketProjection } from '@/lib/bracket-projection';
 import { FinalScoringInfoSection } from '@/components/pool/PoolInfoSections';
 
 export default function FinalPage() {
   const { t } = useI18n();
   const {
-    bracket, teams, poolId, poolDeadline, isPastPoolDeadline,
+    bracket, teams, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
     bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
     setBracketPredictions,
   } = usePoolContext();
+  const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
+  const [autoFillingRoundOf32, setAutoFillingRoundOf32] = useState(false);
 
   // effectiveBracketPredictions has projected team slots but lacks scoring flags
   // (homeTeamExactPosition, etc.) which only exist in raw bracketPredictions from the API.
@@ -34,12 +39,75 @@ export default function FinalPage() {
     return result;
   }, [effectiveBracketPredictions, bracketPredictions]);
 
+  const handleAutoFillRoundOf32 = async () => {
+    if (Date.now() >= poolDeadline) {
+      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+      return;
+    }
+
+    try {
+      setAutoFillingRoundOf32(true);
+      const autoProjection = buildBracketProjection({
+        matchesByGroup,
+        groupPredictions: predictions,
+        teams,
+        bracket,
+        bracketPredictions: {},
+        prefillRoundOf32: true,
+      });
+      const allBracketMatches = Object.values(bracket).flat();
+
+      await Promise.all(
+        allBracketMatches.map((match: any) => {
+          const generated =
+            match.phase === '16th-finals'
+              ? autoProjection.effectivePredictions[match.bracketMatchId]
+              : null;
+
+          return apiClient.post(`/pools/${poolId}/bracket/matches/${match.bracketMatchId}/predict`, {
+            homeTeamId: generated?.homeTeamId || '',
+            homeTeamName: generated?.homeTeamName || '',
+            awayTeamId: generated?.awayTeamId || '',
+            awayTeamName: generated?.awayTeamName || '',
+            predictedWinnerTeamId: '',
+            predictedWinnerTeamName: '',
+          });
+        }),
+      );
+
+      const predsResponse = await apiClient.get(`/pools/${poolId}/bracket/predictions`);
+      const newMap: Record<string, any> = {};
+      (predsResponse.data || []).forEach((pred: any) => {
+        newMap[pred.bracketMatchId] = pred;
+      });
+      setBracketPredictions(newMap);
+      setShowAutoFillConfirm(false);
+      toast.success(t('poolDetail.finalPhase.autoFillSuccess'));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('poolDetail.finalPhase.autoFillError'));
+    } finally {
+      setAutoFillingRoundOf32(false);
+    }
+  };
+
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
 
       {Object.keys(bracket).length > 0 ? (
         <section className="surface" style={{ padding: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPastPoolDeadline}
+              loading={autoFillingRoundOf32}
+              onClick={() => setShowAutoFillConfirm(true)}
+              style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2 }}
+            >
+              {t('poolDetail.finalPhase.autoFillRoundOf32')}
+            </Button>
+          </div>
           <BracketVisualization
             bracket={bracket}
             teams={teams}
@@ -97,6 +165,37 @@ export default function FinalPage() {
           {t('poolDetail.finalPhase.bracketUnavailable')}
         </p>
       )}
+
+      <Modal
+        open={showAutoFillConfirm}
+        onClose={() => setShowAutoFillConfirm(false)}
+        title={t('poolDetail.finalPhase.autoFillConfirmTitle')}
+        busy={autoFillingRoundOf32}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={autoFillingRoundOf32}
+              onClick={() => setShowAutoFillConfirm(false)}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={autoFillingRoundOf32}
+              onClick={handleAutoFillRoundOf32}
+            >
+              {t('poolDetail.finalPhase.autoFillConfirmAccept')}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.92rem', lineHeight: 1.55 }}>
+          {t('poolDetail.finalPhase.autoFillConfirmDescription')}
+        </p>
+      </Modal>
     </div>
   );
 }

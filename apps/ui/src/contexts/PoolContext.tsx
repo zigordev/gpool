@@ -364,9 +364,8 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
         prediction?.awayScore === '' || prediction?.awayScore === undefined;
     }).length;
 
-  // 16th-finals are auto-filled from group projections — the user never manually picks those teams.
-  // Only count the knockout rounds the user must explicitly predict.
-  const KNOCKOUT_PHASES_FOR_COUNT = ['8th-finals', 'quarter-finals', 'semi-finals', 'finals'] as const;
+  // All knockout rounds count now that the round of 32 is only filled on explicit user action.
+  const KNOCKOUT_PHASES_FOR_COUNT = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'] as const;
 
   const bracketTeamsMissing = KNOCKOUT_PHASES_FOR_COUNT
     .flatMap((phase) => (bracket[phase] || []) as any[])
