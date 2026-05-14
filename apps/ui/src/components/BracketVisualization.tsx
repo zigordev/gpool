@@ -649,6 +649,7 @@ export function BracketVisualization({
             value={selectedOption}
             options={options}
             getOptionLabel={(option) => option.displayLabel}
+            formatOptionLabel={(option) => option.label}
             isDisabled={isDisabled}
             onChange={(option) => handleWinnerChange(option?.value ?? '')}
             menuPortalTarget={document.body}
@@ -1053,6 +1054,7 @@ function BracketSlot({
         value={selectedOption}
         options={options}
         getOptionLabel={(option) => option.displayLabel}
+        formatOptionLabel={(option) => option.label}
         isDisabled={disabled}
         onChange={(option) => {
           const selected = teams.find((team) => team.teamId === option?.value);
