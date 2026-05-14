@@ -347,8 +347,23 @@
       "title": "Final phase"
     },
     "groupPhase": {
+      "bestThirdsTitle": "Best third-placed teams",
       "group": "Group {group}",
       "noMatches": "There are no matches available yet.",
+      "standings": {
+        "eliminated": "Out",
+        "goalDifference": "GD",
+        "goalsAgainst": "GA",
+        "goalsFor": "GF",
+        "group": "Group",
+        "played": "P",
+        "points": "PTS",
+        "position": "#",
+        "qualified": "Qualified",
+        "status": "Status",
+        "team": "Team"
+      },
+      "standingsTitle": "Standings from your predictions",
       "title": "Group phase"
     },
     "info": {
@@ -453,6 +468,7 @@
         "missedPenalty": "Missed penalty: ",
         "mvp": "Match MVP: ",
         "penaltySaved": "Penalty saved: ",
+        "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions.",
         "redCard": "Red card: ",
         "title": "Scoring system",
         "tournamentMvp": "Tournament MVP: ",

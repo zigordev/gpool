@@ -347,8 +347,23 @@
       "title": "Fase final"
     },
     "groupPhase": {
+      "bestThirdsTitle": "Mejores terceros",
       "group": "Grupo {group}",
       "noMatches": "Aun no hay partidos disponibles.",
+      "standings": {
+        "eliminated": "Fuera",
+        "goalDifference": "DG",
+        "goalsAgainst": "GC",
+        "goalsFor": "GF",
+        "group": "Grupo",
+        "played": "PJ",
+        "points": "PTS",
+        "position": "#",
+        "qualified": "Clasifica",
+        "status": "Estado",
+        "team": "Equipo"
+      },
+      "standingsTitle": "Clasificación según tus predicciones",
       "title": "Fase de grupos"
     },
     "info": {
@@ -453,6 +468,7 @@
         "missedPenalty": "Penalti fallado: ",
         "mvp": "MVP partido: ",
         "penaltySaved": "Penalti parado: ",
+        "predictedStandingsWarning": "Las clasificaciones mostradas no son las clasificaciones reales, sino las hipotéticas en base a tus predicciones.",
         "redCard": "Tarjeta roja: ",
         "title": "Sistema de puntos",
         "tournamentMvp": "MVP torneo: ",

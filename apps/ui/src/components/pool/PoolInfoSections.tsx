@@ -6,6 +6,7 @@ import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaMedal, FaStar, FaTro
 import { FaDollarSign, FaPerson } from "react-icons/fa6";
 import { GiLeatherBoot } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
+import { IoWarning } from "react-icons/io5";
 import { LuRectangleVertical } from "react-icons/lu";
 import { MdOnlinePrediction } from "react-icons/md";
 import { PiBoxingGlove } from "react-icons/pi";
@@ -102,6 +103,21 @@ export function GroupScoringInfoSection({
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             <strong>{t('poolDetail.rules.points.exactResult')}</strong>
             {`+ ${groupScoring.exactResultPoints}`}
+          </p>
+          <p
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+              gap: '0.45rem',
+              alignItems: 'start',
+              margin: '0.15rem 0 0',
+              color: 'rgb(var(--fg-muted))',
+              fontSize: '0.84rem',
+              lineHeight: 1.45,
+            }}
+          >
+            <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
+            <span>{t('poolDetail.rules.points.predictedStandingsWarning')}</span>
           </p>
         </div>
       </Section>

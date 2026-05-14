@@ -562,6 +562,17 @@ function compareRows(a: StandingRow, b: StandingRow): number {
   );
 }
 
+export function compareThirdPlaceRows(a: StandingRow, b: StandingRow): number {
+  return (
+    b.points - a.points ||
+    b.goalDifference - a.goalDifference ||
+    b.goalsFor - a.goalsFor ||
+    b.fairPlay - a.fairPlay ||
+    String(a.group || '').localeCompare(String(b.group || '')) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
 function rankGroup(
   rows: StandingRow[],
   groupMatches: GroupMatchProjection[],
@@ -620,7 +631,7 @@ function rankGroup(
     });
 }
 
-function computeGroupStandings(
+export function computeGroupStandings(
   matchesByGroup: Record<string, GroupMatchProjection[]>,
   predictions: Record<string, ScorePredictionProjection>,
   teams: Team[],
