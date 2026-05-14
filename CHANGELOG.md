@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.15](https://github.com/zigorlsp7/gpool/compare/v0.1.14...v0.1.15) (2026-05-14)
+
+
+### Features
+
+* translate countries ([#65](https://github.com/zigorlsp7/gpool/issues/65)) ([45ee26e](https://github.com/zigorlsp7/gpool/commit/45ee26ec067ff1520e7f8c2a4ddb54c766d481ac))
+
 ## [0.1.14](https://github.com/zigorlsp7/gpool/compare/v0.1.13...v0.1.14) (2026-05-13)
 
 
