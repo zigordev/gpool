@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.17](https://github.com/zigordev/gpool/compare/v0.1.16...v0.1.17) (2026-05-14)
+
+
+### Features
+
+* button to automatically set brackets ([#69](https://github.com/zigordev/gpool/issues/69)) ([2f8ce7d](https://github.com/zigordev/gpool/commit/2f8ce7d974413a4622f8b9756482710d241efee4))
+
 ## [0.1.16](https://github.com/zigordev/gpool/compare/v0.1.15...v0.1.16) (2026-05-14)
 
 
