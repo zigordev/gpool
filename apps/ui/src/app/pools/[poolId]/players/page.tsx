@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { PointsBadge } from '@/components/PointsBadge';
-import { countryIsoCode } from '@/lib/country-flags';
+import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { selectStyles } from '@/lib/select-styles';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { IoMdCloseCircle } from 'react-icons/io';
@@ -69,18 +69,23 @@ export default function PlayersPage() {
       if (player.teamId && !acc.has(player.teamId)) acc.set(player.teamId, player.teamName || player.teamId);
       return acc;
     }, new Map()).entries(),
-  ).sort((a, b) => a[1].localeCompare(b[1], locale));
+  ).sort((a, b) => countryDisplayName(a[1], t).localeCompare(countryDisplayName(b[1], t), locale));
 
-  const countryOptions = countries.map(([teamId, teamName]) => ({
-    value: teamId,
-    label: (
-      <>
-        <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
-        <span>{` ${teamName}`}</span>
-      </>
-    ),
-    searchLabel: teamName,
-  }));
+  const countryOptions = countries.map(([teamId, teamName]) => {
+    const displayName = countryDisplayName(teamName, t);
+    return {
+      value: teamName,
+      label: (
+        <>
+          <ReactCountryFlag countryCode={countryIsoCode(teamName)} svg style={{ width: '2em', height: '2em' }} />
+          <span>{` ${displayName}`}</span>
+        </>
+      ),
+      teamId,
+      searchLabel: teamName,
+      displayLabel: displayName,
+    };
+  });
 
   const positionOptions = [
     { value: 'goalkeeper', label: t('poolDetail.players.positions.goalkeeper') },
@@ -387,14 +392,18 @@ export default function PlayersPage() {
                 menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                 styles={selectStyles()}
               />
-              <Select<{ value: string; label: React.ReactNode; searchLabel: string }, false>
+              <Select<{ value: string; label: React.ReactNode; searchLabel: string; displayLabel: string }, false>
                 isClearable
-                getOptionLabel={(option) => option.searchLabel}
+                getOptionLabel={(option) => option.displayLabel}
                 formatOptionLabel={(option) => option.label}
                 placeholder={t('adminResults.players.countryAll')}
-                value={countryOptions.find((o) => o.searchLabel === playerCountryFilter) ?? null}
+                value={countryOptions.find((o) => o.value === playerCountryFilter) ?? null}
                 options={countryOptions}
-                onChange={(option) => setPlayerCountryFilter(option?.searchLabel ?? '')}
+                onChange={(option) => setPlayerCountryFilter(option?.value ?? '')}
+                filterOption={(option, inputValue) => {
+                  const search = inputValue.toLowerCase();
+                  return option.data.displayLabel.toLowerCase().includes(search) || option.data.searchLabel.toLowerCase().includes(search);
+                }}
                 menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
                 styles={selectStyles()}
               />
