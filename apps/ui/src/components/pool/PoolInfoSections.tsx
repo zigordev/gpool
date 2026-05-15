@@ -179,70 +179,78 @@ export function PlayerScoringInfoSection({
         icon: <FaShieldAlt style={ {color: 'rgb(var(--fg))' } }/>
       },
     ];
+    const singleActionRows = [
+      {
+        key: 'mvp',
+        label: t('poolDetail.rules.points.mvp'),
+        value: playerScoring.mvp,
+        icon: <FaStar style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'penaltySaved',
+        label: t('poolDetail.rules.points.penaltySaved'),
+        value: playerScoring.penaltySaved,
+        icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'missedPenalty',
+        label: t('poolDetail.rules.points.missedPenalty'),
+        value: playerScoring.missedPenalty,
+        icon: <IoMdCloseCircle style={{ color: 'red' }} />,
+      },
+      {
+        key: 'yellowCard',
+        label: t('poolDetail.rules.points.yellowCard'),
+        value: playerScoring.yellowCard,
+        icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />,
+      },
+      {
+        key: 'redCard',
+        label: t('poolDetail.rules.points.redCard'),
+        value: playerScoring.redCard,
+        icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} />,
+      },
+      {
+        key: 'goldenBoot',
+        label: t('poolDetail.rules.points.goldenBoot'),
+        value: playerScoring.award.goldenBoot,
+        icon: <GiLeatherBoot style={{ color: 'gold' }} />,
+      },
+      {
+        key: 'tournamentMvp',
+        label: t('poolDetail.rules.points.tournamentMvp'),
+        value: playerScoring.award.tournamentMvp,
+        icon: <FaStar style={{ color: 'gold' }} />,
+      },
+    ].filter((row) => isVisibleScoringValue(row.value));
 
     return (
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
-          {playerRows.map((row) => (
-            <p key={row.label} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+          {playerRows.map((row) => {
+            const visiblePositions = PLAYER_POSITIONS.filter((position) => isVisibleScoringValue(row.values[position.key]));
+            if (visiblePositions.length === 0) return null;
+            return (
+              <p key={row.label} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                  {row.icon}
+                  <strong>{row.label}</strong>
+                </span>
+                {visiblePositions.map((position, i) => (
+                  <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
+                ))}
+              </p>
+            );
+          })}
+          {singleActionRows.map((row) => (
+            <p key={row.key} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
                 {row.icon}
                 <strong>{row.label}</strong>
               </span>
-              {PLAYER_POSITIONS.map((position, i) => (
-                <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
-              ))}
+              {pointsLabel(row.value)}
             </p>
           ))}
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <FaStar style={{ color: 'rgb(var(--fg))' }} />
-              <strong>{t('poolDetail.rules.points.mvp')}</strong>
-            </span>
-            {`+ ${playerScoring.mvp}`}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />
-              <strong>{t('poolDetail.rules.points.penaltySaved')}</strong>
-            </span>
-            {`+ ${playerScoring.penaltySaved}`}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <IoMdCloseCircle style={{ color: 'red' }} />
-              <strong>{t('poolDetail.rules.points.missedPenalty')}</strong>
-            </span>
-            {playerScoring.missedPenalty}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />
-              <strong>{t('poolDetail.rules.points.yellowCard')}</strong>
-            </span>
-            {playerScoring.yellowCard}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <LuRectangleVertical style={{ color: 'red', fill: 'red' }} />
-              <strong>{t('poolDetail.rules.points.redCard')}</strong>
-            </span>
-            {playerScoring.redCard}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <GiLeatherBoot style={{ color: 'gold' }} />
-              <strong>{t('poolDetail.rules.points.goldenBoot')}</strong>
-            </span>
-            {`+ ${playerScoring.award.goldenBoot}`}
-          </p>
-          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-              <FaStar style={{ color: 'gold' }} />
-              <strong>{t('poolDetail.rules.points.tournamentMvp')}</strong>
-            </span>
-            {`+ ${playerScoring.award.tournamentMvp}`}
-          </p>
         </div>
       </Section>
     );
@@ -303,4 +311,9 @@ const DEFAULT_PLAYER_RULE_SCORING = {
 
 function pointsLabel(points: number): string {
     return points > 0 ? `+${points}` : String(points);
+}
+
+function isVisibleScoringValue(value: unknown): value is number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed !== 0;
 }

@@ -8,6 +8,7 @@ import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import Select from 'react-select';
 import { selectStyles } from '@/lib/select-styles';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
+import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import ReactCountryFlag from 'react-country-flag';
 import { computePlayerPoints, parseConfigNumberInput, useAdminContext, type ConfigNumber } from '@/contexts/AdminContext';
 import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
@@ -157,6 +158,7 @@ export default function AdminPlayersPage() {
           editable
           updatingPlayerStat={updatingPlayerStat}
           onStatChange={handlePlayerStatChange}
+          isStatVisible={(player, stat) => isPlayerStatEnabled(playerScoringConfig, player.position, stat)}
           toolbar={
             <div
               style={{

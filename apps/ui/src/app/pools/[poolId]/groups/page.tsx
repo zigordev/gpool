@@ -171,11 +171,11 @@ function PredictionStandingsTable({
     ...(showGroup
       ? [{ key: 'group', label: t('poolDetail.groupPhase.standings.group'), align: 'center' as const }]
       : []),
+    { key: 'points', label: t('poolDetail.groupPhase.standings.points'), align: 'right' as const },
     { key: 'played', label: t('poolDetail.groupPhase.standings.played'), align: 'right' as const },
     { key: 'goalsFor', label: t('poolDetail.groupPhase.standings.goalsFor'), align: 'right' as const },
     { key: 'goalsAgainst', label: t('poolDetail.groupPhase.standings.goalsAgainst'), align: 'right' as const },
     { key: 'goalDifference', label: t('poolDetail.groupPhase.standings.goalDifference'), align: 'right' as const },
-    { key: 'points', label: t('poolDetail.groupPhase.standings.points'), align: 'right' as const },
     ...(showStatus
       ? [{ key: 'status', label: t('poolDetail.groupPhase.standings.status'), align: 'center' as const }]
       : []),
@@ -247,11 +247,11 @@ function PredictionStandingsTable({
                   {showGroup ? (
                     <td style={{ ...standingsTdStyle, textAlign: 'center', fontWeight: 800 }}>{row.group}</td>
                   ) : null}
+                  <td style={standingsPointsStyle}>{row.points}</td>
                   <td style={standingsNumberStyle}>{row.played}</td>
                   <td style={standingsNumberStyle}>{row.goalsFor}</td>
                   <td style={standingsNumberStyle}>{row.goalsAgainst}</td>
                   <td style={standingsNumberStyle}>{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</td>
-                  <td style={standingsPointsStyle}>{row.points}</td>
                   {showStatus ? (
                     <td style={{ ...standingsTdStyle, textAlign: 'center' }}>
                       <span
