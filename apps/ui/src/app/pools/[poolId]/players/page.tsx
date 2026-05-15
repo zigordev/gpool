@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import Select from 'react-select';
 import ReactCountryFlag from 'react-country-flag';
@@ -10,21 +10,26 @@ import { Section } from '@/components/ui/Section';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { PointsBadge } from '@/components/PointsBadge';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
+import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import { selectStyles } from '@/lib/select-styles';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
 import { PiBoxingGlove } from 'react-icons/pi';
+import { PlayerPosition } from '@/types/playerPosition.type';
+import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import { PlayerScoringInfoSection, resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 
 type PlayerOption = { value: string; label: string; teamName: string; teamId: string; isDisabled: boolean };
 
-function PlayerActionSummary({ player, labels }: Readonly<{
+function PlayerActionSummary({ player, labels, position, scoring }: Readonly<{
   player: Pick<TournamentPlayer, 'goals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
   labels: { goals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
+  position: PlayerPosition;
+  scoring: ReturnType<typeof resolvePlayerInfoScoring>;
 }>) {
-  const actions = [
+  const actions: Array<{ key: PlayerStatKey; value: number; label: string; icon: ReactNode }> = [
     { key: 'goals', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'assists', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
@@ -34,9 +39,12 @@ function PlayerActionSummary({ player, labels }: Readonly<{
     { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size="17" /> },
     { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'red' }} size="17" /> },
   ];
+  const visibleActions = actions.filter((item) => isPlayerStatEnabled(scoring, position, item.key));
+  if (visibleActions.length === 0) return null;
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
-      {actions.map((item) => {
+      {visibleActions.map((item) => {
         const isZero = item.value === 0;
         return (
           <span key={item.key} title={`${item.label}: ${item.value}`} aria-label={`${item.label}: ${item.value}`}
@@ -242,6 +250,8 @@ export default function PlayersPage() {
                         <PlayerActionSummary
                           player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
                           labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                          position={position}
+                          scoring={playerInfoScoring}
                         />
                       </div>
                     </article>
@@ -347,6 +357,8 @@ export default function PlayersPage() {
                         <PlayerActionSummary
                           player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
                           labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                          position={position}
+                          scoring={playerInfoScoring}
                         />
                       </div>
                     </article>
@@ -367,6 +379,7 @@ export default function PlayersPage() {
           tournamentMvpPlayerId={(playerAwardSelections.tournament_mvp as any)?.playerId ?? ''}
           computeTotal={(p) => p.totalPoints ?? 0}
           t={t}
+          isStatVisible={(player, stat) => isPlayerStatEnabled(playerInfoScoring, player.position, stat)}
           toolbar={
             <div
               style={{

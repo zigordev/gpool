@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
   open: boolean;
@@ -85,11 +86,11 @@ export function Modal({
     };
   }, [open, busy, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
   const maxWidth = { sm: '420px', md: '520px', lg: '720px' }[size];
 
-  return (
+  return createPortal(
     <div
       className="modal-overlay"
       onClick={() => {
@@ -159,7 +160,8 @@ export function Modal({
           </div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
