@@ -1294,6 +1294,7 @@ input:focus {
 .modal-overlay {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   background: rgb(15 23 28 / 0.55);
   backdrop-filter: blur(4px);
   display: flex;
@@ -1317,7 +1318,7 @@ input:focus {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 520px;
-  max-height: 90vh;
+  max-height: min(90vh, calc(100dvh - 2rem));
   overflow-y: auto;
   padding: 1.5rem;
   animation: gp-slide-up-in var(--motion) var(--ease-out) both;

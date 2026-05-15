@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { GiLeatherBoot } from 'react-icons/gi';
@@ -33,6 +33,7 @@ interface PlayerStatsTableProps {
   editable?: boolean;
   updatingPlayerStat?: string | null;
   onStatChange?: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => void;
+  isStatVisible?: (player: TournamentPlayer, stat: PlayerStatKey) => boolean;
   toolbar?: React.ReactNode;
 }
 
@@ -45,12 +46,23 @@ export function PlayerStatsTable({
   editable = false,
   updatingPlayerStat,
   onStatChange,
+  isStatVisible = () => true,
   toolbar,
 }: Readonly<PlayerStatsTableProps>) {
   const [sortKey, setSortKey] = useState<PlayerSortKey>('totalPoints');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const visibleStatColumns = STAT_COLUMNS.filter((col) => players.some((player) => isStatVisible(player, col.key)));
+  const visibleStatKey = visibleStatColumns.map((col) => col.key).join('|');
+  const tableMinWidth = `${Math.max(520, 360 + visibleStatColumns.length * (editable ? 92 : 64))}px`;
+
+  useEffect(() => {
+    if (sortKey !== 'totalPoints' && !visibleStatKey.split('|').includes(sortKey)) {
+      setSortKey('totalPoints');
+      setSortDir('desc');
+    }
+  }, [sortKey, visibleStatKey]);
 
   const handleSort = (key: PlayerSortKey) => {
     if (sortKey === key) {
@@ -109,13 +121,13 @@ export function PlayerStatsTable({
         </p>
       ) : (
       <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: editable ? '860px' : '680px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: tableMinWidth }}>
           <thead>
             <tr style={{ background: 'rgb(var(--panel-muted-bg-solid))', borderBottom: '1px solid rgb(var(--border))' }}>
               <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}>
                 {t('poolDetail.players.title')}
               </th>
-              {STAT_COLUMNS.map((col) => (
+              {visibleStatColumns.map((col) => (
                 <th
                   key={col.key}
                   style={sortableTh(col.key)}
@@ -208,12 +220,13 @@ export function PlayerStatsTable({
                     </div>
                   </td>
 
-                  {STAT_COLUMNS.map((col) => {
+                  {visibleStatColumns.map((col) => {
                     const value = player[col.key] || 0;
                     const isUpdating = editable && updatingPlayerStat === `${player.playerId}:${col.key}`;
+                    const statVisibleForPlayer = isStatVisible(player, col.key);
                     return (
                       <td key={col.key} style={tdStyle}>
-                        {editable ? (
+                        {!statVisibleForPlayer ? null : editable ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.12rem' }}>
                             <button
                               type="button"

@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useRef } from 'react';
 import { useI18n } from '@/i18n/client';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
@@ -192,6 +193,47 @@ export function BracketVisualization({
 }: Readonly<BracketVisualizationProps>) {
   const { t } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
+  const bracketScrollRef = useRef<HTMLDivElement | null>(null);
+  const scrollLockRef = useRef<{ left: number; until: number } | null>(null);
+
+  const preserveBracketScrollPosition = useCallback(() => {
+    const scrollContainer = bracketScrollRef.current;
+    if (!scrollContainer) return;
+
+    const now = Date.now();
+    const activeLock = scrollLockRef.current;
+    const left = activeLock && activeLock.until > now ? activeLock.left : scrollContainer.scrollLeft;
+    scrollLockRef.current = { left, until: now + 800 };
+
+    const restore = () => {
+      const lock = scrollLockRef.current;
+      const current = bracketScrollRef.current;
+      if (!lock || !current || lock.until < Date.now()) return;
+      if (Math.abs(current.scrollLeft - lock.left) > 1) {
+        current.scrollLeft = lock.left;
+      }
+    };
+
+    requestAnimationFrame(restore);
+    window.setTimeout(restore, 0);
+    window.setTimeout(restore, 80);
+    window.setTimeout(restore, 180);
+    window.setTimeout(restore, 360);
+  }, []);
+
+  const handleBracketScroll = useCallback(() => {
+    const lock = scrollLockRef.current;
+    const current = bracketScrollRef.current;
+    if (!lock || !current || lock.until < Date.now()) return;
+    if (Math.abs(current.scrollLeft - lock.left) > 1) {
+      requestAnimationFrame(() => {
+        const latestLock = scrollLockRef.current;
+        const latestCurrent = bracketScrollRef.current;
+        if (!latestLock || !latestCurrent || latestLock.until < Date.now()) return;
+        latestCurrent.scrollLeft = latestLock.left;
+      });
+    }
+  }, []);
 
   const selectedTeamIdsInPhase = (
     phaseKey: string,
@@ -364,6 +406,7 @@ export function BracketVisualization({
                 onPredictionChange={onPredictionChange}
                 isFinal={false}
                 phaseKey={phaseKey}
+                onSelectInteractionStart={preserveBracketScrollPosition}
                 homeTeamExactPosition={homeTeamExactPosition}
                 awayTeamExactPosition={awayTeamExactPosition}
                 homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
@@ -471,6 +514,7 @@ export function BracketVisualization({
           onPredictionChange={onPredictionChange}
           isFinal={isFinal}
           phaseKey={phaseKey}
+          onSelectInteractionStart={preserveBracketScrollPosition}
           homeTeamExactPosition={homeTeamExactPosition}
           awayTeamExactPosition={awayTeamExactPosition}
           homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
@@ -643,34 +687,42 @@ export function BracketVisualization({
             <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))' }} />
             {t('bracket.winner')}
           </span>
-          <Select<{ value: string; label: React.ReactNode; displayLabel: string }, false>
-            isSearchable={false}
-            placeholder={t('bracket.selectTournamentWinner')}
-            value={selectedOption}
-            options={options}
-            getOptionLabel={(option) => option.displayLabel}
-            formatOptionLabel={(option) => option.label}
-            isDisabled={isDisabled}
-            onChange={(option) => handleWinnerChange(option?.value ?? '')}
-            menuPortalTarget={document.body}
-            styles={selectStyles({
-              control: (base) => ({
-                ...base,
-                backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
-                  ? 'rgb(var(--gold) / 0.08)'
-                  : isDisabled
-                  ? 'rgb(var(--bg-subtle))'
-                  : 'rgb(var(--input-bg))',
-                border: `1px solid ${
-                  prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
-                    ? 'rgb(var(--gold))'
-                    : 'rgb(var(--border))'
-                }`,
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                opacity: isDisabled ? 0.7 : 1,
-              }),
-            })}
-          />
+          <div onPointerDownCapture={preserveBracketScrollPosition}>
+            <Select<{ value: string; label: React.ReactNode; displayLabel: string }, false>
+              isSearchable={false}
+              placeholder={t('bracket.selectTournamentWinner')}
+              value={selectedOption}
+              options={options}
+              getOptionLabel={(option) => option.displayLabel}
+              formatOptionLabel={(option) => option.label}
+              isDisabled={isDisabled}
+              onFocus={preserveBracketScrollPosition}
+              onMenuOpen={preserveBracketScrollPosition}
+              onChange={(option) => handleWinnerChange(option?.value ?? '')}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+              menuPosition="fixed"
+              menuPlacement="auto"
+              menuShouldScrollIntoView={false}
+              maxMenuHeight={220}
+              styles={selectStyles({
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                    ? 'rgb(var(--gold) / 0.08)'
+                    : isDisabled
+                    ? 'rgb(var(--bg-subtle))'
+                    : 'rgb(var(--input-bg))',
+                  border: `1px solid ${
+                    prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                      ? 'rgb(var(--gold))'
+                      : 'rgb(var(--border))'
+                  }`,
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  opacity: isDisabled ? 0.7 : 1,
+                }),
+              })}
+            />
+          </div>
         </article>
       </div>
     );
@@ -723,6 +775,8 @@ export function BracketVisualization({
 
   return (
     <div
+      ref={bracketScrollRef}
+      onScroll={handleBracketScroll}
       style={{
         overflowX: 'auto',
         overflowY: 'visible',
@@ -838,6 +892,7 @@ interface BracketMatchBoxProps {
   homeTeamIncorrect?: boolean;
   awayTeamIncorrect?: boolean;
   points?: number;
+  onSelectInteractionStart?: () => void;
 }
 
 function BracketMatchBox({
@@ -861,6 +916,7 @@ function BracketMatchBox({
   homeTeamIncorrect = false,
   awayTeamIncorrect = false,
   points,
+  onSelectInteractionStart,
 }: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
   const { t } = useI18n();
@@ -960,6 +1016,7 @@ function BracketMatchBox({
         ariaLabel={t('bracket.selectTeam')}
         sourceLabel={match.homeSourceLabel}
         unavailableTeamIds={unavailableTeamIds?.home}
+        onSelectInteractionStart={onSelectInteractionStart}
       />
 
       <BracketSlot
@@ -971,6 +1028,7 @@ function BracketMatchBox({
         ariaLabel={t('bracket.selectTeam')}
         sourceLabel={match.awaySourceLabel}
         unavailableTeamIds={unavailableTeamIds?.away}
+        onSelectInteractionStart={onSelectInteractionStart}
       />
 
     </article>
@@ -986,6 +1044,7 @@ interface BracketSlotProps {
   ariaLabel: string;
   sourceLabel?: string;
   unavailableTeamIds?: Set<string>;
+  onSelectInteractionStart?: () => void;
 }
 
 function BracketSlot({
@@ -997,6 +1056,7 @@ function BracketSlot({
   ariaLabel,
   sourceLabel,
   unavailableTeamIds,
+  onSelectInteractionStart,
 }: Readonly<BracketSlotProps>) {
   const { t } = useI18n();
   const borderColor = slotBorderColor(state);
@@ -1046,7 +1106,10 @@ function BracketSlot({
   const selectedOption = options.find((option) => option.value === teamId) ?? null;
 
   return (
-    <div style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}>
+    <div
+      onPointerDownCapture={onSelectInteractionStart}
+      style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}
+    >
       <Select<{ value: string; label: React.ReactNode; displayLabel: string; isDisabled: boolean }, false>
         isSearchable={false}
         aria-label={ariaLabel}
@@ -1056,11 +1119,17 @@ function BracketSlot({
         getOptionLabel={(option) => option.displayLabel}
         formatOptionLabel={(option) => option.label}
         isDisabled={disabled}
+        onFocus={onSelectInteractionStart}
+        onMenuOpen={onSelectInteractionStart}
         onChange={(option) => {
           const selected = teams.find((team) => team.teamId === option?.value);
           if (selected) onChange(selected.teamId, selected.name);
         }}
-        menuPortalTarget={document.body}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        menuPosition="fixed"
+        menuPlacement="auto"
+        menuShouldScrollIntoView={false}
+        maxMenuHeight={220}
         styles={selectStyles({
           control: (base) => ({
             ...base,
