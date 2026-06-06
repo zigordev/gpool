@@ -73,8 +73,7 @@ export default function GroupsPage() {
                       const isIncorrect = isPastDeadline && hasResults && hasUserPrediction && prediction.isCorrect === false;
                       const isIncomplete =
                         !isPastDeadline &&
-                        (prediction.homeScore === '' || prediction.awayScore === '' ||
-                          (prediction.homeScore === 0 && prediction.awayScore === 0));
+                        (prediction.homeScore === '' || prediction.awayScore === '');
 
                       let state: MatchPredictionState;
                       let badgeLabel: string | undefined;

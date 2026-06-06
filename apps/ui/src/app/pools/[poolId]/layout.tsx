@@ -88,7 +88,7 @@ function PoolBreadcrumbs() {
   const { pool, poolId, poolDeadline } = usePoolContext();
   const { setSubBar } = useNavCenter();
 
-  const isPoolAdmin = user?.role === 'admin' && user.userId === pool?.adminUserId;
+  const isPoolAdmin = pool?.userMembership?.role === 'admin';
   const isAdminRoute = pathname.includes('/admin');
 
   const routes = [

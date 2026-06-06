@@ -181,6 +181,7 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
 export default function AdminGroupsPage() {
   const { t, locale } = useI18n();
   const {
+    systemMode,
     scoringConfig, setScoringConfig,
     groups, matchesByGroup, results, handleResultChange,
   } = useAdminContext();
@@ -189,7 +190,7 @@ export default function AdminGroupsPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {/* Group phase scoring */}
-      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
@@ -198,10 +199,10 @@ export default function AdminGroupsPage() {
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} attention={scoringConfig.exactResultPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, exactResultPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
         </div>
-      </Section>
+      </Section> : null}
 
       {/* Match results */}
-      {groups.length > 0 ? (
+      {systemMode && groups.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
@@ -233,11 +234,11 @@ export default function AdminGroupsPage() {
             );
           })}
         </div>
-      ) : (
+      ) : systemMode ? (
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('adminResults.groupPhase.empty')}
         </p>
-      )}
+      ) : null}
 
     </div>
   );

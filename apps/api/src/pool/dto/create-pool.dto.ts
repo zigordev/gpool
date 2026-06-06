@@ -168,6 +168,32 @@ class PlayerAwardWinnersDto {
     tournamentMvpPlayerId?: string;
 }
 
+class PlayerSelectionLimitsDto {
+    @ApiProperty({ description: 'Number of goalkeepers each member selects', example: 6 })
+    @IsInt()
+    @Min(1)
+    @Max(12)
+    goalkeeper: number;
+
+    @ApiProperty({ description: 'Number of defenders each member selects', example: 6 })
+    @IsInt()
+    @Min(1)
+    @Max(12)
+    defender: number;
+
+    @ApiProperty({ description: 'Number of midfielders each member selects', example: 6 })
+    @IsInt()
+    @Min(1)
+    @Max(12)
+    midfielder: number;
+
+    @ApiProperty({ description: 'Number of forwards each member selects', example: 6 })
+    @IsInt()
+    @Min(1)
+    @Max(12)
+    forward: number;
+}
+
 export class PoolConfigDto {
     @ApiPropertyOptional({ type: ScoringRulesDto, description: 'Scoring rules' })
     @IsOptional()
@@ -237,6 +263,16 @@ export class PoolConfigDto {
     @ValidateNested()
     @Type(() => PlayerAwardWinnersDto)
     playerAwardWinners?: PlayerAwardWinnersDto;
+
+    @ApiPropertyOptional({
+      type: PlayerSelectionLimitsDto,
+      description: 'Number of player selections required for each position.',
+    })
+    @IsOptional()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => PlayerSelectionLimitsDto)
+    playerSelectionLimits?: PlayerSelectionLimitsDto;
 }
 
 export class CreatePoolDto {

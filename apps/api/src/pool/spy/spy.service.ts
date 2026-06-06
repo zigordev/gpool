@@ -1,6 +1,10 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
+import {
+  isSelectionWithinLimits,
+  resolvePlayerSelectionLimits,
+} from '../player/player-selection-limits';
 
 @Injectable()
 export class SpyService {
@@ -42,6 +46,7 @@ export class SpyService {
       this.poolRepository.getPlayerSelections(poolId, targetUserId),
       this.poolRepository.getPlayerAwardSelections(poolId, targetUserId),
     ]);
+    const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
 
     return {
       user: {
@@ -51,7 +56,9 @@ export class SpyService {
       },
       predictions,
       bracketPredictions,
-      playerSelections,
+      playerSelections: playerSelections.filter((selection: any) =>
+        isSelectionWithinLimits(selection, limits),
+      ),
       playerAwardSelections,
     };
   }

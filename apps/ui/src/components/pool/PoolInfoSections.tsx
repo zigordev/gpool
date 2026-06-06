@@ -13,6 +13,7 @@ import { PiBoxingGlove } from "react-icons/pi";
 import { PlayerPosition } from "@/types/playerPosition.type";
 import { useI18n } from "@/i18n/client";
 import { Section } from "../ui/Section";
+import { PlayerSelectionLimits } from "@/lib/player-selection-limits";
 
 function InfoSectionTitle({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -27,10 +28,12 @@ export function GeneralPoolInfoSection({
   deadlineLabel,
   entryFeeLabel,
   prizeDistribution,
+  playerSelectionLimits,
 }: Readonly<{
   deadlineLabel: string;
   entryFeeLabel: string | number | null;
   prizeDistribution: PrizePayout[];
+  playerSelectionLimits: PlayerSelectionLimits;
 }>) {
     const { t } = useI18n();
 
@@ -77,7 +80,14 @@ export function GeneralPoolInfoSection({
                 }
               })()}
               <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-                {t(`poolDetail.rules.howTo.${key}`)}
+                {key === 'players'
+                  ? t('poolDetail.rules.howTo.players', {
+                      goalkeepers: playerSelectionLimits.goalkeeper,
+                      defenders: playerSelectionLimits.defender,
+                      midfielders: playerSelectionLimits.midfielder,
+                      forwards: playerSelectionLimits.forward,
+                    })
+                  : t(`poolDetail.rules.howTo.${key}`)}
               </p>
             </div>
           ))}

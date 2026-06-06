@@ -94,7 +94,7 @@ export class MatchController {
     const scoringConfig = body.winnerPoints !== undefined || body.exactResultPoints !== undefined
       ? { winnerPoints: body.winnerPoints ?? 0, exactResultPoints: body.exactResultPoints ?? 0 }
       : undefined;
-    return this.matchService.updateMatchResults(matchId, body.homeResult, body.awayResult, poolId, scoringConfig);
+    return this.matchService.updateMatchResults(matchId, body.homeResult, body.awayResult);
   }
 
   @Get('ranking')

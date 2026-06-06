@@ -64,9 +64,7 @@ export class PoolController {
   }
 
   @Put(':poolId')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Update pool (Admin only)' })
+  @ApiOperation({ summary: 'Update pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Pool updated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
@@ -80,9 +78,7 @@ export class PoolController {
   }
 
   @Delete(':poolId')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Delete pool (Admin only)' })
+  @ApiOperation({ summary: 'Delete pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Pool deleted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
@@ -102,9 +98,7 @@ export class PoolController {
   }
 
   @Post(':poolId/accept-request/:userId')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Accept access request (Admin only)' })
+  @ApiOperation({ summary: 'Accept access request (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Access granted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
@@ -118,9 +112,7 @@ export class PoolController {
   }
 
   @Post(':poolId/invite')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Invite user to pool (Admin only)' })
+  @ApiOperation({ summary: 'Invite user to pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Invitation sent successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
@@ -153,9 +145,7 @@ export class PoolController {
   }
 
   @Delete(':poolId/members/:userId')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Remove member from pool (Admin only)' })
+  @ApiOperation({ summary: 'Remove member from pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Member removed successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
@@ -169,9 +159,7 @@ export class PoolController {
   }
 
   @Put(':poolId/configuration')
-  @Roles('admin')
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: 'Update pool configuration (Admin only)' })
+  @ApiOperation({ summary: 'Update pool configuration (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Configuration updated successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })

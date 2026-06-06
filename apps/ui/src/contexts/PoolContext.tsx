@@ -17,6 +17,11 @@ import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PrizePayout } from '@/types/prizePayout.type';
 import { FaStar } from 'react-icons/fa';
 import { GiLeatherBoot } from 'react-icons/gi';
+import {
+  DEFAULT_PLAYER_SELECTION_LIMITS,
+  resolvePlayerSelectionLimits,
+  type PlayerSelectionLimits,
+} from '@/lib/player-selection-limits';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -29,7 +34,6 @@ export const BRACKET_PHASES = [
 ] as const;
 
 export const DEFAULT_POOL_DEADLINE = new Date('2026-06-08T00:00:00Z').getTime();
-export const PLAYER_SELECTION_LIMIT = 6;
 
 export const PLAYER_POSITIONS: Array<{ key: PlayerPosition; labelKey: string }> = [
   { key: 'goalkeeper', labelKey: 'poolDetail.players.positions.goalkeeper' },
@@ -52,8 +56,6 @@ export const PLAYER_AWARDS: Array<{ key: PlayerAward; labelKey: string; descript
     icon: <FaStar style={{ color: 'gold' }} size="27" />,
   },
 ];
-
-export const REQUIRED_PLAYER_SELECTIONS = PLAYER_POSITIONS.length * PLAYER_SELECTION_LIMIT + PLAYER_AWARDS.length;
 
 const DEFAULT_BRACKET_EXACT_POSITION_POINTS = 0;
 const DEFAULT_BRACKET_WRONG_POSITION_POINTS = 0;
@@ -182,6 +184,7 @@ interface PoolContextValue {
   teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
   players: TournamentPlayer[];
   playerSelections: Record<string, PlayerSelection>;
+  playerSelectionLimits: PlayerSelectionLimits;
   playerAwardSelections: Record<PlayerAward, PlayerAwardSelection | undefined>;
   savingPlayerSlot: string | null;
   poolDeadline: number;
@@ -234,6 +237,9 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
 const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?: string; code?: string }>>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerSelections, setPlayerSelections] = useState<Record<string, PlayerSelection>>({});
+  const [playerSelectionLimits, setPlayerSelectionLimits] = useState<PlayerSelectionLimits>(
+    DEFAULT_PLAYER_SELECTION_LIMITS,
+  );
   const [playerAwardSelections, setPlayerAwardSelections] = useState<Record<PlayerAward, PlayerAwardSelection | undefined>>({
     golden_boot: undefined,
     tournament_mvp: undefined,
@@ -255,6 +261,7 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
     setTeams([]);
     setPlayers([]);
     setPlayerSelections({});
+    setPlayerSelectionLimits(DEFAULT_PLAYER_SELECTION_LIMITS);
     setPlayerAwardSelections({ golden_boot: undefined, tournament_mvp: undefined });
     setSpy(null);
 
@@ -317,6 +324,11 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
 
         const playersData = playersResponse.data || {};
         setPlayers(playersData.players || []);
+        setPlayerSelectionLimits(
+          resolvePlayerSelectionLimits(
+            playersData.limits ?? poolResponse.data?.config?.playerSelectionLimits,
+          ),
+        );
 
         const selectionsMap: Record<string, PlayerSelection> = {};
         (playersData.selections || []).forEach((sel: any) => {
@@ -391,10 +403,16 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
   const finalMissingCount = bracketTeamsMissing + winnerMissing;
 
   const playerAwardSelectionCount = PLAYER_AWARDS.filter((award) => playerAwardSelections[award.key]).length;
+  const requiredPlayerSelections =
+    Object.values(playerSelectionLimits).reduce((sum, limit) => sum + limit, 0) +
+    PLAYER_AWARDS.length;
+  const validPlayerSelectionCount = Object.values(playerSelections).filter(
+    (selection) => selection.slot <= playerSelectionLimits[selection.position],
+  ).length;
 
   const playersMissingCount = Math.max(
     0,
-    REQUIRED_PLAYER_SELECTIONS - Object.keys(playerSelections).length - playerAwardSelectionCount,
+    requiredPlayerSelections - validPlayerSelectionCount - playerAwardSelectionCount,
   );
 
   const autoSavePrediction = async (matchId: string, prediction: Prediction) => {
@@ -529,6 +547,7 @@ const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?:
     teams,
     players,
     playerSelections,
+    playerSelectionLimits,
     playerAwardSelections,
     savingPlayerSlot,
     poolDeadline,

@@ -5,8 +5,9 @@ import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { FaGlobe, FaMoon, FaSun, FaUser } from 'react-icons/fa6';
+import { FaGlobe, FaMoon, FaPenToSquare, FaSun, FaUser } from 'react-icons/fa6';
 import { Logo } from './Logo';
 
 const LOCALE_META: Record<Locale, { label: string; flagCode: string }> = {
@@ -288,6 +289,7 @@ function UserButton() {
 }
 
 export function NavigationBar() {
+  const { user } = useAuth();
   const { center, subBar } = useNavCenter();
   const { t } = useI18n();
   const pathname = usePathname();
@@ -319,6 +321,16 @@ export function NavigationBar() {
           ) : null}
 
           <div className="nav-icons-area">
+            {user?.role === 'admin' ? (
+              <Link
+                href="/admin"
+                aria-label={t('nav.admin')}
+                title={t('nav.admin')}
+                style={{ ...NAV_ICON_STYLE, color: 'rgb(var(--sunset))' }}
+              >
+                <FaPenToSquare size={18} aria-hidden />
+              </Link>
+            ) : null}
             <ThemeButton />
             <LanguageButton />
             <UserButton />
