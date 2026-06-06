@@ -142,10 +142,10 @@ export class MatchService {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
 
-    const allPredictions = await this.poolRepository.getAllPredictionsForMatch(matchId, poolId);
+    const allPredictions = await this.poolRepository.getAllPredictionsForMatch(matchId);
 
     if (clearingResult) {
-      await this.poolRepository.resetPredictionStatusesForMatch(matchId, poolId);
+      await this.poolRepository.resetPredictionStatusesForMatch(matchId);
       this.logger.log(
         `Match results cleared and ${allPredictions.length} predictions reset for match ${matchId}`,
       );
@@ -157,21 +157,16 @@ export class MatchService {
       };
     }
 
-    let winnerPoints = 0;
-    let exactResultPoints = 0;
-
-    if (poolId) {
-      const pool = await this.poolRepository.getPool(poolId);
-      if (pool?.config?.scoring) {
-        winnerPoints = pool.config.scoring.winnerPoints ?? winnerPoints;
-        exactResultPoints = pool.config.scoring.exactResultPoints ?? exactResultPoints;
-      }
-    }
-
-    if (scoringConfig) {
-      winnerPoints = scoringConfig.winnerPoints ?? winnerPoints;
-      exactResultPoints = scoringConfig.exactResultPoints ?? exactResultPoints;
-    }
+    const pools = await this.poolRepository.listPools();
+    const scoringByPool = new Map(
+      pools.map((pool: any) => [
+        pool.poolId,
+        {
+          winnerPoints: pool.config?.scoring?.winnerPoints ?? 0,
+          exactResultPoints: pool.config?.scoring?.exactResultPoints ?? 0,
+        },
+      ]),
+    );
 
     const getOutcome = (home: number, away: number): 'home' | 'away' | 'draw' => {
       if (home > away) return 'home';
@@ -180,6 +175,10 @@ export class MatchService {
     };
 
     for (const prediction of allPredictions) {
+      const scoring = scoringByPool.get(prediction.poolId) || {
+        winnerPoints: 0,
+        exactResultPoints: 0,
+      };
       const exactMatch = prediction.homeScore === homeResult && prediction.awayScore === awayResult;
       const predictedOutcome = getOutcome(prediction.homeScore, prediction.awayScore);
       const actualOutcome = getOutcome(homeResult, awayResult);
@@ -187,9 +186,9 @@ export class MatchService {
 
       let points = 0;
       if (exactMatch) {
-        points = exactResultPoints;
+        points = scoring.exactResultPoints;
       } else if (winnerMatch) {
-        points = winnerPoints;
+        points = scoring.winnerPoints;
       }
 
       await this.poolRepository.updatePredictionStatus(

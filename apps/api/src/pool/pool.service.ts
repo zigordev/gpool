@@ -109,13 +109,7 @@ export class PoolService {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can update pools');
-    }
-
-    if (pool.adminUserId !== userId) {
-      throw new ForbiddenException('Only the pool administrator can update this pool');
-    }
+    await this.assertPoolMembershipAdmin(poolId, userId);
 
     const updates: Record<string, any> = {};
     if (updatePoolDto.name) updates.name = updatePoolDto.name;
@@ -133,13 +127,7 @@ export class PoolService {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can delete pools');
-    }
-
-    if (pool.adminUserId !== userId) {
-      throw new ForbiddenException('Only the pool administrator can delete this pool');
-    }
+    await this.assertPoolMembershipAdmin(poolId, userId);
 
     await this.poolRepository.deletePool(poolId);
     this.logger.log(`Pool deleted: ${poolId} by ${userId}`);
@@ -185,18 +173,12 @@ export class PoolService {
   }
 
   async acceptAccessRequest(poolId: string, targetUserId: string, adminUserId: string, userRole: string) {
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can accept access requests');
-    }
-
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (pool.adminUserId !== adminUserId) {
-      throw new ForbiddenException('Only the pool administrator can accept access requests');
-    }
+    await this.assertPoolMembershipAdmin(poolId, adminUserId);
 
     const targetUser = await this.poolRepository.getUser(targetUserId);
     await this.poolRepository.addMember(
@@ -221,18 +203,12 @@ export class PoolService {
   }
 
   async inviteUser(poolId: string, email: string, invitedBy: string, userRole: string, inviterEmail?: string) {
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can invite users to pools');
-    }
-
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (pool.adminUserId !== invitedBy) {
-      throw new ForbiddenException('Only the pool administrator can invite users');
-    }
+    await this.assertPoolMembershipAdmin(poolId, invitedBy);
 
     const adminUser = await this.poolRepository.getUser(invitedBy);
     await this.notificationService.sendPoolInvitation({
@@ -308,18 +284,12 @@ export class PoolService {
   }
 
   async removeMember(poolId: string, targetUserId: string, adminUserId: string, userRole: string) {
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can remove members');
-    }
-
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (pool.adminUserId !== adminUserId) {
-      throw new ForbiddenException('Only the pool administrator can remove members');
-    }
+    await this.assertPoolMembershipAdmin(poolId, adminUserId);
 
     if (pool.adminUserId === targetUserId) {
       throw new BadRequestException('Cannot remove the pool administrator');
@@ -336,18 +306,12 @@ export class PoolService {
     userId: string,
     userRole: string,
   ) {
-    if (!hasPermission(userRole, 'admin')) {
-      throw new ForbiddenException('Only administrators can update pool configuration');
-    }
-
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
 
-    if (userRole !== 'admin' && pool.adminUserId !== userId) {
-      throw new ForbiddenException('Only the pool administrator can update pool configuration');
-    }
+    await this.assertPoolMembershipAdmin(poolId, userId);
 
     const paidPositions = newConfig?.prizeDistribution?.paidPositions;
     if (paidPositions !== undefined) {
@@ -441,7 +405,13 @@ export class PoolService {
   }
 
   async isPoolAdmin(poolId: string, userId: string): Promise<boolean> {
-    const pool = await this.poolRepository.getPool(poolId);
-    return !!pool && pool.adminUserId === userId;
+    const membership = await this.poolRepository.getMembership(poolId, userId);
+    return membership?.status === 'active' && membership?.role === 'admin';
+  }
+
+  private async assertPoolMembershipAdmin(poolId: string, userId: string): Promise<void> {
+    if (!(await this.isPoolAdmin(poolId, userId))) {
+      throw new ForbiddenException('Only pool membership administrators can perform this action');
+    }
   }
 }

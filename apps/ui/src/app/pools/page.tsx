@@ -364,7 +364,7 @@ function PoolsContent() {
           }}
         >
           {visiblePools.map((pool) => {
-            const isPoolAdmin = user?.role === 'admin' && user.userId === pool.adminUserId;
+            const isPoolAdmin = pool.userMembership?.role === 'admin';
             const isMember = pool.isMember || false;
             const isDisabled = !isMember && user?.role === 'user';
             const requesting = requestingAccess === pool.poolId;

@@ -301,6 +301,7 @@ export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlay
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 interface AdminContextValue {
+  systemMode: boolean;
   poolId: string;
   poolName: string;
   setPoolName: React.Dispatch<React.SetStateAction<string>>;
@@ -365,7 +366,15 @@ export function useAdminContext(): AdminContextValue {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function AdminProvider({ poolId, children }: { poolId: string; children: React.ReactNode }) {
+export function AdminProvider({
+  poolId,
+  children,
+  systemMode = false,
+}: {
+  poolId: string;
+  children: React.ReactNode;
+  systemMode?: boolean;
+}) {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useI18n();
@@ -406,11 +415,11 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const [bracketResults, setBracketResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
 
   useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (systemMode && user && user.role !== 'admin') {
       toast.error(t('adminResults.errors.adminRequired'));
       router.push('/pools');
     }
-  }, [user, router, t]);
+  }, [user, router, systemMode, t]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -434,13 +443,20 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
 
         if (poolId) {
           const [poolResponse, bracketResponse, teamsResponse, playersResponse] = await Promise.all([
-            apiClient.get(`/pools/${poolId}`).catch(() => ({ data: {} })),
+            systemMode
+              ? Promise.resolve({ data: {} })
+              : apiClient.get(`/pools/${poolId}`).catch(() => ({ data: {} })),
             apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
             apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
             apiClient.get(`/pools/${poolId}/players`).catch(() => ({ data: { players: [] } })),
           ]);
 
           const pool = { ...poolResponse.data };
+          if (!systemMode && pool?.userMembership?.role !== 'admin') {
+            toast.error(t('adminResults.errors.poolAdminRequired'));
+            router.push(`/pools/${poolId}`);
+            return;
+          }
           setPoolName(pool?.name);
           lastSavedName.current = pool?.name ?? '';
           const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
@@ -507,18 +523,18 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
         setLoading(false);
       }
     };
-    if (user?.role === 'admin') fetchData();
+    if (user && (!systemMode || user.role === 'admin')) fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, t, poolId]);
+  }, [user, t, poolId, systemMode]);
 
   useEffect(() => {
-    if (loading || entryFee !== 0) return;
+    if (systemMode || loading || entryFee !== 0) return;
     if (prizeDistribution.length > 0) setPrizeDistribution([]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryFee, loading]);
+  }, [entryFee, loading, systemMode]);
 
   useEffect(() => {
-    if (loading) return;
+    if (systemMode || loading) return;
     if (!poolId) return;
     const prizeSum = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
     if (prizeDistribution.length > 0 && Math.abs(prizeSum - 100) > 0.01) return;
@@ -529,10 +545,10 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
     }, 600);
     return () => { if (configSaveTimer.current) { clearTimeout(configSaveTimer.current); configSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading]);
+  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading, systemMode]);
 
   useEffect(() => {
-    if (loading || !poolId) return;
+    if (systemMode || loading || !poolId) return;
     if (nameSaveTimer.current) clearTimeout(nameSaveTimer.current);
     nameSaveTimer.current = setTimeout(async () => {
       nameSaveTimer.current = null;
@@ -547,7 +563,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
     }, 600);
     return () => { if (nameSaveTimer.current) { clearTimeout(nameSaveTimer.current); nameSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poolName, poolId, loading]);
+  }, [poolName, poolId, loading, systemMode]);
 
   const autoSaveConfig = async () => {
     if (!poolId) return;
@@ -695,7 +711,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const finalConfigMissingCount = bracketScoringMissingCount(bracketScoringConfig);
   const playersConfigMissingCount = playerScoringMissingCount(playerScoringConfig);
   const value: AdminContextValue = {
-    poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
+    systemMode, poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
     playerScoringConfig, setPlayerScoringConfig, playerSelectionLimits, setPlayerSelectionLimits, savingConfig,
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,

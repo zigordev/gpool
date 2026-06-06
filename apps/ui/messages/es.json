@@ -75,6 +75,7 @@
       "deletePool": "No se pudo eliminar la porra",
       "enterBothResults": "Introduce resultados para ambos equipos",
       "loadData": "No se pudieron cargar los datos",
+      "poolAdminRequired": "Acceso denegado. Se requiere ser administrador de la membresía de la porra.",
       "prizeDistributionTotal": "La distribucion de premios debe sumar 100%",
       "saveBracketResult": "No se pudo guardar el resultado del cuadro",
       "saveResults": "No se pudieron guardar los resultados",
@@ -310,7 +311,7 @@
     "alt": "Logo de GPool"
   },
   "nav": {
-    "admin": "Administración",
+    "admin": "Gestión de resultados y acciones de jugador",
     "language": "Idioma",
     "logout": "Cerrar sesion",
     "pools": "Porras",
@@ -597,6 +598,10 @@
       "nameMax": "El nombre de la porra debe tener menos de 100 caracteres",
       "nameMin": "El nombre de la porra debe tener al menos 3 caracteres"
     }
+  },
+  "systemAdmin": {
+    "tabsLabel": "Administración del torneo",
+    "title": "Introduce resultados de partidos finalizados y acciones de jugador"
   },
   "theme": {
     "dark": "Oscuro",

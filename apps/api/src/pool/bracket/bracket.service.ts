@@ -157,7 +157,11 @@ export class BracketService {
     const fullMatch = allMatches.find((match: any) => match.bracketMatchId === bracketMatchId);
 
     if (fullMatch?.homeTeamId && fullMatch?.awayTeamId) {
-      await this.evaluateBracketPredictions(bracketMatchId, fullMatch, poolId);
+      await this.evaluateBracketPredictions(
+        bracketMatchId,
+        fullMatch,
+        poolId === BRACKET_POOL_ID ? undefined : poolId,
+      );
     }
 
     return fullMatch || updatedMatch;
@@ -166,20 +170,27 @@ export class BracketService {
   private async evaluateBracketPredictions(
     bracketMatchId: string,
     match: any,
-    poolId: string,
+    poolId?: string,
     scoringOverride?: BracketRoundScoring,
   ) {
-    const pool = await this.poolRepository.getPool(poolId);
-    const {
-      exactPositionPoints: exactPosPoints,
-      correctTeamWrongPositionPoints: wrongPosPoints,
-      tournamentWinnerPoints,
-    } =
-      resolveRoundScoring(pool?.config?.bracketScoring, match.phase, scoringOverride);
-
     const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
+    const relevantPredictions = poolId
+      ? predictions.filter((prediction: any) => prediction.poolId === poolId)
+      : predictions;
+    const pools = await this.poolRepository.listPools();
+    const poolById = new Map(pools.map((pool: any) => [pool.poolId, pool]));
 
-    for (const prediction of predictions) {
+    for (const prediction of relevantPredictions) {
+      const predictionPool: any = poolById.get(prediction.poolId);
+      const {
+        exactPositionPoints: exactPosPoints,
+        correctTeamWrongPositionPoints: wrongPosPoints,
+        tournamentWinnerPoints,
+      } = resolveRoundScoring(
+        predictionPool?.config?.bracketScoring,
+        match.phase,
+        scoringOverride,
+      );
       let points = 0;
 
       const homeTeamExactPosition = prediction.homeTeamId === match.homeTeamId;
@@ -249,7 +260,7 @@ export class BracketService {
     });
 
     if (updatedMatch?.homeTeamId && updatedMatch?.awayTeamId) {
-      await this.evaluateBracketPredictions(bracketMatchId, updatedMatch, poolId, {
+      await this.evaluateBracketPredictions(bracketMatchId, updatedMatch, undefined, {
         exactPositionPoints,
         correctTeamWrongPositionPoints,
       });
@@ -336,7 +347,11 @@ export class BracketService {
     const matchesToEvaluate = allMatches.filter((match: any) => match.homeTeamId && match.awayTeamId);
 
     for (const match of matchesToEvaluate) {
-      await this.evaluateBracketPredictions(match.bracketMatchId, match, poolId);
+      await this.evaluateBracketPredictions(
+        match.bracketMatchId,
+        match,
+        poolId === BRACKET_POOL_ID ? undefined : poolId,
+      );
     }
 
     return { matchesEvaluated: matchesToEvaluate.length };

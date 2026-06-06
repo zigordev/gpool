@@ -23,6 +23,7 @@ import { PlayerPosition } from '@/types/playerPosition.type';
 export default function AdminPlayersPage() {
   const { t, locale } = useI18n();
   const {
+    systemMode,
     players,
     playerFilter,
     setPlayerFilter,
@@ -100,7 +101,7 @@ export default function AdminPlayersPage() {
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
           {([
             ['goalkeeper', 'adminResults.players.positions.goalkeeper'],
@@ -120,10 +121,10 @@ export default function AdminPlayersPage() {
             </FormField>
           ))}
         </div>
-      </Section>
+      </Section> : null}
 
       {/* Player scoring configuration */}
-      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {[
             { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />, fields: [
@@ -179,10 +180,10 @@ export default function AdminPlayersPage() {
             </div>
           </div>
         </div>
-      </Section>
+      </Section> : null}
 
       {/* Player stats table */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {systemMode ? <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <PlayerStatsTable
           players={filtered}
           goldenBootPlayerIds={playerAwardWinnersConfig.goldenBootPlayerIds}
@@ -236,7 +237,7 @@ export default function AdminPlayersPage() {
             </div>
           }
         />
-      </div>
+      </div> : null}
     </div>
   );
 }

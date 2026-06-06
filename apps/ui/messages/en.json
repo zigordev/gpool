@@ -75,6 +75,7 @@
       "deletePool": "Could not delete the pool",
       "enterBothResults": "Enter results for both teams",
       "loadData": "Could not load the data",
+      "poolAdminRequired": "Access denied. Pool membership administrator role required.",
       "prizeDistributionTotal": "Prize distribution must add up to 100%",
       "saveBracketResult": "Could not save the bracket result",
       "saveResults": "Could not save the results",
@@ -310,7 +311,7 @@
     "alt": "GPool logo"
   },
   "nav": {
-    "admin": "Administration",
+    "admin": "Match result and player actions management",
     "language": "Language",
     "logout": "Log out",
     "pools": "Pools",
@@ -597,6 +598,10 @@
       "nameMax": "The pool name must be under 100 characters",
       "nameMin": "The pool name must be at least 3 characters"
     }
+  },
+  "systemAdmin": {
+    "tabsLabel": "Tournament administration",
+    "title": "Enter finished match results or player actions"
   },
   "theme": {
     "dark": "Dark",
