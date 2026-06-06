@@ -531,7 +531,7 @@ function matchPredictionComplete(prediction: ScorePredictionProjection | undefin
 } {
   const homeScore = scoreValue(prediction?.homeScore ?? '');
   const awayScore = scoreValue(prediction?.awayScore ?? '');
-  return homeScore !== null && awayScore !== null && !(homeScore === 0 && awayScore === 0);
+  return homeScore !== null && awayScore !== null;
 }
 
 function teamFromMatchSide(
