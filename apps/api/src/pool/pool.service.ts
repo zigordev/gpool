@@ -11,6 +11,11 @@ import { NotificationService } from '../notification/notification.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { PoolRepository } from './database/pool.repository';
 import { UpdatePoolDto } from './dto/update-pool.dto';
+import {
+  MAX_PLAYER_SELECTION_LIMIT,
+  PLAYER_SELECTION_POSITIONS,
+  resolvePlayerSelectionLimits,
+} from './player/player-selection-limits';
 
 const DEFAULT_LOCALE = 'es';
 
@@ -370,9 +375,31 @@ export class PoolService {
       }
     }
 
+    if (newConfig?.playerSelectionLimits !== undefined) {
+      const rawLimits = newConfig.playerSelectionLimits;
+      if (!rawLimits || typeof rawLimits !== 'object' || Array.isArray(rawLimits)) {
+        throw new BadRequestException('Player selection limits must be an object');
+      }
+      for (const position of PLAYER_SELECTION_POSITIONS) {
+        const value = Number(rawLimits[position]);
+        if (!Number.isInteger(value) || value < 1 || value > MAX_PLAYER_SELECTION_LIMIT) {
+          throw new BadRequestException(
+            `${position} selection limit must be an integer between 1 and ${MAX_PLAYER_SELECTION_LIMIT}`,
+          );
+        }
+      }
+      newConfig.playerSelectionLimits = resolvePlayerSelectionLimits(rawLimits);
+    }
+
     const existingConfig = pool.config || {};
     const mergedConfig = { ...existingConfig, ...newConfig };
     await this.poolRepository.updatePool(poolId, { config: mergedConfig });
+    if (newConfig.playerSelectionLimits) {
+      await this.poolRepository.deletePlayerSelectionsAboveLimits(
+        poolId,
+        newConfig.playerSelectionLimits,
+      );
+    }
 
     this.logger.log(`Pool configuration updated: ${poolId} by ${userId}`);
     return { success: true, message: 'Pool configuration updated successfully' };

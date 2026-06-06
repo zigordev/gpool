@@ -7,6 +7,10 @@ import {
   resolvePlayerAwardWinners,
   resolvePlayerScoring,
 } from '../player/player.service';
+import {
+  isSelectionWithinLimits,
+  resolvePlayerSelectionLimits,
+} from '../player/player-selection-limits';
 
 @Injectable()
 export class MatchService {
@@ -265,8 +269,12 @@ export class MatchService {
     });
 
     const playerScoring = resolvePlayerScoring(pool);
+    const playerSelectionLimits = resolvePlayerSelectionLimits(pool?.config?.playerSelectionLimits);
     playerSelections.forEach((selection: any) => {
-      if (!memberUserIds.has(selection.userId)) {
+      if (
+        !memberUserIds.has(selection.userId) ||
+        !isSelectionWithinLimits(selection, playerSelectionLimits)
+      ) {
         return;
       }
       const current = userPoints.get(selection.userId);

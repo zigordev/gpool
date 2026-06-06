@@ -17,6 +17,8 @@ import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
 import { PiBoxingGlove } from 'react-icons/pi';
 import { GiLeatherBoot } from 'react-icons/gi';
+import { MAX_PLAYER_SELECTION_LIMIT } from '@/lib/player-selection-limits';
+import { PlayerPosition } from '@/types/playerPosition.type';
 
 export default function AdminPlayersPage() {
   const { t, locale } = useI18n();
@@ -30,6 +32,8 @@ export default function AdminPlayersPage() {
     setPlayerPositionFilter,
     playerScoringConfig,
     setPlayerScoringConfig,
+    playerSelectionLimits,
+    setPlayerSelectionLimits,
     playerAwardWinnersConfig,
     updatingPlayerStat,
     handlePlayerStatChange,
@@ -84,9 +88,39 @@ export default function AdminPlayersPage() {
   const parsePositive = (value: string) => parseConfigNumberInput(value);
   const parseSigned = (value: string) => parseConfigNumberInput(value, { allowNegative: true });
   const parseNonPositive = (value: string) => parseConfigNumberInput(value, { allowNegative: true, max: 0 });
+  const updatePlayerSelectionLimit = (position: PlayerPosition, value: string) => {
+    if (value.trim() === '') return;
+    const parsed = Number.parseInt(value, 10);
+    const limit = Number.isFinite(parsed)
+      ? Math.max(1, Math.min(MAX_PLAYER_SELECTION_LIMIT, parsed))
+      : playerSelectionLimits[position];
+    setPlayerSelectionLimits((current) => ({ ...current, [position]: limit }));
+  };
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+          {([
+            ['goalkeeper', 'adminResults.players.positions.goalkeeper'],
+            ['defender', 'adminResults.players.positions.defender'],
+            ['midfielder', 'adminResults.players.positions.midfielder'],
+            ['forward', 'adminResults.players.positions.forward'],
+          ] as const).map(([position, labelKey]) => (
+            <FormField key={position} label={t(labelKey)}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max={MAX_PLAYER_SELECTION_LIMIT}
+                value={playerSelectionLimits[position]}
+                onChange={(event) => updatePlayerSelectionLimit(position, event.target.value)}
+              />
+            </FormField>
+          ))}
+        </div>
+      </Section>
 
       {/* Player scoring configuration */}
       <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">

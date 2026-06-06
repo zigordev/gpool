@@ -150,7 +150,10 @@
         "tournamentMvp": "Tournament MVP",
         "yellowCard": "Yellow card"
       },
-      "searchPlaceholder": "Search player"
+      "searchPlaceholder": "Search player",
+      "selectionLimits": {
+        "title": "Players to select by position"
+      }
     },
     "ranking": {
       "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",
@@ -452,7 +455,7 @@
       "howTo": {
         "deadline": "The deadline blocks any type of change after it passes.",
         "final": "The final phase is initially filled from your group phase predictions. You can make changes to the automatic selection.",
-        "players": "Choose 6 goalkeepers, 6 defenders, 6 midfielders, 6 forwards, Golden Boot, and tournament MVP.",
+        "players": "Choose {goalkeepers} goalkeepers, {defenders} defenders, {midfielders} midfielders, {forwards} forwards, Golden Boot, and tournament MVP.",
         "predict": "Predict every group phase score before the deadline.",
         "ranking": "The ranking adds up points from groups, final phase, and players.",
         "title": "How to play"

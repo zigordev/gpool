@@ -150,7 +150,10 @@
         "tournamentMvp": "MVP del torneo",
         "yellowCard": "Tarjeta amarilla"
       },
-      "searchPlaceholder": "Buscar jugador"
+      "searchPlaceholder": "Buscar jugador",
+      "selectionLimits": {
+        "title": "Jugadores a seleccionar por posición"
+      }
     },
     "ranking": {
       "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
@@ -452,7 +455,7 @@
       "howTo": {
         "deadline": "La fecha limite bloquea cualquier tipo de cambio después de la misma.",
         "final": "La fase final se rellena inicialmente desde tus predicciones de la fase de grupos. Puedes realizar cambios con respecto a la selección automática.",
-        "players": "Elige 6 porteros, 6 defensas, 6 mediocampistas, 6 delanteros, Bota de oro y MVP del torneo.",
+        "players": "Elige {goalkeepers} porteros, {defenders} defensas, {midfielders} mediocampistas, {forwards} delanteros, Bota de oro y MVP del torneo.",
         "predict": "Predice todos los marcadores de la fase de grupos antes de la fecha limite.",
         "ranking": "La clasificación suma los puntos de grupos, fase final y jugadores.",
         "title": "Como se juega"

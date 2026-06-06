@@ -4,7 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import Select from 'react-select';
 import ReactCountryFlag from 'react-country-flag';
-import { usePoolContext, PLAYER_POSITIONS, PLAYER_AWARDS, PLAYER_SELECTION_LIMIT } from '@/contexts/PoolContext';
+import { usePoolContext, PLAYER_POSITIONS, PLAYER_AWARDS } from '@/contexts/PoolContext';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
@@ -63,6 +63,7 @@ export default function PlayersPage() {
   const { t, locale } = useI18n();
   const {
     players, playerSelections, playerAwardSelections, savingPlayerSlot,
+    playerSelectionLimits,
     isPastPoolDeadline, pool, handlePlayerSelection, handlePlayerAwardSelection,
   } = usePoolContext();
   const playerInfoScoring = resolvePlayerInfoScoring(pool?.config?.playerScoring);
@@ -207,56 +208,58 @@ export default function PlayersPage() {
             })}
           </div>
 
-          <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.75rem' }}>
+          <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.75rem', alignItems: 'stretch' }}>
             {PLAYER_POSITIONS.map(({ key: position, labelKey }) => (
-              <section key={position} style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', minWidth: 0 }}>
+              <section key={position} style={{ display: 'grid', gridTemplateRows: 'auto 1fr', gap: '0.55rem', minWidth: 0 }}>
                 <span style={{ display: 'inline-flex', alignSelf: 'center', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.6rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--pitch))', background: 'rgb(var(--bg-elevated) / 0.95)', border: '1px solid rgb(var(--pitch) / 0.50)', borderRadius: '999px', boxShadow: '0 2px 6px rgb(15 23 42 / 0.06)', whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t(labelKey)}>
                   <span aria-hidden style={{ width: 6, height: 6, borderRadius: '999px', background: 'rgb(var(--pitch))', flexShrink: 0 }} />
                   <span className="md-only" style={{ display: 'inline' }}>{t(labelKey)}</span>
                 </span>
-                {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, index) => {
-                  const slot = index + 1;
-                  const selectionKey = `${position}:${slot}`;
-                  const selected = playerSelections[selectionKey];
-                  const isSaving = savingPlayerSlot === selectionKey;
-                  const takenTeamIds = new Set(Object.entries(playerSelections).filter(([key]) => key !== selectionKey).map(([, value]) => value.teamId));
-                  const slotOptions: PlayerOption[] = players.filter((p) => p.position === position).sort((a, b) => a.teamName.localeCompare(b.teamName) || a.name.localeCompare(b.name)).map((player) => ({ value: player.playerId, label: player.name, teamName: player.teamName, teamId: player.teamId, isDisabled: takenTeamIds.has(player.teamId) }));
-                  const selectedOption = selected ? slotOptions.find((o) => o.value === selected.playerId) ?? { value: selected.playerId, label: selected.name, teamName: selected.teamName, teamId: selected.teamId, isDisabled: false } : null;
-                  return (
-                    <article key={selectionKey} style={{ position: 'relative', minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(255 255 255 / 0.55)', borderTop: '3px solid rgb(var(--pitch))', background: 'rgb(var(--bg-elevated) / 0.62)', backdropFilter: 'blur(6px) saturate(120%)', WebkitBackdropFilter: 'blur(6px) saturate(120%)', boxShadow: '0 4px 14px rgb(15 23 42 / 0.10)', opacity: isSaving ? 0.7 : 1, transition: 'opacity 0.15s ease, background 0.15s ease' }}>
-                      {selected && isPastPoolDeadline && selected.totalPoints ? <PointsBadge points={selected.totalPoints} label={t('poolDetail.players.points', { points: selected.totalPoints })} /> : null}
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '999px', overflow: 'hidden', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'rgb(var(--pitch) / 0.18)', border: '1px solid rgb(var(--pitch) / 0.50)', color: 'rgb(var(--pitch))', fontSize: '0.7rem', fontWeight: 800 }}>
-                        {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : selected?.name ? selected.name.slice(0, 2).toUpperCase() : slot}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                        <Select<PlayerOption, false>
-                          options={slotOptions}
-                          value={selectedOption}
-                          onChange={(option) => handlePlayerSelection(position, slot, option?.value ?? '')}
-                          isClearable
-                          isDisabled={savingPlayerSlot !== null || isPastPoolDeadline}
-                          isLoading={isSaving}
-                          placeholder={t('poolDetail.players.slotLabel', { slot })}
-                          formatOptionLabel={(option) => (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              <ReactCountryFlag countryCode={countryIsoCode(option.teamName)} svg style={{ width: '1.4em', height: '1.4em' }} />
-                              <span>{option.label}</span>
-                            </span>
-                          )}
-                          filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
-                          menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                          styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
-                        />
-                        <PlayerActionSummary
-                          player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
-                          labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
-                          position={position}
-                          scoring={playerInfoScoring}
-                        />
-                      </div>
-                    </article>
-                  );
-                })}
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.55rem', minWidth: 0 }}>
+                  {Array.from({ length: playerSelectionLimits[position] }, (_, index) => {
+                    const slot = index + 1;
+                    const selectionKey = `${position}:${slot}`;
+                    const selected = playerSelections[selectionKey];
+                    const isSaving = savingPlayerSlot === selectionKey;
+                    const takenTeamIds = new Set(Object.entries(playerSelections).filter(([key]) => key !== selectionKey).map(([, value]) => value.teamId));
+                    const slotOptions: PlayerOption[] = players.filter((p) => p.position === position).sort((a, b) => a.teamName.localeCompare(b.teamName) || a.name.localeCompare(b.name)).map((player) => ({ value: player.playerId, label: player.name, teamName: player.teamName, teamId: player.teamId, isDisabled: takenTeamIds.has(player.teamId) }));
+                    const selectedOption = selected ? slotOptions.find((o) => o.value === selected.playerId) ?? { value: selected.playerId, label: selected.name, teamName: selected.teamName, teamId: selected.teamId, isDisabled: false } : null;
+                    return (
+                      <article key={selectionKey} style={{ position: 'relative', minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(255 255 255 / 0.55)', borderTop: '3px solid rgb(var(--pitch))', background: 'rgb(var(--bg-elevated) / 0.62)', backdropFilter: 'blur(6px) saturate(120%)', WebkitBackdropFilter: 'blur(6px) saturate(120%)', boxShadow: '0 4px 14px rgb(15 23 42 / 0.10)', opacity: isSaving ? 0.7 : 1, transition: 'opacity 0.15s ease, background 0.15s ease' }}>
+                        {selected && isPastPoolDeadline && selected.totalPoints ? <PointsBadge points={selected.totalPoints} label={t('poolDetail.players.points', { points: selected.totalPoints })} /> : null}
+                        <div style={{ width: '2rem', height: '2rem', borderRadius: '999px', overflow: 'hidden', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'rgb(var(--pitch) / 0.18)', border: '1px solid rgb(var(--pitch) / 0.50)', color: 'rgb(var(--pitch))', fontSize: '0.7rem', fontWeight: 800 }}>
+                          {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : selected?.name ? selected.name.slice(0, 2).toUpperCase() : slot}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                          <Select<PlayerOption, false>
+                            options={slotOptions}
+                            value={selectedOption}
+                            onChange={(option) => handlePlayerSelection(position, slot, option?.value ?? '')}
+                            isClearable
+                            isDisabled={savingPlayerSlot !== null || isPastPoolDeadline}
+                            isLoading={isSaving}
+                            placeholder={t('poolDetail.players.slotLabel', { slot })}
+                            formatOptionLabel={(option) => (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <ReactCountryFlag countryCode={countryIsoCode(option.teamName)} svg style={{ width: '1.4em', height: '1.4em' }} />
+                                <span>{option.label}</span>
+                              </span>
+                            )}
+                            filterOption={(option, inputValue) => { const search = inputValue.toLowerCase(); return option.data.label.toLowerCase().includes(search) || option.data.teamName.toLowerCase().includes(search); }}
+                            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                            styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
+                          />
+                          <PlayerActionSummary
+                            player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
+                            labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                            position={position}
+                            scoring={playerInfoScoring}
+                          />
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               </section>
             ))}
           </div>
@@ -321,7 +324,7 @@ export default function PlayersPage() {
               style={{ padding: '0.45rem 0.55rem' }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, index) => {
+                {Array.from({ length: playerSelectionLimits[position] }, (_, index) => {
                   const slot = index + 1;
                   const selectionKey = `${position}:${slot}`;
                   const selected = playerSelections[selectionKey];

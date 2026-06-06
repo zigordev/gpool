@@ -9,6 +9,11 @@ import { useI18n } from '@/i18n/client';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { PrizePayout } from '@/types/prizePayout.type';
+import {
+  DEFAULT_PLAYER_SELECTION_LIMITS,
+  type PlayerSelectionLimits,
+  resolvePlayerSelectionLimits,
+} from '@/lib/player-selection-limits';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -253,6 +258,7 @@ export function buildConfigPayloadFrom(input: {
   scoring: GroupScoringConfig;
   bracketScoring: AdminBracketScoringConfig;
   playerScoring: AdminPlayerScoringConfig;
+  playerSelectionLimits: PlayerSelectionLimits;
   awardWinners: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
   deadlineLocal: string;
   entryFee: number;
@@ -277,6 +283,7 @@ export function buildConfigPayloadFrom(input: {
     scoring,
     bracketScoring,
     playerScoring,
+    playerSelectionLimits: input.playerSelectionLimits,
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
     entryFee: Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0,
@@ -310,6 +317,8 @@ interface AdminContextValue {
   setBracketScoringConfig: React.Dispatch<React.SetStateAction<AdminBracketScoringConfig>>;
   playerScoringConfig: AdminPlayerScoringConfig;
   setPlayerScoringConfig: React.Dispatch<React.SetStateAction<AdminPlayerScoringConfig>>;
+  playerSelectionLimits: PlayerSelectionLimits;
+  setPlayerSelectionLimits: React.Dispatch<React.SetStateAction<PlayerSelectionLimits>>;
   savingConfig: boolean;
   deadlineLocal: string;
   setDeadlineLocal: React.Dispatch<React.SetStateAction<string>>;
@@ -375,6 +384,9 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const [scoringConfig, setScoringConfig] = useState<GroupScoringConfig>(EMPTY_GROUP_SCORING);
   const [bracketScoringConfig, setBracketScoringConfig] = useState<AdminBracketScoringConfig>(emptyBracketScoring());
   const [playerScoringConfig, setPlayerScoringConfig] = useState<AdminPlayerScoringConfig>(DEFAULT_PLAYER_SCORING);
+  const [playerSelectionLimits, setPlayerSelectionLimits] = useState<PlayerSelectionLimits>(
+    DEFAULT_PLAYER_SELECTION_LIMITS,
+  );
   const [savingConfig, setSavingConfig] = useState(false);
   const [poolName, setPoolName] = useState<string>('');
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
@@ -439,9 +451,13 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
           const loadedScoring = normalizeGroupScoring(pool?.config?.scoring);
           const loadedBracketScoring = normalizeBracketScoring(pool?.config?.bracketScoring);
           const loadedPlayerScoring = normalizePlayerScoring(pool?.config?.playerScoring);
+          const loadedPlayerSelectionLimits = resolvePlayerSelectionLimits(
+            pool?.config?.playerSelectionLimits,
+          );
           setScoringConfig(loadedScoring);
           setBracketScoringConfig(loadedBracketScoring);
           setPlayerScoringConfig(loadedPlayerScoring);
+          setPlayerSelectionLimits(loadedPlayerSelectionLimits);
 
           const loadedAwardWinners = {
             goldenBootPlayerIds: Array.isArray(pool?.config?.playerAwardWinners?.goldenBootPlayerIds) ? pool.config.playerAwardWinners.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string') : [],
@@ -452,7 +468,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
           const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
           const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
           const loadedPrizeDistribution = normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount));
-          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, entryFee: loadedEntryFee, prizeDistribution: loadedPrizeDistribution }));
+          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, entryFee: loadedEntryFee, prizeDistribution: loadedPrizeDistribution }));
 
           const bracketData = bracketResponse.data || {};
           setBracket(bracketData);
@@ -513,7 +529,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
     }, 600);
     return () => { if (configSaveTimer.current) { clearTimeout(configSaveTimer.current); configSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading]);
+  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading]);
 
   useEffect(() => {
     if (loading || !poolId) return;
@@ -535,7 +551,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
 
   const autoSaveConfig = async () => {
     if (!poolId) return;
-    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, awardWinners: playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution });
+    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution });
     const snapshot = JSON.stringify(payload);
     if (snapshot === lastSavedConfig.current) return;
     try {
@@ -681,7 +697,7 @@ export function AdminProvider({ poolId, children }: { poolId: string; children: 
   const value: AdminContextValue = {
     poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
-    playerScoringConfig, setPlayerScoringConfig, savingConfig,
+    playerScoringConfig, setPlayerScoringConfig, playerSelectionLimits, setPlayerSelectionLimits, savingConfig,
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,

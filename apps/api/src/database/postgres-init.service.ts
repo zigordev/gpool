@@ -118,7 +118,7 @@ export class PostgresInitService implements OnModuleInit {
         pool_id TEXT NOT NULL,
         user_id TEXT NOT NULL,
         position TEXT NOT NULL CHECK (position IN ('goalkeeper', 'defender', 'midfielder', 'forward')),
-        slot INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 6),
+        slot INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 12),
         player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL,
@@ -126,7 +126,7 @@ export class PostgresInitService implements OnModuleInit {
         UNIQUE (pool_id, user_id, player_id)
       );
       ALTER TABLE pool_player_selections DROP CONSTRAINT IF EXISTS pool_player_selections_slot_check;
-      ALTER TABLE pool_player_selections ADD CONSTRAINT pool_player_selections_slot_check CHECK (slot BETWEEN 1 AND 6);
+      ALTER TABLE pool_player_selections ADD CONSTRAINT pool_player_selections_slot_check CHECK (slot BETWEEN 1 AND 12);
       CREATE INDEX IF NOT EXISTS idx_pool_player_selections_user_pool ON pool_player_selections(user_id, pool_id);
 
       CREATE TABLE IF NOT EXISTS pool_player_award_selections (

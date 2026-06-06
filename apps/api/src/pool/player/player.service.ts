@@ -1,5 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PoolRepository } from '../database/pool.repository';
+import {
+  isSelectionWithinLimits,
+  PLAYER_SELECTION_POSITIONS,
+  resolvePlayerSelectionLimits,
+} from './player-selection-limits';
 
 export type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 export type PlayerStatKey =
@@ -13,7 +18,7 @@ export type PlayerStatKey =
   | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
 
-const POSITIONS: PlayerPosition[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
+const POSITIONS: PlayerPosition[] = [...PLAYER_SELECTION_POSITIONS];
 const STATS: PlayerStatKey[] = [
   'goals',
   'missedPenalties',
@@ -25,7 +30,6 @@ const STATS: PlayerStatKey[] = [
   'redCards',
 ];
 const AWARDS: PlayerAward[] = ['golden_boot', 'tournament_mvp'];
-const SELECTION_LIMIT = 6;
 
 export const DEFAULT_PLAYER_SCORING = {
   goal: {
@@ -197,13 +201,17 @@ export class PlayerService {
     ]);
     const scoring = resolvePlayerScoring(pool);
     const awardWinners = resolvePlayerAwardWinners(pool, players);
+    const limits = resolvePlayerSelectionLimits(pool?.config?.playerSelectionLimits);
+    const validSelections = selections.filter((selection: any) =>
+      isSelectionWithinLimits(selection, limits),
+    );
 
     return {
       players: players.map((player: any) => ({
         ...player,
         totalPoints: computePlayerPoints(player, scoring),
       })),
-      selections: selections.map((selection: any) => ({
+      selections: validSelections.map((selection: any) => ({
         ...selection,
         totalPoints: computePlayerPoints(selection, scoring),
       })),
@@ -211,12 +219,7 @@ export class PlayerService {
         ...selection,
         awardPoints: computePlayerAwardPoints(selection, awardWinners, scoring),
       })),
-      limits: {
-        goalkeeper: SELECTION_LIMIT,
-        defender: SELECTION_LIMIT,
-        midfielder: SELECTION_LIMIT,
-        forward: SELECTION_LIMIT,
-      },
+      limits,
       scoring,
     };
   }
@@ -267,8 +270,14 @@ export class PlayerService {
     if (!POSITIONS.includes(position)) {
       throw new BadRequestException('Invalid player position');
     }
-    if (!Number.isInteger(slot) || slot < 1 || slot > SELECTION_LIMIT) {
-      throw new BadRequestException(`Slot must be between 1 and ${SELECTION_LIMIT}`);
+
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
+    if (!Number.isInteger(slot) || slot < 1 || slot > limits[position]) {
+      throw new BadRequestException(`Slot must be between 1 and ${limits[position]} for ${position}`);
     }
 
     if (!playerId) {
