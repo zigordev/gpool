@@ -228,7 +228,7 @@ export default function PlayersPage() {
                       <article key={selectionKey} style={{ position: 'relative', minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(255 255 255 / 0.55)', borderTop: '3px solid rgb(var(--pitch))', background: 'rgb(var(--bg-elevated) / 0.62)', backdropFilter: 'blur(6px) saturate(120%)', WebkitBackdropFilter: 'blur(6px) saturate(120%)', boxShadow: '0 4px 14px rgb(15 23 42 / 0.10)', opacity: isSaving ? 0.7 : 1, transition: 'opacity 0.15s ease, background 0.15s ease' }}>
                         {selected && isPastPoolDeadline && selected.totalPoints ? <PointsBadge points={selected.totalPoints} label={t('poolDetail.players.points', { points: selected.totalPoints })} /> : null}
                         <div style={{ width: '2rem', height: '2rem', borderRadius: '999px', overflow: 'hidden', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'rgb(var(--pitch) / 0.18)', border: '1px solid rgb(var(--pitch) / 0.50)', color: 'rgb(var(--pitch))', fontSize: '0.7rem', fontWeight: 800 }}>
-                          {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : selected?.name ? selected.name.slice(0, 2).toUpperCase() : slot}
+                          {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : slot}
                         </div>
                         <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                           <Select<PlayerOption, false>
@@ -336,7 +336,7 @@ export default function PlayersPage() {
                     <article key={selectionKey} style={{ position: 'relative', minWidth: 0, display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.55rem', borderRadius: 'var(--radius-md)', border: '1px solid rgb(var(--border))', borderTop: '3px solid rgb(var(--pitch))', background: 'rgb(var(--bg-elevated))', opacity: isSaving ? 0.7 : 1 }}>
                       {selected && isPastPoolDeadline && selected.totalPoints ? <PointsBadge points={selected.totalPoints} label={t('poolDetail.players.points', { points: selected.totalPoints })} /> : null}
                       <div style={{ width: '2rem', height: '2rem', borderRadius: '999px', overflow: 'hidden', display: 'grid', placeItems: 'center', flexShrink: 0, background: 'rgb(var(--pitch) / 0.18)', border: '1px solid rgb(var(--pitch) / 0.50)', color: 'rgb(var(--pitch))', fontSize: '0.7rem', fontWeight: 800 }}>
-                        {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : selected?.name ? selected.name.slice(0, 2).toUpperCase() : slot}
+                        {selected?.imageUrl ? <img src={selected.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : slot}
                       </div>
                       <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                         <Select<PlayerOption, false>
