@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePoolContext, formatEur, computePrize, resolvePrizeDistribution, PLAYER_AWARDS, PLAYER_POSITIONS, PLAYER_SELECTION_LIMIT } from '@/contexts/PoolContext';
+import { usePoolContext, formatEur, computePrize, resolvePrizeDistribution, PLAYER_AWARDS, PLAYER_POSITIONS } from '@/contexts/PoolContext';
 import { RankTable } from '@/components/pool/RankTable';
 import { Modal } from '@/components/ui/Modal';
 import { BracketVisualization } from '@/components/BracketVisualization';
@@ -14,6 +14,7 @@ import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
 import { GeneralPoolInfoSection } from '@/components/pool/PoolInfoSections';
+import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ function SpyPicksModal({
   teams,
   poolId,
   tournamentPlayers,
+  playerSelectionLimits,
   locale,
 }: Readonly<{
   spy: { target: { userId: string; userName: string }; loading: boolean; error: string | null; data: SpyPicksData | null } | null;
@@ -36,6 +38,7 @@ function SpyPicksModal({
   teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
   poolId: string;
   tournamentPlayers: any[];
+  playerSelectionLimits: PlayerSelectionLimits;
   locale: string;
 }>) {
   const { t } = useI18n();
@@ -129,6 +132,7 @@ function SpyPicksModal({
           <SpyPlayersView
             playerByPositionSlot={playerByPositionSlot}
             playerByAward={playerByAward}
+            playerSelectionLimits={playerSelectionLimits}
             hasPredictions={data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0}
           />
         )}
@@ -235,9 +239,10 @@ function SpyFinalView({ bracket, teams, poolId, bracketPredictions, hasPredictio
 
 // ─── Players tab ──────────────────────────────────────────────────────────────
 
-function SpyPlayersView({ playerByPositionSlot, playerByAward, hasPredictions }: Readonly<{
+function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLimits, hasPredictions }: Readonly<{
   playerByPositionSlot: Map<string, PlayerSelection>;
   playerByAward: Map<PlayerAward, PlayerAwardSelection>;
+  playerSelectionLimits: PlayerSelectionLimits;
   hasPredictions: boolean;
 }>) {
   const { t } = useI18n();
@@ -282,7 +287,7 @@ function SpyPlayersView({ playerByPositionSlot, playerByAward, hasPredictions }:
             {t(labelKey)}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-            {Array.from({ length: PLAYER_SELECTION_LIMIT }, (_, idx) => {
+            {Array.from({ length: playerSelectionLimits[position] }, (_, idx) => {
               const slot = idx + 1;
               const sel = playerByPositionSlot.get(`${position}:${slot}`);
               return (
@@ -319,7 +324,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
   const {
     ranking, spy, setSpy, handleStartSpy, isPastPoolDeadline,
     groups, matchesByGroup, bracket, players, poolDeadline,
-    pool, poolId, teams,
+    pool, poolId, teams, playerSelectionLimits,
   } = usePoolContext();
 
   const prizeDistribution = resolvePrizeDistribution(pool);
@@ -340,6 +345,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
           deadlineLabel={deadlineHint}
           entryFeeLabel={entryFee}
           prizeDistribution={prizeDistribution}
+          playerSelectionLimits={playerSelectionLimits}
         />
       ) : null}
 
@@ -368,6 +374,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
         teams={teams}
         poolId={poolId}
         tournamentPlayers={players}
+        playerSelectionLimits={playerSelectionLimits}
         locale={locale}
       />
     </div>

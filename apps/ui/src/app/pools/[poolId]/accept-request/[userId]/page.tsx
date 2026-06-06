@@ -84,13 +84,6 @@ function AcceptAccessRequestContent() {
 
     if (!user) return;
 
-    if (user.role !== 'admin') {
-      setStatus('error');
-      setMessage(t('acceptRequest.errors.adminOnly'));
-      toast.error(t('acceptRequest.errors.adminOnly'));
-      return;
-    }
-
     const acceptRequest = async () => {
       try {
         const response = await apiClient.post(`/pools/${poolId}/accept-request/${userId}`);

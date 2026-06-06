@@ -160,30 +160,24 @@ export function PlayerStatsTable({
                 <tr key={player.playerId} style={{ borderBottom: '1px solid rgb(var(--border) / 0.65)' }}>
                   <td style={{ ...tdStyle, textAlign: 'left', position: 'sticky', left: 0, zIndex: 1, background: 'rgb(var(--bg-elevated))', boxShadow: '2px 0 4px rgb(0 0 0 / 0.06)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span
-                        aria-hidden
-                        style={{
-                          width: '1.85rem',
-                          height: '1.85rem',
-                          borderRadius: '999px',
-                          display: 'grid',
-                          placeItems: 'center',
-                          flexShrink: 0,
-                          overflow: 'hidden',
-                          background: 'rgb(var(--bg-subtle))',
-                          border: '1px solid rgb(var(--border))',
-                          fontSize: '0.62rem',
-                          fontWeight: 800,
-                          color: 'rgb(var(--fg-muted))',
-                        }}
-                      >
-                        {player.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
+                      {player.imageUrl ? (
+                        <span
+                          aria-hidden
+                          style={{
+                            width: '1.85rem',
+                            height: '1.85rem',
+                            borderRadius: '999px',
+                            display: 'grid',
+                            placeItems: 'center',
+                            flexShrink: 0,
+                            overflow: 'hidden',
+                            background: 'rgb(var(--bg-subtle))',
+                            border: '1px solid rgb(var(--border))',
+                          }}
+                        >
                           <img src={player.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          player.name.slice(0, 2).toUpperCase()
-                        )}
-                      </span>
+                        </span>
+                      ) : null}
                       <div style={{ minWidth: 0 }}>
                         <p
                           style={{

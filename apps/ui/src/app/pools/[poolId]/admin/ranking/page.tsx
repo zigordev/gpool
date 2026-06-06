@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 import { IoSettings } from 'react-icons/io5';
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
-import { RankingContent } from '@/components/pool/RankingContent';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();
@@ -132,9 +131,6 @@ export default function AdminRankingPage() {
           </button>
         </div>
       </section>
-
-      {/* Ranking table */}
-      <RankingContent showGeneralSection={false} />
 
       {/* Delete confirmation dialog */}
       {showDeleteConfirm && (

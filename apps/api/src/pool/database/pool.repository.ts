@@ -715,6 +715,27 @@ export class PoolRepository {
     return { success: true };
   }
 
+  async deletePlayerSelectionsAboveLimits(
+    poolId: string,
+    limits: { goalkeeper: number; defender: number; midfielder: number; forward: number },
+  ) {
+    await this.postgres.query(
+      `
+        DELETE FROM pool_player_selections
+        WHERE pool_id = $1
+          AND (
+            (position = 'goalkeeper' AND slot > $2)
+            OR (position = 'defender' AND slot > $3)
+            OR (position = 'midfielder' AND slot > $4)
+            OR (position = 'forward' AND slot > $5)
+          )
+      `,
+      [poolId, limits.goalkeeper, limits.defender, limits.midfielder, limits.forward],
+    );
+
+    return { success: true };
+  }
+
   async upsertPlayerAwardSelection(poolId: string, userId: string, award: string, playerId: string) {
     const now = Math.floor(Date.now() / 1000);
     const result = await this.postgres.query(

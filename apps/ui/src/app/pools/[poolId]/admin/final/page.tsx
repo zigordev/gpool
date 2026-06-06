@@ -14,6 +14,7 @@ import { IoSettings } from 'react-icons/io5';
 export default function AdminFinalPage() {
   const { t } = useI18n();
   const {
+    systemMode,
     bracket,
     teams,
     poolId,
@@ -40,7 +41,7 @@ export default function AdminFinalPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {/* Final phase scoring */}
-      <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: 'gold' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
             <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} attention={bracketScoringConfig.tournamentWinnerPoints === ''} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: parseConfigNumberInput(e.target.value) }))} />
@@ -60,10 +61,10 @@ export default function AdminFinalPage() {
             );
           })}
         </div>
-      </Section>
+      </Section> : null}
 
       {/* Bracket */}
-      <section className="surface" style={{ padding: '1rem' }}>
+      {systemMode ? <section className="surface" style={{ padding: '1rem' }}>
         <BracketVisualization
           bracket={bracket}
           teams={teams}
@@ -76,7 +77,7 @@ export default function AdminFinalPage() {
           submittingResult={submittingBracketResult}
           candidateOptions={adminCandidateOptions}
         />
-      </section>
+      </section> : null}
     </div>
   );
 }

@@ -1,5 +1,24 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PostgresService } from './postgres.service';
+import { WORLD_CUP_2026_ROSTERS, type TournamentRosterPosition } from './world-cup-2026-rosters';
+
+const TOURNAMENT_ROSTER_POSITIONS: readonly TournamentRosterPosition[] = [
+  'goalkeeper',
+  'defender',
+  'midfielder',
+  'forward',
+];
+const TOURNAMENT_SQUAD_SIZE = 26;
+
+function playerSeedId(teamId: string, position: TournamentRosterPosition, playerName: string): string {
+  const playerSlug = playerName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${teamId}-${position}-${playerSlug}`;
+}
 
 @Injectable()
 export class PostgresInitService implements OnModuleInit {
@@ -99,7 +118,7 @@ export class PostgresInitService implements OnModuleInit {
         pool_id TEXT NOT NULL,
         user_id TEXT NOT NULL,
         position TEXT NOT NULL CHECK (position IN ('goalkeeper', 'defender', 'midfielder', 'forward')),
-        slot INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 6),
+        slot INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 12),
         player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL,
@@ -107,7 +126,7 @@ export class PostgresInitService implements OnModuleInit {
         UNIQUE (pool_id, user_id, player_id)
       );
       ALTER TABLE pool_player_selections DROP CONSTRAINT IF EXISTS pool_player_selections_slot_check;
-      ALTER TABLE pool_player_selections ADD CONSTRAINT pool_player_selections_slot_check CHECK (slot BETWEEN 1 AND 6);
+      ALTER TABLE pool_player_selections ADD CONSTRAINT pool_player_selections_slot_check CHECK (slot BETWEEN 1 AND 12);
       CREATE INDEX IF NOT EXISTS idx_pool_player_selections_user_pool ON pool_player_selections(user_id, pool_id);
 
       CREATE TABLE IF NOT EXISTS pool_player_award_selections (
@@ -244,7 +263,6 @@ export class PostgresInitService implements OnModuleInit {
     };
 
     type TeamSeed = { teamId: string; name: string; group: string; code: string };
-    type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
     type MatchSeed = {
       matchId: string;
       matchNumber?: number;
@@ -404,6 +422,56 @@ export class PostgresInitService implements OnModuleInit {
       })),
     );
     const teamsByName = new Map(teams.map((team) => [team.name, team]));
+    const rostersByTeamName = new Map(WORLD_CUP_2026_ROSTERS.map((roster) => [roster.teamName, roster]));
+    if (rostersByTeamName.size !== WORLD_CUP_2026_ROSTERS.length) {
+      throw new Error('Duplicate team names found in the World Cup player roster seed');
+    }
+
+    const invalidRosterSizes = WORLD_CUP_2026_ROSTERS.filter(
+      (roster) =>
+        TOURNAMENT_ROSTER_POSITIONS.reduce(
+          (playerCount, position) => playerCount + roster.players[position].length,
+          0,
+        ) !== TOURNAMENT_SQUAD_SIZE,
+    );
+    if (invalidRosterSizes.length > 0) {
+      throw new Error(
+        `World Cup squads must contain ${TOURNAMENT_SQUAD_SIZE} players: ${invalidRosterSizes
+          .map((roster) => roster.teamName)
+          .join(', ')}`,
+      );
+    }
+
+    const missingRosterTeams = teams.filter((team) => !rostersByTeamName.has(team.name));
+    const unknownRosterTeams = WORLD_CUP_2026_ROSTERS.filter((roster) => !teamsByName.has(roster.teamName));
+    if (missingRosterTeams.length > 0 || unknownRosterTeams.length > 0) {
+      throw new Error(
+        `World Cup player roster mismatch. Missing: ${missingRosterTeams.map((team) => team.name).join(', ') || 'none'}. ` +
+          `Unknown: ${unknownRosterTeams.map((roster) => roster.teamName).join(', ') || 'none'}.`,
+      );
+    }
+
+    const seededAt = Math.floor(Date.now() / 1000);
+    const playerSeeds = teams.flatMap((team) => {
+      const roster = rostersByTeamName.get(team.name)!;
+      const meta = countryMeta[team.name] || { code: team.code, flag: '' };
+      return TOURNAMENT_ROSTER_POSITIONS.flatMap((position) =>
+        roster.players[position].map((name) => ({
+          playerId: playerSeedId(team.teamId, position, name),
+          teamId: team.teamId,
+          teamName: team.name,
+          name,
+          position,
+          countryCode: meta.code,
+          flagEmoji: meta.flag,
+        })),
+      );
+    });
+    const playerIds = playerSeeds.map((player) => player.playerId);
+    if (new Set(playerIds).size !== playerIds.length) {
+      throw new Error('Duplicate player IDs found in the World Cup player roster seed');
+    }
+
     const matchNumbersById = new Map(
       [...matches]
         .sort((a, b) => {
@@ -432,60 +500,78 @@ export class PostgresInitService implements OnModuleInit {
         );
       }
 
-      const positionCounts: Record<PlayerPosition, number> = {
-        goalkeeper: 5,
-        defender: 5,
-        midfielder: 5,
-        forward: 5,
-      };
-      const positionLabels: Record<PlayerPosition, string> = {
-        goalkeeper: 'Portero',
-        defender: 'Defensa',
-        midfielder: 'Mediocampista',
-        forward: 'Delantero',
-      };
+      await client.query(
+        `
+          INSERT INTO tournament_players (
+            player_id,
+            team_id,
+            team_name,
+            name,
+            position,
+            image_url,
+            country_code,
+            flag_emoji,
+            created_at
+          )
+          SELECT
+            player_id,
+            team_id,
+            team_name,
+            name,
+            position,
+            '',
+            country_code,
+            flag_emoji,
+            created_at
+          FROM UNNEST(
+            $1::text[],
+            $2::text[],
+            $3::text[],
+            $4::text[],
+            $5::text[],
+            $6::text[],
+            $7::text[],
+            $8::bigint[]
+          ) AS seeded_players(
+            player_id,
+            team_id,
+            team_name,
+            name,
+            position,
+            country_code,
+            flag_emoji,
+            created_at
+          )
+          ON CONFLICT (player_id)
+          DO UPDATE SET
+            team_id = EXCLUDED.team_id,
+            team_name = EXCLUDED.team_name,
+            name = EXCLUDED.name,
+            position = EXCLUDED.position,
+            country_code = EXCLUDED.country_code,
+            flag_emoji = EXCLUDED.flag_emoji,
+            updated_at = EXCLUDED.created_at
+        `,
+        [
+          playerSeeds.map((player) => player.playerId),
+          playerSeeds.map((player) => player.teamId),
+          playerSeeds.map((player) => player.teamName),
+          playerSeeds.map((player) => player.name),
+          playerSeeds.map((player) => player.position),
+          playerSeeds.map((player) => player.countryCode),
+          playerSeeds.map((player) => player.flagEmoji),
+          playerSeeds.map(() => seededAt),
+        ],
+      );
 
-      for (const team of teams) {
-        const meta = countryMeta[team.name] || { code: team.code, flag: '' };
-        for (const position of Object.keys(positionCounts) as PlayerPosition[]) {
-          for (let slot = 1; slot <= positionCounts[position]; slot += 1) {
-            await client.query(
-              `
-                INSERT INTO tournament_players (
-                  player_id,
-                  team_id,
-                  team_name,
-                  name,
-                  position,
-                  image_url,
-                  country_code,
-                  flag_emoji,
-                  created_at
-                )
-                VALUES ($1, $2, $3, $4, $5, '', $6, $7, $8)
-                ON CONFLICT (player_id)
-                DO UPDATE SET
-                  team_id = EXCLUDED.team_id,
-                  team_name = EXCLUDED.team_name,
-                  position = EXCLUDED.position,
-                  country_code = EXCLUDED.country_code,
-                  flag_emoji = EXCLUDED.flag_emoji,
-                  updated_at = EXCLUDED.created_at
-              `,
-              [
-                `${team.teamId}-${position}-${slot}`,
-                team.teamId,
-                team.name,
-                `${team.name} ${positionLabels[position]} ${slot}`,
-                position,
-                meta.code,
-                meta.flag,
-                Math.floor(Date.now() / 1000),
-              ],
-            );
-          }
-        }
-      }
+      await client.query(
+        `
+          DELETE FROM tournament_players
+          WHERE team_id = ANY($1::text[])
+            AND NOT (player_id = ANY($2::text[]))
+        `,
+        [teams.map((team) => team.teamId), playerIds],
+      );
 
       for (const match of matches) {
         const homeTeam = teamsByName.get(match.home);
@@ -544,7 +630,7 @@ export class PostgresInitService implements OnModuleInit {
       }
 
       await client.query('COMMIT');
-      this.logger.log('Seeded real teams and group phase match schedule');
+      this.logger.log(`Seeded real teams, ${playerSeeds.length} tournament players, and group phase match schedule`);
     } catch (error: any) {
       await client.query('ROLLBACK');
       this.logger.error(`Failed to seed teams/matches: ${error.message}`, error.stack);
