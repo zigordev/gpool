@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.20](https://github.com/zigordev/gpool/compare/v0.1.19...v0.1.20) (2026-06-07)
+
+
+### Features
+
+* usability improvements ([#75](https://github.com/zigordev/gpool/issues/75)) ([888b95e](https://github.com/zigordev/gpool/commit/888b95eeddb1496a219ac0b1a9cc811eed329c2c))
+
 ## [0.1.19](https://github.com/zigordev/gpool/compare/v0.1.18...v0.1.19) (2026-06-06)
 
 
