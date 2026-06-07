@@ -81,6 +81,7 @@
       "saveResults": "Could not save the results",
       "saveScoring": "Could not save the scoring configuration",
       "selectPoolFirst": "Select a pool first",
+      "updateFairPlay": "Could not update the fair-play score",
       "updatePlayerStats": "Could not update player stats",
       "updateTeam": "Could not update the team"
     },
@@ -90,6 +91,15 @@
     },
     "groupPhase": {
       "empty": "There are no group phase matches available yet.",
+      "fairPlay": {
+        "description": "Enter each team's conduct score. Use 0 when there are no deductions and negative values for disciplinary deductions. The higher value takes priority when teams are tied. If the tie remains, the FIFA World Ranking published on April 1, 2026 is used.",
+        "group": "Group",
+        "inputLabel": "Fair-play score for {team}",
+        "points": "Fair play",
+        "rank": "Pos.",
+        "team": "Team",
+        "title": "Fair-play scoring"
+      },
       "group": "Group {group}",
       "title": "Group phase"
     },
@@ -464,15 +474,22 @@
       "points": {
         "assists": "Assists",
         "bracketRound": "Correct side of bracket +{exact} / Wrong side of bracket +{wrong}",
+        "cleanSheetMinutesHint": "Points will only be awarded if the player plays 60 minutes or more.",
         "cleanSheets": "Clean sheet: ",
-        "correctWinner": "Winner: ",
+        "correctWinner": "1X2: ",
         "exactResult": "Exact result: ",
+        "fifaRegulationsLink": "View the official FIFA regulations",
+        "finalPhaseDescription": "In this phase, you can earn points by predicting which teams reach each position in the bracket.",
         "goals": "Goals: ",
         "goldenBoot": "Golden Boot: ",
+        "groupPhaseDescription": "You can earn points by predicting the correct 1X2 outcome or the exact result.",
         "missedPenalty": "Missed penalty: ",
         "mvp": "Match MVP: ",
+        "officialPlayerListLabel": "Official player list:",
+        "officialPlayerListLink": "Official FIFA list",
         "penaltySaved": "Penalty saved: ",
-        "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions.",
+        "penaltyShootoutHint": "Penalty shootouts will not be taken into account.",
+        "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions. The ranking criteria applied are based on the official FIFA regulations.",
         "redCard": "Red card: ",
         "title": "Scoring system",
         "tournamentMvp": "Tournament MVP: ",

@@ -181,7 +181,7 @@ interface PoolContextValue {
   effectiveBracketPredictions: Record<string, any>;
   bracketProjection: any;
   bracketScoringConfig: BracketScoringConfig;
-  teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
+  teams: Team[];
   players: TournamentPlayer[];
   playerSelections: Record<string, PlayerSelection>;
   playerSelectionLimits: PlayerSelectionLimits;
@@ -234,7 +234,7 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
   const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }>>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
-const [teams, setTeams] = useState<Array<{ teamId: string; name: string; group?: string; code?: string }>>([]);
+const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerSelections, setPlayerSelections] = useState<Record<string, PlayerSelection>>({});
   const [playerSelectionLimits, setPlayerSelectionLimits] = useState<PlayerSelectionLimits>(
