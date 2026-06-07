@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
+import { FaExternalLinkAlt, FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
 import { FaDollarSign, FaPerson } from "react-icons/fa6";
 import { GiLeatherBoot } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
@@ -107,6 +107,9 @@ export function GroupScoringInfoSection({
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+            {t('poolDetail.rules.points.groupPhaseDescription')}
+          </p>
+          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             <strong>{t('poolDetail.rules.points.correctWinner')}</strong>
             {`+ ${groupScoring.winnerPoints}`}
           </p>
@@ -127,7 +130,18 @@ export function GroupScoringInfoSection({
             }}
           >
             <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
-            <span>{t('poolDetail.rules.points.predictedStandingsWarning')}</span>
+            <span>
+              {t('poolDetail.rules.points.predictedStandingsWarning')}{' '}
+              <a
+                href="https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'rgb(var(--fg))', fontWeight: 600 }}
+              >
+                {t('poolDetail.rules.points.fifaRegulationsLink')}
+                <FaExternalLinkAlt size={11} aria-hidden />
+              </a>
+            </span>
           </p>
         </div>
       </Section>
@@ -144,6 +158,9 @@ export function FinalScoringInfoSection({
     return (
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
+          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+            {t('poolDetail.rules.points.finalPhaseDescription')}
+          </p>
           {BRACKET_PHASES.map((phase) => {
             const round = bracketScoring.rounds[phase.key] || bracketScoring;
             return (
@@ -170,20 +187,26 @@ export function PlayerScoringInfoSection({
 }: Readonly<{
   playerScoring: any;
 }>) {
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
+    const officialPlayerListUrl = locale === 'es'
+      ? 'https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-Spanish.pdf'
+      : 'https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf';
 
     const playerRows = [
       {
+        key: 'goals',
         label: t('poolDetail.rules.points.goals'),
         values: playerScoring.goal,
         icon: <FaFutbol style={ {color: 'rgb(var(--fg))' } }/>
       },
       {
+        key: 'assists',
         label: t('poolDetail.rules.points.assists'),
         values: playerScoring.assist,
         icon: <FaMagic style={ {color: 'rgb(var(--fg))' } }/>
       },
       {
+        key: 'cleanSheets',
         label: t('poolDetail.rules.points.cleanSheets'),
         values: playerScoring.cleanSheet,
         icon: <FaShieldAlt style={ {color: 'rgb(var(--fg))' } }/>
@@ -237,29 +260,60 @@ export function PlayerScoringInfoSection({
     return (
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
+          <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+            {t('poolDetail.rules.points.officialPlayerListLabel')}{' '}
+            <a
+              href={officialPlayerListUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'rgb(var(--fg))', fontWeight: 600 }}
+            >
+              {t('poolDetail.rules.points.officialPlayerListLink')}
+              <FaExternalLinkAlt size={11} aria-hidden />
+            </a>
+          </p>
           {playerRows.map((row) => {
             const visiblePositions = PLAYER_POSITIONS.filter((position) => isVisibleScoringValue(row.values[position.key]));
             if (visiblePositions.length === 0) return null;
             return (
-              <p key={row.label} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+              <div key={row.key} style={{ display: 'grid', gap: '0.2rem' }}>
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                    {row.icon}
+                    <strong>{row.label}</strong>
+                  </span>
+                  {visiblePositions.map((position, i) => (
+                    <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
+                  ))}
+                </p>
+                {row.key === 'cleanSheets' ? (
+                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                    {t('poolDetail.rules.points.cleanSheetMinutesHint')}
+                  </p>
+                ) : null}
+                {row.key === 'goals' ? (
+                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                    {t('poolDetail.rules.points.penaltyShootoutHint')}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+          {singleActionRows.map((row) => (
+            <div key={row.key} style={{ display: 'grid', gap: '0.2rem' }}>
+              <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
                   {row.icon}
                   <strong>{row.label}</strong>
                 </span>
-                {visiblePositions.map((position, i) => (
-                  <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
-                ))}
+                {pointsLabel(row.value)}
               </p>
-            );
-          })}
-          {singleActionRows.map((row) => (
-            <p key={row.key} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-                {row.icon}
-                <strong>{row.label}</strong>
-              </span>
-              {pointsLabel(row.value)}
-            </p>
+              {row.key === 'penaltySaved' ? (
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                  {t('poolDetail.rules.points.penaltyShootoutHint')}
+                </p>
+              ) : null}
+            </div>
           ))}
         </div>
       </Section>
