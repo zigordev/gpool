@@ -81,6 +81,7 @@
       "saveResults": "Could not save the results",
       "saveScoring": "Could not save the scoring configuration",
       "selectPoolFirst": "Select a pool first",
+      "updateFairPlay": "Could not update the fair-play score",
       "updatePlayerStats": "Could not update player stats",
       "updateTeam": "Could not update the team"
     },
@@ -90,6 +91,15 @@
     },
     "groupPhase": {
       "empty": "There are no group phase matches available yet.",
+      "fairPlay": {
+        "description": "Enter each team's conduct score. Use 0 when there are no deductions and negative values for disciplinary deductions. The higher value takes priority when teams are tied. If the tie remains, the FIFA World Ranking published on April 1, 2026 is used.",
+        "group": "Group",
+        "inputLabel": "Fair-play score for {team}",
+        "points": "Fair play",
+        "rank": "Pos.",
+        "team": "Team",
+        "title": "Fair-play scoring"
+      },
       "group": "Group {group}",
       "title": "Group phase"
     },

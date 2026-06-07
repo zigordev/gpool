@@ -8,6 +8,7 @@ import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 function ScoreInput({
   value,
@@ -178,12 +179,181 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
   );
 }
 
+function FairPlayTable({
+  teams,
+  updatingTeamId,
+  onSave,
+}: Readonly<{
+  teams: Team[];
+  updatingTeamId: string | null;
+  onSave: (teamId: string, fairPlay: number) => Promise<void>;
+}>) {
+  const { t } = useI18n();
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
+  const previousRowPositions = useRef(new Map<string, DOMRect>());
+
+  useEffect(() => {
+    setDrafts(Object.fromEntries(teams.map((team) => [team.teamId, String(team.fairPlay ?? 0)])));
+  }, [teams]);
+
+  const orderedTeams = useMemo(() => {
+    const draftScore = (team: Team) => {
+      const draft = drafts[team.teamId];
+      if (draft && /^-?\d+$/.test(draft)) {
+        return Math.min(0, Number.parseInt(draft, 10));
+      }
+      return team.fairPlay ?? 0;
+    };
+
+    return teams
+      .map((team, originalIndex) => ({ team, originalIndex }))
+      .sort((a, b) => (
+        draftScore(b.team) - draftScore(a.team) ||
+        (a.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) - (b.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) ||
+        a.originalIndex - b.originalIndex
+      ))
+      .map(({ team }) => team);
+  }, [drafts, teams]);
+
+  useLayoutEffect(() => {
+    const nextPositions = new Map<string, DOMRect>();
+    orderedTeams.forEach((team) => {
+      const row = rowRefs.current.get(team.teamId);
+      if (!row) return;
+      const nextPosition = row.getBoundingClientRect();
+      nextPositions.set(team.teamId, nextPosition);
+      const previousPosition = previousRowPositions.current.get(team.teamId);
+      const deltaY = previousPosition ? previousPosition.top - nextPosition.top : 0;
+      if (deltaY && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        row.animate(
+          [
+            { transform: `translateY(${deltaY}px)` },
+            { transform: 'translateY(0)' },
+          ],
+          { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+        );
+      }
+    });
+    previousRowPositions.current = nextPositions;
+  }, [orderedTeams]);
+
+  const saveDraft = async (team: Team) => {
+    const draft = drafts[team.teamId] ?? String(team.fairPlay ?? 0);
+    if (!/^-?\d+$/.test(draft)) {
+      setDrafts((prev) => ({ ...prev, [team.teamId]: String(team.fairPlay ?? 0) }));
+      return;
+    }
+    const next = Math.min(0, Number.parseInt(draft, 10));
+    setDrafts((prev) => ({ ...prev, [team.teamId]: String(next) }));
+    if (next === (team.fairPlay ?? 0)) return;
+    try {
+      await onSave(team.teamId, next);
+    } catch {
+      setDrafts((prev) => ({ ...prev, [team.teamId]: String(team.fairPlay ?? 0) }));
+    }
+  };
+
+  return (
+    <Section
+      title={t('adminResults.groupPhase.fairPlay.title')}
+      collapsible
+      defaultExpanded
+      density="compact"
+      tone="muted"
+    >
+      <p style={{ margin: '0 0 0.65rem', color: 'rgb(var(--fg-muted))', fontSize: '0.84rem', lineHeight: 1.45 }}>
+        {t('adminResults.groupPhase.fairPlay.description')}
+      </p>
+      <div
+        style={{
+          overflowX: 'auto',
+          background: 'rgb(var(--bg-elevated))',
+          border: '1px solid rgb(var(--border))',
+          borderRadius: 'var(--radius-sm)',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <thead style={{ background: 'rgb(var(--panel-muted-bg-solid))' }}>
+            <tr>
+              <th scope="col" style={{ width: '3.5rem', padding: '0.55rem 0.5rem', textAlign: 'center', fontSize: '0.75rem' }}>
+                {t('adminResults.groupPhase.fairPlay.rank')}
+              </th>
+              <th scope="col" style={{ padding: '0.55rem 0.7rem', textAlign: 'left', fontSize: '0.75rem' }}>
+                {t('adminResults.groupPhase.fairPlay.team')}
+              </th>
+              <th scope="col" style={{ width: '6.5rem', padding: '0.55rem 0.5rem', textAlign: 'right', fontSize: '0.75rem' }}>
+                {t('adminResults.groupPhase.fairPlay.points')}
+              </th>
+            </tr>
+          </thead>
+          <tbody style={{ background: 'rgb(var(--bg-elevated))' }}>
+            {orderedTeams.map((team, index) => (
+              <tr
+                key={team.teamId}
+                ref={(row) => {
+                  if (row) rowRefs.current.set(team.teamId, row);
+                  else rowRefs.current.delete(team.teamId);
+                }}
+                style={{ borderTop: '1px solid rgb(var(--border-subtle))' }}
+              >
+                <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center', color: 'rgb(var(--fg-muted))', fontSize: '0.82rem', fontWeight: 700 }}>
+                  {index + 1}
+                </td>
+                <td style={{ minWidth: 0, padding: '0.45rem 0.5rem' }}>
+                  <span style={{ display: 'flex', minWidth: 0, alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem', fontWeight: 600 }}>
+                    <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '1.5em', height: '1.5em' }} />
+                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</span>
+                  </span>
+                </td>
+                <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
+                    disabled={updatingTeamId === team.teamId}
+                    aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (/^-?\d*$/.test(value)) {
+                        setDrafts((prev) => ({ ...prev, [team.teamId]: value }));
+                      }
+                    }}
+                    onBlur={() => void saveDraft(team)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') event.currentTarget.blur();
+                      if (event.key === '+' || event.key === '.' || event.key === 'e' || event.key === 'E') event.preventDefault();
+                    }}
+                    style={{
+                      width: '4.5rem',
+                      minHeight: '2rem',
+                      padding: '0.3rem 0.45rem',
+                      textAlign: 'right',
+                      color: 'rgb(var(--fg))',
+                      background: 'rgb(var(--input-bg))',
+                      border: '1px solid rgb(var(--border))',
+                      borderRadius: 'var(--radius-sm)',
+                      fontWeight: 700,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+  );
+}
+
 export default function AdminGroupsPage() {
   const { t, locale } = useI18n();
   const {
     systemMode,
     scoringConfig, setScoringConfig,
     groups, matchesByGroup, results, handleResultChange,
+    teams, updatingTeamFairPlay, handleTeamFairPlayChange,
   } = useAdminContext();
 
   return (
@@ -238,6 +408,14 @@ export default function AdminGroupsPage() {
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('adminResults.groupPhase.empty')}
         </p>
+      ) : null}
+
+      {systemMode && teams.length > 0 ? (
+        <FairPlayTable
+          teams={teams}
+          updatingTeamId={updatingTeamFairPlay}
+          onSave={handleTeamFairPlayChange}
+        />
       ) : null}
 
     </div>

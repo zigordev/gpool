@@ -81,6 +81,7 @@
       "saveResults": "No se pudieron guardar los resultados",
       "saveScoring": "No se pudo guardar la configuración de puntuación",
       "selectPoolFirst": "Selecciona primero una porra",
+      "updateFairPlay": "No se pudo actualizar la puntuación de juego limpio",
       "updatePlayerStats": "No se pudieron actualizar las estadisticas del jugador",
       "updateTeam": "No se pudo actualizar el equipo"
     },
@@ -90,6 +91,15 @@
     },
     "groupPhase": {
       "empty": "Aun no hay partidos de fase de grupos disponibles.",
+      "fairPlay": {
+        "description": "Introduce la puntuación de conducta de cada selección. Usa 0 si no hay deducciones y valores negativos para las sanciones disciplinarias. El valor más alto tiene prioridad en caso de empate. Si el empate continúa, se utiliza la Clasificación Mundial FIFA publicada el 1 de abril de 2026.",
+        "group": "Grupo",
+        "inputLabel": "Puntuación de juego limpio de {team}",
+        "points": "Juego limpio",
+        "rank": "Pos.",
+        "team": "Selección",
+        "title": "Puntuación de juego limpio"
+      },
       "group": "Grupo {group}",
       "title": "Fase de grupos"
     },

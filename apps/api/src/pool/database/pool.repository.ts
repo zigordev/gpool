@@ -337,7 +337,9 @@ export class PoolRepository {
           team_id AS "teamId",
           name,
           group_id AS "group",
-          code
+          code,
+          fair_play_points::int AS "fairPlay",
+          fifa_ranking::int AS "fifaRanking"
         FROM teams
         WHERE team_id = $1
       `,
@@ -354,7 +356,9 @@ export class PoolRepository {
           team_id AS "teamId",
           name,
           group_id AS "group",
-          code
+          code,
+          fair_play_points::int AS "fairPlay",
+          fifa_ranking::int AS "fifaRanking"
         FROM teams
         WHERE group_id = $1
         ORDER BY name ASC
@@ -372,13 +376,35 @@ export class PoolRepository {
           team_id AS "teamId",
           name,
           group_id AS "group",
-          code
+          code,
+          fair_play_points::int AS "fairPlay",
+          fifa_ranking::int AS "fifaRanking"
         FROM teams
         ORDER BY group_id ASC, name ASC
       `,
     );
 
     return result.rows;
+  }
+
+  async updateTeamFairPlay(teamId: string, fairPlay: number) {
+    const result = await this.postgres.query(
+      `
+        UPDATE teams
+        SET fair_play_points = $2
+        WHERE team_id = $1
+        RETURNING
+          team_id AS "teamId",
+          name,
+          group_id AS "group",
+          code,
+          fair_play_points::int AS "fairPlay",
+          fifa_ranking::int AS "fifaRanking"
+      `,
+      [teamId, fairPlay],
+    );
+
+    return result.rows[0] || null;
   }
 
   async getTournamentPlayers(position?: string) {

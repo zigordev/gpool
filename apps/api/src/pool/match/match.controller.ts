@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Put,
   Post,
   Param,
   Body,
@@ -44,6 +45,24 @@ export class MatchController {
   @ApiResponse({ status: 200, description: 'List of teams in the group' })
   async getTeamsByGroup(@Param('group') group: string) {
     return this.matchService.getTeamsByGroup(group);
+  }
+
+  @Put('teams/:teamId/fair-play')
+  @ApiOperation({ summary: 'Update team fair-play points (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Team fair-play points updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid fair-play points' })
+  @ApiResponse({ status: 403, description: 'Administrator role required' })
+  @ApiResponse({ status: 404, description: 'Team not found' })
+  async updateTeamFairPlay(
+    @Param('teamId') teamId: string,
+    @Body() body: { fairPlay: number },
+    @Req() req: Request,
+  ) {
+    const user = req.user as any;
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('Only administrators can update team fair-play points');
+    }
+    return this.matchService.updateTeamFairPlay(teamId, body.fairPlay);
   }
 
   @Post(':matchId/predict')
