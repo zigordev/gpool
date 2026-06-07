@@ -26,6 +26,19 @@ export class MatchService {
     return this.poolRepository.getAllTeams();
   }
 
+  async updateTeamFairPlay(teamId: string, fairPlay: number) {
+    if (!Number.isInteger(fairPlay) || fairPlay > 0) {
+      throw new BadRequestException('Fair-play points must be a non-positive integer');
+    }
+
+    const updatedTeam = await this.poolRepository.updateTeamFairPlay(teamId, fairPlay);
+    if (!updatedTeam) {
+      throw new NotFoundException(`Team with ID ${teamId} not found`);
+    }
+
+    return updatedTeam;
+  }
+
   async getMatchesByPool(poolId: string) {
     const allMatches = await this.poolRepository.getMatchesByPool('all-pools');
 

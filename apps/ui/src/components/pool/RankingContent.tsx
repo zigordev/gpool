@@ -334,7 +334,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
   const prizeForRank = (rank: number) => totalPrizePool > 0 ? computePrize(totalPrizePool, prizeDistribution, rank) : 0;
   const formatCurrency = (amount: number) => formatEur(amount, locale);
   const deadlineHint = new Date(poolDeadline).toLocaleString(locale, {
-    second: '2-digit', hour: '2-digit', minute: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
     month: 'long', day: 'numeric', year: 'numeric',
   });
 

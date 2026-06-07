@@ -548,7 +548,13 @@ function teamFromMatchSide(
     name: byId?.name || byName?.name || teamName,
     group: byId?.group || byName?.group || group,
     code: byId?.code || byName?.code,
+    fairPlay: byId?.fairPlay ?? byName?.fairPlay ?? 0,
+    fifaRanking: byId?.fifaRanking ?? byName?.fifaRanking,
   };
+}
+
+function fifaRankingValue(row: StandingRow): number {
+  return Number.isFinite(row.fifaRanking) ? Number(row.fifaRanking) : Number.MAX_SAFE_INTEGER;
 }
 
 function compareRows(a: StandingRow, b: StandingRow): number {
@@ -557,8 +563,7 @@ function compareRows(a: StandingRow, b: StandingRow): number {
     b.goalDifference - a.goalDifference ||
     b.goalsFor - a.goalsFor ||
     b.fairPlay - a.fairPlay ||
-    String(a.group || '').localeCompare(String(b.group || '')) ||
-    a.name.localeCompare(b.name)
+    fifaRankingValue(a) - fifaRankingValue(b)
   );
 }
 
@@ -568,8 +573,7 @@ export function compareThirdPlaceRows(a: StandingRow, b: StandingRow): number {
     b.goalDifference - a.goalDifference ||
     b.goalsFor - a.goalsFor ||
     b.fairPlay - a.fairPlay ||
-    String(a.group || '').localeCompare(String(b.group || '')) ||
-    a.name.localeCompare(b.name)
+    fifaRankingValue(a) - fifaRankingValue(b)
   );
 }
 
@@ -653,7 +657,7 @@ export function computeGroupStandings(
         goalsFor: 0,
         goalsAgainst: 0,
         goalDifference: 0,
-        fairPlay: 0,
+        fairPlay: Number.isFinite(team.fairPlay) ? Number(team.fairPlay) : 0,
       };
       rowsByTeam.set(team.teamId, row);
       return row;

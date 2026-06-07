@@ -339,6 +339,7 @@ interface AdminContextValue {
   playerPositionFilter: string;
   setPlayerPositionFilter: React.Dispatch<React.SetStateAction<string>>;
   updatingPlayerStat: string | null;
+  updatingTeamFairPlay: string | null;
   updatingMatch: string | null;
   submittingBracketResult: string | null;
   bracketResults: Record<string, { homeResult: number | ''; awayResult: number | '' }>;
@@ -354,6 +355,7 @@ interface AdminContextValue {
   handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
   handleReEvaluateBracket: () => Promise<void>;
   handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => Promise<void>;
+  handleTeamFairPlayChange: (teamId: string, fairPlay: number) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextValue | null>(null);
@@ -410,6 +412,7 @@ export function AdminProvider({
   const [playerCountryFilter, setPlayerCountryFilter] = useState('');
   const [playerPositionFilter, setPlayerPositionFilter] = useState('');
   const [updatingPlayerStat, setUpdatingPlayerStat] = useState<string | null>(null);
+  const [updatingTeamFairPlay, setUpdatingTeamFairPlay] = useState<string | null>(null);
   const [updatingMatch, setUpdatingMatch] = useState<string | null>(null);
   const [submittingBracketResult, setSubmittingBracketResult] = useState<string | null>(null);
   const [bracketResults, setBracketResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
@@ -695,6 +698,23 @@ export function AdminProvider({
     }
   };
 
+  const handleTeamFairPlayChange = async (teamId: string, fairPlay: number) => {
+    try {
+      setUpdatingTeamFairPlay(teamId);
+      const updated = await apiClient.put(`/pools/${poolId}/matches/teams/${teamId}/fair-play`, { fairPlay });
+      setTeams((prev) => prev.map((team) => (
+        team.teamId === teamId
+          ? { ...team, fairPlay: updated.data?.fairPlay ?? fairPlay }
+          : team
+      )));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.updateFairPlay'));
+      throw err;
+    } finally {
+      setUpdatingTeamFairPlay((current) => (current === teamId ? null : current));
+    }
+  };
+
   const handleReEvaluateBracket = async () => {
     try {
       await apiClient.post(`/pools/${poolId}/bracket/re-evaluate`);
@@ -717,10 +737,10 @@ export function AdminProvider({
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
-    playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingMatch,
+    playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingTeamFairPlay, updatingMatch,
     submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
     groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount,
-    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange,
+    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange, handleTeamFairPlayChange,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

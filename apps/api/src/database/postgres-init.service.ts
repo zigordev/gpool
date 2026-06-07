@@ -77,8 +77,35 @@ export class PostgresInitService implements OnModuleInit {
         team_id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         group_id TEXT NOT NULL,
-        code TEXT
+        code TEXT,
+        fair_play_points INTEGER NOT NULL DEFAULT 0,
+        fifa_ranking INTEGER NOT NULL DEFAULT 999
       );
+      ALTER TABLE teams ADD COLUMN IF NOT EXISTS fair_play_points INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_ranking INTEGER NOT NULL DEFAULT 999;
+      ALTER TABLE teams DROP COLUMN IF EXISTS fifa_ranking_points;
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'teams_fair_play_points_non_positive'
+            AND conrelid = 'teams'::regclass
+        ) THEN
+          ALTER TABLE teams
+          ADD CONSTRAINT teams_fair_play_points_non_positive CHECK (fair_play_points <= 0);
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'teams_fifa_ranking_positive'
+            AND conrelid = 'teams'::regclass
+        ) THEN
+          ALTER TABLE teams
+          ADD CONSTRAINT teams_fifa_ranking_positive CHECK (fifa_ranking > 0);
+        END IF;
+      END
+      $$;
       CREATE INDEX IF NOT EXISTS idx_teams_group_id ON teams(group_id);
 
       CREATE TABLE IF NOT EXISTS tournament_players (
@@ -262,7 +289,13 @@ export class PostgresInitService implements OnModuleInit {
       return new Date(Date.UTC(year, month - 1, day, hour + 4, minute)).toISOString();
     };
 
-    type TeamSeed = { teamId: string; name: string; group: string; code: string };
+    type TeamSeed = {
+      teamId: string;
+      name: string;
+      group: string;
+      code: string;
+      fifaRanking: number;
+    };
     type MatchSeed = {
       matchId: string;
       matchNumber?: number;
@@ -336,6 +369,58 @@ export class PostgresInitService implements OnModuleInit {
       J: ['Argentina', 'Argelia', 'Austria', 'Jordania'],
       K: ['Portugal', 'RD de Congo', 'Uzbekistán', 'Colombia'],
       L: ['Inglaterra', 'Croacia', 'Ghana', 'Panamá'],
+    };
+
+    // Official FIFA/Coca-Cola Men's World Ranking published on 1 April 2026.
+    const fifaRanking: Record<string, number> = {
+      'Argentina': 1,
+      'España': 2,
+      'Francia': 3,
+      'Inglaterra': 4,
+      'Portugal': 5,
+      'Brasil': 6,
+      'Marruecos': 7,
+      'Países Bajos': 8,
+      'Bélgica': 9,
+      'Alemania': 10,
+      'Croacia': 11,
+      'Colombia': 13,
+      'México': 14,
+      'Senegal': 15,
+      'Uruguay': 16,
+      'Estados Unidos': 17,
+      'Japón': 18,
+      'Suiza': 19,
+      'RI de Irán': 20,
+      'Turquía': 22,
+      'Austria': 23,
+      'Ecuador': 24,
+      'República de Corea': 25,
+      'Australia': 27,
+      'Argelia': 28,
+      'Egipto': 29,
+      'Canadá': 30,
+      'Noruega': 31,
+      'Costa de Marfil': 33,
+      'Panamá': 34,
+      'Suecia': 38,
+      'República Checa': 39,
+      'Paraguay': 40,
+      'Escocia': 42,
+      'RD de Congo': 45,
+      'Túnez': 46,
+      'Uzbekistán': 50,
+      'Irak': 56,
+      'Catar': 57,
+      'Sudáfrica': 60,
+      'Arabia Saudí': 61,
+      'Jordania': 63,
+      'Bosnia y Herzegovina': 64,
+      'Cabo Verde': 67,
+      'Ghana': 73,
+      'Curazao': 82,
+      'Haití': 83,
+      'Nueva Zelanda': 85,
     };
 
     const matches: MatchSeed[] = [
@@ -414,13 +499,23 @@ export class PostgresInitService implements OnModuleInit {
     ];
 
     const teams: TeamSeed[] = Object.entries(groups).flatMap(([group, names]) =>
-      names.map((name, index) => ({
-        teamId: `${group}${index + 1}`,
-        name,
-        group,
-        code: name.substring(0, 3).toUpperCase(),
-      })),
+      names.map((name, index) => {
+        const ranking = fifaRanking[name];
+        if (!ranking) {
+          throw new Error(`Missing FIFA ranking seed for ${name}`);
+        }
+        return {
+          teamId: `${group}${index + 1}`,
+          name,
+          group,
+          code: name.substring(0, 3).toUpperCase(),
+          fifaRanking: ranking,
+        };
+      }),
     );
+    if (Object.keys(fifaRanking).length !== teams.length) {
+      throw new Error('FIFA ranking seed must contain exactly one entry for every tournament team');
+    }
     const teamsByName = new Map(teams.map((team) => [team.name, team]));
     const rostersByTeamName = new Map(WORLD_CUP_2026_ROSTERS.map((roster) => [roster.teamName, roster]));
     if (rostersByTeamName.size !== WORLD_CUP_2026_ROSTERS.length) {
@@ -488,15 +583,28 @@ export class PostgresInitService implements OnModuleInit {
       for (const team of teams) {
         await client.query(
           `
-            INSERT INTO teams (team_id, name, group_id, code)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO teams (
+              team_id,
+              name,
+              group_id,
+              code,
+              fifa_ranking
+            )
+            VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (team_id)
             DO UPDATE SET
               name = EXCLUDED.name,
               group_id = EXCLUDED.group_id,
-              code = EXCLUDED.code
+              code = EXCLUDED.code,
+              fifa_ranking = EXCLUDED.fifa_ranking
           `,
-          [team.teamId, team.name, team.group, team.code],
+          [
+            team.teamId,
+            team.name,
+            team.group,
+            team.code,
+            team.fifaRanking,
+          ],
         );
       }
 

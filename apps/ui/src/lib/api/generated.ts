@@ -188,6 +188,11 @@ export type ApiOperation = {
   responseCodes: ['200', '403', '404'];
 } | {
   method: 'PUT';
+  path: '/api/pools/{poolId}/matches/teams/{teamId}/fair-play';
+  operationId: 'MatchController_updateTeamFairPlay';
+  responseCodes: ['200', '400', '403', '404'];
+} | {
+  method: 'PUT';
   path: '/api/pools/{poolId}/membership/config';
   operationId: 'PoolController_updateMembershipConfig';
   responseCodes: ['200', '403', '404'];
@@ -208,7 +213,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 41 as const;
+export const API_OPERATION_COUNT = 42 as const;
 
 export const API_OPERATIONS = [
   {
@@ -534,6 +539,17 @@ export const API_OPERATIONS = [
     "operationId": "PoolController_updatePoolConfiguration",
     "responseCodes": [
       "200",
+      "403",
+      "404"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/matches/teams/{teamId}/fair-play",
+    "operationId": "MatchController_updateTeamFairPlay",
+    "responseCodes": [
+      "200",
+      "400",
       "403",
       "404"
     ]
