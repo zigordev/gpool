@@ -15,8 +15,7 @@ import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
-import { PiBoxingGlove } from 'react-icons/pi';
-import { GiLeatherBoot } from 'react-icons/gi';
+import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
 import { MAX_PLAYER_SELECTION_LIMIT } from '@/lib/player-selection-limits';
 import { PlayerPosition } from '@/types/playerPosition.type';
 
@@ -37,7 +36,9 @@ export default function AdminPlayersPage() {
     setPlayerSelectionLimits,
     playerAwardWinnersConfig,
     updatingPlayerStat,
+    updatingPlayerAward,
     handlePlayerStatChange,
+    handlePlayerAwardToggle,
   } = useAdminContext();
 
   const countries = Array.from(
@@ -102,7 +103,7 @@ export default function AdminPlayersPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+        <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
           {([
             ['goalkeeper', 'adminResults.players.positions.goalkeeper'],
             ['defender', 'adminResults.players.positions.defender'],
@@ -126,6 +127,7 @@ export default function AdminPlayersPage() {
       {/* Player scoring configuration */}
       {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[
             { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />, fields: [
               { label: t('adminResults.players.scoring.goalGoalkeeper'), value: playerScoringConfig.goal.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, goalkeeper: v } })) },
@@ -157,23 +159,29 @@ export default function AdminPlayersPage() {
               </div>
             </div>
           ))}
-          <div>
-            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.individualActions')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.mvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.mvp} attention={playerScoringConfig.mvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, mvp: parsePositive(e.target.value) }))} /></FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />{t('adminResults.players.scoring.yellowCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.yellowCard} attention={playerScoringConfig.yellowCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, yellowCard: parseNonPositive(e.target.value) }))} /></FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'red', fill: 'red' }} />{t('adminResults.players.scoring.redCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.redCard} attention={playerScoringConfig.redCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, redCard: parseNonPositive(e.target.value) }))} /></FormField>
+          </div>
+          <div style={actionGroupStyle}>
+            <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.penalty')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaFutbol style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltyGoal')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltyGoal} attention={playerScoringConfig.penaltyGoal === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltyGoal: parsePositive(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltySaved} attention={playerScoringConfig.penaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltySaved: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} attention={playerScoringConfig.missedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, missedPenalty: parseSigned(e.target.value) }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.mvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.mvp} attention={playerScoringConfig.mvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, mvp: parsePositive(e.target.value) }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltySaved} attention={playerScoringConfig.penaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltySaved: parsePositive(e.target.value) }))} /></FormField>
             </div>
           </div>
-          <div>
-            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.discipline')}</p>
+          <div style={actionGroupStyle}>
+            <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.shootout')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />{t('adminResults.players.scoring.yellowCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.yellowCard} attention={playerScoringConfig.yellowCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, yellowCard: parseNonPositive(e.target.value) }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'red', fill: 'red' }} />{t('adminResults.players.scoring.redCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.redCard} attention={playerScoringConfig.redCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, redCard: parseNonPositive(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaFutbol style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutGoal')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutGoal} attention={playerScoringConfig.shootoutGoal === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutGoal: parsePositive(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutPenaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutPenaltySaved} attention={playerScoringConfig.shootoutPenaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutPenaltySaved: parsePositive(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.shootoutMissedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.shootoutMissedPenalty} attention={playerScoringConfig.shootoutMissedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutMissedPenalty: parseSigned(e.target.value) }))} /></FormField>
             </div>
           </div>
-          <div>
-            <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>{t('adminResults.config.players.subgroups.awards')}</p>
+          <div style={actionGroupStyle}>
+            <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.tournament')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiLeatherBoot style={{ color: 'gold' }} />{t('adminResults.players.scoring.goldenBoot')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} attention={playerScoringConfig.award.goldenBoot === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: parsePositive(e.target.value) } }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'gold' }} />{t('adminResults.players.scoring.tournamentMvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} attention={playerScoringConfig.award.tournamentMvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: parsePositive(e.target.value) } }))} /></FormField>
@@ -192,7 +200,9 @@ export default function AdminPlayersPage() {
           t={t}
           editable
           updatingPlayerStat={updatingPlayerStat}
+          updatingPlayerAward={updatingPlayerAward}
           onStatChange={handlePlayerStatChange}
+          onAwardToggle={handlePlayerAwardToggle}
           isStatVisible={(player, stat) => isPlayerStatEnabled(playerScoringConfig, player.position, stat)}
           toolbar={
             <div
@@ -241,3 +251,18 @@ export default function AdminPlayersPage() {
     </div>
   );
 }
+
+const actionGroupStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '0.45rem',
+  paddingTop: '0.75rem',
+  borderTop: '1px solid rgb(var(--border-subtle))',
+};
+
+const actionGroupTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: '0.68rem',
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  color: 'rgb(var(--fg-subtle))',
+};

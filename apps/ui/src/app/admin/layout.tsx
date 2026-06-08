@@ -8,7 +8,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLayoutEffect } from 'react';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
-import { FaFutbol, FaLayerGroup, FaPerson } from 'react-icons/fa6';
+import { FaLayerGroup } from 'react-icons/fa6';
+import { GiSoccerKick } from 'react-icons/gi';
 
 function SystemAdminNav() {
   const { t } = useI18n();
@@ -17,7 +18,7 @@ function SystemAdminNav() {
   const routes = [
     { href: '/admin/groups', label: t('poolDetail.tabs.groupPhase'), icon: FaLayerGroup },
     { href: '/admin/final', label: t('poolDetail.tabs.finalPhase'), icon: BsFillDiagram3Fill },
-    { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: FaPerson },
+    { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: GiSoccerKick },
   ];
 
   useLayoutEffect(() => {

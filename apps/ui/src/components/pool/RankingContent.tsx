@@ -14,6 +14,9 @@ import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
 import { GeneralPoolInfoSection } from '@/components/pool/PoolInfoSections';
+import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
+import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
+import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
@@ -28,6 +31,7 @@ function SpyPicksModal({
   poolId,
   tournamentPlayers,
   playerSelectionLimits,
+  playerScoring,
   locale,
 }: Readonly<{
   spy: { target: { userId: string; userName: string }; loading: boolean; error: string | null; data: SpyPicksData | null } | null;
@@ -39,6 +43,7 @@ function SpyPicksModal({
   poolId: string;
   tournamentPlayers: any[];
   playerSelectionLimits: PlayerSelectionLimits;
+  playerScoring: ReturnType<typeof resolvePlayerInfoScoring>;
   locale: string;
 }>) {
   const { t } = useI18n();
@@ -133,6 +138,7 @@ function SpyPicksModal({
             playerByPositionSlot={playerByPositionSlot}
             playerByAward={playerByAward}
             playerSelectionLimits={playerSelectionLimits}
+            playerScoring={playerScoring}
             hasPredictions={data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0}
           />
         )}
@@ -155,7 +161,15 @@ function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, locale
     return <SpyEmpty text={t('poolDetail.spy.empty.predictions')} />;
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        padding: '0.6rem 0.9rem 0.25rem 0.1rem',
+        boxSizing: 'border-box',
+      }}
+    >
       {groups.map((group) => {
         const matches = matchesByGroup[group] || [];
         return (
@@ -169,15 +183,21 @@ function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, locale
                 const hasPick = pick && typeof pick.homeScore === 'number' && typeof pick.awayScore === 'number';
                 const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
                 const tone = pick?.isExactMatch === true
-                  ? 'rgb(var(--info))'
-                  : pick?.isCorrect === true
                   ? 'rgb(var(--pitch))'
+                  : pick?.isCorrect === true
+                  ? 'rgb(var(--info))'
                   : hasResult && hasPick
                   ? 'rgb(var(--live))'
                   : 'rgb(var(--fg-subtle))';
                 const matchDate = new Date(match.scheduledAt).toLocaleString(locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                 return (
-                  <li key={match.matchId} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
+                  <li key={match.matchId} style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
+                    {hasPick && hasResult && (pick.points ?? 0) > 0 ? (
+                      <PointsBadge
+                        points={pick.points ?? 0}
+                        label={t('poolDetail.match.points', { points: pick.points ?? 0 })}
+                      />
+                    ) : null}
                     <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: 'rgb(var(--fg-subtle))', fontWeight: 600 }}>
                       <span>{matchDate}</span>
                       {hasResult ? <span style={{ color: 'rgb(var(--fg-muted))' }}>FT {match.homeResult}–{match.awayResult}</span> : null}
@@ -187,11 +207,6 @@ function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, locale
                       {hasPick ? `${pick.homeScore}–${pick.awayScore}` : '—'}
                     </span>
                     <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
-                    {hasPick && hasResult ? (
-                      <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '0.68rem', fontWeight: 700, color: tone }}>
-                        {(pick.points ?? 0) > 0 ? `+${pick.points} pts` : '0 pts'}
-                      </div>
-                    ) : null}
                   </li>
                 );
               })}
@@ -239,18 +254,41 @@ function SpyFinalView({ bracket, teams, poolId, bracketPredictions, hasPredictio
 
 // ─── Players tab ──────────────────────────────────────────────────────────────
 
-function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLimits, hasPredictions }: Readonly<{
+function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLimits, playerScoring, hasPredictions }: Readonly<{
   playerByPositionSlot: Map<string, PlayerSelection>;
   playerByAward: Map<PlayerAward, PlayerAwardSelection>;
   playerSelectionLimits: PlayerSelectionLimits;
+  playerScoring: ReturnType<typeof resolvePlayerInfoScoring>;
   hasPredictions: boolean;
 }>) {
   const { t } = useI18n();
+  const actionLabels = {
+    goals: t('poolDetail.players.actions.goals'),
+    penaltyGoals: t('poolDetail.players.actions.penaltyGoals'),
+    missedPenalties: t('poolDetail.players.actions.missedPenalties'),
+    mvps: t('poolDetail.players.actions.mvps'),
+    penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+    shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'),
+    shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
+    shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'),
+    cleanSheets: t('poolDetail.players.actions.cleanSheets'),
+    assists: t('poolDetail.players.actions.assists'),
+    yellowCards: t('poolDetail.players.actions.yellowCards'),
+    redCards: t('poolDetail.players.actions.redCards'),
+  };
 
   if (!hasPredictions) return <SpyEmpty text={t('poolDetail.spy.empty.players')} />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.85rem',
+        padding: '0.6rem 0.9rem 0.25rem 0.1rem',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Awards */}
       <div>
         <p style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>
@@ -260,7 +298,10 @@ function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLi
           {PLAYER_AWARDS.map((award) => {
             const sel = playerByAward.get(award.key as PlayerAward);
             return (
-              <div key={award.key} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.35rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'rgb(var(--bg-subtle))', border: '1px solid rgb(var(--border))' }}>
+              <div key={award.key} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.35rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'rgb(var(--bg-subtle))', border: '1px solid rgb(var(--border))' }}>
+                {sel && (sel.awardPoints ?? 0) > 0 ? (
+                  <PointsBadge points={sel.awardPoints ?? 0} label={t('poolDetail.players.points', { points: sel.awardPoints ?? 0 })} />
+                ) : null}
                 <span aria-hidden style={{ fontSize: '0.9rem', flexShrink: 0 }}>{award.icon}</span>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'rgb(var(--fg-muted))', flexShrink: 0, minWidth: '6rem' }}>
                   {t(award.key === 'golden_boot' ? 'poolDetail.players.awards.goldenBoot' : 'poolDetail.players.awards.tournamentMvp')}
@@ -291,13 +332,26 @@ function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLi
               const slot = idx + 1;
               const sel = playerByPositionSlot.get(`${position}:${slot}`);
               return (
-                <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', padding: '0.3rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'transparent', border: sel ? '1px solid rgb(var(--border))' : '1px solid rgb(var(--border) / 0.4)' }}>
+                <div key={slot} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: '0.55rem', padding: '0.45rem 0.5rem', borderRadius: 'var(--radius-sm)', background: sel ? 'rgb(var(--bg-elevated))' : 'transparent', border: sel ? '1px solid rgb(var(--border))' : '1px solid rgb(var(--border) / 0.4)' }}>
+                  {sel && (sel.totalPoints ?? 0) > 0 ? (
+                    <PointsBadge points={sel.totalPoints ?? 0} label={t('poolDetail.players.points', { points: sel.totalPoints ?? 0 })} />
+                  ) : null}
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgb(var(--fg-subtle))', width: '0.9rem', textAlign: 'right', flexShrink: 0 }}>{slot}</span>
                   {sel ? (
                     <>
                       <ReactCountryFlag countryCode={countryIsoCode(sel.teamName)} svg style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel.name}</span>
-                      <span style={{ fontSize: '0.72rem', color: 'rgb(var(--fg-muted))', flexShrink: 0 }}>{sel.teamName}</span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel.name}</span>
+                          <span style={{ fontSize: '0.72rem', color: 'rgb(var(--fg-muted))', flexShrink: 0 }}>{sel.teamName}</span>
+                        </div>
+                        <PlayerActionSummary
+                          player={sel}
+                          labels={actionLabels}
+                          position={sel.position}
+                          scoring={playerScoring}
+                        />
+                      </div>
                     </>
                   ) : (
                     <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle) / 0.6)' }}>—</span>
@@ -356,6 +410,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
           currentUserEmail={user?.email}
           prizeForRank={prizeForRank}
           formatCurrency={formatCurrency}
+          showPrizeColumn={entryFee !== null && entryFee > 0}
           onSpy={handleStartSpy}
           spyEnabled={isPastPoolDeadline}
         />
@@ -375,6 +430,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
         poolId={poolId}
         tournamentPlayers={players}
         playerSelectionLimits={playerSelectionLimits}
+        playerScoring={resolvePlayerInfoScoring(pool?.config?.playerScoring)}
         locale={locale}
       />
     </div>

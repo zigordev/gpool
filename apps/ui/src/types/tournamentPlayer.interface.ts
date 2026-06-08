@@ -10,9 +10,13 @@ export interface TournamentPlayer {
   countryCode?: string;
   flagEmoji?: string;
   goals?: number;
+  penaltyGoals?: number;
   missedPenalties?: number;
   mvps?: number;
   penaltiesSaved?: number;
+  shootoutPenaltiesSaved?: number;
+  shootoutGoals?: number;
+  shootoutMissedPenalties?: number;
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;

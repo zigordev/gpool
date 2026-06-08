@@ -5,9 +5,13 @@ type ConfigNumberLike = number | string | null | undefined;
 
 type PlayerScoringLike = {
   goal?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
+  penaltyGoal?: ConfigNumberLike;
   missedPenalty?: ConfigNumberLike;
   mvp?: ConfigNumberLike;
   penaltySaved?: ConfigNumberLike;
+  shootoutPenaltySaved?: ConfigNumberLike;
+  shootoutGoal?: ConfigNumberLike;
+  shootoutMissedPenalty?: ConfigNumberLike;
   cleanSheet?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   assist?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   yellowCard?: ConfigNumberLike;
@@ -28,6 +32,8 @@ export function playerStatScoringValue(
   switch (stat) {
     case 'goals':
       return configuredNumber(scoring.goal?.[position]);
+    case 'penaltyGoals':
+      return configuredNumber(scoring.penaltyGoal);
     case 'assists':
       return configuredNumber(scoring.assist?.[position]);
     case 'cleanSheets':
@@ -38,6 +44,12 @@ export function playerStatScoringValue(
       return configuredNumber(scoring.mvp);
     case 'penaltiesSaved':
       return configuredNumber(scoring.penaltySaved);
+    case 'shootoutPenaltiesSaved':
+      return configuredNumber(scoring.shootoutPenaltySaved);
+    case 'shootoutGoals':
+      return configuredNumber(scoring.shootoutGoal);
+    case 'shootoutMissedPenalties':
+      return configuredNumber(scoring.shootoutMissedPenalty);
     case 'yellowCards':
       return configuredNumber(scoring.yellowCard);
     case 'redCards':
@@ -53,4 +65,3 @@ export function isPlayerStatEnabled(
   const value = playerStatScoringValue(scoring, position, stat);
   return value === null || value !== 0;
 }
-

@@ -123,29 +123,7 @@ export class PoolRepository {
     return { success: true };
   }
 
-  async listPools(filters?: { adminUserId?: string }) {
-    if (filters?.adminUserId) {
-      const result = await this.postgres.query(
-        `
-          SELECT
-            pool_id AS "poolId",
-            admin_user_id AS "adminUserId",
-            admin_name AS "adminName",
-            admin_email AS "adminEmail",
-            name,
-            description,
-            config,
-            created_at::int AS "createdAt",
-            updated_at::text AS "updatedAt"
-          FROM pools
-          WHERE admin_user_id = $1
-          ORDER BY created_at DESC
-        `,
-        [filters.adminUserId],
-      );
-      return result.rows;
-    }
-
+  async listPools() {
     const result = await this.postgres.query(
       `
         SELECT
@@ -424,9 +402,13 @@ export class PoolRepository {
           tournament_players.country_code AS "countryCode",
           tournament_players.flag_emoji AS "flagEmoji",
           COALESCE(s.goals, 0)::int AS goals,
+          COALESCE(s.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(s.mvps, 0)::int AS mvps,
           COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(s.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(s.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(s.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
@@ -455,9 +437,13 @@ export class PoolRepository {
           tournament_players.country_code AS "countryCode",
           tournament_players.flag_emoji AS "flagEmoji",
           COALESCE(s.goals, 0)::int AS goals,
+          COALESCE(s.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(s.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(s.mvps, 0)::int AS mvps,
           COALESCE(s.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(s.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(s.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(s.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
@@ -470,6 +456,63 @@ export class PoolRepository {
     );
 
     return result.rows[0] || null;
+  }
+
+  async getTournamentPlayerAwards() {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          award,
+          player_id AS "playerId",
+          updated_at::int AS "updatedAt"
+        FROM tournament_player_awards
+        ORDER BY award ASC, player_id ASC
+      `,
+    );
+
+    return result.rows;
+  }
+
+  async updateTournamentPlayerAward(playerId: string, award: string, selected: boolean) {
+    const client = await this.postgres.getClient();
+    try {
+      await client.query('BEGIN');
+      if (!selected) {
+        await client.query(
+          `
+            DELETE FROM tournament_player_awards
+            WHERE award = $1 AND player_id = $2
+          `,
+          [award, playerId],
+        );
+      } else {
+        if (award === 'tournament_mvp') {
+          await client.query(
+            `
+              DELETE FROM tournament_player_awards
+              WHERE award = 'tournament_mvp'
+            `,
+          );
+        }
+        await client.query(
+          `
+            INSERT INTO tournament_player_awards (award, player_id, updated_at)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (award, player_id)
+            DO UPDATE SET updated_at = EXCLUDED.updated_at
+          `,
+          [award, playerId, Math.floor(Date.now() / 1000)],
+        );
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    return this.getTournamentPlayerAwards();
   }
 
   async getPlayerSelections(poolId: string, userId: string) {
@@ -488,9 +531,13 @@ export class PoolRepository {
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
           COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -524,9 +571,13 @@ export class PoolRepository {
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
           COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -560,9 +611,13 @@ export class PoolRepository {
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
           COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -596,9 +651,13 @@ export class PoolRepository {
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
           COALESCE(ps.goals, 0)::int AS goals,
+          COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
           COALESCE(ps.missed_penalties, 0)::int AS "missedPenalties",
           COALESCE(ps.mvps, 0)::int AS mvps,
           COALESCE(ps.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -620,9 +679,13 @@ export class PoolRepository {
     playerId: string,
     stats: {
       goals?: number;
+      penaltyGoals?: number;
       missedPenalties?: number;
       mvps?: number;
       penaltiesSaved?: number;
+      shootoutPenaltiesSaved?: number;
+      shootoutGoals?: number;
+      shootoutMissedPenalties?: number;
       cleanSheets?: number;
       assists?: number;
       yellowCards?: number;
@@ -635,9 +698,13 @@ export class PoolRepository {
         INSERT INTO tournament_player_stats (
           player_id,
           goals,
+          penalty_goals,
           missed_penalties,
           mvps,
           penalties_saved,
+          shootout_penalties_saved,
+          shootout_goals,
+          shootout_missed_penalties,
           clean_sheets,
           assists,
           yellow_cards,
@@ -645,13 +712,17 @@ export class PoolRepository {
           created_at,
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $14)
         ON CONFLICT (player_id)
         DO UPDATE SET
           goals = EXCLUDED.goals,
+          penalty_goals = EXCLUDED.penalty_goals,
           missed_penalties = EXCLUDED.missed_penalties,
           mvps = EXCLUDED.mvps,
           penalties_saved = EXCLUDED.penalties_saved,
+          shootout_penalties_saved = EXCLUDED.shootout_penalties_saved,
+          shootout_goals = EXCLUDED.shootout_goals,
+          shootout_missed_penalties = EXCLUDED.shootout_missed_penalties,
           clean_sheets = EXCLUDED.clean_sheets,
           assists = EXCLUDED.assists,
           yellow_cards = EXCLUDED.yellow_cards,
@@ -660,9 +731,13 @@ export class PoolRepository {
         RETURNING
           player_id AS "playerId",
           goals::int AS goals,
+          penalty_goals::int AS "penaltyGoals",
           missed_penalties::int AS "missedPenalties",
           mvps::int AS mvps,
           penalties_saved::int AS "penaltiesSaved",
+          shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
+          shootout_goals::int AS "shootoutGoals",
+          shootout_missed_penalties::int AS "shootoutMissedPenalties",
           clean_sheets::int AS "cleanSheets",
           assists::int AS assists,
           yellow_cards::int AS "yellowCards",
@@ -672,9 +747,13 @@ export class PoolRepository {
       [
         playerId,
         Math.max(0, stats.goals ?? 0),
+        Math.max(0, stats.penaltyGoals ?? 0),
         Math.max(0, stats.missedPenalties ?? 0),
         Math.max(0, stats.mvps ?? 0),
         Math.max(0, stats.penaltiesSaved ?? 0),
+        Math.max(0, stats.shootoutPenaltiesSaved ?? 0),
+        Math.max(0, stats.shootoutGoals ?? 0),
+        Math.max(0, stats.shootoutMissedPenalties ?? 0),
         Math.max(0, stats.cleanSheets ?? 0),
         Math.max(0, stats.assists ?? 0),
         Math.max(0, stats.yellowCards ?? 0),

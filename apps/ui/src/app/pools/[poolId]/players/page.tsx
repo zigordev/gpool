@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import Select from 'react-select';
 import ReactCountryFlag from 'react-country-flag';
@@ -8,56 +8,15 @@ import { usePoolContext, PLAYER_POSITIONS, PLAYER_AWARDS } from '@/contexts/Pool
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
+import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import { selectStyles } from '@/lib/select-styles';
-import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
-import { IoMdCloseCircle } from 'react-icons/io';
-import { LuRectangleVertical } from 'react-icons/lu';
-import { PiBoxingGlove } from 'react-icons/pi';
 import { PlayerPosition } from '@/types/playerPosition.type';
-import { PlayerStatKey } from '@/types/playerStatKey.type';
-import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import { PlayerScoringInfoSection, resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 
 type PlayerOption = { value: string; label: string; teamName: string; teamId: string; isDisabled: boolean };
-
-function PlayerActionSummary({ player, labels, position, scoring }: Readonly<{
-  player: Pick<TournamentPlayer, 'goals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
-  labels: { goals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
-  position: PlayerPosition;
-  scoring: ReturnType<typeof resolvePlayerInfoScoring>;
-}>) {
-  const actions: Array<{ key: PlayerStatKey; value: number; label: string; icon: ReactNode }> = [
-    { key: 'goals', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'assists', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'mvps', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'penaltiesSaved', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'cleanSheets', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'yellowCards', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size="17" /> },
-    { key: 'redCards', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size="17" /> },
-    { key: 'missedPenalties', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'red' }} size="17" /> },
-  ];
-  const visibleActions = actions.filter((item) => isPlayerStatEnabled(scoring, position, item.key));
-  if (visibleActions.length === 0) return null;
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.22rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
-      {visibleActions.map((item) => {
-        const isZero = item.value === 0;
-        return (
-          <span key={item.key} title={`${item.label}: ${item.value}`} aria-label={`${item.label}: ${item.value}`}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border-subtle))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', opacity: isZero ? 0.5 : 1, fontSize: '0.6rem', fontWeight: 800, lineHeight: 1 }}
-          >
-            {item.icon}
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function PlayersPage() {
   const { t, locale } = useI18n();
@@ -125,27 +84,31 @@ export default function PlayersPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
 
-      <div className="players-tab-bar" role="tablist">
-        <button
-          role="tab"
-          aria-selected={activeTab === 'selection'}
-          className={`players-tab-btn${activeTab === 'selection' ? ' players-tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('selection')}
-        >
-          {t('poolDetail.players.tabSelection')}
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTab === 'all'}
-          className={`players-tab-btn${activeTab === 'all' ? ' players-tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          {t('poolDetail.players.tabAll')}
-        </button>
-      </div>
+      <section
+        className="surface players-view-surface"
+        style={{ padding: '1rem', overflow: 'visible' }}
+      >
+        <div className="players-tab-bar" role="tablist">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'selection'}
+            className={`players-tab-btn${activeTab === 'selection' ? ' players-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('selection')}
+          >
+            {t('poolDetail.players.tabSelection')}
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'all'}
+            className={`players-tab-btn${activeTab === 'all' ? ' players-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            {t('poolDetail.players.tabAll')}
+          </button>
+        </div>
 
-      {activeTab === 'selection' && (
-      <section className="surface players-selection-surface" style={{ padding: '1rem' }}>
+        {activeTab === 'selection' && (
+      <div className="players-selection-content">
         <div className="players-pitch-selection" style={{ overflowX: 'auto', overflowY: 'visible' }}>
         <div style={{ position: 'relative', minWidth: 720, margin: '0.25rem 1.75rem', padding: '1rem 0.85rem', borderRadius: 'var(--radius-lg)', border: '2px solid rgb(255 255 255 / 0.85)', background: 'repeating-linear-gradient(90deg, rgb(var(--pitch) / 0.16) 0 60px, rgb(var(--pitch) / 0.10) 60px 120px), linear-gradient(180deg, rgb(var(--pitch) / 0.18), rgb(var(--pitch) / 0.10))', boxShadow: '0 12px 36px rgb(15 23 42 / 0.10)' }}>
           <svg aria-hidden viewBox="0 0 1000 500" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
@@ -250,8 +213,8 @@ export default function PlayersPage() {
                             styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.74rem', minHeight: '1.8rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
                           />
                           <PlayerActionSummary
-                            player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
-                            labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                            player={selected ?? { goals: 0, penaltyGoals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, shootoutPenaltiesSaved: 0, shootoutGoals: 0, shootoutMissedPenalties: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
+                            labels={{ goals: t('poolDetail.players.actions.goals'), penaltyGoals: t('poolDetail.players.actions.penaltyGoals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'), shootoutGoals: t('poolDetail.players.actions.shootoutGoals'), shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
                             position={position}
                             scoring={playerInfoScoring}
                           />
@@ -358,8 +321,8 @@ export default function PlayersPage() {
                           styles={selectStyles({ control: (base) => ({ ...base, fontSize: '0.78rem', minHeight: '1.9rem', backgroundColor: 'rgb(var(--input-bg))', border: '1px solid rgb(var(--border))', cursor: savingPlayerSlot !== null || isPastPoolDeadline ? 'not-allowed' : 'pointer', opacity: savingPlayerSlot !== null || isPastPoolDeadline ? 0.7 : 1 }) })}
                         />
                         <PlayerActionSummary
-                          player={selected ?? { goals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
-                          labels={{ goals: t('poolDetail.players.actions.goals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
+                          player={selected ?? { goals: 0, penaltyGoals: 0, missedPenalties: 0, mvps: 0, penaltiesSaved: 0, shootoutPenaltiesSaved: 0, shootoutGoals: 0, shootoutMissedPenalties: 0, cleanSheets: 0, assists: 0, yellowCards: 0, redCards: 0 }}
+                          labels={{ goals: t('poolDetail.players.actions.goals'), penaltyGoals: t('poolDetail.players.actions.penaltyGoals'), missedPenalties: t('poolDetail.players.actions.missedPenalties'), mvps: t('poolDetail.players.actions.mvps'), penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'), shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'), shootoutGoals: t('poolDetail.players.actions.shootoutGoals'), shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'), cleanSheets: t('poolDetail.players.actions.cleanSheets'), assists: t('poolDetail.players.actions.assists'), yellowCards: t('poolDetail.players.actions.yellowCards'), redCards: t('poolDetail.players.actions.redCards') }}
                           position={position}
                           scoring={playerInfoScoring}
                         />
@@ -371,11 +334,11 @@ export default function PlayersPage() {
             </Section>
           ))}
         </div>
-      </section>
-      )}
+      </div>
+        )}
 
-      {activeTab === 'all' && (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {activeTab === 'all' && (
+      <div className="players-all-content" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <PlayerStatsTable
           players={filteredPlayers}
           goldenBootPlayerIds={playerAwardSelections.golden_boot ? [(playerAwardSelections.golden_boot as any).playerId] : []}
@@ -427,7 +390,8 @@ export default function PlayersPage() {
           }
         />
       </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }
