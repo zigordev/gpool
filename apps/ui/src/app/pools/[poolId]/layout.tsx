@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
-import { FaLayerGroup, FaPerson, FaRankingStar } from 'react-icons/fa6';
+import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
+import { GiSoccerKick } from 'react-icons/gi';
 import { IoSettings } from 'react-icons/io5';
 import {
   PoolProvider,
@@ -30,7 +31,7 @@ function PoolNav() {
     { segment: 'ranking', label: t('poolDetail.tabs.ranking'), shortLabel: t('poolDetail.tabs.short.ranking'), icon: FaRankingStar },
     { segment: 'groups', label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
     { segment: 'final', label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
-    { segment: 'players', label: t('poolDetail.tabs.players'), shortLabel: t('poolDetail.tabs.short.players'), icon: FaPerson, missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
+    { segment: 'players', label: t('poolDetail.tabs.players'), shortLabel: t('poolDetail.tabs.short.players'), icon: GiSoccerKick, missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
   ];
 
   useLayoutEffect(() => {

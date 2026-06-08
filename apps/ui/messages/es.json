@@ -105,6 +105,12 @@
       "title": "Fase de grupos"
     },
     "players": {
+      "actionGroups": {
+        "match": "Partido",
+        "penalty": "Penalti",
+        "shootout": "Tanda de penaltis",
+        "tournament": "Torneo"
+      },
       "actions": {
         "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
@@ -112,7 +118,11 @@
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
         "penaltiesSaved": "Penaltis parados",
+        "penaltyGoals": "Goles de penalti",
         "redCards": "Tarjetas rojas",
+        "shootoutGoals": "Goles en tanda de penaltis",
+        "shootoutMissedPenalties": "Penaltis fallados en tanda",
+        "shootoutPenaltiesSaved": "Penaltis parados en tanda",
         "yellowCards": "Tarjetas amarillas"
       },
       "awardWinners": {
@@ -159,8 +169,12 @@
         "goldenBoot": "Bota de oro",
         "missedPenalty": "Penalti fallado",
         "mvp": "MVP",
+        "penaltyGoal": "Gol de penalti",
         "penaltySaved": "Penalti parado",
         "redCard": "Tarjeta roja",
+        "shootoutGoal": "Gol en tanda de penaltis",
+        "shootoutMissedPenalty": "Penalti fallado en tanda de penaltis",
+        "shootoutPenaltySaved": "Penalti parado en tanda de penaltis",
         "tournamentMvp": "MVP del torneo",
         "yellowCard": "Tarjeta amarilla"
       },
@@ -408,6 +422,12 @@
       "member": "Usuario"
     },
     "players": {
+      "actionGroups": {
+        "match": "Partido",
+        "penalty": "Penalti",
+        "shootout": "Tanda de penaltis",
+        "tournament": "Torneo"
+      },
       "actions": {
         "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
@@ -415,7 +435,11 @@
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
         "penaltiesSaved": "Penaltis parados",
+        "penaltyGoals": "Goles de penalti",
         "redCards": "Tarjetas rojas",
+        "shootoutGoals": "Goles en tanda de penaltis",
+        "shootoutMissedPenalties": "Penaltis fallados en tanda",
+        "shootoutPenaltiesSaved": "Penaltis parados en tanda",
         "yellowCards": "Tarjetas amarillas"
       },
       "awards": {
@@ -455,12 +479,12 @@
     },
     "ranking": {
       "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
-      "finalPhasePoints": "Puntos fase final",
-      "groupPhasePoints": "Puntos fase grupos",
-      "playerPoints": "Puntos jugadores",
+      "finalPhasePoints": "Fase final",
+      "groupPhasePoints": "Fase grupos",
+      "playerPoints": "Jugadores",
       "prize": "Premio",
       "title": "Clasificación",
-      "totalPoints": "Puntos totales",
+      "totalPoints": "Total",
       "user": "Usuario"
     },
     "rules": {
@@ -478,30 +502,36 @@
         "assists": "Asistencias",
         "bracketRound": "Lado correcto del cuadro +{exact} / Lado incorrecto del cuadro +{wrong}",
         "cleanSheetMinutesHint": "Solo se sumarán puntos si el jugador disputa 60 minutos o más.",
-        "cleanSheets": "Porteria a cero: ",
-        "correctWinner": "1X2: ",
-        "exactResult": "Resultado exacto: ",
+        "cleanSheets": "Porteria a cero",
+        "correctBracketPosition": "Posición correcta",
+        "correctWinner": "1X2",
+        "exactResult": "Resultado exacto",
         "fifaRegulationsLink": "Consultar el reglamento oficial de la FIFA",
         "finalPhaseDescription": "En esta fase puedes conseguir puntos acertando qué equipos llegan a cada posición del cuadro.",
-        "goals": "Goles: ",
-        "goldenBoot": "Bota de oro: ",
+        "goals": "Goles",
+        "goldenBoot": "Bota de oro",
         "groupPhaseDescription": "Puedes conseguir puntos si aciertas el resultado 1X2 o el resultado exacto.",
-        "missedPenalty": "Penalti fallado: ",
-        "mvp": "MVP partido: ",
-        "officialPlayerListLabel": "Enlace a lista oficial de jugadores:",
+        "missedPenalty": "Penalti fallado",
+        "mvp": "MVP",
+        "officialPlayerListLabel": "Enlace a lista oficial de jugadores",
         "officialPlayerListLink": "Lista oficial de la FIFA",
-        "penaltySaved": "Penalti parado: ",
+        "penaltyGoal": "Gol de penalti",
+        "penaltySaved": "Penalti parado",
         "penaltyShootoutHint": "Las tandas de penaltis no se tendrán en cuenta.",
         "predictedStandingsWarning": "Las clasificaciones mostradas no son las clasificaciones reales, sino las hipotéticas en base a tus predicciones. Los criterios de clasificación aplicados se basan en el reglamento oficial de la FIFA.",
-        "redCard": "Tarjeta roja: ",
+        "redCard": "Tarjeta roja",
+        "shootoutGoal": "Gol en tanda de penaltis",
+        "shootoutMissedPenalty": "Penalti fallado en tanda de penaltis",
+        "shootoutPenaltySaved": "Penalti parado en tanda de penaltis",
         "title": "Sistema de puntos",
-        "tournamentMvp": "MVP torneo: ",
-        "tournamentWinner": "Ganador del torneo: ",
-        "yellowCard": "Tarjeta amarilla: "
+        "tournamentMvp": "MVP",
+        "tournamentWinner": "Ganador del torneo",
+        "wrongBracketPosition": "Equipo correcto en otra posición",
+        "yellowCard": "Tarjeta amarilla"
       },
       "poolConfig": {
-        "deadline": "Fecha limite: ",
-        "entryFee": "Cuota: ",
+        "deadline": "Fecha limite",
+        "entryFee": "Cuota",
         "prizes": "{count} posiciones con premio",
         "title": "General"
       },

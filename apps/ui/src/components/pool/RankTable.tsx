@@ -2,8 +2,8 @@
 
 import { useI18n } from "@/i18n/client";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { FaLayerGroup, FaPerson } from "react-icons/fa6";
-
+import { FaLayerGroup } from "react-icons/fa6";
+import { GiSoccerKick } from "react-icons/gi";
 interface RankingEntry {
   rank: number;
   userId?: string;
@@ -21,6 +21,7 @@ interface Props {
   formatCurrency: (value: number) => string;
   onSpy: (entry: { userId: string; userName: string }) => Promise<void> | void;
   spyEnabled?: boolean;
+  showPrizeColumn?: boolean;
 }
 
 export function RankTable({
@@ -31,6 +32,7 @@ export function RankTable({
   formatCurrency,
   onSpy,
   spyEnabled = false,
+  showPrizeColumn = true,
 }: Readonly<Props>) {
   const { t } = useI18n();
 
@@ -68,12 +70,12 @@ export function RankTable({
               <RankHeaderIconLabel icon={<BsFillDiagram3Fill aria-hidden />} label={t('poolDetail.ranking.finalPhasePoints')} />
             </th>
             <th style={thStyle}>
-              <RankHeaderIconLabel icon={<FaPerson aria-hidden />} label={t('poolDetail.ranking.playerPoints')} />
+              <RankHeaderIconLabel icon={<GiSoccerKick aria-hidden />} label={t('poolDetail.ranking.playerPoints')} />
             </th>
             <th style={thStyle}>
               {t('poolDetail.ranking.totalPoints')}
             </th>
-            <th style={thStyle}>{t('poolDetail.ranking.prize')}</th>
+            {showPrizeColumn ? <th style={thStyle}>{t('poolDetail.ranking.prize')}</th> : null}
             {spyEnabled ? <th style={thStyle}></th> : null}
           </tr>
         </thead>
@@ -179,15 +181,17 @@ export function RankTable({
                   {entry.groupPhasePoints + entry.finalPhasePoints + entry.playerPoints}
                 </td>
 
-                <td
-                  style={{
-                    ...numberStyle,
-                    color: 'rgb(var(--pitch))',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  {formatCurrency(prize)}
-                </td>
+                {showPrizeColumn ? (
+                  <td
+                    style={{
+                      ...numberStyle,
+                      color: 'rgb(var(--pitch))',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    {formatCurrency(prize)}
+                  </td>
+                ) : null}
 
                 {spyEnabled ? (
                   <td style={tdStyle}>

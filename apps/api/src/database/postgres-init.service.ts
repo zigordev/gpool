@@ -126,9 +126,13 @@ export class PostgresInitService implements OnModuleInit {
       CREATE TABLE IF NOT EXISTS tournament_player_stats (
         player_id TEXT PRIMARY KEY REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         goals INTEGER NOT NULL DEFAULT 0,
+        penalty_goals INTEGER NOT NULL DEFAULT 0,
         missed_penalties INTEGER NOT NULL DEFAULT 0,
         mvps INTEGER NOT NULL DEFAULT 0,
         penalties_saved INTEGER NOT NULL DEFAULT 0,
+        shootout_penalties_saved INTEGER NOT NULL DEFAULT 0,
+        shootout_goals INTEGER NOT NULL DEFAULT 0,
+        shootout_missed_penalties INTEGER NOT NULL DEFAULT 0,
         clean_sheets INTEGER NOT NULL DEFAULT 0,
         assists INTEGER NOT NULL DEFAULT 0,
         yellow_cards INTEGER NOT NULL DEFAULT 0,
@@ -136,6 +140,10 @@ export class PostgresInitService implements OnModuleInit {
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL
       );
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS penalty_goals INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_penalties_saved INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_goals INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_missed_penalties INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS clean_sheets INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS assists INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS yellow_cards INTEGER NOT NULL DEFAULT 0;

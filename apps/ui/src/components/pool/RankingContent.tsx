@@ -264,9 +264,13 @@ function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLi
   const { t } = useI18n();
   const actionLabels = {
     goals: t('poolDetail.players.actions.goals'),
+    penaltyGoals: t('poolDetail.players.actions.penaltyGoals'),
     missedPenalties: t('poolDetail.players.actions.missedPenalties'),
     mvps: t('poolDetail.players.actions.mvps'),
     penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+    shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'),
+    shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
+    shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'),
     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
     assists: t('poolDetail.players.actions.assists'),
     yellowCards: t('poolDetail.players.actions.yellowCards'),
@@ -406,6 +410,7 @@ export function RankingContent({ showGeneralSection = true }: Readonly<{ showGen
           currentUserEmail={user?.email}
           prizeForRank={prizeForRank}
           formatCurrency={formatCurrency}
+          showPrizeColumn={entryFee !== null && entryFee > 0}
           onSpy={handleStartSpy}
           spyEnabled={isPastPoolDeadline}
         />
