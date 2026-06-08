@@ -450,6 +450,63 @@ export class PoolRepository {
     return result.rows[0] || null;
   }
 
+  async getTournamentPlayerAwards() {
+    const result = await this.postgres.query(
+      `
+        SELECT
+          award,
+          player_id AS "playerId",
+          updated_at::int AS "updatedAt"
+        FROM tournament_player_awards
+        ORDER BY award ASC, player_id ASC
+      `,
+    );
+
+    return result.rows;
+  }
+
+  async updateTournamentPlayerAward(playerId: string, award: string, selected: boolean) {
+    const client = await this.postgres.getClient();
+    try {
+      await client.query('BEGIN');
+      if (!selected) {
+        await client.query(
+          `
+            DELETE FROM tournament_player_awards
+            WHERE award = $1 AND player_id = $2
+          `,
+          [award, playerId],
+        );
+      } else {
+        if (award === 'tournament_mvp') {
+          await client.query(
+            `
+              DELETE FROM tournament_player_awards
+              WHERE award = 'tournament_mvp'
+            `,
+          );
+        }
+        await client.query(
+          `
+            INSERT INTO tournament_player_awards (award, player_id, updated_at)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (award, player_id)
+            DO UPDATE SET updated_at = EXCLUDED.updated_at
+          `,
+          [award, playerId, Math.floor(Date.now() / 1000)],
+        );
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    return this.getTournamentPlayerAwards();
+  }
+
   async getPlayerSelections(poolId: string, userId: string) {
     const result = await this.postgres.query(
       `

@@ -82,6 +82,7 @@
       "saveScoring": "Could not save the scoring configuration",
       "selectPoolFirst": "Select a pool first",
       "updateFairPlay": "Could not update the fair-play score",
+      "updatePlayerAward": "Could not update the player award",
       "updatePlayerStats": "Could not update player stats",
       "updateTeam": "Could not update the team"
     },
@@ -118,6 +119,8 @@
         "goldenBoot": "Golden Boot winners",
         "goldenBootHint": "You can select multiple players if they share the award.",
         "none": "None selected",
+        "toggleGoldenBoot": "Toggle Golden Boot selection for {player}",
+        "toggleTournamentMvp": "Toggle tournament MVP selection for {player}",
         "tournamentMvp": "Tournament MVP",
         "tournamentMvpHint": "There can only be one tournament MVP."
       },

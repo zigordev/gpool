@@ -141,6 +141,16 @@ export class PostgresInitService implements OnModuleInit {
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS yellow_cards INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS red_cards INTEGER NOT NULL DEFAULT 0;
 
+      CREATE TABLE IF NOT EXISTS tournament_player_awards (
+        award TEXT NOT NULL CHECK (award IN ('golden_boot', 'tournament_mvp')),
+        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        updated_at BIGINT NOT NULL,
+        PRIMARY KEY (award, player_id)
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_tournament_player_awards_single_mvp
+        ON tournament_player_awards(award)
+        WHERE award = 'tournament_mvp';
+
       CREATE TABLE IF NOT EXISTS pool_player_selections (
         pool_id TEXT NOT NULL,
         user_id TEXT NOT NULL,

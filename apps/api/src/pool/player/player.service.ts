@@ -145,7 +145,21 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
   );
 }
 
-export function resolvePlayerAwardWinners(pool: any, players: any[]) {
+export function resolvePlayerAwardWinners(pool: any, players: any[], tournamentAwards?: any[]) {
+  if (tournamentAwards) {
+    return {
+      goldenBoot: new Set(
+        tournamentAwards
+          .filter((result) => result.award === 'golden_boot')
+          .map((result) => result.playerId),
+      ),
+      tournamentMvp: new Set(
+        tournamentAwards
+          .filter((result) => result.award === 'tournament_mvp')
+          .map((result) => result.playerId),
+      ),
+    };
+  }
   const configured = pool?.config?.playerAwardWinners || {};
   const configuredGoldenBootIds = Array.isArray(configured.goldenBootPlayerIds)
     ? configured.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string' && id.trim().length > 0)
@@ -193,14 +207,15 @@ export class PlayerService {
   constructor(private readonly poolRepository: PoolRepository) {}
 
   async getPlayerSelectionState(poolId: string, userId: string) {
-    const [pool, players, selections, awardSelections] = await Promise.all([
+    const [pool, players, selections, awardSelections, tournamentAwards] = await Promise.all([
       this.poolRepository.getPool(poolId),
       this.poolRepository.getTournamentPlayers(),
       this.poolRepository.getPlayerSelections(poolId, userId),
       this.poolRepository.getPlayerAwardSelections(poolId, userId),
+      this.poolRepository.getTournamentPlayerAwards(),
     ]);
     const scoring = resolvePlayerScoring(pool);
-    const awardWinners = resolvePlayerAwardWinners(pool, players);
+    const awardWinners = resolvePlayerAwardWinners(pool, players, tournamentAwards);
     const limits = resolvePlayerSelectionLimits(pool?.config?.playerSelectionLimits);
     const validSelections = selections.filter((selection: any) =>
       isSelectionWithinLimits(selection, limits),
@@ -221,6 +236,37 @@ export class PlayerService {
       })),
       limits,
       scoring,
+      awardWinners: {
+        goldenBootPlayerIds: [...awardWinners.goldenBoot],
+        tournamentMvpPlayerId: [...awardWinners.tournamentMvp][0] || '',
+      },
+    };
+  }
+
+  async updateTournamentPlayerAward(
+    playerId: string,
+    award: PlayerAward,
+    selected: boolean,
+    userRole: string,
+  ) {
+    if (userRole !== 'admin') {
+      throw new BadRequestException('Only administrators can update tournament awards');
+    }
+    if (!AWARDS.includes(award)) {
+      throw new BadRequestException('Invalid player award');
+    }
+    const player = await this.poolRepository.getTournamentPlayer(playerId);
+    if (!player) {
+      throw new NotFoundException(`Player with ID ${playerId} not found`);
+    }
+
+    const awards = await this.poolRepository.updateTournamentPlayerAward(playerId, award, selected);
+    return {
+      goldenBootPlayerIds: awards
+        .filter((result: any) => result.award === 'golden_boot')
+        .map((result: any) => result.playerId),
+      tournamentMvpPlayerId:
+        awards.find((result: any) => result.award === 'tournament_mvp')?.playerId || '',
     };
   }
 

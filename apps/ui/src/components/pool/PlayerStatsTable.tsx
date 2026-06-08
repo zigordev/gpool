@@ -8,6 +8,7 @@ import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
 import { PiBoxingGlove } from 'react-icons/pi';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { countryIsoCode } from '@/lib/country-flags';
 
@@ -32,7 +33,9 @@ interface PlayerStatsTableProps {
   t: (key: string, params?: Record<string, string | number>) => string;
   editable?: boolean;
   updatingPlayerStat?: string | null;
+  updatingPlayerAward?: string | null;
   onStatChange?: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => void;
+  onAwardToggle?: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => void;
   isStatVisible?: (player: TournamentPlayer, stat: PlayerStatKey) => boolean;
   toolbar?: React.ReactNode;
 }
@@ -45,7 +48,9 @@ export function PlayerStatsTable({
   t,
   editable = false,
   updatingPlayerStat,
+  updatingPlayerAward,
   onStatChange,
+  onAwardToggle,
   isStatVisible = () => true,
   toolbar,
 }: Readonly<PlayerStatsTableProps>) {
@@ -253,22 +258,68 @@ export function PlayerStatsTable({
                     );
                   })}
                   <td style={tdStyle}>
-                    <GiLeatherBoot
-                      size={20}
-                      style={{
-                        color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
-                        opacity: isGoldenBoot ? 1 : 0.3,
-                      }}
-                    />
+                    {onAwardToggle ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-icon"
+                        aria-pressed={isGoldenBoot}
+                        aria-label={t('adminResults.players.awardWinners.toggleGoldenBoot', { player: player.name })}
+                        title={t('adminResults.players.awardWinners.toggleGoldenBoot', { player: player.name })}
+                        disabled={updatingPlayerAward === `golden_boot:${player.playerId}`}
+                        onClick={() => onAwardToggle(player, 'golden_boot', !isGoldenBoot)}
+                        style={{ width: '2rem', height: '2rem' }}
+                      >
+                        <GiLeatherBoot
+                          size={20}
+                          style={{
+                            color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
+                            opacity: isGoldenBoot ? 1 : 0.3,
+                            transform: isGoldenBoot ? 'scale(1.08)' : 'scale(1)',
+                            transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
+                          }}
+                        />
+                      </button>
+                    ) : (
+                      <GiLeatherBoot
+                        size={20}
+                        style={{
+                          color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
+                          opacity: isGoldenBoot ? 1 : 0.3,
+                        }}
+                      />
+                    )}
                   </td>
                   <td style={tdStyle}>
-                    <FaStar
-                      size={20}
-                      style={{
-                        color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
-                        opacity: isMVP ? 1 : 0.3,
-                      }}
-                    />
+                    {onAwardToggle ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-icon"
+                        aria-pressed={isMVP}
+                        aria-label={t('adminResults.players.awardWinners.toggleTournamentMvp', { player: player.name })}
+                        title={t('adminResults.players.awardWinners.toggleTournamentMvp', { player: player.name })}
+                        disabled={updatingPlayerAward === `tournament_mvp:${player.playerId}`}
+                        onClick={() => onAwardToggle(player, 'tournament_mvp', !isMVP)}
+                        style={{ width: '2rem', height: '2rem' }}
+                      >
+                        <FaStar
+                          size={20}
+                          style={{
+                            color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
+                            opacity: isMVP ? 1 : 0.3,
+                            transform: isMVP ? 'scale(1.08)' : 'scale(1)',
+                            transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
+                          }}
+                        />
+                      </button>
+                    ) : (
+                      <FaStar
+                        size={20}
+                        style={{
+                          color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
+                          opacity: isMVP ? 1 : 0.3,
+                        }}
+                      />
+                    )}
                   </td>
                   <td style={numberStyleGold}>{totalPts}</td>
                 </tr>

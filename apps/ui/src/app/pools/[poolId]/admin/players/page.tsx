@@ -37,7 +37,9 @@ export default function AdminPlayersPage() {
     setPlayerSelectionLimits,
     playerAwardWinnersConfig,
     updatingPlayerStat,
+    updatingPlayerAward,
     handlePlayerStatChange,
+    handlePlayerAwardToggle,
   } = useAdminContext();
 
   const countries = Array.from(
@@ -192,7 +194,9 @@ export default function AdminPlayersPage() {
           t={t}
           editable
           updatingPlayerStat={updatingPlayerStat}
+          updatingPlayerAward={updatingPlayerAward}
           onStatChange={handlePlayerStatChange}
+          onAwardToggle={handlePlayerAwardToggle}
           isStatVisible={(player, stat) => isPlayerStatEnabled(playerScoringConfig, player.position, stat)}
           toolbar={
             <div

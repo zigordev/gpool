@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { PrizePayout } from '@/types/prizePayout.type';
 import {
@@ -339,6 +340,7 @@ interface AdminContextValue {
   playerPositionFilter: string;
   setPlayerPositionFilter: React.Dispatch<React.SetStateAction<string>>;
   updatingPlayerStat: string | null;
+  updatingPlayerAward: string | null;
   updatingTeamFairPlay: string | null;
   updatingMatch: string | null;
   submittingBracketResult: string | null;
@@ -355,6 +357,7 @@ interface AdminContextValue {
   handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
   handleReEvaluateBracket: () => Promise<void>;
   handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => Promise<void>;
+  handlePlayerAwardToggle: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => Promise<void>;
   handleTeamFairPlayChange: (teamId: string, fairPlay: number) => Promise<void>;
 }
 
@@ -412,6 +415,7 @@ export function AdminProvider({
   const [playerCountryFilter, setPlayerCountryFilter] = useState('');
   const [playerPositionFilter, setPlayerPositionFilter] = useState('');
   const [updatingPlayerStat, setUpdatingPlayerStat] = useState<string | null>(null);
+  const [updatingPlayerAward, setUpdatingPlayerAward] = useState<string | null>(null);
   const [updatingTeamFairPlay, setUpdatingTeamFairPlay] = useState<string | null>(null);
   const [updatingMatch, setUpdatingMatch] = useState<string | null>(null);
   const [submittingBracketResult, setSubmittingBracketResult] = useState<string | null>(null);
@@ -478,9 +482,16 @@ export function AdminProvider({
           setPlayerScoringConfig(loadedPlayerScoring);
           setPlayerSelectionLimits(loadedPlayerSelectionLimits);
 
+          const awardWinnerSource = systemMode
+            ? playersResponse.data?.awardWinners
+            : pool?.config?.playerAwardWinners;
           const loadedAwardWinners = {
-            goldenBootPlayerIds: Array.isArray(pool?.config?.playerAwardWinners?.goldenBootPlayerIds) ? pool.config.playerAwardWinners.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string') : [],
-            tournamentMvpPlayerId: typeof pool?.config?.playerAwardWinners?.tournamentMvpPlayerId === 'string' ? pool.config.playerAwardWinners.tournamentMvpPlayerId : '',
+            goldenBootPlayerIds: Array.isArray(awardWinnerSource?.goldenBootPlayerIds)
+              ? awardWinnerSource.goldenBootPlayerIds.filter((id: unknown): id is string => typeof id === 'string')
+              : [],
+            tournamentMvpPlayerId: typeof awardWinnerSource?.tournamentMvpPlayerId === 'string'
+              ? awardWinnerSource.tournamentMvpPlayerId
+              : '',
           };
           setPlayerAwardWinnersConfig(loadedAwardWinners);
 
@@ -698,6 +709,32 @@ export function AdminProvider({
     }
   };
 
+  const handlePlayerAwardToggle = async (
+    player: TournamentPlayer,
+    award: PlayerAward,
+    selected: boolean,
+  ) => {
+    const key = `${award}:${player.playerId}`;
+    try {
+      setUpdatingPlayerAward(key);
+      const response = await apiClient.put(`/pools/${poolId}/players/award-result`, {
+        award,
+        playerId: player.playerId,
+        selected,
+      });
+      setPlayerAwardWinnersConfig({
+        goldenBootPlayerIds: Array.isArray(response.data?.goldenBootPlayerIds)
+          ? response.data.goldenBootPlayerIds
+          : [],
+        tournamentMvpPlayerId: response.data?.tournamentMvpPlayerId || '',
+      });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.updatePlayerAward'));
+    } finally {
+      setUpdatingPlayerAward((current) => (current === key ? null : current));
+    }
+  };
+
   const handleTeamFairPlayChange = async (teamId: string, fairPlay: number) => {
     try {
       setUpdatingTeamFairPlay(teamId);
@@ -737,10 +774,10 @@ export function AdminProvider({
     deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
-    playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingTeamFairPlay, updatingMatch,
+    playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingPlayerAward, updatingTeamFairPlay, updatingMatch,
     submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
     groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount,
-    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange, handleTeamFairPlayChange,
+    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange, handlePlayerAwardToggle, handleTeamFairPlayChange,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
