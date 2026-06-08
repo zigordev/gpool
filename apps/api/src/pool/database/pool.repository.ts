@@ -123,29 +123,7 @@ export class PoolRepository {
     return { success: true };
   }
 
-  async listPools(filters?: { adminUserId?: string }) {
-    if (filters?.adminUserId) {
-      const result = await this.postgres.query(
-        `
-          SELECT
-            pool_id AS "poolId",
-            admin_user_id AS "adminUserId",
-            admin_name AS "adminName",
-            admin_email AS "adminEmail",
-            name,
-            description,
-            config,
-            created_at::int AS "createdAt",
-            updated_at::text AS "updatedAt"
-          FROM pools
-          WHERE admin_user_id = $1
-          ORDER BY created_at DESC
-        `,
-        [filters.adminUserId],
-      );
-      return result.rows;
-    }
-
+  async listPools() {
     const result = await this.postgres.query(
       `
         SELECT
