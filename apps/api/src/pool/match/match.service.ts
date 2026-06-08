@@ -231,6 +231,7 @@ export class MatchService {
       playerSelections,
       playerAwardSelections,
       tournamentPlayers,
+      tournamentAwards,
     ] = await Promise.all([
       this.poolRepository.getPool(poolId),
       this.poolRepository.getAllPredictionsForPool(poolId),
@@ -239,6 +240,7 @@ export class MatchService {
       this.poolRepository.getPlayerSelectionsForPool(poolId),
       this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
       this.poolRepository.getTournamentPlayers(),
+      this.poolRepository.getTournamentPlayerAwards(),
     ]);
 
     const memberUserIds = new Set(members.map((member: any) => member.userId));
@@ -295,7 +297,7 @@ export class MatchService {
       }
     });
 
-    const awardWinners = resolvePlayerAwardWinners(pool, tournamentPlayers);
+    const awardWinners = resolvePlayerAwardWinners(pool, tournamentPlayers, tournamentAwards);
     playerAwardSelections.forEach((selection: any) => {
       if (!memberUserIds.has(selection.userId)) {
         return;

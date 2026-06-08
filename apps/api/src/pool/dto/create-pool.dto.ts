@@ -127,6 +127,11 @@ class PlayerScoringDto {
     @IsNumber()
     missedPenalty: number;
 
+    @ApiProperty({ description: 'Points for a penalty goal during regular or extra time', example: 4 })
+    @IsNumber()
+    @Min(0)
+    penaltyGoal: number;
+
     @ApiProperty({ description: 'Points for MVP', example: 5 })
     @IsNumber()
     mvp: number;
@@ -135,11 +140,41 @@ class PlayerScoringDto {
     @IsNumber()
     penaltySaved: number;
 
+    @ApiProperty({ description: 'Points for a penalty saved during a penalty shootout', example: 5 })
+    @IsNumber()
+    @Min(0)
+    shootoutPenaltySaved: number;
+
+    @ApiProperty({ description: 'Points for a goal scored during a penalty shootout', example: 2 })
+    @IsNumber()
+    @Min(0)
+    shootoutGoal: number;
+
+    @ApiProperty({ description: 'Points for a missed penalty during a penalty shootout', example: -1 })
+    @IsNumber()
+    shootoutMissedPenalty: number;
+
     @ApiProperty({ type: PlayerGoalScoringDto, description: 'Clean-sheet points by player position' })
     @IsObject()
     @ValidateNested()
     @Type(() => PlayerGoalScoringDto)
     cleanSheet: PlayerGoalScoringDto;
+
+    @ApiProperty({ type: PlayerGoalScoringDto, description: 'Assist points by player position' })
+    @IsObject()
+    @ValidateNested()
+    @Type(() => PlayerGoalScoringDto)
+    assist: PlayerGoalScoringDto;
+
+    @ApiProperty({ description: 'Points deducted for a yellow card', example: -1 })
+    @IsNumber()
+    @Max(0)
+    yellowCard: number;
+
+    @ApiProperty({ description: 'Points deducted for a red card', example: -3 })
+    @IsNumber()
+    @Max(0)
+    redCard: number;
 
     @ApiProperty({ type: PlayerAwardScoringDto, description: 'Special award prediction points' })
     @IsObject()

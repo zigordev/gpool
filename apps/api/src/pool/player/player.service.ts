@@ -9,9 +9,13 @@ import {
 export type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 export type PlayerStatKey =
   | 'goals'
+  | 'penaltyGoals'
   | 'missedPenalties'
   | 'mvps'
   | 'penaltiesSaved'
+  | 'shootoutPenaltiesSaved'
+  | 'shootoutGoals'
+  | 'shootoutMissedPenalties'
   | 'cleanSheets'
   | 'assists'
   | 'yellowCards'
@@ -21,9 +25,13 @@ export type PlayerAward = 'golden_boot' | 'tournament_mvp';
 const POSITIONS: PlayerPosition[] = [...PLAYER_SELECTION_POSITIONS];
 const STATS: PlayerStatKey[] = [
   'goals',
+  'penaltyGoals',
   'missedPenalties',
   'mvps',
   'penaltiesSaved',
+  'shootoutPenaltiesSaved',
+  'shootoutGoals',
+  'shootoutMissedPenalties',
   'cleanSheets',
   'assists',
   'yellowCards',
@@ -38,9 +46,13 @@ export const DEFAULT_PLAYER_SCORING = {
     midfielder: 0,
     forward: 0,
   },
+  penaltyGoal: 0,
   missedPenalty: 0,
   mvp: 0,
   penaltySaved: 0,
+  shootoutPenaltySaved: 0,
+  shootoutGoal: 0,
+  shootoutMissedPenalty: 0,
   cleanSheet: {
     goalkeeper: 0,
     defender: 0,
@@ -78,9 +90,21 @@ export function resolvePlayerScoring(pool: any) {
       midfielder: Number.isFinite(Number(goal.midfielder)) ? Number(goal.midfielder) : DEFAULT_PLAYER_SCORING.goal.midfielder,
       forward: Number.isFinite(Number(goal.forward)) ? Number(goal.forward) : DEFAULT_PLAYER_SCORING.goal.forward,
     },
+    penaltyGoal: Number.isFinite(Number(configured.penaltyGoal))
+      ? Math.max(0, Number(configured.penaltyGoal))
+      : DEFAULT_PLAYER_SCORING.penaltyGoal,
     missedPenalty: Number.isFinite(Number(configured.missedPenalty)) ? Number(configured.missedPenalty) : DEFAULT_PLAYER_SCORING.missedPenalty,
     mvp: Number.isFinite(Number(configured.mvp)) ? Number(configured.mvp) : DEFAULT_PLAYER_SCORING.mvp,
     penaltySaved: Number.isFinite(Number(configured.penaltySaved)) ? Number(configured.penaltySaved) : DEFAULT_PLAYER_SCORING.penaltySaved,
+    shootoutPenaltySaved: Number.isFinite(Number(configured.shootoutPenaltySaved))
+      ? Math.max(0, Number(configured.shootoutPenaltySaved))
+      : DEFAULT_PLAYER_SCORING.shootoutPenaltySaved,
+    shootoutGoal: Number.isFinite(Number(configured.shootoutGoal))
+      ? Math.max(0, Number(configured.shootoutGoal))
+      : DEFAULT_PLAYER_SCORING.shootoutGoal,
+    shootoutMissedPenalty: Number.isFinite(Number(configured.shootoutMissedPenalty))
+      ? Number(configured.shootoutMissedPenalty)
+      : DEFAULT_PLAYER_SCORING.shootoutMissedPenalty,
     cleanSheet: {
       goalkeeper: Number.isFinite(Number(cleanSheet.goalkeeper))
         ? Math.max(0, Number(cleanSheet.goalkeeper))
@@ -136,16 +160,34 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
     (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
   return (
     (player.goals || 0) * scoring.goal[position] +
+    (player.penaltyGoals || 0) * scoring.penaltyGoal +
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
+    (player.shootoutPenaltiesSaved || 0) * scoring.shootoutPenaltySaved +
+    (player.shootoutGoals || 0) * scoring.shootoutGoal +
+    (player.shootoutMissedPenalties || 0) * scoring.shootoutMissedPenalty +
     cleanSheetPoints +
     assistPoints +
     cardPoints
   );
 }
 
-export function resolvePlayerAwardWinners(pool: any, players: any[]) {
+export function resolvePlayerAwardWinners(pool: any, players: any[], tournamentAwards?: any[]) {
+  if (tournamentAwards) {
+    return {
+      goldenBoot: new Set(
+        tournamentAwards
+          .filter((result) => result.award === 'golden_boot')
+          .map((result) => result.playerId),
+      ),
+      tournamentMvp: new Set(
+        tournamentAwards
+          .filter((result) => result.award === 'tournament_mvp')
+          .map((result) => result.playerId),
+      ),
+    };
+  }
   const configured = pool?.config?.playerAwardWinners || {};
   const configuredGoldenBootIds = Array.isArray(configured.goldenBootPlayerIds)
     ? configured.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string' && id.trim().length > 0)
@@ -193,14 +235,15 @@ export class PlayerService {
   constructor(private readonly poolRepository: PoolRepository) {}
 
   async getPlayerSelectionState(poolId: string, userId: string) {
-    const [pool, players, selections, awardSelections] = await Promise.all([
+    const [pool, players, selections, awardSelections, tournamentAwards] = await Promise.all([
       this.poolRepository.getPool(poolId),
       this.poolRepository.getTournamentPlayers(),
       this.poolRepository.getPlayerSelections(poolId, userId),
       this.poolRepository.getPlayerAwardSelections(poolId, userId),
+      this.poolRepository.getTournamentPlayerAwards(),
     ]);
     const scoring = resolvePlayerScoring(pool);
-    const awardWinners = resolvePlayerAwardWinners(pool, players);
+    const awardWinners = resolvePlayerAwardWinners(pool, players, tournamentAwards);
     const limits = resolvePlayerSelectionLimits(pool?.config?.playerSelectionLimits);
     const validSelections = selections.filter((selection: any) =>
       isSelectionWithinLimits(selection, limits),
@@ -221,6 +264,37 @@ export class PlayerService {
       })),
       limits,
       scoring,
+      awardWinners: {
+        goldenBootPlayerIds: [...awardWinners.goldenBoot],
+        tournamentMvpPlayerId: [...awardWinners.tournamentMvp][0] || '',
+      },
+    };
+  }
+
+  async updateTournamentPlayerAward(
+    playerId: string,
+    award: PlayerAward,
+    selected: boolean,
+    userRole: string,
+  ) {
+    if (userRole !== 'admin') {
+      throw new BadRequestException('Only administrators can update tournament awards');
+    }
+    if (!AWARDS.includes(award)) {
+      throw new BadRequestException('Invalid player award');
+    }
+    const player = await this.poolRepository.getTournamentPlayer(playerId);
+    if (!player) {
+      throw new NotFoundException(`Player with ID ${playerId} not found`);
+    }
+
+    const awards = await this.poolRepository.updateTournamentPlayerAward(playerId, award, selected);
+    return {
+      goldenBootPlayerIds: awards
+        .filter((result: any) => result.award === 'golden_boot')
+        .map((result: any) => result.playerId),
+      tournamentMvpPlayerId:
+        awards.find((result: any) => result.award === 'tournament_mvp')?.playerId || '',
     };
   }
 
@@ -238,9 +312,13 @@ export class PlayerService {
     }
     const next: Record<PlayerStatKey, number> = {
       goals: player.goals || 0,
+      penaltyGoals: player.penaltyGoals || 0,
       missedPenalties: player.missedPenalties || 0,
       mvps: player.mvps || 0,
       penaltiesSaved: player.penaltiesSaved || 0,
+      shootoutPenaltiesSaved: player.shootoutPenaltiesSaved || 0,
+      shootoutGoals: player.shootoutGoals || 0,
+      shootoutMissedPenalties: player.shootoutMissedPenalties || 0,
       cleanSheets: player.cleanSheets || 0,
       assists: player.assists || 0,
       yellowCards: player.yellowCards || 0,

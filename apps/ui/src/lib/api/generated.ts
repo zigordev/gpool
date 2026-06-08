@@ -203,6 +203,11 @@ export type ApiOperation = {
   responseCodes: ['200'];
 } | {
   method: 'PUT';
+  path: '/api/pools/{poolId}/players/award-result';
+  operationId: 'PlayerController_updateAwardResult';
+  responseCodes: ['200'];
+} | {
+  method: 'PUT';
   path: '/api/pools/{poolId}/players/award-selection';
   operationId: 'PlayerController_updateAwardSelection';
   responseCodes: ['200'];
@@ -213,7 +218,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 42 as const;
+export const API_OPERATION_COUNT = 43 as const;
 
 export const API_OPERATIONS = [
   {
@@ -568,6 +573,14 @@ export const API_OPERATIONS = [
     "method": "PUT",
     "path": "/api/pools/{poolId}/players/{playerId}/stats",
     "operationId": "PlayerController_updatePlayerStats",
+    "responseCodes": [
+      "200"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/pools/{poolId}/players/award-result",
+    "operationId": "PlayerController_updateAwardResult",
     "responseCodes": [
       "200"
     ]

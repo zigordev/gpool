@@ -227,6 +227,16 @@ if [ $i -gt 60 ]; then
   exit 1
 fi
 
+echo "Synchronizing PostgreSQL role password with OpenBao..."
+docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
+  psql \
+    -v ON_ERROR_STOP=1 \
+    -v db_password="$postgres_password" \
+    -U "$db_user" \
+    -d postgres <<'SQL'
+SELECT format('ALTER ROLE %I WITH PASSWORD %L', current_user, :'db_password') \gexec
+SQL
+
 db_exists="$(
   docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
     sh -lc "psql -U \"$db_user\" -d postgres -tAc \"SELECT 1 FROM pg_database WHERE datname = '$db_name'\""

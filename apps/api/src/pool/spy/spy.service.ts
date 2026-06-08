@@ -5,6 +5,12 @@ import {
   isSelectionWithinLimits,
   resolvePlayerSelectionLimits,
 } from '../player/player-selection-limits';
+import {
+  computePlayerAwardPoints,
+  computePlayerPoints,
+  resolvePlayerAwardWinners,
+  resolvePlayerScoring,
+} from '../player/player.service';
 
 @Injectable()
 export class SpyService {
@@ -40,13 +46,16 @@ export class SpyService {
       throw new NotFoundException('Target user is not a member of this pool');
     }
 
-    const [predictions, bracketPredictions, playerSelections, playerAwardSelections] = await Promise.all([
+    const [predictions, bracketPredictions, playerSelections, playerAwardSelections, tournamentAwards] = await Promise.all([
       this.poolRepository.getUserPredictions(poolId, targetUserId),
       this.poolRepository.getUserBracketPredictions(poolId, targetUserId),
       this.poolRepository.getPlayerSelections(poolId, targetUserId),
       this.poolRepository.getPlayerAwardSelections(poolId, targetUserId),
+      this.poolRepository.getTournamentPlayerAwards(),
     ]);
     const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
+    const scoring = resolvePlayerScoring(pool);
+    const awardWinners = resolvePlayerAwardWinners(pool, [], tournamentAwards);
 
     return {
       user: {
@@ -56,10 +65,16 @@ export class SpyService {
       },
       predictions,
       bracketPredictions,
-      playerSelections: playerSelections.filter((selection: any) =>
-        isSelectionWithinLimits(selection, limits),
-      ),
-      playerAwardSelections,
+      playerSelections: playerSelections
+        .filter((selection: any) => isSelectionWithinLimits(selection, limits))
+        .map((selection: any) => ({
+          ...selection,
+          totalPoints: computePlayerPoints(selection, scoring),
+        })),
+      playerAwardSelections: playerAwardSelections.map((selection: any) => ({
+        ...selection,
+        awardPoints: computePlayerAwardPoints(selection, awardWinners, scoring),
+      })),
     };
   }
 }

@@ -3,13 +3,12 @@ import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
 import { FaExternalLinkAlt, FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
-import { FaDollarSign, FaPerson } from "react-icons/fa6";
-import { GiLeatherBoot } from "react-icons/gi";
+import { FaDollarSign } from "react-icons/fa6";
+import { GiGoalKeeper, GiLeatherBoot, GiSoccerKick } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
 import { IoWarning } from "react-icons/io5";
 import { LuRectangleVertical } from "react-icons/lu";
 import { MdOnlinePrediction } from "react-icons/md";
-import { PiBoxingGlove } from "react-icons/pi";
 import { PlayerPosition } from "@/types/playerPosition.type";
 import { useI18n } from "@/i18n/client";
 import { Section } from "../ui/Section";
@@ -21,6 +20,26 @@ function InfoSectionTitle({ children }: Readonly<{ children: ReactNode }>) {
       <FaInfo size={13} aria-hidden />
       {children}
     </span>
+  );
+}
+
+function PointValue({
+  points,
+  color,
+}: Readonly<{
+  points: number;
+  color?: string;
+}>) {
+  return (
+    <strong
+      style={{
+        color: color ?? (points < 0 ? 'rgb(var(--live))' : 'rgb(var(--pitch))'),
+        marginLeft: '0.3rem',
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    >
+      {points > 0 ? `+${points}` : String(points)}
+    </strong>
   );
 }
 
@@ -36,6 +55,7 @@ export function GeneralPoolInfoSection({
   playerSelectionLimits: PlayerSelectionLimits;
 }>) {
     const { t } = useI18n();
+    const isFreePool = entryFeeLabel !== null && Number(entryFeeLabel) === 0;
 
     return (
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.poolConfig.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
@@ -44,12 +64,16 @@ export function GeneralPoolInfoSection({
             <FaClock style={ {color: 'rgb(var(--fg))' } }/>
             <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
               <strong>{t('poolDetail.rules.poolConfig.deadline')}</strong>
-              {deadlineLabel}
+              <span style={{ marginLeft: '0.3rem' }}>{deadlineLabel}</span>
             </p>
             <FaDollarSign style={ {color: 'rgb(var(--fg))' } }/>
             <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
               <strong>{t('poolDetail.rules.poolConfig.entryFee')}</strong>
-              {`${entryFeeLabel}€ (${t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })})`}
+              <span style={{ marginLeft: '0.3rem' }}>
+                {isFreePool
+                  ? t('poolDetail.info.entryFeeFree')
+                  : `${entryFeeLabel}€ (${t('poolDetail.rules.poolConfig.prizes', { count: prizeDistribution.length })})`}
+              </span>
             </p>
           </div>
         </div>
@@ -72,7 +96,7 @@ export function GeneralPoolInfoSection({
                   case 'final':
                     return <BsFillDiagram3Fill style={ {color: 'rgb(var(--fg))' } }/>
                   case 'players':
-                    return <FaPerson style={ {color: 'rgb(var(--fg))' } }/>
+                    return <GiSoccerKick style={ {color: 'rgb(var(--fg))' } }/>
                   case 'deadline':
                     return <FaClock style={ {color: 'rgb(var(--fg))' } }/>
                   case 'ranking':
@@ -111,11 +135,11 @@ export function GroupScoringInfoSection({
           </p>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             <strong>{t('poolDetail.rules.points.correctWinner')}</strong>
-            {`+ ${groupScoring.winnerPoints}`}
+            <PointValue points={groupScoring.winnerPoints} color="rgb(var(--info))" />
           </p>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             <strong>{t('poolDetail.rules.points.exactResult')}</strong>
-            {`+ ${groupScoring.exactResultPoints}`}
+            <PointValue points={groupScoring.exactResultPoints} color="rgb(var(--pitch))" />
           </p>
           <p
             style={{
@@ -165,8 +189,15 @@ export function FinalScoringInfoSection({
             const round = bracketScoring.rounds[phase.key] || bracketScoring;
             return (
               <p key={phase.key} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-                <strong>{t(phase.labelKey)}: </strong>
-                {t('poolDetail.rules.points.bracketRound', { exact: round.exactPositionPoints, wrong: round.correctTeamWrongPositionPoints })}
+                <strong>{t(phase.labelKey)}</strong>
+                <span style={{ marginLeft: '0.55rem' }}>
+                  {t('poolDetail.rules.points.correctBracketPosition')}
+                  <PointValue points={round.exactPositionPoints} color="rgb(var(--pitch))" />
+                </span>
+                <span style={{ marginLeft: '0.75rem' }}>
+                  {t('poolDetail.rules.points.wrongBracketPosition')}
+                  <PointValue points={round.correctTeamWrongPositionPoints} color="rgb(var(--info))" />
+                </span>
               </p>
             );
           })}
@@ -175,7 +206,7 @@ export function FinalScoringInfoSection({
               <FaTrophy style={{ color: 'gold' }} />
               <strong>{t('poolDetail.rules.points.tournamentWinner')}</strong>
             </span>
-            {`+ ${bracketScoring.tournamentWinnerPoints}`}
+            <PointValue points={bracketScoring.tournamentWinnerPoints} />
           </p>
         </div>
       </Section>
@@ -215,47 +246,95 @@ export function PlayerScoringInfoSection({
     const singleActionRows = [
       {
         key: 'mvp',
+        group: 'match',
         label: t('poolDetail.rules.points.mvp'),
         value: playerScoring.mvp,
         icon: <FaStar style={{ color: 'rgb(var(--fg))' }} />,
       },
       {
-        key: 'penaltySaved',
-        label: t('poolDetail.rules.points.penaltySaved'),
-        value: playerScoring.penaltySaved,
-        icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} />,
-      },
-      {
-        key: 'missedPenalty',
-        label: t('poolDetail.rules.points.missedPenalty'),
-        value: playerScoring.missedPenalty,
-        icon: <IoMdCloseCircle style={{ color: 'red' }} />,
-      },
-      {
         key: 'yellowCard',
+        group: 'match',
         label: t('poolDetail.rules.points.yellowCard'),
         value: playerScoring.yellowCard,
         icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />,
       },
       {
         key: 'redCard',
+        group: 'match',
         label: t('poolDetail.rules.points.redCard'),
         value: playerScoring.redCard,
         icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} />,
       },
       {
+        key: 'penaltyGoal',
+        group: 'penalty',
+        label: t('poolDetail.rules.points.penaltyGoal'),
+        value: playerScoring.penaltyGoal,
+        icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'penaltySaved',
+        group: 'penalty',
+        label: t('poolDetail.rules.points.penaltySaved'),
+        value: playerScoring.penaltySaved,
+        icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'missedPenalty',
+        group: 'penalty',
+        label: t('poolDetail.rules.points.missedPenalty'),
+        value: playerScoring.missedPenalty,
+        icon: <IoMdCloseCircle style={{ color: 'red' }} />,
+      },
+      {
+        key: 'shootoutGoal',
+        group: 'shootout',
+        label: t('poolDetail.rules.points.shootoutGoal'),
+        value: playerScoring.shootoutGoal,
+        icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'shootoutPenaltySaved',
+        group: 'shootout',
+        label: t('poolDetail.rules.points.shootoutPenaltySaved'),
+        value: playerScoring.shootoutPenaltySaved,
+        icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />,
+      },
+      {
+        key: 'shootoutMissedPenalty',
+        group: 'shootout',
+        label: t('poolDetail.rules.points.shootoutMissedPenalty'),
+        value: playerScoring.shootoutMissedPenalty,
+        icon: <IoMdCloseCircle style={{ color: 'red' }} />,
+      },
+      {
         key: 'goldenBoot',
+        group: 'tournament',
         label: t('poolDetail.rules.points.goldenBoot'),
         value: playerScoring.award.goldenBoot,
         icon: <GiLeatherBoot style={{ color: 'gold' }} />,
       },
       {
         key: 'tournamentMvp',
+        group: 'tournament',
         label: t('poolDetail.rules.points.tournamentMvp'),
         value: playerScoring.award.tournamentMvp,
         icon: <FaStar style={{ color: 'gold' }} />,
       },
     ].filter((row) => isVisibleScoringValue(row.value));
+    const actionGroups = [
+      { key: 'match', label: t('poolDetail.players.actionGroups.match') },
+      { key: 'penalty', label: t('poolDetail.players.actionGroups.penalty') },
+      { key: 'shootout', label: t('poolDetail.players.actionGroups.shootout') },
+      { key: 'tournament', label: t('poolDetail.players.actionGroups.tournament') },
+    ];
+    const visiblePositionRows = playerRows.filter((row) =>
+      PLAYER_POSITIONS.some((position) => isVisibleScoringValue(row.values[position.key])),
+    );
+    const visibleActionGroups = actionGroups.filter((group) =>
+      (group.key === 'match' && visiblePositionRows.length > 0) ||
+      singleActionRows.some((row) => row.group === group.key),
+    );
 
     return (
       <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
@@ -272,47 +351,61 @@ export function PlayerScoringInfoSection({
               <FaExternalLinkAlt size={11} aria-hidden />
             </a>
           </p>
-          {playerRows.map((row) => {
-            const visiblePositions = PLAYER_POSITIONS.filter((position) => isVisibleScoringValue(row.values[position.key]));
-            if (visiblePositions.length === 0) return null;
-            return (
-              <div key={row.key} style={{ display: 'grid', gap: '0.2rem' }}>
-                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+          {visibleActionGroups.map((group, groupIndex) => (
+            <div
+              key={group.key}
+              style={{
+                display: 'grid',
+                gap: '0.35rem',
+                paddingTop: groupIndex > 0 ? '0.55rem' : '0.2rem',
+                borderTop: groupIndex > 0 ? '1px solid rgb(var(--border-subtle))' : undefined,
+              }}
+            >
+              <p style={{ margin: 0, color: 'rgb(var(--fg-subtle))', fontSize: '0.66rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                {group.label}
+              </p>
+              {group.key === 'match' ? visiblePositionRows.map((row) => {
+                const visiblePositions = PLAYER_POSITIONS.filter((position) => isVisibleScoringValue(row.values[position.key]));
+                return (
+                  <div key={row.key} style={{ display: 'grid', gap: '0.2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
+                        {row.icon}
+                        <strong>{row.label}</strong>
+                      </span>
+                      {visiblePositions.map((position) => (
+                        <span
+                          key={position.key}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'baseline',
+                            padding: '0.08rem 0.35rem',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'rgb(var(--bg-subtle))',
+                          }}
+                        >
+                          {t(`poolDetail.players.positions.${position.key}`)}
+                          <PointValue points={row.values[position.key]} />
+                        </span>
+                      ))}
+                    </div>
+                    {row.key === 'cleanSheets' ? (
+                      <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
+                        {t('poolDetail.rules.points.cleanSheetMinutesHint')}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              }) : null}
+              {singleActionRows.filter((row) => row.group === group.key).map((row) => (
+                <p key={row.key} style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
                     {row.icon}
                     <strong>{row.label}</strong>
                   </span>
-                  {visiblePositions.map((position, i) => (
-                    <span key={position.key}>{i > 0 ? ' / ' : ''}{t(`poolDetail.players.positions.${position.key}`)} {pointsLabel(row.values[position.key])}</span>
-                  ))}
+                  <PointValue points={row.value} />
                 </p>
-                {row.key === 'cleanSheets' ? (
-                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
-                    {t('poolDetail.rules.points.cleanSheetMinutesHint')}
-                  </p>
-                ) : null}
-                {row.key === 'goals' ? (
-                  <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
-                    {t('poolDetail.rules.points.penaltyShootoutHint')}
-                  </p>
-                ) : null}
-              </div>
-            );
-          })}
-          {singleActionRows.map((row) => (
-            <div key={row.key} style={{ display: 'grid', gap: '0.2rem' }}>
-              <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginRight: '0.35rem' }}>
-                  {row.icon}
-                  <strong>{row.label}</strong>
-                </span>
-                {pointsLabel(row.value)}
-              </p>
-              {row.key === 'penaltySaved' ? (
-                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.8rem', lineHeight: 1.4 }}>
-                  {t('poolDetail.rules.points.penaltyShootoutHint')}
-                </p>
-              ) : null}
+              ))}
             </div>
           ))}
         </div>
@@ -323,9 +416,13 @@ export function PlayerScoringInfoSection({
 export function resolvePlayerInfoScoring(value: any) {
   return {
     goal: resolvePositionScoring(value?.goal, DEFAULT_PLAYER_RULE_SCORING.goal),
+    penaltyGoal: Number.isFinite(Number(value?.penaltyGoal)) ? Math.max(0, Number(value.penaltyGoal)) : DEFAULT_PLAYER_RULE_SCORING.penaltyGoal,
     missedPenalty: Number.isFinite(Number(value?.missedPenalty)) ? Number(value.missedPenalty) : DEFAULT_PLAYER_RULE_SCORING.missedPenalty,
     mvp: Number.isFinite(Number(value?.mvp)) ? Number(value.mvp) : DEFAULT_PLAYER_RULE_SCORING.mvp,
     penaltySaved: Number.isFinite(Number(value?.penaltySaved)) ? Number(value.penaltySaved) : DEFAULT_PLAYER_RULE_SCORING.penaltySaved,
+    shootoutPenaltySaved: Number.isFinite(Number(value?.shootoutPenaltySaved)) ? Math.max(0, Number(value.shootoutPenaltySaved)) : DEFAULT_PLAYER_RULE_SCORING.shootoutPenaltySaved,
+    shootoutGoal: Number.isFinite(Number(value?.shootoutGoal)) ? Math.max(0, Number(value.shootoutGoal)) : DEFAULT_PLAYER_RULE_SCORING.shootoutGoal,
+    shootoutMissedPenalty: Number.isFinite(Number(value?.shootoutMissedPenalty)) ? Number(value.shootoutMissedPenalty) : DEFAULT_PLAYER_RULE_SCORING.shootoutMissedPenalty,
     cleanSheet: resolvePositionScoring(value?.cleanSheet, DEFAULT_PLAYER_RULE_SCORING.cleanSheet),
     assist: resolvePositionScoring(value?.assist, DEFAULT_PLAYER_RULE_SCORING.assist),
     yellowCard: Number.isFinite(Number(value?.yellowCard)) ? Number(value.yellowCard) : DEFAULT_PLAYER_RULE_SCORING.yellowCard,
@@ -363,19 +460,19 @@ const BRACKET_PHASES = [
 
 const DEFAULT_PLAYER_RULE_SCORING = {
   goal: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
+  penaltyGoal: 0,
   missedPenalty: 0,
   mvp: 0,
   penaltySaved: 0,
+  shootoutPenaltySaved: 0,
+  shootoutGoal: 0,
+  shootoutMissedPenalty: 0,
   cleanSheet: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
   assist: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
   yellowCard: 0,
   redCard: 0,
   award: { goldenBoot: 0, tournamentMvp: 0 },
 };
-
-function pointsLabel(points: number): string {
-    return points > 0 ? `+${points}` : String(points);
-}
 
 function isVisibleScoringValue(value: unknown): value is number {
   const parsed = Number(value);

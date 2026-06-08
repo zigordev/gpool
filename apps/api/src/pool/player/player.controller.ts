@@ -54,6 +54,25 @@ export class PlayerController {
     );
   }
 
+  @Put('award-result')
+  @ApiOperation({ summary: 'Select or clear a real tournament player award (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Tournament award result updated successfully' })
+  async updateAwardResult(
+    @Body() body: { award: PlayerAward; playerId: string; selected: boolean },
+    @Req() req: Request,
+  ) {
+    const user = req.user as any;
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('Only administrators can update tournament awards');
+    }
+    return this.playerService.updateTournamentPlayerAward(
+      body.playerId,
+      body.award,
+      body.selected,
+      user.role,
+    );
+  }
+
   @Put(':playerId/stats')
   @ApiOperation({ summary: 'Update tournament player stats (Admin only)' })
   @ApiResponse({ status: 200, description: 'Player stats updated successfully' })

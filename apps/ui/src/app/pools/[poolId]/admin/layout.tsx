@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/Badge';
 import { AdminProvider, fromDateTimeLocal, useAdminContext } from '@/contexts/AdminContext';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
-import { FaLayerGroup, FaPerson, FaRankingStar } from 'react-icons/fa6';
+import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
+import { GiSoccerKick } from 'react-icons/gi';
 import { IoSettings } from 'react-icons/io5';
 
 function AdminNav({ poolId }: { poolId: string }) {
@@ -24,7 +25,7 @@ function AdminNav({ poolId }: { poolId: string }) {
     { segment: 'ranking', href: `/pools/${poolId}/admin/ranking`, label: t('poolDetail.tabs.ranking'),    shortLabel: t('poolDetail.tabs.short.ranking'),    icon: FaRankingStar },
     { segment: 'groups',  href: `/pools/${poolId}/admin/groups`,  label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: groupConfigMissingCount },
     { segment: 'final',   href: `/pools/${poolId}/admin/final`,   label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: finalConfigMissingCount },
-    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),    shortLabel: t('poolDetail.tabs.short.players'),    icon: FaPerson, missingCount: playersConfigMissingCount },
+    { segment: 'players', href: `/pools/${poolId}/admin/players`, label: t('poolDetail.tabs.players'),    shortLabel: t('poolDetail.tabs.short.players'),    icon: GiSoccerKick, missingCount: playersConfigMissingCount },
   ];
 
   useLayoutEffect(() => {

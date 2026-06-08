@@ -60,11 +60,8 @@ export class PoolService {
     return pool;
   }
 
-  async listPools(filters?: { userId?: string; userRole?: string }) {
-    const pools =
-      filters?.userId && filters?.userRole === 'admin'
-        ? await this.poolRepository.listPools({ adminUserId: filters.userId })
-        : await this.poolRepository.listPools();
+  async listPools(filters?: { userId?: string }) {
+    const pools = await this.poolRepository.listPools();
 
     const userMemberships = filters?.userId
       ? await this.poolRepository.getUserPools(filters.userId)

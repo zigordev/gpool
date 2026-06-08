@@ -3,25 +3,30 @@
 import { useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
-import { GiLeatherBoot } from 'react-icons/gi';
+import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
 import { IoMdCloseCircle } from 'react-icons/io';
 import { LuRectangleVertical } from 'react-icons/lu';
-import { PiBoxingGlove } from 'react-icons/pi';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
+import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { countryIsoCode } from '@/lib/country-flags';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
+type PlayerActionGroup = 'match' | 'penalty' | 'shootout';
 
-const STAT_COLUMNS: Array<{ key: PlayerStatKey; icon: React.ReactNode; labelKey: string }> = [
-  { key: 'goals', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.goals' },
-  { key: 'assists', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.assists' },
-  { key: 'mvps', icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.mvps' },
-  { key: 'penaltiesSaved', icon: <PiBoxingGlove style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.penaltiesSaved' },
-  { key: 'cleanSheets', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.cleanSheets' },
-  { key: 'yellowCards', icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size={13} />, labelKey: 'poolDetail.players.actions.yellowCards' },
-  { key: 'redCards', icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.redCards' },
-  { key: 'missedPenalties', icon: <IoMdCloseCircle style={{ color: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.missedPenalties' },
+const STAT_COLUMNS: Array<{ key: PlayerStatKey; group: PlayerActionGroup; icon: React.ReactNode; labelKey: string }> = [
+  { key: 'goals', group: 'match', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.goals' },
+  { key: 'assists', group: 'match', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.assists' },
+  { key: 'mvps', group: 'match', icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.mvps' },
+  { key: 'cleanSheets', group: 'match', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.cleanSheets' },
+  { key: 'yellowCards', group: 'match', icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size={13} />, labelKey: 'poolDetail.players.actions.yellowCards' },
+  { key: 'redCards', group: 'match', icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.redCards' },
+  { key: 'penaltyGoals', group: 'penalty', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.penaltyGoals' },
+  { key: 'penaltiesSaved', group: 'penalty', icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size={15} />, labelKey: 'poolDetail.players.actions.penaltiesSaved' },
+  { key: 'missedPenalties', group: 'penalty', icon: <IoMdCloseCircle style={{ color: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.missedPenalties' },
+  { key: 'shootoutGoals', group: 'shootout', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size={13} />, labelKey: 'poolDetail.players.actions.shootoutGoals' },
+  { key: 'shootoutPenaltiesSaved', group: 'shootout', icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size={15} />, labelKey: 'poolDetail.players.actions.shootoutPenaltiesSaved' },
+  { key: 'shootoutMissedPenalties', group: 'shootout', icon: <IoMdCloseCircle style={{ color: 'red' }} size={13} />, labelKey: 'poolDetail.players.actions.shootoutMissedPenalties' },
 ];
 
 interface PlayerStatsTableProps {
@@ -32,7 +37,9 @@ interface PlayerStatsTableProps {
   t: (key: string, params?: Record<string, string | number>) => string;
   editable?: boolean;
   updatingPlayerStat?: string | null;
+  updatingPlayerAward?: string | null;
   onStatChange?: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => void;
+  onAwardToggle?: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => void;
   isStatVisible?: (player: TournamentPlayer, stat: PlayerStatKey) => boolean;
   toolbar?: React.ReactNode;
 }
@@ -45,7 +52,9 @@ export function PlayerStatsTable({
   t,
   editable = false,
   updatingPlayerStat,
+  updatingPlayerAward,
   onStatChange,
+  onAwardToggle,
   isStatVisible = () => true,
   toolbar,
 }: Readonly<PlayerStatsTableProps>) {
@@ -54,6 +63,12 @@ export function PlayerStatsTable({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const visibleStatColumns = STAT_COLUMNS.filter((col) => players.some((player) => isStatVisible(player, col.key)));
+  const visibleGroups = (['match', 'penalty', 'shootout'] as const)
+    .map((group) => ({
+      key: group,
+      columns: visibleStatColumns.filter((column) => column.group === group),
+    }))
+    .filter((group) => group.columns.length > 0);
   const visibleStatKey = visibleStatColumns.map((col) => col.key).join('|');
   const tableMinWidth = `${Math.max(520, 360 + visibleStatColumns.length * (editable ? 92 : 64))}px`;
 
@@ -124,13 +139,39 @@ export function PlayerStatsTable({
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: tableMinWidth }}>
           <thead>
             <tr style={{ background: 'rgb(var(--panel-muted-bg-solid))', borderBottom: '1px solid rgb(var(--border))' }}>
-              <th style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}>
+              <th rowSpan={2} style={{ ...thStyle, textAlign: 'left', minWidth: '11rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}>
                 {t('poolDetail.players.title')}
               </th>
-              {visibleStatColumns.map((col) => (
+              {visibleGroups.map((group, index) => (
+                <th
+                  key={group.key}
+                  colSpan={group.columns.length}
+                  style={{
+                    ...groupThStyle,
+                    borderLeft: index > 0 ? '2px solid rgb(var(--border))' : undefined,
+                  }}
+                >
+                  {t(`poolDetail.players.actionGroups.${group.key}`)}
+                </th>
+              ))}
+              <th colSpan={2} style={{ ...groupThStyle, borderLeft: '2px solid rgb(var(--border))' }}>
+                {t('poolDetail.players.actionGroups.tournament')}
+              </th>
+              <th rowSpan={2} style={{ ...sortableTh('totalPoints'), borderLeft: '2px solid rgb(var(--border))' }} onClick={() => handleSort('totalPoints')}>
+                {t('poolDetail.ranking.totalPoints')}{sortIndicator('totalPoints')}
+              </th>
+            </tr>
+            <tr style={{ background: 'rgb(var(--panel-muted-bg-solid))', borderBottom: '1px solid rgb(var(--border))' }}>
+              {visibleStatColumns.map((col, index) => (
                 <th
                   key={col.key}
-                  style={sortableTh(col.key)}
+                  style={{
+                    ...sortableTh(col.key),
+                    top: '1.85rem',
+                    borderLeft: index > 0 && visibleStatColumns[index - 1].group !== col.group
+                      ? '2px solid rgb(var(--border))'
+                      : undefined,
+                  }}
                   onClick={() => handleSort(col.key)}
                   title={t(col.labelKey)}
                 >
@@ -140,14 +181,11 @@ export function PlayerStatsTable({
                   </span>
                 </th>
               ))}
-              <th style={thStyle} title={t('poolDetail.players.awards.goldenBoot')}>
+              <th style={{ ...thStyle, top: '1.85rem', borderLeft: '2px solid rgb(var(--border))' }} title={t('poolDetail.players.awards.goldenBoot')}>
                 <GiLeatherBoot size={15} style={{ color: 'gold' }} />
               </th>
-              <th style={thStyle} title={t('poolDetail.players.awards.tournamentMvp')}>
+              <th style={{ ...thStyle, top: '1.85rem' }} title={t('poolDetail.players.awards.tournamentMvp')}>
                 <FaStar size={15} style={{ color: 'gold' }} />
-              </th>
-              <th style={sortableTh('totalPoints')} onClick={() => handleSort('totalPoints')}>
-                {t('poolDetail.ranking.totalPoints')}{sortIndicator('totalPoints')}
               </th>
             </tr>
           </thead>
@@ -214,12 +252,21 @@ export function PlayerStatsTable({
                     </div>
                   </td>
 
-                  {visibleStatColumns.map((col) => {
+                  {visibleStatColumns.map((col, columnIndex) => {
                     const value = player[col.key] || 0;
                     const isUpdating = editable && updatingPlayerStat === `${player.playerId}:${col.key}`;
                     const statVisibleForPlayer = isStatVisible(player, col.key);
                     return (
-                      <td key={col.key} style={tdStyle}>
+                      <td
+                        key={col.key}
+                        style={{
+                          ...tdStyle,
+                          borderLeft: columnIndex > 0 &&
+                            visibleStatColumns[columnIndex - 1].group !== col.group
+                            ? '2px solid rgb(var(--border))'
+                            : undefined,
+                        }}
+                      >
                         {!statVisibleForPlayer ? null : editable ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.12rem' }}>
                             <button
@@ -252,25 +299,71 @@ export function PlayerStatsTable({
                       </td>
                     );
                   })}
-                  <td style={tdStyle}>
-                    <GiLeatherBoot
-                      size={20}
-                      style={{
-                        color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
-                        opacity: isGoldenBoot ? 1 : 0.3,
-                      }}
-                    />
+                  <td style={{ ...tdStyle, borderLeft: '2px solid rgb(var(--border))' }}>
+                    {onAwardToggle ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-icon"
+                        aria-pressed={isGoldenBoot}
+                        aria-label={t('adminResults.players.awardWinners.toggleGoldenBoot', { player: player.name })}
+                        title={t('adminResults.players.awardWinners.toggleGoldenBoot', { player: player.name })}
+                        disabled={updatingPlayerAward === `golden_boot:${player.playerId}`}
+                        onClick={() => onAwardToggle(player, 'golden_boot', !isGoldenBoot)}
+                        style={{ width: '2rem', height: '2rem' }}
+                      >
+                        <GiLeatherBoot
+                          size={20}
+                          style={{
+                            color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
+                            opacity: isGoldenBoot ? 1 : 0.3,
+                            transform: isGoldenBoot ? 'scale(1.08)' : 'scale(1)',
+                            transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
+                          }}
+                        />
+                      </button>
+                    ) : (
+                      <GiLeatherBoot
+                        size={20}
+                        style={{
+                          color: isGoldenBoot ? 'gold' : 'rgb(var(--fg-muted))',
+                          opacity: isGoldenBoot ? 1 : 0.3,
+                        }}
+                      />
+                    )}
                   </td>
                   <td style={tdStyle}>
-                    <FaStar
-                      size={20}
-                      style={{
-                        color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
-                        opacity: isMVP ? 1 : 0.3,
-                      }}
-                    />
+                    {onAwardToggle ? (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-icon"
+                        aria-pressed={isMVP}
+                        aria-label={t('adminResults.players.awardWinners.toggleTournamentMvp', { player: player.name })}
+                        title={t('adminResults.players.awardWinners.toggleTournamentMvp', { player: player.name })}
+                        disabled={updatingPlayerAward === `tournament_mvp:${player.playerId}`}
+                        onClick={() => onAwardToggle(player, 'tournament_mvp', !isMVP)}
+                        style={{ width: '2rem', height: '2rem' }}
+                      >
+                        <FaStar
+                          size={20}
+                          style={{
+                            color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
+                            opacity: isMVP ? 1 : 0.3,
+                            transform: isMVP ? 'scale(1.08)' : 'scale(1)',
+                            transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
+                          }}
+                        />
+                      </button>
+                    ) : (
+                      <FaStar
+                        size={20}
+                        style={{
+                          color: isMVP ? 'gold' : 'rgb(var(--fg-muted))',
+                          opacity: isMVP ? 1 : 0.3,
+                        }}
+                      />
+                    )}
                   </td>
-                  <td style={numberStyleGold}>{totalPts}</td>
+                  <td style={{ ...numberStyleGold, borderLeft: '2px solid rgb(var(--border))' }}>{totalPts}</td>
                 </tr>
               );
             })}
@@ -348,6 +441,15 @@ const thStyle: React.CSSProperties = {
   top: 0,
   zIndex: 2,
   background: 'rgb(var(--panel-muted-bg-solid))',
+};
+
+const groupThStyle: React.CSSProperties = {
+  ...thStyle,
+  padding: '0.35rem 0.6rem',
+  height: '1.85rem',
+  boxSizing: 'border-box',
+  fontSize: '0.56rem',
+  color: 'rgb(var(--fg-subtle))',
 };
 
 const tdStyle: React.CSSProperties = {

@@ -82,6 +82,7 @@
       "saveScoring": "Could not save the scoring configuration",
       "selectPoolFirst": "Select a pool first",
       "updateFairPlay": "Could not update the fair-play score",
+      "updatePlayerAward": "Could not update the player award",
       "updatePlayerStats": "Could not update player stats",
       "updateTeam": "Could not update the team"
     },
@@ -104,6 +105,12 @@
       "title": "Group phase"
     },
     "players": {
+      "actionGroups": {
+        "match": "Match",
+        "penalty": "Penalty",
+        "shootout": "Penalty shootout",
+        "tournament": "Tournament"
+      },
       "actions": {
         "assists": "Assists",
         "cleanSheets": "Clean sheets",
@@ -111,13 +118,19 @@
         "missedPenalties": "Missed penalties",
         "mvps": "MVP",
         "penaltiesSaved": "Penalties saved",
+        "penaltyGoals": "Penalty goals",
         "redCards": "Red cards",
+        "shootoutGoals": "Penalty shootout goals",
+        "shootoutMissedPenalties": "Missed shootout penalties",
+        "shootoutPenaltiesSaved": "Shootout penalties saved",
         "yellowCards": "Yellow cards"
       },
       "awardWinners": {
         "goldenBoot": "Golden Boot winners",
         "goldenBootHint": "You can select multiple players if they share the award.",
         "none": "None selected",
+        "toggleGoldenBoot": "Toggle Golden Boot selection for {player}",
+        "toggleTournamentMvp": "Toggle tournament MVP selection for {player}",
         "tournamentMvp": "Tournament MVP",
         "tournamentMvpHint": "There can only be one tournament MVP."
       },
@@ -156,8 +169,12 @@
         "goldenBoot": "Golden Boot",
         "missedPenalty": "Missed penalty",
         "mvp": "MVP",
+        "penaltyGoal": "Penalty goal",
         "penaltySaved": "Penalty saved",
         "redCard": "Red card",
+        "shootoutGoal": "Penalty shootout goal",
+        "shootoutMissedPenalty": "Missed penalty in a shootout",
+        "shootoutPenaltySaved": "Penalty saved in a shootout",
         "tournamentMvp": "Tournament MVP",
         "yellowCard": "Yellow card"
       },
@@ -405,6 +422,12 @@
       "member": "User"
     },
     "players": {
+      "actionGroups": {
+        "match": "Match",
+        "penalty": "Penalty",
+        "shootout": "Penalty shootout",
+        "tournament": "Tournament"
+      },
       "actions": {
         "assists": "Assists",
         "cleanSheets": "Clean sheets",
@@ -412,7 +435,11 @@
         "missedPenalties": "Missed penalties",
         "mvps": "MVP",
         "penaltiesSaved": "Penalties saved",
+        "penaltyGoals": "Penalty goals",
         "redCards": "Red cards",
+        "shootoutGoals": "Penalty shootout goals",
+        "shootoutMissedPenalties": "Missed shootout penalties",
+        "shootoutPenaltiesSaved": "Shootout penalties saved",
         "yellowCards": "Yellow cards"
       },
       "awards": {
@@ -452,12 +479,12 @@
     },
     "ranking": {
       "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",
-      "finalPhasePoints": "Final phase points",
-      "groupPhasePoints": "Group phase points",
-      "playerPoints": "Player points",
+      "finalPhasePoints": "Final phase",
+      "groupPhasePoints": "Group phase",
+      "playerPoints": "Players",
       "prize": "Prize",
       "title": "Ranking",
-      "totalPoints": "Total points",
+      "totalPoints": "Total",
       "user": "User"
     },
     "rules": {
@@ -475,30 +502,36 @@
         "assists": "Assists",
         "bracketRound": "Correct side of bracket +{exact} / Wrong side of bracket +{wrong}",
         "cleanSheetMinutesHint": "Points will only be awarded if the player plays 60 minutes or more.",
-        "cleanSheets": "Clean sheet: ",
-        "correctWinner": "1X2: ",
-        "exactResult": "Exact result: ",
+        "cleanSheets": "Clean sheet",
+        "correctBracketPosition": "Correct position",
+        "correctWinner": "1X2",
+        "exactResult": "Exact result",
         "fifaRegulationsLink": "View the official FIFA regulations",
         "finalPhaseDescription": "In this phase, you can earn points by predicting which teams reach each position in the bracket.",
-        "goals": "Goals: ",
-        "goldenBoot": "Golden Boot: ",
+        "goals": "Goals",
+        "goldenBoot": "Golden Boot",
         "groupPhaseDescription": "You can earn points by predicting the correct 1X2 outcome or the exact result.",
-        "missedPenalty": "Missed penalty: ",
-        "mvp": "Match MVP: ",
-        "officialPlayerListLabel": "Official player list:",
+        "missedPenalty": "Missed penalty",
+        "mvp": "MVP",
+        "officialPlayerListLabel": "Official player list",
         "officialPlayerListLink": "Official FIFA list",
-        "penaltySaved": "Penalty saved: ",
+        "penaltyGoal": "Penalty goal",
+        "penaltySaved": "Penalty saved",
         "penaltyShootoutHint": "Penalty shootouts will not be taken into account.",
         "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions. The ranking criteria applied are based on the official FIFA regulations.",
-        "redCard": "Red card: ",
+        "redCard": "Red card",
+        "shootoutGoal": "Penalty shootout goal",
+        "shootoutMissedPenalty": "Missed penalty in a shootout",
+        "shootoutPenaltySaved": "Penalty saved in a shootout",
         "title": "Scoring system",
-        "tournamentMvp": "Tournament MVP: ",
-        "tournamentWinner": "Tournament winner: ",
-        "yellowCard": "Yellow card: "
+        "tournamentMvp": "MVP",
+        "tournamentWinner": "Tournament winner",
+        "wrongBracketPosition": "Correct team in another position",
+        "yellowCard": "Yellow card"
       },
       "poolConfig": {
-        "deadline": "Deadline: ",
-        "entryFee": "Fee: ",
+        "deadline": "Deadline",
+        "entryFee": "Fee",
         "prizes": "{count} prize positions",
         "title": "General"
       },

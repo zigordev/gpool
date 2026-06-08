@@ -50,7 +50,6 @@ export class PoolController {
     const user = req?.user as any;
     return this.poolService.listPools({
       userId: user?.userId,
-      userRole: user?.role,
     });
   }
 
