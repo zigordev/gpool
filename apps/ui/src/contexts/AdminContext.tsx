@@ -297,9 +297,6 @@ export function buildConfigPayloadFrom(input: {
         rounds: input.bracketScoring.rounds,
       }
     : null;
-  const playerScoring = playerScoringMissingCount(input.playerScoring) === 0
-    ? input.playerScoring
-    : null;
   const prizeTotal = input.prizeDistribution.reduce(
     (sum, row) => sum + row.percentage,
     0,
@@ -311,7 +308,7 @@ export function buildConfigPayloadFrom(input: {
   return {
     scoring,
     bracketScoring,
-    playerScoring,
+    playerScoring: input.playerScoring,
     playerSelectionLimits: input.playerSelectionLimits,
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
