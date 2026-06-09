@@ -53,9 +53,19 @@ export type ApiOperation = {
   responseCodes: ['200'];
 } | {
   method: 'GET';
+  path: '/api/pools/{poolId}/bracket/winner-insights';
+  operationId: 'BracketController_getWinnerInsights';
+  responseCodes: ['200', '403'];
+} | {
+  method: 'GET';
   path: '/api/pools/{poolId}/matches';
   operationId: 'MatchController_getMatches';
   responseCodes: ['200'];
+} | {
+  method: 'GET';
+  path: '/api/pools/{poolId}/matches/insights/{matchType}/{matchId}';
+  operationId: 'MatchController_getMatchInsights';
+  responseCodes: ['200', '400', '403', '404'];
 } | {
   method: 'GET';
   path: '/api/pools/{poolId}/matches/predictions';
@@ -91,6 +101,11 @@ export type ApiOperation = {
   path: '/api/pools/{poolId}/players';
   operationId: 'PlayerController_getPlayers';
   responseCodes: ['200'];
+} | {
+  method: 'GET';
+  path: '/api/pools/{poolId}/players/selection-statistics';
+  operationId: 'PlayerController_getSelectionStatistics';
+  responseCodes: ['200', '403'];
 } | {
   method: 'GET';
   path: '/metrics';
@@ -218,7 +233,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 43 as const;
+export const API_OPERATION_COUNT = 46 as const;
 
 export const API_OPERATIONS = [
   {
@@ -309,10 +324,30 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/pools/{poolId}/bracket/winner-insights",
+    "operationId": "BracketController_getWinnerInsights",
+    "responseCodes": [
+      "200",
+      "403"
+    ]
+  },
+  {
+    "method": "GET",
     "path": "/api/pools/{poolId}/matches",
     "operationId": "MatchController_getMatches",
     "responseCodes": [
       "200"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/pools/{poolId}/matches/insights/{matchType}/{matchId}",
+    "operationId": "MatchController_getMatchInsights",
+    "responseCodes": [
+      "200",
+      "400",
+      "403",
+      "404"
     ]
   },
   {
@@ -373,6 +408,15 @@ export const API_OPERATIONS = [
     "operationId": "PlayerController_getPlayers",
     "responseCodes": [
       "200"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/pools/{poolId}/players/selection-statistics",
+    "operationId": "PlayerController_getSelectionStatistics",
+    "responseCodes": [
+      "200",
+      "403"
     ]
   },
   {

@@ -15,6 +15,7 @@ import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import { selectStyles } from '@/lib/select-styles';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PlayerScoringInfoSection, resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
+import { PlayerSelectionStatistics } from '@/components/pool/PlayerSelectionStatistics';
 
 type PlayerOption = { value: string; label: string; teamName: string; teamId: string; isDisabled: boolean };
 
@@ -23,7 +24,7 @@ export default function PlayersPage() {
   const {
     players, playerSelections, playerAwardSelections, savingPlayerSlot,
     playerSelectionLimits,
-    isPastPoolDeadline, pool, handlePlayerSelection, handlePlayerAwardSelection,
+    isPastPoolDeadline, pool, poolId, handlePlayerSelection, handlePlayerAwardSelection,
   } = usePoolContext();
   const playerInfoScoring = resolvePlayerInfoScoring(pool?.config?.playerScoring);
 
@@ -72,7 +73,10 @@ export default function PlayersPage() {
   if (players.length === 0) {
     return (
       <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
+        <PlayerScoringInfoSection
+          playerScoring={playerInfoScoring}
+          defaultExpanded={false}
+        />
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('poolDetail.players.empty')}
         </p>
@@ -82,7 +86,11 @@ export default function PlayersPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
+      <PlayerScoringInfoSection
+        playerScoring={playerInfoScoring}
+        defaultExpanded={false}
+      />
+      <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
 
       <section
         className="surface players-view-surface"

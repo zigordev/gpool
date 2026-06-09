@@ -1,5 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
+import { resolvePoolDeadline } from '../pool-deadline.util';
 import {
   isSelectionWithinLimits,
   PLAYER_SELECTION_POSITIONS,
@@ -21,6 +28,7 @@ export type PlayerStatKey =
   | 'yellowCards'
   | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
+export type PlayerMatchType = 'group' | 'final';
 
 const POSITIONS: PlayerPosition[] = [...PLAYER_SELECTION_POSITIONS];
 const STATS: PlayerStatKey[] = [
@@ -234,6 +242,85 @@ export function computePlayerAwardPoints(
 export class PlayerService {
   constructor(private readonly poolRepository: PoolRepository) {}
 
+  async getPlayerSelectionStatistics(
+    poolId: string,
+    requesterUserId: string,
+    requesterRole: string,
+  ) {
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    if (Date.now() < resolvePoolDeadline(pool)) {
+      throw new ForbiddenException('Player selection statistics are only available after the prediction deadline');
+    }
+    if (!hasPermission(requesterRole || 'user', 'admin')) {
+      const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
+      if (!membership || membership.status !== 'active') {
+        throw new ForbiddenException('You must be an active member of this pool');
+      }
+    }
+
+    const [members, selections, awardSelections] = await Promise.all([
+      this.poolRepository.getPoolMembers(poolId),
+      this.poolRepository.getPlayerSelectionsForPool(poolId),
+      this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
+    ]);
+    const activeUserIds = new Set(
+      members
+        .filter((member: any) => member.status === 'active')
+        .map((member: any) => member.userId),
+    );
+    const memberCount = activeUserIds.size;
+    const percentage = (count: number) =>
+      memberCount > 0 ? Math.round((count / memberCount) * 1000) / 10 : 0;
+    const aggregate = (items: any[]) => {
+      const byPlayer = new Map<string, any>();
+      items
+        .filter((item) => activeUserIds.has(item.userId))
+        .forEach((item) => {
+          const current = byPlayer.get(item.playerId);
+          if (current) {
+            current.count += 1;
+            return;
+          }
+          byPlayer.set(item.playerId, {
+            playerId: item.playerId,
+            name: item.name,
+            teamId: item.teamId,
+            teamName: item.teamName,
+            position: item.position,
+            imageUrl: item.imageUrl,
+            count: 1,
+          });
+        });
+
+      return [...byPlayer.values()]
+        .map((item) => ({ ...item, percentage: percentage(item.count) }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    };
+
+    return {
+      memberCount,
+      awards: {
+        goldenBoot: aggregate(
+          awardSelections.filter((selection: any) => selection.award === 'golden_boot'),
+        ),
+        tournamentMvp: aggregate(
+          awardSelections.filter((selection: any) => selection.award === 'tournament_mvp'),
+        ),
+      },
+      positions: Object.fromEntries(
+        POSITIONS.map((position) => [
+          position,
+          aggregate(
+            selections.filter((selection: any) => selection.position === position),
+          ).slice(0, 5),
+        ]),
+      ),
+    };
+  }
+
   async getPlayerSelectionState(poolId: string, userId: string) {
     const [pool, players, selections, awardSelections, tournamentAwards] = await Promise.all([
       this.poolRepository.getPool(poolId),
@@ -299,8 +386,14 @@ export class PlayerService {
   }
 
   async updatePlayerStats(
+    poolId: string,
     playerId: string,
-    stats: Partial<Record<PlayerStatKey, number>>,
+    input: {
+      matchId: string;
+      matchType: PlayerMatchType;
+      stat: PlayerStatKey;
+      delta: number;
+    },
     userRole: string,
   ) {
     if (userRole !== 'admin') {
@@ -310,32 +403,37 @@ export class PlayerService {
     if (!player) {
       throw new NotFoundException(`Player with ID ${playerId} not found`);
     }
-    const next: Record<PlayerStatKey, number> = {
-      goals: player.goals || 0,
-      penaltyGoals: player.penaltyGoals || 0,
-      missedPenalties: player.missedPenalties || 0,
-      mvps: player.mvps || 0,
-      penaltiesSaved: player.penaltiesSaved || 0,
-      shootoutPenaltiesSaved: player.shootoutPenaltiesSaved || 0,
-      shootoutGoals: player.shootoutGoals || 0,
-      shootoutMissedPenalties: player.shootoutMissedPenalties || 0,
-      cleanSheets: player.cleanSheets || 0,
-      assists: player.assists || 0,
-      yellowCards: player.yellowCards || 0,
-      redCards: player.redCards || 0,
-    };
-
-    for (const key of STATS) {
-      if (stats[key] !== undefined) {
-        const value = Number(stats[key]);
-        if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
-          throw new BadRequestException(`${key} must be a non-negative integer`);
-        }
-        next[key] = value;
-      }
+    if (!input.matchId?.trim()) {
+      throw new BadRequestException('A match must be selected');
+    }
+    if (input.matchType !== 'group' && input.matchType !== 'final') {
+      throw new BadRequestException('Invalid match type');
+    }
+    if (!STATS.includes(input.stat)) {
+      throw new BadRequestException('Invalid player stat');
+    }
+    if (!Number.isInteger(input.delta) || ![-1, 1].includes(input.delta)) {
+      throw new BadRequestException('Delta must be either -1 or 1');
     }
 
-    return this.poolRepository.updateTournamentPlayerStats(playerId, next);
+    const match = await this.poolRepository.getTournamentMatch(poolId, input.matchType, input.matchId);
+    if (!match) {
+      throw new NotFoundException(`Match with ID ${input.matchId} not found`);
+    }
+    if (!match.homeTeamId || !match.awayTeamId) {
+      throw new BadRequestException('The selected match does not have both teams assigned yet');
+    }
+    if (player.teamId !== match.homeTeamId && player.teamId !== match.awayTeamId) {
+      throw new BadRequestException('The selected player does not participate in this match');
+    }
+
+    return this.poolRepository.incrementTournamentPlayerMatchStat(
+      playerId,
+      input.matchType,
+      input.matchId,
+      input.stat,
+      input.delta,
+    );
   }
 
   async updatePlayerSelection(

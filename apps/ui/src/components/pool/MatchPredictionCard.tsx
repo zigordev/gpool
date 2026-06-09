@@ -20,6 +20,10 @@ interface Props {
   disabled?: boolean;
   onChange?: (side: 'home' | 'away', value: string) => void;
   isPastDeadline?: boolean;
+  onOpenInsights?: () => void;
+  showTeams?: boolean;
+  showMatchDate?: boolean;
+  showRealResult?: boolean;
 }
 
 const STATE_TONES: Record<
@@ -49,6 +53,10 @@ export function MatchPredictionCard({
   disabled = false,
   onChange,
   isPastDeadline,
+  onOpenInsights,
+  showTeams = true,
+  showMatchDate = true,
+  showRealResult = true,
 }: Readonly<Props>) {
   const hasRealResult = isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
   const baseId = useId();
@@ -65,10 +73,21 @@ export function MatchPredictionCard({
 
   return (
     <article
+      role={onOpenInsights ? 'button' : undefined}
+      tabIndex={onOpenInsights ? 0 : undefined}
+      onClick={onOpenInsights}
+      onKeyDown={(event) => {
+        if (onOpenInsights && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onOpenInsights();
+        }
+      }}
       style={{
         position: 'relative',
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)',
+        gridTemplateColumns: showTeams
+          ? 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)'
+          : 'minmax(0, 1fr)',
         alignItems: 'center',
         gap: '0.25rem 0.35rem',
         padding: '0.38rem 0.5rem',
@@ -79,8 +98,21 @@ export function MatchPredictionCard({
         border: `${hasStatusBorder ? 3 : 1}px solid ${tone.border}`,
         boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
+        cursor: onOpenInsights ? 'pointer' : undefined,
       }}
     >
+      {onOpenInsights ? (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            borderRadius: 'inherit',
+            cursor: 'pointer',
+          }}
+        />
+      ) : null}
       {isPastDeadline && pointsEarned ? (
         <PointsBadge
           points={pointsEarned}
@@ -88,25 +120,27 @@ export function MatchPredictionCard({
         />
       ) : null
       }
-      <p
-        style={{
-          fontSize: '0.82rem',
-          fontWeight: 600,
-          color: 'rgb(var(--fg))',
-          margin: 0,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-        }}
-      >
-        <ReactCountryFlag countryCode={countryIsoCode(homeTeamName)} svg style={{ width: '2em', height: '2em' }} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{homeTeamName}</span>
-      </p>
+      {showTeams ? (
+        <p
+          style={{
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'rgb(var(--fg))',
+            margin: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <ReactCountryFlag countryCode={countryIsoCode(homeTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{homeTeamName}</span>
+        </p>
+      ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2rem 0.45rem 2rem', alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2rem 0.45rem 2rem', alignItems: 'center', justifyContent: 'center' }}>
         <input
           id={`${baseId}-home`}
           type="text"
@@ -177,24 +211,26 @@ export function MatchPredictionCard({
         />
       </div>
 
-      <p
-        style={{
-          fontSize: '0.82rem',
-          fontWeight: 600,
-          color: 'rgb(var(--fg))',
-          margin: 0,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          justifyContent: 'flex-end',
-        }}
-      >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{awayTeamName}</span>
-        <ReactCountryFlag countryCode={countryIsoCode(awayTeamName)} svg style={{ width: '2em', height: '2em' }} />
-      </p>
+      {showTeams ? (
+        <p
+          style={{
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            color: 'rgb(var(--fg))',
+            margin: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{awayTeamName}</span>
+          <ReactCountryFlag countryCode={countryIsoCode(awayTeamName)} svg style={{ width: '2em', height: '2em' }} />
+        </p>
+      ) : null}
 
       <div
         style={{
@@ -202,7 +238,7 @@ export function MatchPredictionCard({
           minWidth: 0,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: showMatchDate ? 'space-between' : 'flex-end',
           gap: '0.5rem',
           paddingTop: '0.28rem',
           borderTop: '1px dashed rgb(var(--border) / 0.75)',
@@ -211,19 +247,21 @@ export function MatchPredictionCard({
           color: 'rgb(var(--fg-muted))',
         }}
       >
-        <span
-          style={{
-            maxWidth: '100%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            fontWeight: 600,
-            color: 'rgb(var(--fg-subtle))',
-            minWidth: 0,
-          }}
-        >
-          {matchDate}
-        </span>
+        {showMatchDate ? (
+          <span
+            style={{
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontWeight: 600,
+              color: 'rgb(var(--fg-subtle))',
+              minWidth: 0,
+            }}
+          >
+            {matchDate}
+          </span>
+        ) : null}
         <span
           style={{
             maxWidth: '100%',
@@ -244,7 +282,10 @@ export function MatchPredictionCard({
                 : 'rgb(var(--fg-muted))',
           }}
         >
-          {hasRealResult ? `${homeResult} – ${awayResult}${badgeLabel ? ' · ' : ''}` : ''}{badgeLabel}
+          {showRealResult && hasRealResult
+            ? `${homeResult} – ${awayResult}${badgeLabel ? ' · ' : ''}`
+            : ''}
+          {badgeLabel}
         </span>
       </div>
     </article>

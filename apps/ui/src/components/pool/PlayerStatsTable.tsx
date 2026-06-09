@@ -41,6 +41,7 @@ interface PlayerStatsTableProps {
   onStatChange?: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => void;
   onAwardToggle?: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => void;
   isStatVisible?: (player: TournamentPlayer, stat: PlayerStatKey) => boolean;
+  statsDisabled?: boolean;
   toolbar?: React.ReactNode;
 }
 
@@ -56,6 +57,7 @@ export function PlayerStatsTable({
   onStatChange,
   onAwardToggle,
   isStatVisible = () => true,
+  statsDisabled = false,
   toolbar,
 }: Readonly<PlayerStatsTableProps>) {
   const [sortKey, setSortKey] = useState<PlayerSortKey>('totalPoints');
@@ -272,7 +274,7 @@ export function PlayerStatsTable({
                             <button
                               type="button"
                               className="btn btn-ghost btn-icon"
-                              disabled={isUpdating || value <= 0}
+                              disabled={statsDisabled || isUpdating || value <= 0}
                               title={t('adminResults.players.decrease')}
                               aria-label={t('adminResults.players.decrease')}
                               onClick={() => onStatChange?.(player, col.key, -1)}
@@ -284,7 +286,7 @@ export function PlayerStatsTable({
                             <button
                               type="button"
                               className="btn btn-ghost btn-icon"
-                              disabled={isUpdating}
+                              disabled={statsDisabled || isUpdating}
                               title={t('adminResults.players.increase')}
                               aria-label={t('adminResults.players.increase')}
                               onClick={() => onStatChange?.(player, col.key, 1)}
