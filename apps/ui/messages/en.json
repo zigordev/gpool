@@ -422,11 +422,22 @@
       "result": "Result: {home} - {away}"
     },
     "matchInsights": {
+      "awayWin": "Away win",
+      "correctOutcome": "Correct 1X2",
+      "correctSide": "Correct side",
       "description": "Predictions and player-action points from every pool member for this match.",
+      "draw": "Draw",
       "exactPositions": "{count} in the exact position",
+      "exactResult": "Exact result",
+      "failed": "No correct prediction",
+      "finalStatisticsHint": "Correct side means the team was placed in this exact bracket position; wrong side means it was selected on the other side of the bracket; and team not predicted means it was not selected.",
+      "groupStatisticsHint": "The following shows the percentage of participants who correctly predicted the 1X2 outcome, the exact score, or who were incorrect in their prediction for this match",
+      "homeWin": "Home win",
+      "incorrectSide": "Wrong side",
       "loadError": "Could not load the match details.",
       "noPlayerActions": "No selected player recorded actions in this match.",
       "noPrediction": "No prediction",
+      "notGuessed": "Team not predicted",
       "oneXTwo": "1X2",
       "participants": "Participants",
       "pendingEvaluation": "Pending evaluation",
@@ -434,6 +445,7 @@
       "playerActions": "Player actions",
       "prediction": "Prediction",
       "predictions": "Predictions",
+      "statistics": "Success percentage for all participants",
       "title": "Match details",
       "winnerCorrect": "Tournament winner correct",
       "wrongSide": "{count} on the wrong side",
@@ -496,6 +508,14 @@
       "searchPlaceholder": "Search by player or country",
       "selectPlayer": "Select player",
       "slotLabel": "Slot {slot}",
+      "statistics": {
+        "description": "The Golden Boot and MVP percentages show the share of participants who selected each player for that award.",
+        "empty": "There are no selections yet.",
+        "loadError": "Could not load selection statistics.",
+        "positionsHint": "For each position, the five most selected players are shown. The percentage indicates the share of participants who included the player in one of their available slots.",
+        "title": "Most relevant statistics",
+        "topFive": "{position} · Top 5"
+      },
       "tabAll": "All",
       "tabSelection": "My players",
       "title": "Players"
@@ -600,7 +620,13 @@
       },
       "totalPoints": "{count} points"
     },
-    "title": "Pool"
+    "title": "Pool",
+    "winnerInsights": {
+      "correct": "Actual winner",
+      "empty": "There are no tournament winner selections yet.",
+      "loadError": "Could not load tournament winner selections.",
+      "title": "Tournament winner selections"
+    }
   },
   "pools": {
     "actions": {

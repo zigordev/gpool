@@ -360,7 +360,7 @@ export default function AdminGroupsPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {/* Group phase scoring */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded={false} density="compact" tone="muted">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />

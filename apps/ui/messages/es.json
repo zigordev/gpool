@@ -422,11 +422,22 @@
       "result": "Resultado: {home} - {away}"
     },
     "matchInsights": {
+      "awayWin": "Victoria visitante",
+      "correctOutcome": "1X2 acertado",
+      "correctSide": "Lado correcto",
       "description": "Predicciones y puntos por acciones de jugadores de todos los miembros para este partido.",
+      "draw": "Empate",
       "exactPositions": "{count} en la posición exacta",
+      "exactResult": "Resultado exacto",
+      "failed": "Sin acierto",
+      "finalStatisticsHint": "Lado correcto indica que el equipo fue colocado en esta posición exacta del cuadro; lado incorrecto, que fue seleccionado en la otra parte del cuadro; y equipo no acertado, que no fue seleccionado.",
+      "groupStatisticsHint": "A continuación se muestra el procentaje de participantes que han acertado el 1X2, el resultado exacto o que han fallado su predicción para este partido",
+      "homeWin": "Victoria local",
+      "incorrectSide": "Lado incorrecto",
       "loadError": "No se pudo cargar el detalle del partido.",
       "noPlayerActions": "Ningún jugador seleccionado registró acciones en este partido.",
       "noPrediction": "Sin predicción",
+      "notGuessed": "Equipo no acertado",
       "oneXTwo": "1X2",
       "participants": "Participantes",
       "pendingEvaluation": "Pendiente de evaluación",
@@ -434,6 +445,7 @@
       "playerActions": "Acciones de jugadores",
       "prediction": "Predicción",
       "predictions": "Predicciones",
+      "statistics": "Porcentaje de aciertos de todos los participantes",
       "title": "Detalle del partido",
       "winnerCorrect": "Campeón del torneo acertado",
       "wrongSide": "{count} en el lado incorrecto",
@@ -496,6 +508,14 @@
       "searchPlaceholder": "Buscar por jugador o pais",
       "selectPlayer": "Selecciona jugador",
       "slotLabel": "Puesto {slot}",
+      "statistics": {
+        "description": "Los porcentajes de Bota de oro y MVP muestran qué parte de los participantes eligió a cada jugador para ese premio.",
+        "empty": "Todavía no hay selecciones.",
+        "loadError": "No se pudieron cargar las estadísticas de selecciones.",
+        "positionsHint": "Para cada posición se muestran los cinco jugadores más seleccionados. El porcentaje indica qué parte de los participantes incluyó al jugador en alguno de sus puestos disponibles.",
+        "title": "Estadísticas más relevantes",
+        "topFive": "{position} · Top 5"
+      },
       "tabAll": "Todos",
       "tabSelection": "Mis jugadores",
       "title": "Jugadores"
@@ -600,7 +620,13 @@
       },
       "totalPoints": "{count} puntos"
     },
-    "title": "Porra"
+    "title": "Porra",
+    "winnerInsights": {
+      "correct": "Ganador real",
+      "empty": "Todavía no hay selecciones de ganador.",
+      "loadError": "No se pudieron cargar las selecciones de ganador.",
+      "title": "Selecciones de ganador"
+    }
   },
   "pools": {
     "actions": {

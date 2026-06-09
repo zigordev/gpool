@@ -26,10 +26,12 @@ export function ReadOnlyGroupMatchCard({
   match,
   prediction,
   locale,
+  compact = false,
 }: Readonly<{
   match: GroupMatch;
   prediction: GroupPrediction;
   locale: string;
+  compact?: boolean;
 }>) {
   const { t } = useI18n();
   const homeScore = typeof prediction?.homeScore === 'number' ? prediction.homeScore : '';
@@ -80,6 +82,9 @@ export function ReadOnlyGroupMatchCard({
       badgeLabel={badgeLabel}
       disabled
       isPastDeadline
+      showTeams={!compact}
+      showMatchDate={!compact}
+      showRealResult={!compact}
     />
   );
 }

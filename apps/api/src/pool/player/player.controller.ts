@@ -25,6 +25,19 @@ export class PlayerController {
     return this.playerService.getPlayerSelectionState(poolId, user.userId);
   }
 
+  @Get('selection-statistics')
+  @ApiOperation({ summary: 'Get locked player selection popularity statistics for a pool' })
+  @ApiResponse({ status: 200, description: 'Player selection statistics retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  async getSelectionStatistics(@Param('poolId') poolId: string, @Req() req: Request) {
+    const user = req.user as any;
+    return this.playerService.getPlayerSelectionStatistics(
+      poolId,
+      user.userId,
+      user.role,
+    );
+  }
+
   @Put('selection')
   @ApiOperation({ summary: 'Create, update, or clear one player selection slot' })
   @ApiResponse({ status: 200, description: 'Selection updated successfully' })

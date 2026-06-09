@@ -34,6 +34,7 @@ interface BracketVisualizationProps {
   correctTeamWrongPositionPoints?: number;
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
   onMatchClick?: (match: BracketMatch) => void;
+  onWinnerClick?: () => void;
 }
 
 const MATCH_HEIGHT = 152;
@@ -192,6 +193,7 @@ export function BracketVisualization({
   correctTeamWrongPositionPoints = 3,
   roundScoring = {},
   onMatchClick,
+  onWinnerClick,
 }: Readonly<BracketVisualizationProps>) {
   const { t } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
@@ -660,6 +662,15 @@ export function BracketVisualization({
           </span>
         </div>
         <article
+          role={onWinnerClick ? 'button' : undefined}
+          tabIndex={onWinnerClick ? 0 : undefined}
+          onClick={() => onWinnerClick?.()}
+          onKeyDown={(event) => {
+            if (onWinnerClick && (event.key === 'Enter' || event.key === ' ')) {
+              event.preventDefault();
+              onWinnerClick();
+            }
+          }}
           style={{
             background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
             backdropFilter: 'blur(12px) saturate(140%)',
@@ -674,8 +685,22 @@ export function BracketVisualization({
             flexDirection: 'column',
             gap: '0.35rem',
             overflow: 'hidden',
+            position: 'relative',
+            cursor: onWinnerClick ? 'pointer' : undefined,
           }}
         >
+          {onWinnerClick ? (
+            <span
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 3,
+                borderRadius: 'inherit',
+                cursor: 'pointer',
+              }}
+            />
+          ) : null}
           <span
             style={{
               display: 'inline-flex',

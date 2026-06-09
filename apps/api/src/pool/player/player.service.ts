@@ -1,5 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
+import { resolvePoolDeadline } from '../pool-deadline.util';
 import {
   isSelectionWithinLimits,
   PLAYER_SELECTION_POSITIONS,
@@ -234,6 +241,85 @@ export function computePlayerAwardPoints(
 @Injectable()
 export class PlayerService {
   constructor(private readonly poolRepository: PoolRepository) {}
+
+  async getPlayerSelectionStatistics(
+    poolId: string,
+    requesterUserId: string,
+    requesterRole: string,
+  ) {
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    if (Date.now() < resolvePoolDeadline(pool)) {
+      throw new ForbiddenException('Player selection statistics are only available after the prediction deadline');
+    }
+    if (!hasPermission(requesterRole || 'user', 'admin')) {
+      const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
+      if (!membership || membership.status !== 'active') {
+        throw new ForbiddenException('You must be an active member of this pool');
+      }
+    }
+
+    const [members, selections, awardSelections] = await Promise.all([
+      this.poolRepository.getPoolMembers(poolId),
+      this.poolRepository.getPlayerSelectionsForPool(poolId),
+      this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
+    ]);
+    const activeUserIds = new Set(
+      members
+        .filter((member: any) => member.status === 'active')
+        .map((member: any) => member.userId),
+    );
+    const memberCount = activeUserIds.size;
+    const percentage = (count: number) =>
+      memberCount > 0 ? Math.round((count / memberCount) * 1000) / 10 : 0;
+    const aggregate = (items: any[]) => {
+      const byPlayer = new Map<string, any>();
+      items
+        .filter((item) => activeUserIds.has(item.userId))
+        .forEach((item) => {
+          const current = byPlayer.get(item.playerId);
+          if (current) {
+            current.count += 1;
+            return;
+          }
+          byPlayer.set(item.playerId, {
+            playerId: item.playerId,
+            name: item.name,
+            teamId: item.teamId,
+            teamName: item.teamName,
+            position: item.position,
+            imageUrl: item.imageUrl,
+            count: 1,
+          });
+        });
+
+      return [...byPlayer.values()]
+        .map((item) => ({ ...item, percentage: percentage(item.count) }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    };
+
+    return {
+      memberCount,
+      awards: {
+        goldenBoot: aggregate(
+          awardSelections.filter((selection: any) => selection.award === 'golden_boot'),
+        ),
+        tournamentMvp: aggregate(
+          awardSelections.filter((selection: any) => selection.award === 'tournament_mvp'),
+        ),
+      },
+      positions: Object.fromEntries(
+        POSITIONS.map((position) => [
+          position,
+          aggregate(
+            selections.filter((selection: any) => selection.position === position),
+          ).slice(0, 5),
+        ]),
+      ),
+    };
+  }
 
   async getPlayerSelectionState(poolId: string, userId: string) {
     const [pool, players, selections, awardSelections, tournamentAwards] = await Promise.all([

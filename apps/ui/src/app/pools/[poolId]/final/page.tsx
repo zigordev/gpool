@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { apiClient } from '@/lib/api';
 import { buildBracketProjection } from '@/lib/bracket-projection';
+import { WinnerInsightsModal } from '@/components/pool/WinnerInsightsModal';
 import {
   FinalScoringInfoSection,
   resolvePlayerInfoScoring,
@@ -28,6 +29,7 @@ export default function FinalPage() {
   const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
   const [autoFillingRoundOf32, setAutoFillingRoundOf32] = useState(false);
   const [insightsTarget, setInsightsTarget] = useState<MatchInsightsTarget | null>(null);
+  const [showWinnerInsights, setShowWinnerInsights] = useState(false);
   const playerScoringConfig = resolvePlayerInfoScoring(pool?.config?.playerScoring);
 
   // effectiveBracketPredictions has projected team slots but lacks scoring flags
@@ -101,7 +103,10 @@ export default function FinalPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
+      <FinalScoringInfoSection
+        bracketScoring={bracketScoringConfig}
+        defaultExpanded={false}
+      />
 
       {Object.keys(bracket).length > 0 ? (
         <section className="surface" style={{ padding: '1rem' }}>
@@ -135,6 +140,9 @@ export default function FinalPage() {
                     matchType: 'final',
                   })
                 : undefined
+            }
+            onWinnerClick={
+              isPastPoolDeadline ? () => setShowWinnerInsights(true) : undefined
             }
             onPredictionChange={async (bracketMatchId, side, teamId, teamName) => {
               if (Date.now() >= poolDeadline) {
@@ -219,6 +227,11 @@ export default function FinalPage() {
         target={insightsTarget}
         onClose={() => setInsightsTarget(null)}
         playerScoring={playerScoringConfig}
+      />
+      <WinnerInsightsModal
+        poolId={poolId}
+        open={showWinnerInsights}
+        onClose={() => setShowWinnerInsights(false)}
       />
     </div>
   );

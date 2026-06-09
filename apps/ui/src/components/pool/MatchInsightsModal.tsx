@@ -133,6 +133,7 @@ export function MatchInsightsModal({
       ) : data ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <MatchSummary data={data} />
+          <MatchStatistics data={data} />
 
           <section style={{ display: 'grid', gap: '0.45rem' }}>
             <h3 style={sectionTitleStyle}>{t('poolDetail.matchInsights.participants')}</h3>
@@ -173,7 +174,7 @@ export function MatchInsightsModal({
                               style={{ width: '1.45em', height: '1.45em', flexShrink: 0 }}
                             />
                             <div style={{ minWidth: 0, flex: 1 }}>
-                               <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
                                 <span style={{ fontSize: '0.82rem', fontWeight: 750, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {player.name}
                                 </span>
@@ -205,6 +206,222 @@ export function MatchInsightsModal({
       ) : null}
     </Modal>
   );
+}
+
+function MatchStatistics({ data }: Readonly<{ data: MatchInsightsData }>) {
+  const { t } = useI18n();
+  const predictions = data.members
+    .map((member) => member.prediction)
+    .filter(Boolean);
+
+  if (data.matchType === 'group') {
+    const validPredictions = predictions.filter(
+      (prediction) =>
+        typeof prediction.homeScore === 'number' &&
+        typeof prediction.awayScore === 'number',
+    );
+    const hasResult =
+      typeof data.match.homeResult === 'number' &&
+      typeof data.match.awayResult === 'number';
+    if (validPredictions.length === 0 || !hasResult) return null;
+
+    const actualOutcome = outcome(data.match.homeResult, data.match.awayResult);
+    const exact = validPredictions.filter(
+      (prediction) =>
+        prediction.homeScore === data.match.homeResult &&
+        prediction.awayScore === data.match.awayResult,
+    ).length;
+    const correctOutcome = validPredictions.filter(
+      (prediction) =>
+        !(
+          prediction.homeScore === data.match.homeResult &&
+          prediction.awayScore === data.match.awayResult
+        ) &&
+        outcome(prediction.homeScore, prediction.awayScore) === actualOutcome,
+    ).length;
+    const failed = validPredictions.length - exact - correctOutcome;
+
+    return (
+      <section style={{ display: 'grid', gap: '0.5rem' }}>
+        <h3 style={sectionTitleStyle}>{t('poolDetail.matchInsights.statistics')}</h3>
+        <div style={statisticsGridStyle}>
+          <PercentageMetric
+            label={t('poolDetail.matchInsights.exactResult')}
+            value={percentage(exact, validPredictions.length)}
+            tone="success"
+          />
+          <PercentageMetric
+            label={t('poolDetail.matchInsights.correctOutcome')}
+            value={percentage(correctOutcome, validPredictions.length)}
+            tone="info"
+          />
+          <PercentageMetric
+            label={t('poolDetail.matchInsights.failed')}
+            value={percentage(failed, validPredictions.length)}
+            tone="danger"
+          />
+        </div>
+      </section>
+    );
+  }
+
+  const actualTeams = [
+    { teamId: data.match.homeTeamId, teamName: data.match.homeTeamName, side: 'home' },
+    { teamId: data.match.awayTeamId, teamName: data.match.awayTeamName, side: 'away' },
+  ].filter((team) => team.teamId && team.teamName);
+  const evaluated = predictions.some((prediction) => prediction.isEvaluated);
+  if (!evaluated || actualTeams.length === 0) return null;
+
+  return (
+    <section style={{ display: 'grid', gap: '0.5rem' }}>
+      <h3 style={sectionTitleStyle}>{t('poolDetail.matchInsights.statistics')}</h3>
+      <div style={{ display: 'grid', gap: '0.55rem' }}>
+        {actualTeams.map((team) => {
+          const categories = data.members.map((member) => {
+            const prediction = member.prediction;
+            const correct =
+              team.side === 'home'
+              ? prediction?.homeTeamId === team.teamId
+              : prediction?.awayTeamId === team.teamId;
+            if (correct) return 'correct';
+            const wrong =
+              team.side === 'home'
+              ? prediction?.awayTeamId === team.teamId
+              : prediction?.homeTeamId === team.teamId;
+            return wrong ? 'wrong' : 'missed';
+          });
+          const correctSide = categories.filter((category) => category === 'correct').length;
+          const wrongSide = categories.filter((category) => category === 'wrong').length;
+          const missed = data.members.length - correctSide - wrongSide;
+
+          return (
+            <div
+              key={team.teamId}
+              style={{
+                display: 'grid',
+                gap: '0.45rem',
+                padding: '0.6rem',
+                border: '1px solid rgb(var(--border-subtle))',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgb(var(--bg-elevated))',
+              }}
+            >
+              <strong
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  color: 'rgb(var(--fg))',
+                  fontSize: '0.78rem',
+                }}
+              >
+                <ReactCountryFlag
+                  countryCode={countryIsoCode(team.teamName)}
+                  svg
+                  style={{ width: '1.4em', height: '1.4em' }}
+                />
+                {team.teamName}
+              </strong>
+              <div style={statisticsGridStyle}>
+                <PercentageMetric
+                  label={t('poolDetail.matchInsights.correctSide')}
+                  value={percentage(correctSide, data.members.length)}
+                  tone="success"
+                />
+                <PercentageMetric
+                  label={t('poolDetail.matchInsights.incorrectSide')}
+                  value={percentage(wrongSide, data.members.length)}
+                  tone="info"
+                />
+                <PercentageMetric
+                  label={t('poolDetail.matchInsights.notGuessed')}
+                  value={percentage(missed, data.members.length)}
+                  tone="danger"
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function PercentageMetric({
+  label,
+  value,
+  tone,
+}: Readonly<{
+  label: string;
+  value: number;
+  tone: 'neutral' | 'success' | 'info' | 'danger';
+}>) {
+  const token = {
+    neutral: 'var(--fg)',
+    success: 'var(--pitch)',
+    info: 'var(--info)',
+    danger: 'var(--live)',
+  }[tone];
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'grid',
+        gap: '0.2rem',
+        minWidth: 0,
+        padding: '0.5rem',
+        border: `1px solid rgb(${token} / 0.28)`,
+        borderRadius: 'var(--radius-sm)',
+        background: 'rgb(var(--bg-elevated))',
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: `${value}%`,
+          background: `rgb(${token} / 0.07)`,
+        }}
+      />
+      <strong
+        style={{
+          position: 'relative',
+          color: `rgb(${token})`,
+          fontSize: '0.88rem',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {formatPercentage(value)}
+      </strong>
+      <span
+        style={{
+          position: 'relative',
+          color: 'rgb(var(--fg-muted))',
+          fontSize: '0.67rem',
+          lineHeight: 1.25,
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function outcome(home: number, away: number) {
+  if (home > away) return 'home';
+  if (home < away) return 'away';
+  return 'draw';
+}
+
+function percentage(count: number, total: number) {
+  return total > 0 ? Math.round((count / total) * 1000) / 10 : 0;
+}
+
+function formatPercentage(value: number) {
+  return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
 }
 
 function MatchSummary({ data }: Readonly<{ data: MatchInsightsData }>) {
@@ -266,6 +483,7 @@ function PredictionRow({
           match={match}
           prediction={prediction}
           locale={locale}
+          compact
         />
       </div>
     );
@@ -277,8 +495,8 @@ function PredictionRow({
     <div
       style={{
         ...predictionRowStyle,
-        border: 'rgb(var(--border-subtle))',
-        background: 'rgb(var(--bg-subtle) / 0.5)',
+        border: `1px solid ${tone.border}`,
+        background: tone.background,
       }}
     >
       {points > 0 ? (
@@ -308,7 +526,6 @@ function PredictionRow({
             exact={prediction.awayTeamExactPosition}
             wrongSide={prediction.awayTeamCorrectButWrongPosition}
             evaluated={prediction.isEvaluated}
-            reverse
           />
         </div>
       ) : (
@@ -323,46 +540,33 @@ function FinalTeam({
   exact,
   wrongSide,
   evaluated,
-  reverse = false,
 }: Readonly<{
   teamName?: string;
   exact?: boolean | null;
   wrongSide?: boolean | null;
   evaluated?: boolean;
-  reverse?: boolean;
 }>) {
   const tone = finalTeamTone(exact, wrongSide, evaluated);
-  const name = teamName || '—';
-  const flag = teamName ? (
-    <ReactCountryFlag
-      countryCode={countryIsoCode(teamName)}
-      svg
-      style={{ width: '1.45em', height: '1.45em', flexShrink: 0 }}
-    />
-  ) : null;
 
   return (
     <span
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: reverse ? 'flex-end' : 'flex-start',
-        gap: '0.35rem',
+        display: 'block',
         minWidth: 0,
-        padding: '0.28rem 0.38rem',
+        padding: '0.32rem 0.42rem',
+        overflow: 'hidden',
         borderRadius: 'var(--radius-sm)',
         border: `${tone.highlighted ? 2 : 1}px solid ${tone.border}`,
         background: tone.background,
         color: 'rgb(var(--fg))',
         fontSize: '0.76rem',
         fontWeight: 750,
+        textAlign: 'center',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}
     >
-      {reverse ? null : flag}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {name}
-      </span>
-      {reverse ? flag : null}
+      {teamName || '—'}
     </span>
   );
 }
@@ -456,6 +660,12 @@ const sectionTitleStyle: CSSProperties = {
   color: 'rgb(var(--fg-subtle))',
 };
 
+const statisticsGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr))',
+  gap: '0.45rem',
+};
+
 const messageStyle: CSSProperties = {
   margin: 0,
   padding: '1rem',
@@ -466,7 +676,8 @@ const messageStyle: CSSProperties = {
 
 const predictionRowStyle: CSSProperties = {
   position: 'relative',
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
   alignItems: 'center',
   gap: '0.65rem',
   padding: '0.6rem 0.7rem',
@@ -476,8 +687,7 @@ const predictionRowStyle: CSSProperties = {
 };
 
 const finalTeamsStyle: CSSProperties = {
-  marginLeft: 'auto',
-  width: 'min(58%, 21rem)',
+  minWidth: 0,
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
   alignItems: 'center',

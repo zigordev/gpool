@@ -25,6 +25,7 @@ export default function GroupsPage() {
     matchesByGroup,
     predictions,
     poolDeadline,
+    isPastPoolDeadline,
     pool,
     poolId,
     teams,
@@ -47,7 +48,10 @@ export default function GroupsPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <GroupScoringInfoSection groupScoring={groupScoringConfig} />
+      <GroupScoringInfoSection
+        groupScoring={groupScoringConfig}
+        defaultExpanded={false}
+      />
 
       {groups.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
