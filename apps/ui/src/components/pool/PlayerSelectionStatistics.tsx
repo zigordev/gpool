@@ -79,7 +79,7 @@ export function PlayerSelectionStatistics({
         </span>
       }
       collapsible
-      defaultExpanded={false}
+      defaultExpanded
       density="compact"
       tone="muted"
     >

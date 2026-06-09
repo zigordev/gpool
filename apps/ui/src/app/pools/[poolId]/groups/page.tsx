@@ -50,7 +50,7 @@ export default function GroupsPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <GroupScoringInfoSection
         groupScoring={groupScoringConfig}
-        defaultExpanded={false}
+        defaultExpanded
       />
 
       {groups.length > 0 ? (
