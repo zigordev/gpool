@@ -1,6 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PostgresService } from '../../database/postgres.service';
 
+const PLAYER_STAT_COLUMNS = {
+  goals: 'goals',
+  penaltyGoals: 'penalty_goals',
+  missedPenalties: 'missed_penalties',
+  mvps: 'mvps',
+  penaltiesSaved: 'penalties_saved',
+  shootoutPenaltiesSaved: 'shootout_penalties_saved',
+  shootoutGoals: 'shootout_goals',
+  shootoutMissedPenalties: 'shootout_missed_penalties',
+  cleanSheets: 'clean_sheets',
+  assists: 'assists',
+  yellowCards: 'yellow_cards',
+  redCards: 'red_cards',
+} as const;
+
 @Injectable()
 export class PoolRepository {
   private readonly logger = new Logger(PoolRepository.name);
@@ -458,6 +473,119 @@ export class PoolRepository {
     return result.rows[0] || null;
   }
 
+  async getTournamentMatch(poolId: string, matchType: 'group' | 'final', matchId: string) {
+    const table = matchType === 'group' ? 'group_phase_matches' : 'final_phase_matches';
+    const idColumn = matchType === 'group' ? 'match_id' : 'bracket_match_id';
+    const result = await this.postgres.query(
+      `
+        SELECT
+          ${idColumn} AS "matchId",
+          home_team_id AS "homeTeamId",
+          away_team_id AS "awayTeamId"
+        FROM ${table}
+        WHERE pool_id = $1 AND ${idColumn} = $2
+      `,
+      [poolId, matchId],
+    );
+
+    return result.rows[0] || null;
+  }
+
+  async incrementTournamentPlayerMatchStat(
+    playerId: string,
+    matchType: 'group' | 'final',
+    matchId: string,
+    stat: keyof typeof PLAYER_STAT_COLUMNS,
+    delta: number,
+  ) {
+    const column = PLAYER_STAT_COLUMNS[stat];
+    const now = Math.floor(Date.now() / 1000);
+    const client = await this.postgres.getClient();
+
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `
+          INSERT INTO tournament_player_match_stats (
+            match_type,
+            match_id,
+            player_id,
+            created_at,
+            updated_at
+          )
+          VALUES ($1, $2, $3, $4, $4)
+          ON CONFLICT (match_type, match_id, player_id) DO NOTHING
+        `,
+        [matchType, matchId, playerId, now],
+      );
+
+      const currentResult = await client.query(
+        `
+          SELECT ${column}::int AS value
+          FROM tournament_player_match_stats
+          WHERE match_type = $1 AND match_id = $2 AND player_id = $3
+          FOR UPDATE
+        `,
+        [matchType, matchId, playerId],
+      );
+      const current = Number(currentResult.rows[0]?.value || 0);
+      const next = Math.max(0, current + delta);
+      const appliedDelta = next - current;
+
+      await client.query(
+        `
+          UPDATE tournament_player_match_stats
+          SET ${column} = $4, updated_at = $5
+          WHERE match_type = $1 AND match_id = $2 AND player_id = $3
+        `,
+        [matchType, matchId, playerId, next, now],
+      );
+
+      await client.query(
+        `
+          INSERT INTO tournament_player_stats (player_id, created_at, updated_at)
+          VALUES ($1, $2, $2)
+          ON CONFLICT (player_id) DO NOTHING
+        `,
+        [playerId, now],
+      );
+      const totalsResult = await client.query(
+        `
+          UPDATE tournament_player_stats
+          SET ${column} = GREATEST(0, ${column} + $2), updated_at = $3
+          WHERE player_id = $1
+          RETURNING
+            player_id AS "playerId",
+            goals::int AS goals,
+            penalty_goals::int AS "penaltyGoals",
+            missed_penalties::int AS "missedPenalties",
+            mvps::int AS mvps,
+            penalties_saved::int AS "penaltiesSaved",
+            shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
+            shootout_goals::int AS "shootoutGoals",
+            shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            clean_sheets::int AS "cleanSheets",
+            assists::int AS assists,
+            yellow_cards::int AS "yellowCards",
+            red_cards::int AS "redCards",
+            updated_at::int AS "updatedAt"
+        `,
+        [playerId, appliedDelta, now],
+      );
+
+      await client.query('COMMIT');
+      return {
+        ...totalsResult.rows[0],
+        matchStatValue: next,
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async getTournamentPlayerAwards() {
     const result = await this.postgres.query(
       `
@@ -673,96 +801,6 @@ export class PoolRepository {
     );
 
     return result.rows;
-  }
-
-  async updateTournamentPlayerStats(
-    playerId: string,
-    stats: {
-      goals?: number;
-      penaltyGoals?: number;
-      missedPenalties?: number;
-      mvps?: number;
-      penaltiesSaved?: number;
-      shootoutPenaltiesSaved?: number;
-      shootoutGoals?: number;
-      shootoutMissedPenalties?: number;
-      cleanSheets?: number;
-      assists?: number;
-      yellowCards?: number;
-      redCards?: number;
-    },
-  ) {
-    const now = Math.floor(Date.now() / 1000);
-    const result = await this.postgres.query(
-      `
-        INSERT INTO tournament_player_stats (
-          player_id,
-          goals,
-          penalty_goals,
-          missed_penalties,
-          mvps,
-          penalties_saved,
-          shootout_penalties_saved,
-          shootout_goals,
-          shootout_missed_penalties,
-          clean_sheets,
-          assists,
-          yellow_cards,
-          red_cards,
-          created_at,
-          updated_at
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $14)
-        ON CONFLICT (player_id)
-        DO UPDATE SET
-          goals = EXCLUDED.goals,
-          penalty_goals = EXCLUDED.penalty_goals,
-          missed_penalties = EXCLUDED.missed_penalties,
-          mvps = EXCLUDED.mvps,
-          penalties_saved = EXCLUDED.penalties_saved,
-          shootout_penalties_saved = EXCLUDED.shootout_penalties_saved,
-          shootout_goals = EXCLUDED.shootout_goals,
-          shootout_missed_penalties = EXCLUDED.shootout_missed_penalties,
-          clean_sheets = EXCLUDED.clean_sheets,
-          assists = EXCLUDED.assists,
-          yellow_cards = EXCLUDED.yellow_cards,
-          red_cards = EXCLUDED.red_cards,
-          updated_at = EXCLUDED.updated_at
-        RETURNING
-          player_id AS "playerId",
-          goals::int AS goals,
-          penalty_goals::int AS "penaltyGoals",
-          missed_penalties::int AS "missedPenalties",
-          mvps::int AS mvps,
-          penalties_saved::int AS "penaltiesSaved",
-          shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
-          shootout_goals::int AS "shootoutGoals",
-          shootout_missed_penalties::int AS "shootoutMissedPenalties",
-          clean_sheets::int AS "cleanSheets",
-          assists::int AS assists,
-          yellow_cards::int AS "yellowCards",
-          red_cards::int AS "redCards",
-          updated_at::int AS "updatedAt"
-      `,
-      [
-        playerId,
-        Math.max(0, stats.goals ?? 0),
-        Math.max(0, stats.penaltyGoals ?? 0),
-        Math.max(0, stats.missedPenalties ?? 0),
-        Math.max(0, stats.mvps ?? 0),
-        Math.max(0, stats.penaltiesSaved ?? 0),
-        Math.max(0, stats.shootoutPenaltiesSaved ?? 0),
-        Math.max(0, stats.shootoutGoals ?? 0),
-        Math.max(0, stats.shootoutMissedPenalties ?? 0),
-        Math.max(0, stats.cleanSheets ?? 0),
-        Math.max(0, stats.assists ?? 0),
-        Math.max(0, stats.yellowCards ?? 0),
-        Math.max(0, stats.redCards ?? 0),
-        now,
-      ],
-    );
-
-    return result.rows[0];
   }
 
   async upsertPlayerSelection(poolId: string, userId: string, position: string, slot: number, playerId: string) {

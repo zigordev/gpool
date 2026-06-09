@@ -9,6 +9,7 @@ interface BracketMatch {
   awayTeamName?: string;
   homeSourceLabel?: string;
   awaySourceLabel?: string;
+  scheduledAt?: string;
   homeResult?: number;
   awayResult?: number;
   status?: string;

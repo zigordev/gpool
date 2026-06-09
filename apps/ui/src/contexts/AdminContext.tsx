@@ -33,6 +33,10 @@ export const MAX_PAID_POSITIONS = 20;
 export type ConfigNumber = number | '';
 type PlayerPositionKey = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 type PositionScoring = Record<PlayerPositionKey, ConfigNumber>;
+export type PlayerMatchReference = {
+  matchId: string;
+  matchType: 'group' | 'final';
+};
 
 export type GroupScoringConfig = {
   winnerPoints: ConfigNumber;
@@ -380,7 +384,7 @@ interface AdminContextValue {
   handleBracketResultChange: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
   handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
   handleReEvaluateBracket: () => Promise<void>;
-  handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => Promise<void>;
+  handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number, match: PlayerMatchReference | null) => Promise<void>;
   handlePlayerAwardToggle: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => Promise<void>;
   handleTeamFairPlayChange: (teamId: string, fairPlay: number) => Promise<void>;
 }
@@ -717,14 +721,22 @@ export function AdminProvider({
     }
   };
 
-  const handlePlayerStatChange = async (player: TournamentPlayer, stat: PlayerStatKey, delta: number) => {
+  const handlePlayerStatChange = async (
+    player: TournamentPlayer,
+    stat: PlayerStatKey,
+    delta: number,
+    match: PlayerMatchReference | null,
+  ) => {
     if (!poolId) { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
-    const current = player[stat] || 0;
-    const next = Math.max(0, current + delta);
+    if (!match) { toast.error(t('adminResults.players.matchRequired')); return; }
     const key = `${player.playerId}:${stat}`;
     try {
       setUpdatingPlayerStat(key);
-      const updated = await apiClient.put(`/pools/${poolId}/players/${player.playerId}/stats`, { goals: player.goals || 0, penaltyGoals: player.penaltyGoals || 0, missedPenalties: player.missedPenalties || 0, mvps: player.mvps || 0, penaltiesSaved: player.penaltiesSaved || 0, shootoutPenaltiesSaved: player.shootoutPenaltiesSaved || 0, shootoutGoals: player.shootoutGoals || 0, shootoutMissedPenalties: player.shootoutMissedPenalties || 0, cleanSheets: player.cleanSheets || 0, assists: player.assists || 0, yellowCards: player.yellowCards || 0, redCards: player.redCards || 0, [stat]: next });
+      const updated = await apiClient.put(`/pools/${poolId}/players/${player.playerId}/stats`, {
+        ...match,
+        stat,
+        delta,
+      });
       setPlayers((prev) => prev.map((item) => item.playerId === player.playerId ? (() => { const nextPlayer = { ...item, goals: updated.data?.goals ?? item.goals, penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals, missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties, mvps: updated.data?.mvps ?? item.mvps, penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved, shootoutPenaltiesSaved: updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved, shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals, shootoutMissedPenalties: updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties, cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets, assists: updated.data?.assists ?? item.assists, yellowCards: updated.data?.yellowCards ?? item.yellowCards, redCards: updated.data?.redCards ?? item.redCards }; return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) }; })() : item));
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('adminResults.errors.updatePlayerStats'));

@@ -21,6 +21,7 @@ export type PlayerStatKey =
   | 'yellowCards'
   | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
+export type PlayerMatchType = 'group' | 'final';
 
 const POSITIONS: PlayerPosition[] = [...PLAYER_SELECTION_POSITIONS];
 const STATS: PlayerStatKey[] = [
@@ -299,8 +300,14 @@ export class PlayerService {
   }
 
   async updatePlayerStats(
+    poolId: string,
     playerId: string,
-    stats: Partial<Record<PlayerStatKey, number>>,
+    input: {
+      matchId: string;
+      matchType: PlayerMatchType;
+      stat: PlayerStatKey;
+      delta: number;
+    },
     userRole: string,
   ) {
     if (userRole !== 'admin') {
@@ -310,32 +317,37 @@ export class PlayerService {
     if (!player) {
       throw new NotFoundException(`Player with ID ${playerId} not found`);
     }
-    const next: Record<PlayerStatKey, number> = {
-      goals: player.goals || 0,
-      penaltyGoals: player.penaltyGoals || 0,
-      missedPenalties: player.missedPenalties || 0,
-      mvps: player.mvps || 0,
-      penaltiesSaved: player.penaltiesSaved || 0,
-      shootoutPenaltiesSaved: player.shootoutPenaltiesSaved || 0,
-      shootoutGoals: player.shootoutGoals || 0,
-      shootoutMissedPenalties: player.shootoutMissedPenalties || 0,
-      cleanSheets: player.cleanSheets || 0,
-      assists: player.assists || 0,
-      yellowCards: player.yellowCards || 0,
-      redCards: player.redCards || 0,
-    };
-
-    for (const key of STATS) {
-      if (stats[key] !== undefined) {
-        const value = Number(stats[key]);
-        if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
-          throw new BadRequestException(`${key} must be a non-negative integer`);
-        }
-        next[key] = value;
-      }
+    if (!input.matchId?.trim()) {
+      throw new BadRequestException('A match must be selected');
+    }
+    if (input.matchType !== 'group' && input.matchType !== 'final') {
+      throw new BadRequestException('Invalid match type');
+    }
+    if (!STATS.includes(input.stat)) {
+      throw new BadRequestException('Invalid player stat');
+    }
+    if (!Number.isInteger(input.delta) || ![-1, 1].includes(input.delta)) {
+      throw new BadRequestException('Delta must be either -1 or 1');
     }
 
-    return this.poolRepository.updateTournamentPlayerStats(playerId, next);
+    const match = await this.poolRepository.getTournamentMatch(poolId, input.matchType, input.matchId);
+    if (!match) {
+      throw new NotFoundException(`Match with ID ${input.matchId} not found`);
+    }
+    if (!match.homeTeamId || !match.awayTeamId) {
+      throw new BadRequestException('The selected match does not have both teams assigned yet');
+    }
+    if (player.teamId !== match.homeTeamId && player.teamId !== match.awayTeamId) {
+      throw new BadRequestException('The selected player does not participate in this match');
+    }
+
+    return this.poolRepository.incrementTournamentPlayerMatchStat(
+      playerId,
+      input.matchType,
+      input.matchId,
+      input.stat,
+      input.delta,
+    );
   }
 
   async updatePlayerSelection(

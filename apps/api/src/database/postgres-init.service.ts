@@ -149,6 +149,31 @@ export class PostgresInitService implements OnModuleInit {
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS yellow_cards INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS red_cards INTEGER NOT NULL DEFAULT 0;
 
+      CREATE TABLE IF NOT EXISTS tournament_player_match_stats (
+        match_type TEXT NOT NULL CHECK (match_type IN ('group', 'final')),
+        match_id TEXT NOT NULL,
+        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        goals INTEGER NOT NULL DEFAULT 0,
+        penalty_goals INTEGER NOT NULL DEFAULT 0,
+        missed_penalties INTEGER NOT NULL DEFAULT 0,
+        mvps INTEGER NOT NULL DEFAULT 0,
+        penalties_saved INTEGER NOT NULL DEFAULT 0,
+        shootout_penalties_saved INTEGER NOT NULL DEFAULT 0,
+        shootout_goals INTEGER NOT NULL DEFAULT 0,
+        shootout_missed_penalties INTEGER NOT NULL DEFAULT 0,
+        clean_sheets INTEGER NOT NULL DEFAULT 0,
+        assists INTEGER NOT NULL DEFAULT 0,
+        yellow_cards INTEGER NOT NULL DEFAULT 0,
+        red_cards INTEGER NOT NULL DEFAULT 0,
+        created_at BIGINT NOT NULL,
+        updated_at BIGINT NOT NULL,
+        PRIMARY KEY (match_type, match_id, player_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_player
+        ON tournament_player_match_stats(player_id);
+      CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_match
+        ON tournament_player_match_stats(match_type, match_id);
+
       CREATE TABLE IF NOT EXISTS tournament_player_awards (
         award TEXT NOT NULL CHECK (award IN ('golden_boot', 'tournament_mvp')),
         player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
