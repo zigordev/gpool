@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.23](https://github.com/zigorlsp7/gpool/compare/v0.1.22...v0.1.23) (2026-06-09)
+
+
+### Bug Fixes
+
+* player actions points changeable ([#81](https://github.com/zigorlsp7/gpool/issues/81)) ([845e2b0](https://github.com/zigorlsp7/gpool/commit/845e2b0d3ee65370e6940add33e8c4719af3512a))
+
 ## [0.1.22](https://github.com/zigorlsp7/gpool/compare/v0.1.21...v0.1.22) (2026-06-09)
 
 
