@@ -177,7 +177,7 @@ export default function AdminPlayersPage() {
       </Section> : null}
 
       {/* Player scoring configuration */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded={false} density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[

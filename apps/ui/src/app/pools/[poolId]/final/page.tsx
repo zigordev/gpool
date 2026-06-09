@@ -105,7 +105,7 @@ export default function FinalPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <FinalScoringInfoSection
         bracketScoring={bracketScoringConfig}
-        defaultExpanded={false}
+        defaultExpanded
       />
 
       {Object.keys(bracket).length > 0 ? (
