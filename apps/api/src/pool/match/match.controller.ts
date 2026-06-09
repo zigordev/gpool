@@ -94,6 +94,28 @@ export class MatchController {
     return this.matchService.getUserPredictions(poolId, user.userId);
   }
 
+  @Get('insights/:matchType/:matchId')
+  @ApiOperation({ summary: 'Get all member picks and selected-player actions for a locked match' })
+  @ApiResponse({ status: 200, description: 'Match insights retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid match type' })
+  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({ status: 404, description: 'Pool or match not found' })
+  async getMatchInsights(
+    @Param('poolId') poolId: string,
+    @Param('matchType') matchType: 'group' | 'final',
+    @Param('matchId') matchId: string,
+    @Req() req: Request,
+  ) {
+    const user = req.user as any;
+    return this.matchService.getMatchInsights(
+      poolId,
+      matchType,
+      matchId,
+      user.userId,
+      user.role,
+    );
+  }
+
   @Post(':matchId/results')
   @ApiOperation({ summary: 'Update match results (Admin only)' })
   @ApiResponse({ status: 200, description: 'Match results updated and predictions evaluated' })

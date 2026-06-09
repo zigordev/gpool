@@ -421,6 +421,24 @@
       "points": "Puntos",
       "result": "Resultado: {home} - {away}"
     },
+    "matchInsights": {
+      "description": "Predicciones y puntos por acciones de jugadores de todos los miembros para este partido.",
+      "exactPositions": "{count} en la posición exacta",
+      "loadError": "No se pudo cargar el detalle del partido.",
+      "noPlayerActions": "Ningún jugador seleccionado registró acciones en este partido.",
+      "noPrediction": "Sin predicción",
+      "oneXTwo": "1X2",
+      "participants": "Participantes",
+      "pendingEvaluation": "Pendiente de evaluación",
+      "pendingTeam": "Por determinar",
+      "playerActions": "Acciones de jugadores",
+      "prediction": "Predicción",
+      "predictions": "Predicciones",
+      "title": "Detalle del partido",
+      "winnerCorrect": "Campeón del torneo acertado",
+      "wrongSide": "{count} en el lado incorrecto",
+      "you": "Tú"
+    },
     "mode": {
       "admin": "Administrador",
       "label": "Modo de vista",

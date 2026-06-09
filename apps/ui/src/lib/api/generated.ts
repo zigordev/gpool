@@ -58,6 +58,11 @@ export type ApiOperation = {
   responseCodes: ['200'];
 } | {
   method: 'GET';
+  path: '/api/pools/{poolId}/matches/insights/{matchType}/{matchId}';
+  operationId: 'MatchController_getMatchInsights';
+  responseCodes: ['200', '400', '403', '404'];
+} | {
+  method: 'GET';
   path: '/api/pools/{poolId}/matches/predictions';
   operationId: 'MatchController_getUserPredictions';
   responseCodes: ['200'];
@@ -218,7 +223,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 43 as const;
+export const API_OPERATION_COUNT = 44 as const;
 
 export const API_OPERATIONS = [
   {
@@ -313,6 +318,17 @@ export const API_OPERATIONS = [
     "operationId": "MatchController_getMatches",
     "responseCodes": [
       "200"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/pools/{poolId}/matches/insights/{matchType}/{matchId}",
+    "operationId": "MatchController_getMatchInsights",
+    "responseCodes": [
+      "200",
+      "400",
+      "403",
+      "404"
     ]
   },
   {

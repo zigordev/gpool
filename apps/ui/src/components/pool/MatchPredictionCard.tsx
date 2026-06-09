@@ -20,6 +20,7 @@ interface Props {
   disabled?: boolean;
   onChange?: (side: 'home' | 'away', value: string) => void;
   isPastDeadline?: boolean;
+  onOpenInsights?: () => void;
 }
 
 const STATE_TONES: Record<
@@ -49,6 +50,7 @@ export function MatchPredictionCard({
   disabled = false,
   onChange,
   isPastDeadline,
+  onOpenInsights,
 }: Readonly<Props>) {
   const hasRealResult = isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
   const baseId = useId();
@@ -65,6 +67,15 @@ export function MatchPredictionCard({
 
   return (
     <article
+      role={onOpenInsights ? 'button' : undefined}
+      tabIndex={onOpenInsights ? 0 : undefined}
+      onClick={onOpenInsights}
+      onKeyDown={(event) => {
+        if (onOpenInsights && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onOpenInsights();
+        }
+      }}
       style={{
         position: 'relative',
         display: 'grid',
@@ -79,8 +90,21 @@ export function MatchPredictionCard({
         border: `${hasStatusBorder ? 3 : 1}px solid ${tone.border}`,
         boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
         opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
+        cursor: onOpenInsights ? 'pointer' : undefined,
       }}
     >
+      {onOpenInsights ? (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            borderRadius: 'inherit',
+            cursor: 'pointer',
+          }}
+        />
+      ) : null}
       {isPastDeadline && pointsEarned ? (
         <PointsBadge
           points={pointsEarned}

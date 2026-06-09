@@ -33,6 +33,7 @@ interface BracketVisualizationProps {
   exactPositionPoints?: number;
   correctTeamWrongPositionPoints?: number;
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
+  onMatchClick?: (match: BracketMatch) => void;
 }
 
 const MATCH_HEIGHT = 152;
@@ -190,6 +191,7 @@ export function BracketVisualization({
   exactPositionPoints = 5,
   correctTeamWrongPositionPoints = 3,
   roundScoring = {},
+  onMatchClick,
 }: Readonly<BracketVisualizationProps>) {
   const { t } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
@@ -414,6 +416,7 @@ export function BracketVisualization({
                 homeTeamIncorrect={homeTeamIncorrect}
                 awayTeamIncorrect={awayTeamIncorrect}
                 points={points}
+                onMatchClick={onMatchClick}
               />
             </div>
           );
@@ -522,6 +525,7 @@ export function BracketVisualization({
           homeTeamIncorrect={homeTeamIncorrect}
           awayTeamIncorrect={awayTeamIncorrect}
           points={points}
+          onMatchClick={onMatchClick}
         />
       </div>
     );
@@ -893,6 +897,7 @@ interface BracketMatchBoxProps {
   awayTeamIncorrect?: boolean;
   points?: number;
   onSelectInteractionStart?: () => void;
+  onMatchClick?: (match: BracketMatch) => void;
 }
 
 function BracketMatchBox({
@@ -917,6 +922,7 @@ function BracketMatchBox({
   awayTeamIncorrect = false,
   points,
   onSelectInteractionStart,
+  onMatchClick,
 }: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
   const { t } = useI18n();
@@ -963,6 +969,15 @@ function BracketMatchBox({
 
   return (
     <article
+      role={onMatchClick ? 'button' : undefined}
+      tabIndex={onMatchClick ? 0 : undefined}
+      onClick={() => onMatchClick?.(match)}
+      onKeyDown={(event) => {
+        if (onMatchClick && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onMatchClick(match);
+        }
+      }}
       style={{
         background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
         backdropFilter: 'blur(12px) saturate(140%)',
@@ -978,8 +993,21 @@ function BracketMatchBox({
         flexDirection: 'column',
         gap: '0.25rem',
         position: 'relative',
+        cursor: onMatchClick ? 'pointer' : undefined,
       }}
     >
+      {onMatchClick ? (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            borderRadius: 'inherit',
+            cursor: 'pointer',
+          }}
+        />
+      ) : null}
       {!isAdmin && points ? ( 
         <PointsBadge
           points={points}

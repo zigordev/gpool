@@ -421,6 +421,24 @@
       "points": "Points",
       "result": "Result: {home} - {away}"
     },
+    "matchInsights": {
+      "description": "Predictions and player-action points from every pool member for this match.",
+      "exactPositions": "{count} in the exact position",
+      "loadError": "Could not load the match details.",
+      "noPlayerActions": "No selected player recorded actions in this match.",
+      "noPrediction": "No prediction",
+      "oneXTwo": "1X2",
+      "participants": "Participants",
+      "pendingEvaluation": "Pending evaluation",
+      "pendingTeam": "To be determined",
+      "playerActions": "Player actions",
+      "prediction": "Prediction",
+      "predictions": "Predictions",
+      "title": "Match details",
+      "winnerCorrect": "Tournament winner correct",
+      "wrongSide": "{count} on the wrong side",
+      "you": "You"
+    },
     "mode": {
       "admin": "Administrator",
       "label": "View mode",

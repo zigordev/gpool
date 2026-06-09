@@ -5,21 +5,30 @@ import { useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
+import {
+  MatchInsightsModal,
+  type MatchInsightsTarget,
+} from '@/components/pool/MatchInsightsModal';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { apiClient } from '@/lib/api';
 import { buildBracketProjection } from '@/lib/bracket-projection';
-import { FinalScoringInfoSection } from '@/components/pool/PoolInfoSections';
+import {
+  FinalScoringInfoSection,
+  resolvePlayerInfoScoring,
+} from '@/components/pool/PoolInfoSections';
 
 export default function FinalPage() {
   const { t } = useI18n();
   const {
-    bracket, teams, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
+    bracket, teams, pool, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
     bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
     setBracketPredictions,
   } = usePoolContext();
   const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
   const [autoFillingRoundOf32, setAutoFillingRoundOf32] = useState(false);
+  const [insightsTarget, setInsightsTarget] = useState<MatchInsightsTarget | null>(null);
+  const playerScoringConfig = resolvePlayerInfoScoring(pool?.config?.playerScoring);
 
   // effectiveBracketPredictions has projected team slots but lacks scoring flags
   // (homeTeamExactPosition, etc.) which only exist in raw bracketPredictions from the API.
@@ -119,6 +128,14 @@ export default function FinalPage() {
             exactPositionPoints={bracketScoringConfig.exactPositionPoints}
             correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
             roundScoring={bracketScoringConfig.rounds}
+            onMatchClick={
+              isPastPoolDeadline
+                ? (match) => setInsightsTarget({
+                    matchId: match.bracketMatchId,
+                    matchType: 'final',
+                  })
+                : undefined
+            }
             onPredictionChange={async (bracketMatchId, side, teamId, teamName) => {
               if (Date.now() >= poolDeadline) {
                 toast.error(t('poolDetail.finalPhase.deadlinePassed'));
@@ -196,6 +213,13 @@ export default function FinalPage() {
           {t('poolDetail.finalPhase.autoFillConfirmDescription')}
         </p>
       </Modal>
+
+      <MatchInsightsModal
+        poolId={poolId}
+        target={insightsTarget}
+        onClose={() => setInsightsTarget(null)}
+        playerScoring={playerScoringConfig}
+      />
     </div>
   );
 }
