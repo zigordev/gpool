@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.24](https://github.com/zigordev/gpool/compare/v0.1.23...v0.1.24) (2026-06-09)
+
+
+### Bug Fixes
+
+* player actions points changeable ([#83](https://github.com/zigordev/gpool/issues/83)) ([9209fd5](https://github.com/zigordev/gpool/commit/9209fd53e8a451c8c767d09da7afdba50af92fe5))
+
 ## [0.1.23](https://github.com/zigordev/gpool/compare/v0.1.22...v0.1.23) (2026-06-09)
 
 
