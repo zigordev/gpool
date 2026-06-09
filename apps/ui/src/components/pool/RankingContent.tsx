@@ -18,6 +18,7 @@ import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
+import { ReadOnlyGroupMatchCard } from '@/components/pool/ReadOnlyGroupMatchCard';
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -180,33 +181,13 @@ function SpyGroupsView({ data, groups, matchesByGroup, predictionByMatch, locale
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.3rem' }}>
               {matches.map((match) => {
                 const pick = predictionByMatch.get(match.matchId);
-                const hasPick = pick && typeof pick.homeScore === 'number' && typeof pick.awayScore === 'number';
-                const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
-                const tone = pick?.isExactMatch === true
-                  ? 'rgb(var(--pitch))'
-                  : pick?.isCorrect === true
-                  ? 'rgb(var(--info))'
-                  : hasResult && hasPick
-                  ? 'rgb(var(--live))'
-                  : 'rgb(var(--fg-subtle))';
-                const matchDate = new Date(match.scheduledAt).toLocaleString(locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                 return (
-                  <li key={match.matchId} style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', borderRadius: 'var(--radius-sm)', background: 'rgb(var(--bg-elevated))', border: '1px solid rgb(var(--border))' }}>
-                    {hasPick && hasResult && (pick.points ?? 0) > 0 ? (
-                      <PointsBadge
-                        points={pick.points ?? 0}
-                        label={t('poolDetail.match.points', { points: pick.points ?? 0 })}
-                      />
-                    ) : null}
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: 'rgb(var(--fg-subtle))', fontWeight: 600 }}>
-                      <span>{matchDate}</span>
-                      {hasResult ? <span style={{ color: 'rgb(var(--fg-muted))' }}>FT {match.homeResult}–{match.awayResult}</span> : null}
-                    </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeamName}</span>
-                    <span style={{ fontFamily: 'var(--font-display, inherit)', fontWeight: 800, fontSize: '0.9rem', color: tone, fontVariantNumeric: 'tabular-nums', textAlign: 'center', minWidth: '3.5rem' }}>
-                      {hasPick ? `${pick.homeScore}–${pick.awayScore}` : '—'}
-                    </span>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgb(var(--fg))', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
+                  <li key={match.matchId}>
+                    <ReadOnlyGroupMatchCard
+                      match={match}
+                      prediction={pick || null}
+                      locale={locale}
+                    />
                   </li>
                 );
               })}

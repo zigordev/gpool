@@ -18,11 +18,15 @@ import { LuRectangleVertical } from 'react-icons/lu';
 import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
 import { MAX_PLAYER_SELECTION_LIMIT } from '@/lib/player-selection-limits';
 import { PlayerPosition } from '@/types/playerPosition.type';
+import { useState } from 'react';
+import type { PlayerMatchReference } from '@/contexts/AdminContext';
 
 export default function AdminPlayersPage() {
   const { t, locale } = useI18n();
   const {
     systemMode,
+    matchesByGroup,
+    bracket,
     players,
     playerFilter,
     setPlayerFilter,
@@ -40,6 +44,7 @@ export default function AdminPlayersPage() {
     handlePlayerStatChange,
     handlePlayerAwardToggle,
   } = useAdminContext();
+  const [selectedMatch, setSelectedMatch] = useState<PlayerMatchReference | null>(null);
 
   const countries = Array.from(
     players.reduce<Map<string, string>>((acc, player) => {
@@ -53,12 +58,26 @@ export default function AdminPlayersPage() {
   const nameSearch = playerFilter.trim().toLowerCase();
   const countrySearch = playerCountryFilter.trim().toLowerCase();
   const positionSearch = playerPositionFilter.trim().toLowerCase();
+  const selectedGroupMatch = Object.values(matchesByGroup)
+    .flat()
+    .find((match) => selectedMatch?.matchType === 'group' && match.matchId === selectedMatch.matchId);
+  const selectedFinalMatch = Object.values(bracket)
+    .flat()
+    .find((match) => selectedMatch?.matchType === 'final' && match.bracketMatchId === selectedMatch.matchId);
+  const selectedMatchTeamIds = new Set(
+    [
+      selectedGroupMatch?.homeTeamId ?? selectedFinalMatch?.homeTeamId,
+      selectedGroupMatch?.awayTeamId ?? selectedFinalMatch?.awayTeamId,
+    ].filter((teamId): teamId is string => Boolean(teamId)),
+  );
 
   const filtered = players.filter((player) => {
     const matchesName = !nameSearch || player.name.toLowerCase().includes(nameSearch);
     const matchesCountry = !countrySearch || player.teamName.toLowerCase() === countrySearch;
     const matchesPosition = !positionSearch || player.position.toLowerCase() === positionSearch;
-    return matchesName && matchesCountry && matchesPosition;
+    const participatesInSelectedMatch =
+      selectedMatchTeamIds.size === 0 || selectedMatchTeamIds.has(player.teamId);
+    return matchesName && matchesCountry && matchesPosition && participatesInSelectedMatch;
   });
 
   const countryOptions = countries.map(([teamId, teamName]) => {
@@ -87,6 +106,39 @@ export default function AdminPlayersPage() {
   ];
 
   const selectedPositionOption = positionOptions.find((option) => option.value === playerPositionFilter) ?? null;
+  const matchDateFormatter = new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+  const matchOptions = [
+    ...Object.entries(matchesByGroup).flatMap(([group, matches]) =>
+      matches.map((match) => ({
+        value: match.matchId,
+        matchId: match.matchId,
+        matchType: 'group' as const,
+        scheduledAt: match.scheduledAt,
+        label: `${t('adminResults.players.matchGroup', { group })} · ${match.homeTeamName} - ${match.awayTeamName}${match.scheduledAt ? ` · ${matchDateFormatter.format(new Date(match.scheduledAt))}` : ''}`,
+      })),
+    ),
+    ...Object.values(bracket).flatMap((matches) =>
+      matches
+        .filter((match) => match.homeTeamId && match.awayTeamId)
+        .map((match) => ({
+          value: match.bracketMatchId,
+          matchId: match.bracketMatchId,
+          matchType: 'final' as const,
+          scheduledAt: match.scheduledAt,
+          label: `${t('adminResults.players.matchFinal')} · ${match.homeTeamName || match.homeSourceLabel || ''} - ${match.awayTeamName || match.awaySourceLabel || ''}${match.scheduledAt ? ` · ${matchDateFormatter.format(new Date(match.scheduledAt))}` : ''}`,
+        })),
+    ),
+  ].sort((a, b) => {
+    if (!a.scheduledAt) return 1;
+    if (!b.scheduledAt) return -1;
+    return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+  });
+  const selectedMatchOption = matchOptions.find(
+    (option) => option.matchId === selectedMatch?.matchId && option.matchType === selectedMatch.matchType,
+  ) ?? null;
   const parsePositive = (value: string) => parseConfigNumberInput(value);
   const parseSigned = (value: string) => parseConfigNumberInput(value, { allowNegative: true });
   const parseNonPositive = (value: string) => parseConfigNumberInput(value, { allowNegative: true, max: 0 });
@@ -125,7 +177,7 @@ export default function AdminPlayersPage() {
       </Section> : null}
 
       {/* Player scoring configuration */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded={false} density="compact" tone="muted">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[
@@ -201,7 +253,8 @@ export default function AdminPlayersPage() {
           editable
           updatingPlayerStat={updatingPlayerStat}
           updatingPlayerAward={updatingPlayerAward}
-          onStatChange={handlePlayerStatChange}
+          statsDisabled={!selectedMatch}
+          onStatChange={(player, stat, delta) => handlePlayerStatChange(player, stat, delta, selectedMatch)}
           onAwardToggle={handlePlayerAwardToggle}
           isStatVisible={(player, stat) => isPlayerStatEnabled(playerScoringConfig, player.position, stat)}
           toolbar={
@@ -213,6 +266,27 @@ export default function AdminPlayersPage() {
                 alignItems: 'center',
               }}
             >
+              <div style={{ gridColumn: '1 / -1' }}>
+                <FormField label={t('adminResults.players.matchLabel')} required>
+                  <Select<(typeof matchOptions)[number], false>
+                    isClearable
+                    placeholder={t('adminResults.players.matchPlaceholder')}
+                    value={selectedMatchOption}
+                    options={matchOptions}
+                    onChange={(option) => setSelectedMatch(option
+                      ? { matchId: option.matchId, matchType: option.matchType }
+                      : null)}
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    styles={selectStyles({
+                      control: (base) => ({
+                        ...base,
+                        borderColor: selectedMatch ? base.borderColor : 'rgb(var(--warning))',
+                        boxShadow: selectedMatch ? base.boxShadow : '0 0 0 1px rgb(var(--warning) / 0.2)',
+                      }),
+                    })}
+                  />
+                </FormField>
+              </div>
               <Input
                 type="search"
                 value={playerFilter}

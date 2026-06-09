@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
 import { resolvePoolDeadline } from '../pool-deadline.util';
 import {
@@ -120,6 +127,84 @@ export class MatchService {
 
   async getPrediction(poolId: string, matchId: string, userId: string) {
     return this.poolRepository.getPrediction(poolId, matchId, userId);
+  }
+
+  async getMatchInsights(
+    poolId: string,
+    matchType: 'group' | 'final',
+    matchId: string,
+    requesterUserId: string,
+    requesterRole: string,
+  ) {
+    if (matchType !== 'group' && matchType !== 'final') {
+      throw new BadRequestException('Invalid match type');
+    }
+
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    if (Date.now() < resolvePoolDeadline(pool)) {
+      throw new ForbiddenException('Match insights are only available after the prediction deadline');
+    }
+    if (!hasPermission(requesterRole || 'user', 'admin')) {
+      const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
+      if (!membership || membership.status !== 'active') {
+        throw new ForbiddenException('You must be an active member of this pool');
+      }
+    }
+
+    const match = matchType === 'group'
+      ? await this.poolRepository.getMatch(matchId)
+      : (await this.poolRepository.getBracketMatches('all-pools'))
+          .find((candidate: any) => candidate.bracketMatchId === matchId);
+    if (!match) {
+      throw new NotFoundException(`Match with ID ${matchId} not found`);
+    }
+
+    const [members, predictions, selectedPlayerActions] = await Promise.all([
+      this.poolRepository.getPoolMembers(poolId),
+      matchType === 'group'
+        ? this.poolRepository.getAllPredictionsForMatch(matchId, poolId)
+        : this.poolRepository.getAllBracketPredictionsForMatch(matchId),
+      this.poolRepository.getPlayerSelectionsWithMatchStats(poolId, matchType, matchId),
+    ]);
+    const relevantPredictions = matchType === 'final'
+      ? predictions.filter((prediction: any) => prediction.poolId === poolId)
+      : predictions;
+    const predictionByUser = new Map(
+      relevantPredictions.map((prediction: any) => [prediction.userId, prediction]),
+    );
+    const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
+    const playerScoring = resolvePlayerScoring(pool);
+    const actionsByUser = new Map<string, any[]>();
+
+    selectedPlayerActions
+      .filter((selection: any) => isSelectionWithinLimits(selection, limits))
+      .forEach((selection: any) => {
+        const actions = actionsByUser.get(selection.userId) || [];
+        actions.push({
+          ...selection,
+          points: computePlayerPoints(selection, playerScoring),
+        });
+        actionsByUser.set(selection.userId, actions);
+      });
+
+    return {
+      matchType,
+      match,
+      requesterUserId,
+      members: members
+        .filter((member: any) => member.status === 'active')
+        .map((member: any) => ({
+          userId: member.userId,
+          userName:
+            member.userName ||
+            (member.userEmail ? member.userEmail.split('@')[0] : `User ${member.userId.slice(0, 8)}`),
+          prediction: predictionByUser.get(member.userId) || null,
+          playerActions: actionsByUser.get(member.userId) || [],
+        })),
+    };
   }
 
   async updateMatchResults(

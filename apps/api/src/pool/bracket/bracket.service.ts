@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
 import { resolvePoolDeadline } from '../pool-deadline.util';
 
@@ -69,6 +76,85 @@ export class BracketService {
 
   async getBracketMatches(poolId: string, phase?: BracketPhase) {
     return this.poolRepository.getBracketMatches(poolId, phase);
+  }
+
+  async getWinnerInsights(
+    poolId: string,
+    requesterUserId: string,
+    requesterRole: string,
+  ) {
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    if (Date.now() < resolvePoolDeadline(pool)) {
+      throw new ForbiddenException('Winner insights are only available after the prediction deadline');
+    }
+    if (!hasPermission(requesterRole || 'user', 'admin')) {
+      const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
+      if (!membership || membership.status !== 'active') {
+        throw new ForbiddenException('You must be an active member of this pool');
+      }
+    }
+
+    const [members, matches, predictions] = await Promise.all([
+      this.poolRepository.getPoolMembers(poolId),
+      this.poolRepository.getBracketMatches(BRACKET_POOL_ID, 'finals'),
+      this.poolRepository.getAllBracketPredictionsForPool(poolId),
+    ]);
+    const finalMatch = matches[0] || null;
+    const activeUserIds = new Set(
+      members
+        .filter((member: any) => member.status === 'active')
+        .map((member: any) => member.userId),
+    );
+    const memberCount = activeUserIds.size;
+    const finalPredictions = predictions.filter(
+      (prediction: any) =>
+        prediction.bracketMatchId === finalMatch?.bracketMatchId &&
+        activeUserIds.has(prediction.userId),
+    );
+    const byTeam = new Map<string, any>();
+    finalPredictions.forEach((prediction: any) => {
+      if (!prediction.predictedWinnerTeamId) return;
+      const current = byTeam.get(prediction.predictedWinnerTeamId);
+      if (current) {
+        current.count += 1;
+        return;
+      }
+      byTeam.set(prediction.predictedWinnerTeamId, {
+        teamId: prediction.predictedWinnerTeamId,
+        teamName: prediction.predictedWinnerTeamName,
+        count: 1,
+      });
+    });
+
+    const actualWinnerTeamId =
+      typeof finalMatch?.homeResult === 'number' &&
+      typeof finalMatch?.awayResult === 'number' &&
+      finalMatch.homeResult !== finalMatch.awayResult
+        ? finalMatch.homeResult > finalMatch.awayResult
+          ? finalMatch.homeTeamId
+          : finalMatch.awayTeamId
+        : null;
+
+    return {
+      memberCount,
+      actualWinnerTeamId,
+      selections: [...byTeam.values()]
+        .map((selection) => ({
+          ...selection,
+          percentage:
+            memberCount > 0
+              ? Math.round((selection.count / memberCount) * 1000) / 10
+              : 0,
+          correct:
+            actualWinnerTeamId === null
+              ? null
+              : selection.teamId === actualWinnerTeamId,
+        }))
+        .sort((a, b) => b.count - a.count || a.teamName.localeCompare(b.teamName)),
+    };
   }
 
   private async ensureGlobalBracketPhases() {

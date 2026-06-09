@@ -1,3 +1,5 @@
+import { CountdownChip } from '@/components/ui/CountdownChip';
+
 export function PoolCard({
   pool,
   onOpen,
@@ -20,6 +22,8 @@ export function PoolCard({
   const ownerLabel = pool.adminName || pool.adminEmail || t('pools.card.unknownOwner');
 
   const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
+  const deadline = Number(pool?.config?.deadline);
+  const hasDeadline = Number.isFinite(deadline) && deadline > 0;
 
   return (
     <button
@@ -157,19 +161,22 @@ export function PoolCard({
             </span>
           </div>
 
-          {isDisabled ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRequestAccess();
-              }}
-              disabled={requesting}
-              className="btn btn-outline btn-sm"
-            >
-              {requesting ? t('pools.actions.requesting') : t('pools.actions.requestAccess')}
-            </button>
-          ) : null}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
+            {isDisabled ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRequestAccess();
+                }}
+                disabled={requesting}
+                className="btn btn-outline btn-sm"
+              >
+                {requesting ? t('pools.actions.requesting') : t('pools.actions.requestAccess')}
+              </button>
+            ) : null}
+            {hasDeadline ? <CountdownChip deadline={deadline} /> : null}
+          </div>
         </div>
       </div>
     </button>

@@ -133,6 +133,15 @@ export class BracketController {
     return this.bracketService.getUserBracketPredictions(poolId, user.userId);
   }
 
+  @Get('winner-insights')
+  @ApiOperation({ summary: 'Get locked tournament winner selection statistics' })
+  @ApiResponse({ status: 200, description: 'Tournament winner statistics retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  async getWinnerInsights(@Param('poolId') poolId: string, @Req() req: Request) {
+    const user = req.user as any;
+    return this.bracketService.getWinnerInsights(poolId, user.userId, user.role);
+  }
+
   @Post('re-evaluate')
   @ApiOperation({ summary: 'Re-evaluate all bracket matches for a pool (Admin only)' })
   @ApiResponse({ status: 200, description: 'All matches re-evaluated successfully' })

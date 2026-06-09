@@ -122,13 +122,15 @@ export function GeneralPoolInfoSection({
 
 export function GroupScoringInfoSection({
   groupScoring,
+  defaultExpanded = false,
 }: Readonly<{
   groupScoring: { winnerPoints: number; exactResultPoints: number };
+  defaultExpanded?: boolean;
 }>) {
     const { t } = useI18n();
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.groupPhaseDescription')}
@@ -174,13 +176,15 @@ export function GroupScoringInfoSection({
 
 export function FinalScoringInfoSection({
   bracketScoring,
+  defaultExpanded = false,
 }: Readonly<{
   bracketScoring: BracketScoringConfig;
+  defaultExpanded?: boolean;
 }>) {
     const { t } = useI18n();
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.finalPhaseDescription')}
@@ -215,8 +219,10 @@ export function FinalScoringInfoSection({
 
 export function PlayerScoringInfoSection({
   playerScoring,
+  defaultExpanded = false,
 }: Readonly<{
   playerScoring: any;
+  defaultExpanded?: boolean;
 }>) {
     const { t, locale } = useI18n();
     const officialPlayerListUrl = locale === 'es'
@@ -337,7 +343,7 @@ export function PlayerScoringInfoSection({
     );
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
+      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.officialPlayerListLabel')}{' '}

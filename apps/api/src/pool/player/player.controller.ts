@@ -2,7 +2,13 @@ import { Body, Controller, ForbiddenException, Get, Param, Put, Req, UseGuards }
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { SessionUserGuard } from '../../common/auth/session-user.guard';
-import { PlayerAward, PlayerPosition, PlayerService, PlayerStatKey } from './player.service';
+import {
+  PlayerAward,
+  PlayerMatchType,
+  PlayerPosition,
+  PlayerService,
+  PlayerStatKey,
+} from './player.service';
 
 @ApiTags('players')
 @Controller('pools/:poolId/players')
@@ -17,6 +23,19 @@ export class PlayerController {
   async getPlayers(@Param('poolId') poolId: string, @Req() req: Request) {
     const user = req.user as any;
     return this.playerService.getPlayerSelectionState(poolId, user.userId);
+  }
+
+  @Get('selection-statistics')
+  @ApiOperation({ summary: 'Get locked player selection popularity statistics for a pool' })
+  @ApiResponse({ status: 200, description: 'Player selection statistics retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  async getSelectionStatistics(@Param('poolId') poolId: string, @Req() req: Request) {
+    const user = req.user as any;
+    return this.playerService.getPlayerSelectionStatistics(
+      poolId,
+      user.userId,
+      user.role,
+    );
   }
 
   @Put('selection')
@@ -77,14 +96,20 @@ export class PlayerController {
   @ApiOperation({ summary: 'Update tournament player stats (Admin only)' })
   @ApiResponse({ status: 200, description: 'Player stats updated successfully' })
   async updatePlayerStats(
+    @Param('poolId') poolId: string,
     @Param('playerId') playerId: string,
-    @Body() body: Partial<Record<PlayerStatKey, number>>,
+    @Body() body: {
+      matchId: string;
+      matchType: PlayerMatchType;
+      stat: PlayerStatKey;
+      delta: number;
+    },
     @Req() req: Request,
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
       throw new ForbiddenException('Only administrators can update player stats');
     }
-    return this.playerService.updatePlayerStats(playerId, body, user.role);
+    return this.playerService.updatePlayerStats(poolId, playerId, body, user.role);
   }
 }

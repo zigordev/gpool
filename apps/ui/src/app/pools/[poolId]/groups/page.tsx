@@ -1,20 +1,39 @@
 'use client';
 
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
+import {
+  MatchInsightsModal,
+  type MatchInsightsTarget,
+} from '@/components/pool/MatchInsightsModal';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';
-import { GroupScoringInfoSection } from '@/components/pool/PoolInfoSections';
+import {
+  GroupScoringInfoSection,
+  resolvePlayerInfoScoring,
+} from '@/components/pool/PoolInfoSections';
 import { compareThirdPlaceRows, computeGroupStandings } from '@/lib/bracket-projection';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
-  const { groups, matchesByGroup, predictions, poolDeadline, pool, teams, handleScoreChange } = usePoolContext();
+  const {
+    groups,
+    matchesByGroup,
+    predictions,
+    poolDeadline,
+    isPastPoolDeadline,
+    pool,
+    poolId,
+    teams,
+    handleScoreChange,
+  } = usePoolContext();
+  const [insightsTarget, setInsightsTarget] = useState<MatchInsightsTarget | null>(null);
   const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
+  const playerScoringConfig = resolvePlayerInfoScoring(pool?.config?.playerScoring);
   const groupStandings = useMemo(
     () => computeGroupStandings(matchesByGroup, predictions, teams),
     [matchesByGroup, predictions, teams],
@@ -29,7 +48,10 @@ export default function GroupsPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <GroupScoringInfoSection groupScoring={groupScoringConfig} />
+      <GroupScoringInfoSection
+        groupScoring={groupScoringConfig}
+        defaultExpanded={false}
+      />
 
       {groups.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -101,6 +123,14 @@ export default function GroupsPage() {
                           disabled={isPastDeadline}
                           onChange={(side, value) => handleScoreChange(match.matchId, side, value)}
                           isPastDeadline={isPastDeadline}
+                          onOpenInsights={
+                            isPastDeadline
+                              ? () => setInsightsTarget({
+                                  matchId: match.matchId,
+                                  matchType: 'group',
+                                })
+                              : undefined
+                          }
                         />
                       );
                     })}
@@ -139,6 +169,13 @@ export default function GroupsPage() {
           {t('poolDetail.groupPhase.noMatches')}
         </p>
       )}
+
+      <MatchInsightsModal
+        poolId={poolId}
+        target={insightsTarget}
+        onClose={() => setInsightsTarget(null)}
+        playerScoring={playerScoringConfig}
+      />
     </div>
   );
 }
