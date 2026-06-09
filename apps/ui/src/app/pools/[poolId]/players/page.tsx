@@ -75,7 +75,7 @@ export default function PlayersPage() {
       <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <PlayerScoringInfoSection
           playerScoring={playerInfoScoring}
-          defaultExpanded={false}
+          defaultExpanded
         />
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
           {t('poolDetail.players.empty')}
@@ -88,7 +88,7 @@ export default function PlayersPage() {
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <PlayerScoringInfoSection
         playerScoring={playerInfoScoring}
-        defaultExpanded={false}
+        defaultExpanded
       />
       <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
 

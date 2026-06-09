@@ -300,6 +300,14 @@ export function buildConfigPayloadFrom(input: {
   const playerScoring = playerScoringMissingCount(input.playerScoring) === 0
     ? input.playerScoring
     : null;
+  const prizeTotal = input.prizeDistribution.reduce(
+    (sum, row) => sum + row.percentage,
+    0,
+  );
+  const prizeDistributionIsValid =
+    input.prizeDistribution.length === 0 ||
+    Math.abs(prizeTotal - 100) <= 0.01;
+
   return {
     scoring,
     bracketScoring,
@@ -308,7 +316,17 @@ export function buildConfigPayloadFrom(input: {
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
     entryFee: Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0,
-    prizeDistribution: { paidPositions: input.prizeDistribution.length, payouts: input.prizeDistribution.map((row, index) => ({ rank: index + 1, percentage: Number(row.percentage.toFixed(2)) })) },
+    ...(prizeDistributionIsValid
+      ? {
+          prizeDistribution: {
+            paidPositions: input.prizeDistribution.length,
+            payouts: input.prizeDistribution.map((row, index) => ({
+              rank: index + 1,
+              percentage: Number(row.percentage.toFixed(2)),
+            })),
+          },
+        }
+      : {}),
   };
 }
 
@@ -578,8 +596,6 @@ export function AdminProvider({
   useEffect(() => {
     if (systemMode || loading) return;
     if (!poolId) return;
-    const prizeSum = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
-    if (prizeDistribution.length > 0 && Math.abs(prizeSum - 100) > 0.01) return;
     if (configSaveTimer.current) clearTimeout(configSaveTimer.current);
     configSaveTimer.current = setTimeout(() => {
       configSaveTimer.current = null;

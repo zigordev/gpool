@@ -483,7 +483,7 @@ export class PostgresInitService implements OnModuleInit {
       { matchId: 'C2', group: 'C', date: '2026-06-13', timeEt: '21:00', home: 'Haití', away: 'Escocia' },
       { matchId: 'C3', group: 'C', date: '2026-06-19', timeEt: '18:00', home: 'Escocia', away: 'Marruecos' },
       { matchId: 'C4', group: 'C', date: '2026-06-19', timeEt: '21:00', home: 'Brasil', away: 'Haití' },
-      { matchId: 'C5', group: 'C', date: '2026-06-24', timeEt: '18:00', home: 'Brasil', away: 'Escocia' },
+      { matchId: 'C5', group: 'C', date: '2026-06-24', timeEt: '18:00', home: 'Escocia', away: 'Brasil' },
       { matchId: 'C6', group: 'C', date: '2026-06-24', timeEt: '18:00', home: 'Marruecos', away: 'Haití' },
       { matchId: 'D1', group: 'D', date: '2026-06-12', timeEt: '21:00', home: 'Estados Unidos', away: 'Paraguay' },
       { matchId: 'D2', group: 'D', date: '2026-06-13', timeEt: '00:00', home: 'Australia', away: 'Turquía' },

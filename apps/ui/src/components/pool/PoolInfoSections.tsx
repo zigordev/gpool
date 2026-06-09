@@ -122,7 +122,7 @@ export function GeneralPoolInfoSection({
 
 export function GroupScoringInfoSection({
   groupScoring,
-  defaultExpanded = false,
+  defaultExpanded = true,
 }: Readonly<{
   groupScoring: { winnerPoints: number; exactResultPoints: number };
   defaultExpanded?: boolean;
@@ -176,7 +176,7 @@ export function GroupScoringInfoSection({
 
 export function FinalScoringInfoSection({
   bracketScoring,
-  defaultExpanded = false,
+  defaultExpanded = true,
 }: Readonly<{
   bracketScoring: BracketScoringConfig;
   defaultExpanded?: boolean;
@@ -219,7 +219,7 @@ export function FinalScoringInfoSection({
 
 export function PlayerScoringInfoSection({
   playerScoring,
-  defaultExpanded = false,
+  defaultExpanded = true,
 }: Readonly<{
   playerScoring: any;
   defaultExpanded?: boolean;
