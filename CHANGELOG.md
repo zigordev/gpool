@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.22](https://github.com/zigordev/gpool/compare/v0.1.21...v0.1.22) (2026-06-09)
+
+
+### Features
+
+* add match detail info and statistics ([#79](https://github.com/zigordev/gpool/issues/79)) ([19e5241](https://github.com/zigordev/gpool/commit/19e5241cb172f5b0f338084cbc56d79e0a6f4e4d))
+
 ## [0.1.21](https://github.com/zigordev/gpool/compare/v0.1.20...v0.1.21) (2026-06-08)
 
 
