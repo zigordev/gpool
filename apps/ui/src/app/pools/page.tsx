@@ -371,20 +371,19 @@ function PoolsContent() {
             const requesting = requestingAccess === pool.poolId;
 
             return (
-              <PoolProvider key={pool.poolId}>
-                <PoolCard
-                  pool={pool}
-                  isPoolAdmin={isPoolAdmin}
-                  isDisabled={isDisabled}
-                  requesting={requesting}
-                  onOpen={() => {
-                    if (!isDisabled) router.push(`/pools/${pool.poolId}`);
-                  }}
-                  onInvite={() => handleInviteUser(pool)}
-                  onRequestAccess={() => handleRequestAccess(pool.poolId)}
-                  t={t}
-                />
-              </PoolProvider>
+              <PoolCard
+                key={pool.poolId}
+                pool={pool}
+                isPoolAdmin={isPoolAdmin}
+                isDisabled={isDisabled}
+                requesting={requesting}
+                onOpen={() => {
+                  if (!isDisabled) router.push(`/pools/${pool.poolId}`);
+                }}
+                onInvite={() => handleInviteUser(pool)}
+                onRequestAccess={() => handleRequestAccess(pool.poolId)}
+                t={t}
+              />
             );
           })}
         </div>
