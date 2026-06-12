@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.26](https://github.com/zigordev/gpool/compare/v0.1.25...v0.1.26) (2026-06-12)
+
+
+### Bug Fixes
+
+* revert pool missing count ([#87](https://github.com/zigordev/gpool/issues/87)) ([ab78f91](https://github.com/zigordev/gpool/commit/ab78f91ab15ea833dd932011dd170ef0b7423752))
+
 ## [0.1.25](https://github.com/zigordev/gpool/compare/v0.1.24...v0.1.25) (2026-06-12)
 
 
