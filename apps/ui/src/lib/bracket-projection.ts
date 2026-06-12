@@ -579,7 +579,7 @@ export function compareThirdPlaceRows(a: StandingRow, b: StandingRow): number {
 
 function rankGroup(
   rows: StandingRow[],
-  groupMatches: GroupMatchProjection[],
+  groupMatches: Match[],
   predictions: Record<string, ScorePredictionProjection>,
 ): StandingRow[] {
   const byPoints = new Map<number, StandingRow[]>();
@@ -636,7 +636,7 @@ function rankGroup(
 }
 
 export function computeGroupStandings(
-  matchesByGroup: Record<string, GroupMatchProjection[]>,
+  matchesByGroup: Record<string, Match[]>,
   predictions: Record<string, ScorePredictionProjection>,
   teams: Team[],
 ): Record<string, StandingRow[]> {
@@ -696,6 +696,97 @@ export function computeGroupStandings(
   });
 
   return standings;
+}
+
+export function computeRealGroupStandings(
+  matchesByGroup: Record<string, Match[]>,
+  teams: Team[],
+): Record<string, StandingRow[]> {
+  const teamsById = new Map(teams.map((team) => [team.teamId, team]));
+  const teamsByName = new Map(teams.map((team) => [team.name, team]));
+  const standings: Record<string, StandingRow[]> = {};
+
+  Object.entries(matchesByGroup).forEach(([group, groupMatches]) => {
+    const rowsByTeam = new Map<string, StandingRow>();
+
+    const ensureRow = (team: Team): StandingRow => {
+      const existing = rowsByTeam.get(team.teamId);
+      if (existing) return existing;
+
+      const fairPlay = Number(team.fairPlay);
+
+      const row: StandingRow = {
+        ...team,
+        group,
+        played: 0,
+        points: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        fairPlay: Number.isFinite(fairPlay) ? fairPlay : 0,
+      };
+
+      rowsByTeam.set(team.teamId, row);
+      return row;
+    };
+
+    groupMatches.forEach((match) => {
+      const homeResult = Number(match.homeResult);
+      const awayResult = Number(match.awayResult);
+
+      if (!Number.isFinite(homeResult) || !Number.isFinite(awayResult)) return;
+      if (match.status && match.status !== 'completed') return;
+
+      const home = ensureRow(
+        teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName),
+      );
+
+      const away = ensureRow(
+        teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName),
+      );
+
+      if (home.teamId === away.teamId) return;
+
+      home.played += 1;
+      away.played += 1;
+
+      home.goalsFor += homeResult;
+      home.goalsAgainst += awayResult;
+
+      away.goalsFor += awayResult;
+      away.goalsAgainst += homeResult;
+
+      home.goalDifference = home.goalsFor - home.goalsAgainst;
+      away.goalDifference = away.goalsFor - away.goalsAgainst;
+
+      if (homeResult > awayResult) {
+        home.points += 3;
+      } else if (homeResult < awayResult) {
+        away.points += 3;
+      } else {
+        home.points += 1;
+        away.points += 1;
+      }
+    });
+
+    standings[group] = rankGroupFromResults(Array.from(rowsByTeam.values()));
+  });
+
+  return standings;
+}
+
+function rankGroupFromResults(
+  rows: StandingRow[],
+): StandingRow[] {
+  return [...rows].sort((a, b) => {
+    return (
+      b.points - a.points ||
+      b.goalDifference - a.goalDifference ||
+      b.goalsFor - a.goalsFor ||
+      a.fairPlay - b.fairPlay ||
+      a.name.localeCompare(b.name)
+    );
+  });
 }
 
 function selectedTeam(prediction: BracketPredictionProjection | undefined, side: 'home' | 'away'): Team | null {
@@ -828,7 +919,7 @@ export function buildBracketProjection({
   bracketPredictions,
   prefillRoundOf32 = false,
 }: {
-  matchesByGroup: Record<string, GroupMatchProjection[]>;
+  matchesByGroup: Record<string, Match[]>;
   groupPredictions: Record<string, ScorePredictionProjection>;
   teams: Team[];
   bracket: Record<string, BracketMatch[]>;

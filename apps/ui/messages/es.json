@@ -550,19 +550,21 @@
         "correctBracketPosition": "Posición correcta",
         "correctWinner": "1X2",
         "exactResult": "Resultado exacto",
-        "fifaRegulationsLink": "Consultar el reglamento oficial de la FIFA",
+        "fifaRegulationsLink": "Consultar criterio oficial de la FIFA para la clasificación",
         "finalPhaseDescription": "En esta fase puedes conseguir puntos acertando qué equipos llegan a cada posición del cuadro.",
         "goals": "Goles",
         "goldenBoot": "Bota de oro",
         "groupPhaseDescription": "Puedes conseguir puntos si aciertas el resultado 1X2 o el resultado exacto.",
         "missedPenalty": "Penalti fallado",
         "mvp": "MVP",
+        "notRealStanding": "Esta clasificacion no es la real, es la hipotética en base a tus predicciones",
         "officialPlayerListLabel": "Enlace a lista oficial de jugadores",
         "officialPlayerListLink": "Lista oficial de la FIFA",
         "penaltyGoal": "Gol de penalti",
         "penaltySaved": "Penalti parado",
         "penaltyShootoutHint": "Las tandas de penaltis no se tendrán en cuenta.",
         "predictedStandingsWarning": "Las clasificaciones mostradas no son las clasificaciones reales, sino las hipotéticas en base a tus predicciones. Los criterios de clasificación aplicados se basan en el reglamento oficial de la FIFA.",
+        "realVirtualStanding": "Esta clasificacion es la real virtual",
         "redCard": "Tarjeta roja",
         "shootoutGoal": "Gol en tanda de penaltis",
         "shootoutMissedPenalty": "Penalti fallado en tanda de penaltis",
@@ -626,7 +628,7 @@
       "correct": "Ganador real",
       "empty": "Todavía no hay selecciones de ganador.",
       "loadError": "No se pudieron cargar las selecciones de ganador.",
-      "title": "% de ganadores seleccionados"
+      "title": "Selecciones de ganador"
     }
   },
   "pools": {

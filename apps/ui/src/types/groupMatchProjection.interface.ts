@@ -5,4 +5,7 @@ export interface GroupMatchProjection {
   awayTeamId?: string;
   homeTeamName: string;
   awayTeamName: string;
+  homeResult: string;
+  awayResult: string;
+  status: string;
 }

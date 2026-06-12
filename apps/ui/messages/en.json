@@ -550,19 +550,21 @@
         "correctBracketPosition": "Correct position",
         "correctWinner": "1X2",
         "exactResult": "Exact result",
-        "fifaRegulationsLink": "View the official FIFA regulations",
+        "fifaRegulationsLink": "View the official FIFA criteria for the standings",
         "finalPhaseDescription": "In this phase, you can earn points by predicting which teams reach each position in the bracket.",
         "goals": "Goals",
         "goldenBoot": "Golden Boot",
         "groupPhaseDescription": "You can earn points by predicting the correct 1X2 outcome or the exact result.",
         "missedPenalty": "Missed penalty",
         "mvp": "MVP",
+        "notRealStanding": "This is not the real standing, it´s the hypothetical one based on your predictions",
         "officialPlayerListLabel": "Official player list",
         "officialPlayerListLink": "Official FIFA list",
         "penaltyGoal": "Penalty goal",
         "penaltySaved": "Penalty saved",
         "penaltyShootoutHint": "Penalty shootouts will not be taken into account.",
         "predictedStandingsWarning": "The standings shown are not the real standings, but hypothetical standings based on your predictions. The ranking criteria applied are based on the official FIFA regulations.",
+        "realVirtualStanding": "This is the real virtual standing",
         "redCard": "Red card",
         "shootoutGoal": "Penalty shootout goal",
         "shootoutMissedPenalty": "Missed penalty in a shootout",
@@ -626,7 +628,7 @@
       "correct": "Actual winner",
       "empty": "There are no tournament winner selections yet.",
       "loadError": "Could not load tournament winner selections.",
-      "title": "% of winner selections"
+      "title": "Tournament winner selections"
     }
   },
   "pools": {

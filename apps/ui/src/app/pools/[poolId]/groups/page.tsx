@@ -14,9 +14,11 @@ import {
   GroupScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
-import { compareThirdPlaceRows, computeGroupStandings } from '@/lib/bracket-projection';
+import { compareThirdPlaceRows, computeGroupStandings, computeRealGroupStandings } from '@/lib/bracket-projection';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
+import { FaExternalLinkAlt } from 'react-icons/fa';
+import { IoWarning } from 'react-icons/io5';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
@@ -25,7 +27,6 @@ export default function GroupsPage() {
     matchesByGroup,
     predictions,
     poolDeadline,
-    isPastPoolDeadline,
     pool,
     poolId,
     teams,
@@ -37,6 +38,10 @@ export default function GroupsPage() {
   const groupStandings = useMemo(
     () => computeGroupStandings(matchesByGroup, predictions, teams),
     [matchesByGroup, predictions, teams],
+  );
+  const realGroupStandings = useMemo(
+    () => computeRealGroupStandings(matchesByGroup, teams),
+    [matchesByGroup, teams],
   );
   const bestThirdsRanking = useMemo(
     () => Object.values(groupStandings)
@@ -58,6 +63,7 @@ export default function GroupsPage() {
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             const standings = groupStandings[group] || [];
+            const realStandings = realGroupStandings[group] || [];
             return (
               <Section
                 key={group}
@@ -71,9 +77,52 @@ export default function GroupsPage() {
               >
                 {groupMatches.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <p
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+                        gap: '0.45rem',
+                        alignItems: 'start',
+                        margin: '0.15rem 0 0',
+                        color: 'rgb(var(--fg-muted))',
+                        fontSize: '0.84rem',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
+                      <span>
+                        {t('poolDetail.rules.points.notRealStanding')}{' '}
+                      </span>
+                    </p>
                     {standings.length > 0 ? (
                       <PredictionStandingsTable
                         rows={standings}
+                        t={t}
+                        minWidth={460}
+                        qualificationCutoff={2}
+                        style={{ marginBottom: '0.4rem' }}
+                      />
+                    ) : null}
+                    <p
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+                        gap: '0.45rem',
+                        alignItems: 'start',
+                        margin: '0.15rem 0 0',
+                        color: 'rgb(var(--fg-muted))',
+                        fontSize: '0.84rem',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
+                      <span>
+                        {t('poolDetail.rules.points.realVirtualStanding')}{' '}
+                      </span>
+                    </p>
+                    {realStandings.length > 0 ? (
+                      <PredictionStandingsTable
+                        rows={realStandings}
                         t={t}
                         minWidth={460}
                         qualificationCutoff={2}

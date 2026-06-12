@@ -20,7 +20,6 @@ import {
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
-import { PoolProvider } from '@/contexts/PoolContext';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
