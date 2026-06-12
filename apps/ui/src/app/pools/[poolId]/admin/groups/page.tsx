@@ -9,6 +9,7 @@ import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { FaExternalLinkAlt } from 'react-icons/fa';
 
 function ScoreInput({
   value,
@@ -71,10 +72,11 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
   return (
     <article
       style={{
+        position: 'relative',
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr) 9rem',
+        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)',
         alignItems: 'center',
-        gap: '0.35rem',
+        gap: '0.25rem 0.35rem',
         padding: '0.38rem 0.5rem',
         background: 'linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))',
         backdropFilter: 'blur(12px) saturate(140%)',
@@ -153,12 +155,16 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
 
       <div
         style={{
+          gridColumn: '1 / -1',
           minWidth: 0,
-          display: 'grid',
-          justifyItems: 'end',
-          gap: '0.15rem',
-          fontSize: '0.65rem',
-          lineHeight: 1.1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+          paddingTop: '0.28rem',
+          borderTop: '1px dashed rgb(var(--border) / 0.75)',
+          fontSize: '0.68rem',
+          lineHeight: 1.2,
           color: 'rgb(var(--fg-muted))',
         }}
       >
@@ -170,6 +176,7 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
             whiteSpace: 'nowrap',
             fontWeight: 600,
             color: 'rgb(var(--fg-subtle))',
+            minWidth: 0,
           }}
         >
           {matchDate}
@@ -263,7 +270,18 @@ function FairPlayTable({
       tone="muted"
     >
       <p style={{ margin: '0 0 0.65rem', color: 'rgb(var(--fg-muted))', fontSize: '0.84rem', lineHeight: 1.45 }}>
-        {t('adminResults.groupPhase.fairPlay.description')}
+        <span>
+          {t('adminResults.groupPhase.fairPlay.description')}{' '}
+          <a
+            href="https://www.transfermarkt.co.uk/weltmeisterschaft/fairnesstabelle/pokalwettbewerb/FIWC/saison_id/2025"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'rgb(var(--fg))', fontWeight: 600 }}
+          >
+            {t('adminResults.groupPhase.fairPlay.fairPlaySourceLink')}
+            <FaExternalLinkAlt size={11} aria-hidden />
+          </a>
+        </span>
       </p>
       <div
         style={{

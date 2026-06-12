@@ -94,6 +94,7 @@
       "empty": "There are no group phase matches available yet.",
       "fairPlay": {
         "description": "Enter each team's conduct score. Use 0 when there are no deductions and negative values for disciplinary deductions. The higher value takes priority when teams are tied. If the tie remains, the FIFA World Ranking published on April 1, 2026 is used.",
+        "fairPlaySourceLink": "Check fair play ranking",
         "group": "Group",
         "inputLabel": "Fair-play score for {team}",
         "points": "Fair play",
@@ -625,7 +626,7 @@
       "correct": "Actual winner",
       "empty": "There are no tournament winner selections yet.",
       "loadError": "Could not load tournament winner selections.",
-      "title": "Tournament winner selections"
+      "title": "% of winner selections"
     }
   },
   "pools": {

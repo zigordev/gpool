@@ -40,13 +40,6 @@ function SystemAdminNav() {
         })}
       </nav>,
     );
-    setSubBar(
-      <div className="pool-header-strip">
-        <div className="pool-header-name">
-          <span className="nav-pool-name">{t('systemAdmin.title')}</span>
-        </div>
-      </div>,
-    );
     return () => {
       setCenter(null);
       setSubBar(null);
