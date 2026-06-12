@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.28](https://github.com/zigorlsp7/gpool/compare/v0.1.27...v0.1.28) (2026-06-12)
+
+
+### Bug Fixes
+
+* ui improvement ([#91](https://github.com/zigorlsp7/gpool/issues/91)) ([1046d63](https://github.com/zigorlsp7/gpool/commit/1046d63001efbfa0ba68be05bfed369edb2ceed4))
+
 ## [0.1.27](https://github.com/zigorlsp7/gpool/compare/v0.1.26...v0.1.27) (2026-06-12)
 
 
