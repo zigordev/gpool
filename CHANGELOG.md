@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.29](https://github.com/zigordev/gpool/compare/v0.1.28...v0.1.29) (2026-06-12)
+
+
+### Bug Fixes
+
+* repeated standing warning ([#93](https://github.com/zigordev/gpool/issues/93)) ([60eda68](https://github.com/zigordev/gpool/commit/60eda680c3ef1088ec646b9ebe33946437fdd658))
+
 ## [0.1.28](https://github.com/zigordev/gpool/compare/v0.1.27...v0.1.28) (2026-06-12)
 
 
