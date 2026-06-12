@@ -43,7 +43,7 @@ FROM node:25-alpine AS prod
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
 ENV NODE_PATH=/app/apps/api/node_modules:/app/node_modules
-RUN apk upgrade --no-cache zlib \
+RUN apk upgrade --no-cache zlib libcrypto3 libssl3 \
  && rm -rf /usr/local/lib/node_modules/npm /opt/yarn-v1.22.22 \
  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 COPY --from=deps-prod /app/node_modules /app/node_modules
