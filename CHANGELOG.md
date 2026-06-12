@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.27](https://github.com/zigorlsp7/gpool/compare/v0.1.26...v0.1.27) (2026-06-12)
+
+
+### Features
+
+* add real standings ([#89](https://github.com/zigorlsp7/gpool/issues/89)) ([2e72716](https://github.com/zigorlsp7/gpool/commit/2e72716c08bb06c17de09bec55365a656b766c68))
+
 ## [0.1.26](https://github.com/zigorlsp7/gpool/compare/v0.1.25...v0.1.26) (2026-06-12)
 
 
