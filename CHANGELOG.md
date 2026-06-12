@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.27](https://github.com/zigordev/gpool/compare/v0.1.26...v0.1.27) (2026-06-12)
+
+
+### Features
+
+* add real standings ([#89](https://github.com/zigordev/gpool/issues/89)) ([494fc3f](https://github.com/zigordev/gpool/commit/494fc3f2e3183abbf9914684607764646b259304))
+
 ## [0.1.26](https://github.com/zigordev/gpool/compare/v0.1.25...v0.1.26) (2026-06-12)
 
 
