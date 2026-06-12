@@ -359,7 +359,7 @@
       "general": "Deadline",
       "groupPhase": "Group phase deadline",
       "passed": "Changes are no longer allowed",
-      "passedShort": "Expired"
+      "passedShort": "Waiting for result"
     },
     "errors": {
       "invalidPoolId": "Invalid pool ID",
