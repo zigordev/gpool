@@ -1,4 +1,6 @@
 import { CountdownChip } from '@/components/ui/CountdownChip';
+import { usePoolContext } from '@/contexts/PoolContext';
+import { Badge } from '../ui/Badge';
 
 export function PoolCard({
   pool,
@@ -24,6 +26,10 @@ export function PoolCard({
   const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
   const deadline = Number(pool?.config?.deadline);
   const hasDeadline = Number.isFinite(deadline) && deadline > 0;
+
+  const { groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
+
+  const totalMissingCount = groupMissingCount + finalMissingCount + playersMissingCount;
 
   return (
     <button
@@ -176,6 +182,21 @@ export function PoolCard({
               </button>
             ) : null}
             {hasDeadline ? <CountdownChip deadline={deadline} /> : null}
+            {hasDeadline ?
+              <Badge
+                variant="sunset"
+                className="badge-attention"
+                title={t('poolDetail.tabs.missingCount', { count: totalMissingCount })}
+                aria-label={t('poolDetail.tabs.missingCount', { count: totalMissingCount })}
+                leadingIcon={
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+                    <path d="M12 9v4" /><path d="M12 17h.01" />
+                  </svg>
+                }
+              >
+                {totalMissingCount}
+              </Badge> : null}
           </div>
         </div>
       </div>
