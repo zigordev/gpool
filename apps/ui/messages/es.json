@@ -94,6 +94,7 @@
       "empty": "Aun no hay partidos de fase de grupos disponibles.",
       "fairPlay": {
         "description": "Introduce la puntuación de conducta de cada selección. Usa 0 si no hay deducciones y valores negativos para las sanciones disciplinarias. El valor más alto tiene prioridad en caso de empate. Si el empate continúa, se utiliza la Clasificación Mundial FIFA publicada el 1 de abril de 2026.",
+        "fairPlaySourceLink": "Consulta la clasificación del fair play",
         "group": "Grupo",
         "inputLabel": "Puntuación de juego limpio de {team}",
         "points": "Juego limpio",
@@ -358,7 +359,7 @@
       "general": "Fecha limite",
       "groupPhase": "Fecha limite de fase de grupos",
       "passed": "Ya no se pueden realizar cambios",
-      "passedShort": "Expirado"
+      "passedShort": "Esperando resultado"
     },
     "errors": {
       "invalidPoolId": "ID de porra invalido",
@@ -625,7 +626,7 @@
       "correct": "Ganador real",
       "empty": "Todavía no hay selecciones de ganador.",
       "loadError": "No se pudieron cargar las selecciones de ganador.",
-      "title": "Selecciones de ganador"
+      "title": "% de ganadores seleccionados"
     }
   },
   "pools": {

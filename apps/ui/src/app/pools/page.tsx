@@ -20,6 +20,7 @@ import {
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
+import { PoolProvider } from '@/contexts/PoolContext';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
@@ -370,19 +371,20 @@ function PoolsContent() {
             const requesting = requestingAccess === pool.poolId;
 
             return (
-              <PoolCard
-                key={pool.poolId}
-                pool={pool}
-                isPoolAdmin={isPoolAdmin}
-                isDisabled={isDisabled}
-                requesting={requesting}
-                onOpen={() => {
-                  if (!isDisabled) router.push(`/pools/${pool.poolId}`);
-                }}
-                onInvite={() => handleInviteUser(pool)}
-                onRequestAccess={() => handleRequestAccess(pool.poolId)}
-                t={t}
-              />
+              <PoolProvider key={pool.poolId}>
+                <PoolCard
+                  pool={pool}
+                  isPoolAdmin={isPoolAdmin}
+                  isDisabled={isDisabled}
+                  requesting={requesting}
+                  onOpen={() => {
+                    if (!isDisabled) router.push(`/pools/${pool.poolId}`);
+                  }}
+                  onInvite={() => handleInviteUser(pool)}
+                  onRequestAccess={() => handleRequestAccess(pool.poolId)}
+                  t={t}
+                />
+              </PoolProvider>
             );
           })}
         </div>

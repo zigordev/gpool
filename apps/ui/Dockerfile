@@ -46,7 +46,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
-RUN apk upgrade --no-cache zlib \
+RUN apk upgrade --no-cache zlib libcrypto3 libssl3 \
  && rm -rf /usr/local/lib/node_modules/npm /opt/yarn-v1.22.22 \
  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 COPY --from=deps-prod /workspace/node_modules /app/node_modules

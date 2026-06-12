@@ -280,7 +280,6 @@ export const WORLD_CUP_2026_ROSTERS: readonly TournamentRoster[] = [
     'Brasil',
     ['Alisson', 'Weverton', 'Éderson'],
     [
-      'Wesley',
       'Gabriel Magalhaes',
       'Marquinhos',
       'Álex Sandro',
@@ -290,7 +289,7 @@ export const WORLD_CUP_2026_ROSTERS: readonly TournamentRoster[] = [
       'Douglas Santos',
       'Ibañez',
     ],
-    ['Casemiro', 'Bruno Guimares', 'Fabinho', 'Danilo', 'Lucas Paquetá'],
+    ['Casemiro', 'Bruno Guimares', 'Fabinho', 'Danilo', 'Lucas Paquetá', 'Éderson Silva'],
     [
       'Vinícius',
       'Matheus Cunha',
@@ -1221,7 +1220,7 @@ export const WORLD_CUP_2026_ROSTERS: readonly TournamentRoster[] = [
       'Florian Grillitsch',
       'Carney Chukwuemeka',
       'Romano Schmid',
-      'Christoph Baumgartner',
+      'Dejan Ljubičić',
       'Konrad Laimer',
       'Alexander Prass',
       'Paul Wanner',
