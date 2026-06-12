@@ -95,13 +95,60 @@ export default function GroupsPage() {
                       </span>
                     </p>
                     {standings.length > 0 ? (
-                      <PredictionStandingsTable
-                        rows={standings}
-                        t={t}
-                        minWidth={460}
-                        qualificationCutoff={2}
-                        style={{ marginBottom: '0.4rem' }}
-                      />
+                      <>
+                        <p
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+                            gap: '0.45rem',
+                            alignItems: 'start',
+                            margin: '0.15rem 0 0',
+                            color: 'rgb(var(--fg-muted))',
+                            fontSize: '0.84rem',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
+                          <span>
+                            {t('poolDetail.rules.points.notRealStanding')}{' '}
+                          </span>
+                        </p>
+                        <PredictionStandingsTable
+                          rows={standings}
+                          t={t}
+                          minWidth={460}
+                          qualificationCutoff={2}
+                          style={{ marginBottom: '0.4rem' }}
+                        />
+                      </>
+                    ) : null}
+                    {realStandings.length > 0 ? (
+                      <>
+                        <p
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+                            gap: '0.45rem',
+                            alignItems: 'start',
+                            margin: '0.15rem 0 0',
+                            color: 'rgb(var(--fg-muted))',
+                            fontSize: '0.84rem',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
+                          <span>
+                            {t('poolDetail.rules.points.realVirtualStanding')}{' '}
+                          </span>
+                        </p>
+                        <PredictionStandingsTable
+                          rows={realStandings}
+                          t={t}
+                          minWidth={460}
+                          qualificationCutoff={2}
+                          style={{ marginBottom: '0.4rem' }}
+                        />
+                      </>
                     ) : null}
                     <p
                       style={{
