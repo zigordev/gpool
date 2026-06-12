@@ -146,7 +146,7 @@ export function GroupScoringInfoSection({
           <p
             style={{
               display: 'grid',
-              gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+              gridTemplateColumns: 'minmax(0, 1fr)',
               gap: '0.45rem',
               alignItems: 'start',
               margin: '0.15rem 0 0',
@@ -155,9 +155,7 @@ export function GroupScoringInfoSection({
               lineHeight: 1.45,
             }}
           >
-            <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
             <span>
-              {t('poolDetail.rules.points.predictedStandingsWarning')}{' '}
               <a
                 href="https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf"
                 target="_blank"
