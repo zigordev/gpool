@@ -19,7 +19,11 @@ export function PoolDetailModalButton({
       <button
         type="button"
         className="pool-detail-modal-trigger"
-        onClick={() => setOpen(true)}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(true);
+        }}
+        onKeyDown={(event) => event.stopPropagation()}
         aria-haspopup="dialog"
         aria-label={title}
         title={title}

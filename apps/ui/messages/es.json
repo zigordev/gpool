@@ -384,6 +384,8 @@
       "title": "Fase final"
     },
     "groupPhase": {
+      "bestThirdsPredictedTitle": "Mejores terceros según tus predicciones",
+      "bestThirdsRealTitle": "Mejores terceros de la clasificación real virtual",
       "bestThirdsTitle": "Mejores terceros",
       "group": "Grupo {group}",
       "noMatches": "Aun no hay partidos disponibles.",
@@ -429,8 +431,8 @@
       "description": "Predicciones y puntos por acciones de jugadores de todos los miembros para este partido.",
       "draw": "Empate",
       "exactPositions": "{count} en la posición exacta",
-      "exactResult": "Resultado exacto",
-      "failed": "Sin acierto",
+      "exactResult": "Exacto",
+      "failed": "Incorrecto",
       "finalStatisticsHint": "Lado correcto indica que el equipo fue colocado en esta posición exacta del cuadro; lado incorrecto, que fue seleccionado en la otra parte del cuadro; y equipo no acertado, que no fue seleccionado.",
       "groupStatisticsHint": "A continuación se muestra el procentaje de participantes que han acertado el 1X2, el resultado exacto o que han fallado su predicción para este partido",
       "homeWin": "Victoria local",

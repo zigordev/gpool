@@ -384,6 +384,8 @@
       "title": "Final phase"
     },
     "groupPhase": {
+      "bestThirdsPredictedTitle": "Best third-placed teams from your predictions",
+      "bestThirdsRealTitle": "Real virtual best third-placed teams",
       "bestThirdsTitle": "Best third-placed teams",
       "group": "Group {group}",
       "noMatches": "There are no matches available yet.",
@@ -429,8 +431,8 @@
       "description": "Predictions and player-action points from every pool member for this match.",
       "draw": "Draw",
       "exactPositions": "{count} in the exact position",
-      "exactResult": "Exact result",
-      "failed": "No correct prediction",
+      "exactResult": "Exact",
+      "failed": "Incorrect",
       "finalStatisticsHint": "Correct side means the team was placed in this exact bracket position; wrong side means it was selected on the other side of the bracket; and team not predicted means it was not selected.",
       "groupStatisticsHint": "The following shows the percentage of participants who correctly predicted the 1X2 outcome, the exact score, or who were incorrect in their prediction for this match",
       "homeWin": "Home win",

@@ -317,7 +317,6 @@ function SpyPlayersView({ playerByPositionSlot, playerByAward, playerSelectionLi
                   {sel && (sel.totalPoints ?? 0) > 0 ? (
                     <PointsBadge points={sel.totalPoints ?? 0} label={t('poolDetail.players.points', { points: sel.totalPoints ?? 0 })} />
                   ) : null}
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgb(var(--fg-subtle))', width: '0.9rem', textAlign: 'right', flexShrink: 0 }}>{slot}</span>
                   {sel ? (
                     <>
                       <ReactCountryFlag countryCode={countryIsoCode(sel.teamName)} svg style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }} />

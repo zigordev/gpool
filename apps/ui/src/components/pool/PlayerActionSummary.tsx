@@ -14,11 +14,12 @@ import { useI18n } from '@/i18n/client';
 
 type ActionGroup = 'match' | 'penalty' | 'shootout';
 
-export function PlayerActionSummary({ player, labels, position, scoring }: Readonly<{
+export function PlayerActionSummary({ player, labels, position, scoring, compact = false }: Readonly<{
   player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
   labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
   position: PlayerPosition;
   scoring: ReturnType<typeof resolvePlayerInfoScoring>;
+  compact?: boolean;
 }>) {
   const { t } = useI18n();
   const actions: Array<{ key: PlayerStatKey; group: ActionGroup; value: number; label: string; icon: ReactNode }> = [
@@ -45,6 +46,40 @@ export function PlayerActionSummary({ player, labels, position, scoring }: Reado
   const visibleGroups = groups.filter((group) =>
     visibleActions.some((item) => item.group === group.key),
   );
+
+  if (compact) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+        {visibleGroups.map((group) => {
+          const groupActions = visibleActions.filter((item) => item.group === group.key);
+          return (
+            <span
+              key={group.key}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', flexWrap: 'wrap' }}
+            >
+              <span style={{ fontSize: '0.5rem', fontWeight: 800, color: 'rgb(var(--fg-subtle))', textTransform: 'uppercase' }}>
+                {group.label}
+              </span>
+              {groupActions.map((item) => {
+                const isZero = item.value === 0;
+                return (
+                  <span
+                    key={item.key}
+                    title={`${item.label}: ${item.value}`}
+                    aria-label={`${item.label}: ${item.value}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border-subtle))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', opacity: isZero ? 0.45 : 1, fontSize: '0.58rem', fontWeight: 800, lineHeight: 1 }}
+                  >
+                    {item.icon}
+                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
+                  </span>
+                );
+              })}
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'grid', gap: '0.3rem', marginTop: '0.35rem' }}>
