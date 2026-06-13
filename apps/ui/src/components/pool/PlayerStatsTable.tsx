@@ -269,7 +269,9 @@ export function PlayerStatsTable({
                             : undefined,
                         }}
                       >
-                        {!statVisibleForPlayer ? null : editable ? (
+                        {!statVisibleForPlayer ? (
+                          <span style={statNumberStyle}>0</span>
+                        ) : editable ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.12rem' }}>
                             <button
                               type="button"

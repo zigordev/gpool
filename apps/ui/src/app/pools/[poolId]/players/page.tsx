@@ -86,11 +86,13 @@ export default function PlayersPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <PlayerScoringInfoSection
-        playerScoring={playerInfoScoring}
-        defaultExpanded
-      />
-      <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+        <PlayerScoringInfoSection
+          playerScoring={playerInfoScoring}
+          defaultExpanded
+        />
+        <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
+      </div>
 
       <section
         className="surface players-view-surface"

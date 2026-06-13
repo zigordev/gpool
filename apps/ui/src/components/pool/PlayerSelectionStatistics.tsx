@@ -8,7 +8,7 @@ import { useI18n } from '@/i18n/client';
 import { apiClient } from '@/lib/api';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
-import { Section } from '@/components/ui/Section';
+import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
 
 type PopularPlayer = {
   playerId: string;
@@ -71,17 +71,9 @@ export function PlayerSelectionStatistics({
   if (!visible) return null;
 
   return (
-    <Section
-      title={
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-          <FaChartBar size={13} aria-hidden />
-          {t('poolDetail.players.statistics.title')}
-        </span>
-      }
-      collapsible
-      defaultExpanded
-      density="compact"
-      tone="muted"
+    <PoolDetailModalButton
+      title={t('poolDetail.players.statistics.title')}
+      icon={<FaChartBar size={13} />}
     >
       {loading ? (
         <p style={messageStyle}>{t('common.loading')}</p>
@@ -138,7 +130,7 @@ export function PlayerSelectionStatistics({
           </div>
         </div>
       ) : null}
-    </Section>
+    </PoolDetailModalButton>
   );
 }
 

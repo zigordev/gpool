@@ -192,11 +192,7 @@ export function MatchInsightsModal({
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <p style={emptyActionsStyle}>
-                        {t('poolDetail.matchInsights.noPlayerActions')}
-                      </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -551,7 +547,10 @@ function FinalTeam({
   return (
     <span
       style={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.35rem',
         minWidth: 0,
         padding: '0.32rem 0.42rem',
         overflow: 'hidden',
@@ -566,7 +565,18 @@ function FinalTeam({
         whiteSpace: 'nowrap',
       }}
     >
-      {teamName || '—'}
+      {teamName ? (
+        <>
+          <ReactCountryFlag
+            countryCode={countryIsoCode(teamName)}
+            svg
+            style={{ width: '1.35em', height: '1.35em', flexShrink: 0 }}
+          />
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {teamName}
+          </span>
+        </>
+      ) : '—'}
     </span>
   );
 }
@@ -722,12 +732,6 @@ const subsectionTitleStyle: CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   color: 'rgb(var(--fg-subtle))',
-};
-
-const emptyActionsStyle: CSSProperties = {
-  margin: 0,
-  color: 'rgb(var(--fg-muted))',
-  fontSize: '0.76rem',
 };
 
 const playerRowStyle: CSSProperties = {

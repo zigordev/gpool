@@ -189,6 +189,37 @@ html.dark {
   }
 }
 
+@keyframes pool-detail-trigger-hint {
+  0%, 82%, 100% {
+    box-shadow: 0 0 0 0 rgb(var(--fg) / 0);
+    filter: brightness(1);
+  }
+  88% {
+    box-shadow: 0 0 0 5px rgb(var(--fg) / 0.1);
+    filter: brightness(1.12);
+  }
+  94% {
+    box-shadow: 0 0 0 0 rgb(var(--fg) / 0);
+    filter: brightness(1);
+  }
+}
+
+.pool-detail-modal-trigger {
+  animation: pool-detail-trigger-hint 5s ease-in-out infinite;
+  transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+}
+
+.pool-detail-modal-trigger:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pool-detail-modal-trigger {
+    animation: none;
+  }
+}
+
 .gp-fade-in {
   animation: gp-fade-in var(--motion) var(--ease-out) both;
 }

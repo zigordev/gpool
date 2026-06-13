@@ -327,7 +327,8 @@ function FairPlayTable({
                 <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
                   <input
                     type="text"
-                    inputMode="numeric"
+                    inputMode="text"
+                    autoComplete="off"
                     value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
                     disabled={updatingTeamId === team.teamId}
                     aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}

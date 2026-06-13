@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { BracketScoringConfig } from "@/types/bracketScoringConfig.type";
 import { PrizePayout } from "@/types/prizePayout.type";
 import { BsFillDiagram3Fill } from "react-icons/bs";
@@ -11,17 +10,8 @@ import { LuRectangleVertical } from "react-icons/lu";
 import { MdOnlinePrediction } from "react-icons/md";
 import { PlayerPosition } from "@/types/playerPosition.type";
 import { useI18n } from "@/i18n/client";
-import { Section } from "../ui/Section";
 import { PlayerSelectionLimits } from "@/lib/player-selection-limits";
-
-function InfoSectionTitle({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-      <FaInfo size={13} aria-hidden />
-      {children}
-    </span>
-  );
-}
+import { PoolDetailModalButton } from "@/components/pool/PoolDetailModalButton";
 
 function PointValue({
   points,
@@ -58,7 +48,7 @@ export function GeneralPoolInfoSection({
     const isFreePool = entryFeeLabel !== null && Number(entryFeeLabel) === 0;
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.poolConfig.title')}</InfoSectionTitle>} collapsible defaultExpanded density="compact" tone="muted">
+      <PoolDetailModalButton title={t('poolDetail.rules.poolConfig.title')} icon={<FaInfo size={13} />}>
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.3rem minmax(0, 1fr)', gap: '0.55rem' }}>
             <FaClock style={ {color: 'rgb(var(--fg))' } }/>
@@ -116,13 +106,12 @@ export function GeneralPoolInfoSection({
             </div>
           ))}
         </div>
-      </Section>
+      </PoolDetailModalButton>
     );
 }
 
 export function GroupScoringInfoSection({
   groupScoring,
-  defaultExpanded = true,
 }: Readonly<{
   groupScoring: { winnerPoints: number; exactResultPoints: number };
   defaultExpanded?: boolean;
@@ -130,7 +119,7 @@ export function GroupScoringInfoSection({
     const { t } = useI18n();
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
+      <PoolDetailModalButton title={t('poolDetail.rules.points.title')} icon={<FaInfo size={13} />}>
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.groupPhaseDescription')}
@@ -168,13 +157,12 @@ export function GroupScoringInfoSection({
             </span>
           </p>
         </div>
-      </Section>
+      </PoolDetailModalButton>
     );
 }
 
 export function FinalScoringInfoSection({
   bracketScoring,
-  defaultExpanded = true,
 }: Readonly<{
   bracketScoring: BracketScoringConfig;
   defaultExpanded?: boolean;
@@ -182,7 +170,7 @@ export function FinalScoringInfoSection({
     const { t } = useI18n();
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
+      <PoolDetailModalButton title={t('poolDetail.rules.points.title')} icon={<FaInfo size={13} />}>
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.finalPhaseDescription')}
@@ -211,13 +199,12 @@ export function FinalScoringInfoSection({
             <PointValue points={bracketScoring.tournamentWinnerPoints} />
           </p>
         </div>
-      </Section>
+      </PoolDetailModalButton>
     );
 }
 
 export function PlayerScoringInfoSection({
   playerScoring,
-  defaultExpanded = true,
 }: Readonly<{
   playerScoring: any;
   defaultExpanded?: boolean;
@@ -341,7 +328,7 @@ export function PlayerScoringInfoSection({
     );
 
     return (
-      <Section title={<InfoSectionTitle>{t('poolDetail.rules.points.title')}</InfoSectionTitle>} collapsible defaultExpanded={defaultExpanded} density="compact" tone="muted">
+      <PoolDetailModalButton title={t('poolDetail.rules.points.title')} icon={<FaInfo size={13} />}>
         <div style={{ display: 'grid', gap: '0.55rem' }}>
           <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
             {t('poolDetail.rules.points.officialPlayerListLabel')}{' '}
@@ -413,7 +400,7 @@ export function PlayerScoringInfoSection({
             </div>
           ))}
         </div>
-      </Section>
+      </PoolDetailModalButton>
     );
 }
 
