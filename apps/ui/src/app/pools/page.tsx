@@ -50,8 +50,21 @@ function PoolsContent() {
   }, [pools, showParticipatingOnly, user?.userId]);
 
   const maxCreatePrizePaidPositions = prizePaidPositionsLimit(CREATE_POOL_MEMBER_COUNT);
-  const createPrizeTotal = poolPrizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
-  const createPrizeTotalInvalid = poolPrizeDistribution.length > 0 && Math.abs(createPrizeTotal - 100) > 0.01;
+  const createPrizePoolTotal = poolEntryFee * CREATE_POOL_MEMBER_COUNT;
+  const createPrizeTotal = poolPrizeDistribution.reduce((sum, row) => sum + row.amount, 0);
+  const createPrizeRanks = poolPrizeDistribution.map((row) => row.rank);
+  const createPrizeRanksInvalid =
+    createPrizeRanks.some(
+      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxCreatePrizePaidPositions,
+    ) ||
+    new Set(createPrizeRanks).size !== createPrizeRanks.length;
+  const createPrizeTotalInvalid =
+    createPrizePoolTotal > 0
+      ? poolPrizeDistribution.length === 0 ||
+        createPrizeRanksInvalid ||
+        poolPrizeDistribution.some((row) => row.amount <= 0) ||
+        Math.abs(createPrizeTotal - createPrizePoolTotal) > 0.01
+      : poolPrizeDistribution.length > 0;
 
   useEffect(() => {
     if (poolEntryFee !== 0) return;
@@ -116,9 +129,9 @@ function PoolsContent() {
       const prizeDistribution = poolEntryFee > 0
         ? {
             paidPositions: poolPrizeDistribution.length,
-            payouts: poolPrizeDistribution.map((row, index) => ({
-              rank: index + 1,
-              percentage: Number(row.percentage.toFixed(2)),
+            payouts: poolPrizeDistribution.map((row) => ({
+              rank: row.rank,
+              amount: Number(row.amount.toFixed(2)),
             })),
           }
         : { paidPositions: 0, payouts: [] };
@@ -379,6 +392,7 @@ function PoolsContent() {
                 onOpen={() => {
                   if (!isDisabled) router.push(`/pools/${pool.poolId}`);
                 }}
+                onConfigure={() => router.push(`/pools/${pool.poolId}/admin/configuration`)}
                 onInvite={() => handleInviteUser(pool)}
                 onRequestAccess={() => handleRequestAccess(pool.poolId)}
                 t={t}
@@ -500,8 +514,11 @@ function PoolsContent() {
                 </div>
 
                 <div style={{ color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
-                  {t('adminResults.scoring.prizeTotal', { total: Number(createPrizeTotal.toFixed(2)) })}
-                  {poolPrizeDistribution.length > 0 ? (
+                  {t('adminResults.scoring.prizeTotal', {
+                    total: Number(createPrizeTotal.toFixed(2)),
+                    available: Number(createPrizePoolTotal.toFixed(2)),
+                  })}
+                  {createPrizePoolTotal > 0 ? (
                     <span style={{ marginLeft: '0.5rem', color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
                       {createPrizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
                     </span>
@@ -511,31 +528,54 @@ function PoolsContent() {
                 {poolPrizeDistribution.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     {poolPrizeDistribution.map((row, index) => (
-                      <div key={row.rank} className="prize-payout-row">
+                      <div key={index} className="prize-payout-row">
                         <span className="prize-payout-rank">
-                          {t('adminResults.scoring.prizeRank', { rank: row.rank })}
+                          {t('adminResults.scoring.prizeNumber', { number: index + 1 })}
                         </span>
                         <input
                           type="number"
-                          inputMode="decimal"
-                          min="0"
-                          max="100"
-                          step="0.5"
-                          value={row.percentage}
-                          aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                          inputMode="numeric"
+                          min="1"
+                          max={maxCreatePrizePaidPositions}
+                          step="1"
+                          value={row.rank}
+                          aria-label={t('adminResults.scoring.prizeRankInput', { number: index + 1 })}
                           onChange={(e) => {
-                            const value = Number.parseFloat(e.target.value);
-                            const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
-                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, percentage } : item));
+                            const rank = Number.parseInt(e.target.value, 10) || 0;
+                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => (
+                              itemIndex === index ? { ...item, rank } : item
+                            )));
                           }}
                           disabled={creating}
                           className="input"
                           style={{
-                            borderColor: createPrizeTotalInvalid ? 'rgb(var(--live) / 0.75)' : undefined,
+                            borderColor: createPrizeRanksInvalid ? 'rgb(var(--live) / 0.75)' : undefined,
+                          }}
+                        />
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          value={row.amount}
+                          aria-label={t('adminResults.scoring.prizeAmountInput', { number: index + 1 })}
+                          onChange={(e) => {
+                            const value = Number.parseFloat(e.target.value);
+                            const amount = Number.isFinite(value) ? Math.max(0, value) : 0;
+                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => (
+                              itemIndex === index ? { ...item, amount } : item
+                            )));
+                          }}
+                          disabled={creating}
+                          className="input"
+                          style={{
+                            borderColor: createPrizeTotalInvalid || row.amount <= 0
+                              ? 'rgb(var(--live) / 0.75)'
+                              : undefined,
                           }}
                         />
                         <span className="prize-payout-hint">
-                          {t('adminResults.scoring.prizePercentage', { rank: row.rank })}
+                          {t('adminResults.scoring.prizePayoutHint', { rank: row.rank })}
                         </span>
                       </div>
                     ))}

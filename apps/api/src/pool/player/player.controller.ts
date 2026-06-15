@@ -1,9 +1,10 @@
-import { Body, Controller, ForbiddenException, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { SessionUserGuard } from '../../common/auth/session-user.guard';
 import {
   PlayerAward,
+  PlayerInsightSelectionType,
   PlayerMatchType,
   PlayerPosition,
   PlayerService,
@@ -33,6 +34,30 @@ export class PlayerController {
     const user = req.user as any;
     return this.playerService.getPlayerSelectionStatistics(
       poolId,
+      user.userId,
+      user.role,
+    );
+  }
+
+  @Get(':playerId/insights')
+  @ApiOperation({ summary: 'Get player selection and match-action insights for a locked pool' })
+  @ApiResponse({ status: 200, description: 'Player insights retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid selection context' })
+  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({ status: 404, description: 'Pool or player not found' })
+  async getPlayerInsights(
+    @Param('poolId') poolId: string,
+    @Param('playerId') playerId: string,
+    @Query('selectionType') selectionType: PlayerInsightSelectionType = 'position',
+    @Query('award') award: PlayerAward | undefined,
+    @Req() req: Request,
+  ) {
+    const user = req.user as any;
+    return this.playerService.getPlayerInsights(
+      poolId,
+      playerId,
+      selectionType,
+      award,
       user.userId,
       user.role,
     );

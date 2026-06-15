@@ -51,11 +51,13 @@
           "cleanSheetsByPosition": "Clean sheets by position",
           "discipline": "Discipline",
           "goalsByPosition": "Goals by position",
-          "individualActions": "Individual actions"
+          "individualActions": "Individual actions",
+          "penaltyGoalsByPosition": "Penalty goals by position"
         },
         "title": "Players"
       }
     },
+    "configurationFor": "Configuration for {poolName}",
     "dangerZone": {
       "cancelButton": "Cancel",
       "confirmButton": "Yes, delete permanently",
@@ -76,7 +78,7 @@
       "enterBothResults": "Enter results for both teams",
       "loadData": "Could not load the data",
       "poolAdminRequired": "Access denied. Pool membership administrator role required.",
-      "prizeDistributionTotal": "Prize distribution must add up to 100%",
+      "prizeDistributionTotal": "All available prize money must be assigned, using unique valid ranking positions",
       "saveBracketResult": "Could not save the bracket result",
       "saveResults": "Could not save the results",
       "saveScoring": "Could not save the scoring configuration",
@@ -176,6 +178,10 @@
         "missedPenalty": "Missed penalty",
         "mvp": "MVP",
         "penaltyGoal": "Penalty goal",
+        "penaltyGoalDefender": "Defender penalty goal",
+        "penaltyGoalForward": "Forward penalty goal",
+        "penaltyGoalGoalkeeper": "Goalkeeper penalty goal",
+        "penaltyGoalMidfielder": "Midfielder penalty goal",
         "penaltySaved": "Penalty saved",
         "redCard": "Red card",
         "shootoutGoal": "Penalty shootout goal",
@@ -202,12 +208,17 @@
       "finalExactPosition": "Points for exact correct position",
       "groupPhaseExact": "Points for exact result",
       "groupPhaseWinner": "Points for correct winner",
+      "notSavedInvalid": "Prize distribution not saved",
+      "prizeAmountInput": "Amount for prize {number}",
+      "prizeNumber": "Prize {number}",
       "prizePaidPositions": "Prize positions",
-      "prizePaidPositionsHint": "Number of ranking positions that receive a prize.",
+      "prizePaidPositionsHint": "Number of prizes to assign. Each prize can use any unique ranking position.",
+      "prizePayoutHint": "Position {rank} receives this fixed amount",
       "prizePercentage": "Percentage for position {rank}",
       "prizeRank": "Position {rank}",
-      "prizeTotal": "Configured total: {total}%",
-      "prizeTotalInvalid": "Must add up to 100%",
+      "prizeRankInput": "Ranking position for prize {number}",
+      "prizeTotal": "Assigned: €{total} of €{available}",
+      "prizeTotalInvalid": "Assign all available money with valid unique positions",
       "prizeTotalValid": "Correct",
       "save": "Save scoring configuration",
       "savedAuto": "Changes saved",
@@ -218,6 +229,7 @@
     "tabs": {
       "configuration": "Configuration",
       "finalPhase": "Final phase",
+      "general": "General",
       "groupPhase": "Group phase",
       "label": "Administration sections",
       "missingConfigCount": "{count} pending configurations",
@@ -225,6 +237,7 @@
       "short": {
         "configuration": "Config",
         "finalPhase": "Final",
+        "general": "General",
         "groupPhase": "Groups",
         "players": "Players"
       }
@@ -371,9 +384,9 @@
     "finalPhase": {
       "autoFillConfirmAccept": "Accept",
       "autoFillConfirmDescription": "If you accept filling the round of 32 automatically, it will be filled based on the group phase standings. Keep in mind that any selection made so far, both in the round of 32 and in any other round, will be lost.",
-      "autoFillConfirmTitle": "Fill round of 32 automatically",
+      "autoFillConfirmTitle": "Fill automatically",
       "autoFillError": "Could not fill the round of 32 automatically",
-      "autoFillRoundOf32": "Fill round of 32 automatically",
+      "autoFillRoundOf32": "Fill automatically",
       "autoFillSuccess": "Round of 32 filled automatically",
       "bracketUnavailable": "The bracket is not available yet.",
       "deadlinePassed": "The deadline has passed. Predictions can no longer be edited.",
@@ -384,6 +397,8 @@
       "title": "Final phase"
     },
     "groupPhase": {
+      "bestThirdsPredictedTitle": "Best third-placed teams from your predictions",
+      "bestThirdsRealTitle": "Real virtual best third-placed teams",
       "bestThirdsTitle": "Best third-placed teams",
       "group": "Group {group}",
       "noMatches": "There are no matches available yet.",
@@ -400,7 +415,7 @@
         "status": "Status",
         "team": "Team"
       },
-      "standingsTitle": "Standings from your predictions",
+      "standingsTitle": "Standings",
       "title": "Group phase"
     },
     "info": {
@@ -429,8 +444,8 @@
       "description": "Predictions and player-action points from every pool member for this match.",
       "draw": "Draw",
       "exactPositions": "{count} in the exact position",
-      "exactResult": "Exact result",
-      "failed": "No correct prediction",
+      "exactResult": "Exact",
+      "failed": "Incorrect",
       "finalStatisticsHint": "Correct side means the team was placed in this exact bracket position; wrong side means it was selected on the other side of the bracket; and team not predicted means it was not selected.",
       "groupStatisticsHint": "The following shows the percentage of participants who correctly predicted the 1X2 outcome, the exact score, or who were incorrect in their prediction for this match",
       "homeWin": "Home win",
@@ -438,7 +453,7 @@
       "loadError": "Could not load the match details.",
       "noPlayerActions": "No selected player recorded actions in this match.",
       "noPrediction": "No prediction",
-      "notGuessed": "Team not predicted",
+      "notGuessed": "Incorrect",
       "oneXTwo": "1X2",
       "participants": "Participants",
       "pendingEvaluation": "Pending evaluation",
@@ -490,6 +505,17 @@
       "editTitle": "Edit player",
       "empty": "There are no tournament players available yet.",
       "emptySlot": "No player",
+      "insights": {
+        "actionsByMatch": "Actions by match",
+        "finalPhase": "Final phase",
+        "groupPhase": "Group phase",
+        "loadError": "Could not load the player details.",
+        "noActions": "This player has no recorded actions yet.",
+        "noSelections": "No participant selected this player.",
+        "selectedByCount": "{selected} of {total} participants selected this player",
+        "selection": "Selection",
+        "title": "Player details"
+      },
       "modalDescription": "Select player for slot {slot}",
       "noResults": "No players match the search.",
       "points": "{points} pts",
@@ -634,6 +660,7 @@
   "pools": {
     "actions": {
       "administrate": "Administrate",
+      "configuration": "Pool configuration",
       "create": "Create pool",
       "creating": "Creating...",
       "editTitle": "Edit pool name",
@@ -683,7 +710,7 @@
       "inviteTitle": "Invite user to {poolName}",
       "poolNameLabel": "Pool name *",
       "poolNamePlaceholder": "Enter the pool name (3-100 characters)",
-      "prizePaidPositionsHint": "Number of ranking positions that receive a prize.",
+      "prizePaidPositionsHint": "Number of prizes to assign. You can choose any unique ranking position for each prize.",
       "prizePaidPositionsLabel": "Prize positions"
     },
     "subtitle": "Review and manage your football pools",

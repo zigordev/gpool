@@ -1,7 +1,8 @@
 'use client';
 
 import toast from 'react-hot-toast';
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
+import { FaMagic } from 'react-icons/fa';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import { BracketVisualization } from '@/components/BracketVisualization';
@@ -18,9 +19,11 @@ import {
   FinalScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 
 export default function FinalPage() {
   const { t } = useI18n();
+  const { setPoolActions } = useNavCenter();
   const {
     bracket, teams, pool, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
     bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
@@ -49,6 +52,36 @@ export default function FinalPage() {
     }
     return result;
   }, [effectiveBracketPredictions, bracketPredictions]);
+
+  useLayoutEffect(() => {
+    setPoolActions(
+      <>
+        <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
+        {Object.keys(bracket).length > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="pool-detail-action-trigger pool-detail-modal-trigger"
+            disabled={isPastPoolDeadline}
+            loading={autoFillingRoundOf32}
+            leadingIcon={<FaMagic size={13} />}
+            onClick={() => setShowAutoFillConfirm(true)}
+            style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2 }}
+          >
+            {t('poolDetail.finalPhase.autoFillRoundOf32')}
+          </Button>
+        ) : null}
+      </>,
+    );
+    return () => setPoolActions(null);
+  }, [
+    autoFillingRoundOf32,
+    bracket,
+    bracketScoringConfig,
+    isPastPoolDeadline,
+    setPoolActions,
+    t,
+  ]);
 
   const handleAutoFillRoundOf32 = async () => {
     if (Date.now() >= poolDeadline) {
@@ -103,25 +136,8 @@ export default function FinalPage() {
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <FinalScoringInfoSection
-        bracketScoring={bracketScoringConfig}
-        defaultExpanded
-      />
-
       {Object.keys(bracket).length > 0 ? (
-        <section className="surface" style={{ padding: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isPastPoolDeadline}
-              loading={autoFillingRoundOf32}
-              onClick={() => setShowAutoFillConfirm(true)}
-              style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2 }}
-            >
-              {t('poolDetail.finalPhase.autoFillRoundOf32')}
-            </Button>
-          </div>
+        <section className="bracket-workspace">
           <BracketVisualization
             bracket={bracket}
             teams={teams}

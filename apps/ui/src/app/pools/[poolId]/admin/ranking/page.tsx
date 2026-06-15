@@ -21,7 +21,7 @@ export default function AdminRankingPage() {
     deadlineLocal, setDeadlineLocal,
     entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution,
-    maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
+    maxPrizePaidPositions, prizeTotal, prizePoolTotal, prizeRanksInvalid, prizeTotalInvalid,
   } = useAdminContext();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -47,15 +47,16 @@ export default function AdminRankingPage() {
   };
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel admin-content">
 
       {/* Prize config */}
       <Section
-        title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.config.general.title')}</span>}
+        title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.config.general.title')}</span>}
         collapsible
         defaultExpanded
         density="compact"
-        tone="muted"
+        tone="plain"
+        className="admin-section-plain"
       >
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={configPairGrid}>
@@ -75,8 +76,11 @@ export default function AdminRankingPage() {
             </FormField>
           </div>
           <div style={{ color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
-            {t('adminResults.scoring.prizeTotal', { total: Number(prizeTotal.toFixed(2)) })}
-            {prizeDistribution.length > 0 ? (
+            {t('adminResults.scoring.prizeTotal', {
+              total: Number(prizeTotal.toFixed(2)),
+              available: Number(prizePoolTotal.toFixed(2)),
+            })}
+            {prizePoolTotal > 0 ? (
               <span style={{ marginLeft: '0.5rem', color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
                 {prizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
               </span>
@@ -85,10 +89,43 @@ export default function AdminRankingPage() {
           {prizeDistribution.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               {prizeDistribution.map((row, index) => (
-                <div key={row.rank} className="prize-payout-row">
-                  <span className="prize-payout-rank">{t('adminResults.scoring.prizeRank', { rank: row.rank })}</span>
-                  <Input type="number" inputMode="decimal" min="0" max="100" step="0.5" value={row.percentage} invalid={prizeTotalInvalid} aria-label={t('adminResults.scoring.prizePercentage', { rank: row.rank })} onChange={(e) => { const value = Number.parseFloat(e.target.value); const percentage = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0; setPrizeDistribution((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, percentage } : item)); }} />
-                  <span className="prize-payout-hint">{t('adminResults.scoring.prizePercentage', { rank: row.rank })}</span>
+                <div key={index} className="prize-payout-row">
+                  <span className="prize-payout-rank">{t('adminResults.scoring.prizeNumber', { number: index + 1 })}</span>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max={maxPrizePaidPositions}
+                    step="1"
+                    value={row.rank}
+                    invalid={prizeRanksInvalid}
+                    aria-label={t('adminResults.scoring.prizeRankInput', { number: index + 1 })}
+                    onChange={(e) => {
+                      const rank = Number.parseInt(e.target.value, 10) || 0;
+                      setPrizeDistribution((prev) => prev.map((item, itemIndex) => (
+                        itemIndex === index ? { ...item, rank } : item
+                      )));
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={row.amount}
+                    invalid={prizeTotalInvalid || row.amount <= 0}
+                    aria-label={t('adminResults.scoring.prizeAmountInput', { number: index + 1 })}
+                    onChange={(e) => {
+                      const value = Number.parseFloat(e.target.value);
+                      const amount = Number.isFinite(value) ? Math.max(0, value) : 0;
+                      setPrizeDistribution((prev) => prev.map((item, itemIndex) => (
+                        itemIndex === index ? { ...item, amount } : item
+                      )));
+                    }}
+                  />
+                  <span className="prize-payout-hint">
+                    {t('adminResults.scoring.prizePayoutHint', { rank: row.rank })}
+                  </span>
                 </div>
               ))}
             </div>
@@ -99,9 +136,9 @@ export default function AdminRankingPage() {
       {/* Danger zone */}
       <section
         style={{
-          padding: '1rem',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid rgb(var(--live) / 0.35)',
+          padding: '0.9rem 0.1rem',
+          borderTop: '1px solid rgb(var(--live) / 0.35)',
+          borderBottom: '1px solid rgb(var(--live) / 0.35)',
           background: 'rgb(var(--live) / 0.04)',
         }}
       >
@@ -180,22 +217,14 @@ export default function AdminRankingPage() {
                 type="button"
                 disabled={deleting}
                 onClick={handleDeletePool}
+                className="btn btn-danger"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.5rem 1.1rem',
                   borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  background: 'rgb(var(--live))',
-                  color: '#fff',
                   fontSize: '0.875rem',
                   fontWeight: 700,
-                  cursor: deleting ? 'not-allowed' : 'pointer',
-                  opacity: deleting ? 0.7 : 1,
                 }}
               >
-                {deleting && <span className="btn-spinner" style={{ width: '0.8rem', height: '0.8rem', borderWidth: 2, borderColor: 'rgb(255 255 255 / 0.35)', borderTopColor: '#fff' }} />}
+                {deleting && <span className="btn-spinner" style={{ width: '0.8rem', height: '0.8rem', borderWidth: 2 }} />}
                 {deleting ? t('adminResults.dangerZone.deleting') : t('adminResults.dangerZone.confirmButton')}
               </button>
             </div>
