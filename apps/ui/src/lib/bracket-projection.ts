@@ -705,8 +705,13 @@ export function computeRealGroupStandings(
   const teamsById = new Map(teams.map((team) => [team.teamId, team]));
   const teamsByName = new Map(teams.map((team) => [team.name, team]));
   const standings: Record<string, StandingRow[]> = {};
+  const groups = new Set([
+    ...Object.keys(matchesByGroup),
+    ...teams.map((team) => team.group).filter((group): group is string => Boolean(group)),
+  ]);
 
-  Object.entries(matchesByGroup).forEach(([group, groupMatches]) => {
+  groups.forEach((group) => {
+    const groupMatches = matchesByGroup[group] ?? [];
     const rowsByTeam = new Map<string, StandingRow>();
 
     const ensureRow = (team: Team): StandingRow => {
@@ -730,22 +735,25 @@ export function computeRealGroupStandings(
       return row;
     };
 
+    teams
+      .filter((team) => team.group === group)
+      .forEach(ensureRow);
+
     groupMatches.forEach((match) => {
-      const homeResult = Number(match.homeResult);
-      const awayResult = Number(match.awayResult);
-
-      if (!Number.isFinite(homeResult) || !Number.isFinite(awayResult)) return;
-      if (match.status && match.status !== 'completed') return;
-
       const home = ensureRow(
         teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName),
       );
-
       const away = ensureRow(
         teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName),
       );
 
+      if (typeof match.homeResult !== 'number' || typeof match.awayResult !== 'number') return;
+      if (!Number.isFinite(match.homeResult) || !Number.isFinite(match.awayResult)) return;
+      if (match.status && match.status !== 'completed') return;
       if (home.teamId === away.teamId) return;
+
+      const homeResult = match.homeResult;
+      const awayResult = match.awayResult;
 
       home.played += 1;
       away.played += 1;

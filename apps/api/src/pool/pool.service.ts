@@ -16,6 +16,7 @@ import {
   PLAYER_SELECTION_POSITIONS,
   resolvePlayerSelectionLimits,
 } from './player/player-selection-limits';
+import { validatePrizeDistribution } from './prize-distribution';
 
 const DEFAULT_LOCALE = 'es';
 
@@ -42,6 +43,12 @@ export class PoolService {
     if (!hasPermission(userRole, 'admin')) {
       throw new ForbiddenException('Only administrators can create pools');
     }
+
+    validatePrizeDistribution(
+      createPoolDto.config?.entryFee ?? 0,
+      1,
+      createPoolDto.config?.prizeDistribution,
+    );
 
     const poolId = uuidv4();
     const pool = await this.poolRepository.createPool({
@@ -310,30 +317,13 @@ export class PoolService {
 
     await this.assertPoolMembershipAdmin(poolId, userId);
 
-    const paidPositions = newConfig?.prizeDistribution?.paidPositions;
-    if (paidPositions !== undefined) {
-      const paidPositionCount = Number(paidPositions);
+    if (newConfig?.entryFee !== undefined || newConfig?.prizeDistribution !== undefined) {
       const members = await this.poolRepository.getPoolMembers(poolId);
-      if (!Number.isInteger(paidPositionCount) || paidPositionCount < 0) {
-        throw new BadRequestException('Prize paid positions must be a non-negative integer');
-      }
-      if (paidPositionCount > members.length) {
-        throw new BadRequestException(
-          `Prize paid positions cannot exceed the number of pool members (${members.length})`,
-        );
-      }
-      const payouts = Array.isArray(newConfig.prizeDistribution.payouts)
-        ? newConfig.prizeDistribution.payouts
-        : [];
-      const hasOutOfRangeRank = payouts.some((payout: any) => {
-        const rank = Number(payout?.rank);
-        return Number.isInteger(rank) && rank > members.length;
-      });
-      if (hasOutOfRangeRank) {
-        throw new BadRequestException(
-          `Prize payout ranks cannot exceed the number of pool members (${members.length})`,
-        );
-      }
+      validatePrizeDistribution(
+        newConfig.entryFee ?? pool.config?.entryFee ?? 0,
+        members.length,
+        newConfig.prizeDistribution ?? pool.config?.prizeDistribution,
+      );
     }
 
     if (newConfig?.playerSelectionLimits !== undefined) {

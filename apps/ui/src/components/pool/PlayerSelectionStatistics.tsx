@@ -9,6 +9,7 @@ import { apiClient } from '@/lib/api';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
+import { PlayerShirt } from '@/components/pool/PlayerShirt';
 
 type PopularPlayer = {
   playerId: string;
@@ -55,8 +56,7 @@ export function PlayerSelectionStatistics({
       .catch((requestError) => {
         if (active) {
           setError(
-            requestError.response?.data?.message ||
-              t('poolDetail.players.statistics.loadError'),
+            requestError.response?.data?.message || t('poolDetail.players.statistics.loadError')
           );
         }
       })
@@ -68,12 +68,11 @@ export function PlayerSelectionStatistics({
     };
   }, [poolId, t, visible]);
 
-  if (!visible) return null;
-
   return (
     <PoolDetailModalButton
       title={t('poolDetail.players.statistics.title')}
       icon={<FaChartBar size={13} />}
+      disabled={!visible}
     >
       {loading ? (
         <p style={messageStyle}>{t('common.loading')}</p>
@@ -83,12 +82,10 @@ export function PlayerSelectionStatistics({
         </p>
       ) : statistics ? (
         <div style={{ display: 'grid', gap: '0.9rem' }}>
-          <p style={hintStyle}>
-            {t('poolDetail.players.statistics.description')}
-          </p>
+          <p style={hintStyle}>{t('poolDetail.players.statistics.description')}</p>
           <StatisticsGroup
             title={t('poolDetail.players.awards.goldenBoot')}
-            icon={<GiLeatherBoot aria-hidden style={{ color: 'rgb(var(--gold))' }} />}
+            icon={<GiLeatherBoot aria-hidden style={{ color: '#D4A017', fill: '#D4A017' }} />}
             players={statistics.awards.goldenBoot}
             emptyLabel={t('poolDetail.players.statistics.empty')}
           />
@@ -106,9 +103,7 @@ export function PlayerSelectionStatistics({
               borderTop: '1px solid rgb(var(--border-subtle))',
             }}
           >
-            <p style={hintStyle}>
-              {t('poolDetail.players.statistics.positionsHint')}
-            </p>
+            <p style={hintStyle}>{t('poolDetail.players.statistics.positionsHint')}</p>
             <div
               style={{
                 display: 'grid',
@@ -202,12 +197,15 @@ function StatisticsGroup({
                   fontWeight: 750,
                 }}
               >
+                <PlayerShirt teamName={player.teamName} size={25} />
                 <ReactCountryFlag
                   countryCode={countryIsoCode(player.teamName)}
                   svg
                   style={{ width: '1.35em', height: '1.35em', flexShrink: 0 }}
                 />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span
+                  style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
                   {player.name}
                 </span>
               </span>

@@ -38,12 +38,12 @@ export default function AdminFinalPage() {
   };
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel admin-content">
 
       {/* Final phase scoring */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: 'gold' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
+          <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: '#D4A017', fill: '#D4A017' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
             <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} attention={bracketScoringConfig.tournamentWinnerPoints === ''} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
           {PHASES.map((phase) => {
@@ -64,7 +64,7 @@ export default function AdminFinalPage() {
       </Section> : null}
 
       {/* Bracket */}
-      {systemMode ? <section className="surface" style={{ padding: '1rem' }}>
+      {systemMode ? <section className="admin-bracket-workspace">
         <BracketVisualization
           bracket={bracket}
           teams={teams}

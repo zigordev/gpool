@@ -22,6 +22,7 @@ function ScoreInput({
 }>) {
   return (
     <input
+      className="input"
       type="text"
       inputMode="numeric"
       autoComplete="off"
@@ -36,17 +37,13 @@ function ScoreInput({
       aria-label={ariaLabel}
       style={{
         width: '2rem',
+        height: '2rem',
         padding: '0.18rem 0.1rem',
         textAlign: 'center',
         fontFamily: 'var(--font-display, inherit)',
         fontSize: '0.98rem',
         fontWeight: 700,
-        color: 'rgb(var(--fg))',
-        background: 'rgb(var(--input-bg))',
-        border: '1px solid rgb(var(--border))',
-        borderRadius: 'var(--radius-md)',
         fontVariantNumeric: 'tabular-nums',
-        transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
       }}
     />
   );
@@ -71,21 +68,7 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
 
   return (
     <article
-      style={{
-        position: 'relative',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)',
-        alignItems: 'center',
-        gap: '0.25rem 0.35rem',
-        padding: '0.38rem 0.5rem',
-        background: 'linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))',
-        backdropFilter: 'blur(12px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-        border: '1px solid rgb(var(--border))',
-        boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
-        borderRadius: 'var(--radius-sm)',
-        overflow: 'hidden',
-      }}
+      className="admin-result-card"
     >
       <div style={{ minWidth: 0 }}>
         <p
@@ -263,11 +246,12 @@ function FairPlayTable({
 
   return (
     <Section
-      title={t('adminResults.groupPhase.fairPlay.title')}
+      title={<span className="admin-section-title">{t('adminResults.groupPhase.fairPlay.title')}</span>}
       collapsible
       defaultExpanded
       density="compact"
-      tone="muted"
+      tone="plain"
+      className="admin-section-plain"
     >
       <p style={{ margin: '0 0 0.65rem', color: 'rgb(var(--fg-muted))', fontSize: '0.84rem', lineHeight: 1.45 }}>
         <span>
@@ -283,14 +267,7 @@ function FairPlayTable({
           </a>
         </span>
       </p>
-      <div
-        style={{
-          overflowX: 'auto',
-          background: 'rgb(var(--bg-elevated))',
-          border: '1px solid rgb(var(--border))',
-          borderRadius: 'var(--radius-sm)',
-        }}
-      >
+      <div className="admin-table-frame">
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <thead style={{ background: 'rgb(var(--panel-muted-bg-solid))' }}>
             <tr>
@@ -326,6 +303,7 @@ function FairPlayTable({
                 </td>
                 <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
                   <input
+                    className="input"
                     type="text"
                     inputMode="text"
                     autoComplete="off"
@@ -345,12 +323,10 @@ function FairPlayTable({
                     }}
                     style={{
                       width: '4.5rem',
+                      height: '2rem',
                       minHeight: '2rem',
                       padding: '0.3rem 0.45rem',
                       textAlign: 'right',
-                      color: 'rgb(var(--fg))',
-                      background: 'rgb(var(--input-bg))',
-                      border: '1px solid rgb(var(--border))',
                       borderRadius: 'var(--radius-sm)',
                       fontWeight: 700,
                       fontVariantNumeric: 'tabular-nums',
@@ -376,10 +352,10 @@ export default function AdminGroupsPage() {
   } = useAdminContext();
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel admin-content">
 
       {/* Group phase scoring */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
@@ -392,19 +368,19 @@ export default function AdminGroupsPage() {
 
       {/* Match results */}
       {systemMode && groups.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             return (
               <Section
                 key={group}
-                title={t('adminResults.groupPhase.group', { group })}
+                title={<span className="admin-section-title">{t('adminResults.groupPhase.group', { group })}</span>}
                 collapsible
                 defaultExpanded
                 density="compact"
-                tone="subtle"
-                contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-                style={{ padding: '0.45rem 0.55rem' }}
+                tone="plain"
+                className="admin-section-plain"
+                contentStyle={{ marginTop: '0.45rem', paddingTop: '0.55rem' }}
               >
                 {groupMatches.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>

@@ -10,6 +10,7 @@ import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
+import { PlayerShirt } from '@/components/pool/PlayerShirt';
 
 export type MatchInsightsTarget = {
   matchId: string;
@@ -126,7 +127,9 @@ export function MatchInsightsModal({
       {loading ? (
         <p style={messageStyle}>{t('common.loading')}</p>
       ) : error ? (
-        <p role="alert" style={{ ...messageStyle, color: 'rgb(var(--live))' }}>{error}</p>
+        <p role="alert" style={{ ...messageStyle, color: 'rgb(var(--live))' }}>
+          {error}
+        </p>
       ) : data ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <MatchStatistics data={data} />
@@ -157,17 +160,36 @@ export function MatchInsightsModal({
                                 label={t('poolDetail.players.points', { points: player.points })}
                               />
                             ) : null}
+                            <PlayerShirt teamName={player.teamName} size={27} />
                             <ReactCountryFlag
                               countryCode={countryIsoCode(player.teamName)}
                               svg
                               style={{ width: '1.35em', height: '1.35em', flexShrink: 0 }}
                             />
                             <div style={{ minWidth: 0, flex: '1 1 9rem' }}>
-                              <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.82rem', fontWeight: 750, color: 'rgb(var(--fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div
+                                style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '0.82rem',
+                                    fontWeight: 750,
+                                    color: 'rgb(var(--fg))',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
                                   {player.name}
                                 </span>
-                                <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'rgb(var(--fg-muted))', whiteSpace: 'nowrap' }}>
+                                <span
+                                  style={{
+                                    marginLeft: 'auto',
+                                    fontSize: '0.68rem',
+                                    color: 'rgb(var(--fg-muted))',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
                                   {player.teamName}
                                 </span>
                               </div>
@@ -196,34 +218,29 @@ export function MatchInsightsModal({
 
 function MatchStatistics({ data }: Readonly<{ data: MatchInsightsData }>) {
   const { t } = useI18n();
-  const predictions = data.members
-    .map((member) => member.prediction)
-    .filter(Boolean);
+  const predictions = data.members.map((member) => member.prediction).filter(Boolean);
 
   if (data.matchType === 'group') {
     const validPredictions = predictions.filter(
       (prediction) =>
-        typeof prediction.homeScore === 'number' &&
-        typeof prediction.awayScore === 'number',
+        typeof prediction.homeScore === 'number' && typeof prediction.awayScore === 'number'
     );
     const hasResult =
-      typeof data.match.homeResult === 'number' &&
-      typeof data.match.awayResult === 'number';
+      typeof data.match.homeResult === 'number' && typeof data.match.awayResult === 'number';
     if (validPredictions.length === 0 || !hasResult) return null;
 
     const actualOutcome = outcome(data.match.homeResult, data.match.awayResult);
     const exact = validPredictions.filter(
       (prediction) =>
         prediction.homeScore === data.match.homeResult &&
-        prediction.awayScore === data.match.awayResult,
+        prediction.awayScore === data.match.awayResult
     ).length;
     const correctOutcome = validPredictions.filter(
       (prediction) =>
         !(
           prediction.homeScore === data.match.homeResult &&
           prediction.awayScore === data.match.awayResult
-        ) &&
-        outcome(prediction.homeScore, prediction.awayScore) === actualOutcome,
+        ) && outcome(prediction.homeScore, prediction.awayScore) === actualOutcome
     ).length;
     const failed = validPredictions.length - exact - correctOutcome;
 
@@ -267,13 +284,13 @@ function MatchStatistics({ data }: Readonly<{ data: MatchInsightsData }>) {
             const prediction = member.prediction;
             const correct =
               team.side === 'home'
-              ? prediction?.homeTeamId === team.teamId
-              : prediction?.awayTeamId === team.teamId;
+                ? prediction?.homeTeamId === team.teamId
+                : prediction?.awayTeamId === team.teamId;
             if (correct) return 'correct';
             const wrong =
               team.side === 'home'
-              ? prediction?.awayTeamId === team.teamId
-              : prediction?.homeTeamId === team.teamId;
+                ? prediction?.awayTeamId === team.teamId
+                : prediction?.homeTeamId === team.teamId;
             return wrong ? 'wrong' : 'missed';
           });
           const correctSide = categories.filter((category) => category === 'correct').length;
@@ -428,33 +445,102 @@ function MatchSummary({
 }>) {
   const { t } = useI18n();
   const match = data.match;
-  const homeName = match.homeTeamName || match.homeSourceLabel || t('poolDetail.matchInsights.pendingTeam');
-  const awayName = match.awayTeamName || match.awaySourceLabel || t('poolDetail.matchInsights.pendingTeam');
+  const homeName =
+    match.homeTeamName || match.homeSourceLabel || t('poolDetail.matchInsights.pendingTeam');
+  const awayName =
+    match.awayTeamName || match.awaySourceLabel || t('poolDetail.matchInsights.pendingTeam');
   const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
 
   return (
-    <span style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: compact ? '0.35rem' : '0.65rem', alignItems: 'center', width: '100%', padding: compact ? 0 : '0.7rem', borderRadius: 'var(--radius-sm)', background: compact ? undefined : 'rgb(var(--panel-muted-bg-solid))', border: compact ? undefined : '1px solid rgb(var(--border))' }}>
-      <span style={{ display: 'flex', flexDirection: compact ? 'column' : 'row', alignItems: compact ? 'flex-start' : 'center', gap: compact ? '0.15rem' : '0.45rem', minWidth: 0, fontWeight: 750, color: 'rgb(var(--fg))' }}>
+    <span
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
+        gap: compact ? '0.35rem' : '0.65rem',
+        alignItems: 'center',
+        width: '100%',
+        padding: compact ? 0 : '0.7rem',
+        borderRadius: 'var(--radius-sm)',
+        background: compact ? undefined : 'rgb(var(--panel-muted-bg-solid))',
+        border: compact ? undefined : '1px solid rgb(var(--border))',
+      }}
+    >
+      <span
+        style={{
+          display: 'flex',
+          flexDirection: compact ? 'column' : 'row',
+          alignItems: compact ? 'flex-start' : 'center',
+          gap: compact ? '0.15rem' : '0.45rem',
+          minWidth: 0,
+          fontWeight: 750,
+          color: 'rgb(var(--fg))',
+        }}
+      >
         <ReactCountryFlag
           countryCode={countryIsoCode(homeName)}
           svg
-          style={{ width: compact ? '1.3em' : '1.65em', height: compact ? '1.3em' : '1.65em', flexShrink: 0 }}
+          style={{
+            width: compact ? '1.3em' : '1.65em',
+            height: compact ? '1.3em' : '1.65em',
+            flexShrink: 0,
+          }}
         />
-        <span style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: compact ? '0.78rem' : undefined }}>
+        <span
+          style={{
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: compact ? '0.78rem' : undefined,
+          }}
+        >
           {homeName}
         </span>
       </span>
-      <span style={{ fontFamily: 'var(--font-display, inherit)', fontSize: compact ? '1rem' : undefined, fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: 'rgb(var(--fg))', whiteSpace: 'nowrap' }}>
+      <span
+        style={{
+          fontFamily: 'var(--font-display, inherit)',
+          fontSize: compact ? '1rem' : undefined,
+          fontWeight: 900,
+          fontVariantNumeric: 'tabular-nums',
+          color: 'rgb(var(--fg))',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {hasResult ? `${match.homeResult} - ${match.awayResult}` : '—'}
       </span>
-      <span style={{ display: 'flex', flexDirection: compact ? 'column-reverse' : 'row', alignItems: compact ? 'flex-end' : 'center', justifyContent: 'flex-end', gap: compact ? '0.15rem' : '0.45rem', minWidth: 0, fontWeight: 750, color: 'rgb(var(--fg))', textAlign: 'right' }}>
-        <span style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: compact ? '0.78rem' : undefined }}>
+      <span
+        style={{
+          display: 'flex',
+          flexDirection: compact ? 'column-reverse' : 'row',
+          alignItems: compact ? 'flex-end' : 'center',
+          justifyContent: 'flex-end',
+          gap: compact ? '0.15rem' : '0.45rem',
+          minWidth: 0,
+          fontWeight: 750,
+          color: 'rgb(var(--fg))',
+          textAlign: 'right',
+        }}
+      >
+        <span
+          style={{
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: compact ? '0.78rem' : undefined,
+          }}
+        >
           {awayName}
         </span>
         <ReactCountryFlag
           countryCode={countryIsoCode(awayName)}
           svg
-          style={{ width: compact ? '1.3em' : '1.65em', height: compact ? '1.3em' : '1.65em', flexShrink: 0 }}
+          style={{
+            width: compact ? '1.3em' : '1.65em',
+            height: compact ? '1.3em' : '1.65em',
+            flexShrink: 0,
+          }}
         />
       </span>
     </span>
@@ -475,39 +561,32 @@ function PredictionRow({
   if (matchType === 'group') {
     const tone = groupPredictionTone(prediction);
     const hasScore =
-      typeof prediction?.homeScore === 'number' &&
-      typeof prediction?.awayScore === 'number';
+      typeof prediction?.homeScore === 'number' && typeof prediction?.awayScore === 'number';
     return (
       <div style={compactPredictionCardStyle(tone.border, tone.background, tone.highlighted)}>
         {points !== 0 ? (
-          <PointsBadge
-            points={points}
-            label={t('poolDetail.match.points', { points })}
-            compact
-          />
+          <PointsBadge points={points} label={t('poolDetail.match.points', { points })} />
         ) : null}
-        <strong style={{ fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+        <strong
+          style={{ fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+        >
           {hasScore ? `${prediction.homeScore} - ${prediction.awayScore}` : '—'}
         </strong>
-        <span style={compactPredictionStatusStyle}>
-          {groupPredictionStatus(prediction, t)}
-        </span>
+        <span style={compactPredictionStatusStyle}>{groupPredictionStatus(prediction, t)}</span>
       </div>
     );
   }
 
-  const tone = finalPredictionTone(prediction);
-
   return (
     <div
-      style={compactPredictionCardStyle(tone.border, tone.background, tone.highlighted)}
+      style={compactPredictionCardStyle(
+        'rgb(var(--border-subtle))',
+        'rgb(var(--bg-subtle) / 0.5)',
+        false
+      )}
     >
       {points !== 0 ? (
-        <PointsBadge
-          points={points}
-          label={t('poolDetail.match.points', { points })}
-          compact
-        />
+        <PointsBadge points={points} label={t('poolDetail.match.points', { points })} compact />
       ) : null}
       {prediction ? (
         <div style={finalTeamsStyle}>
@@ -517,7 +596,9 @@ function PredictionRow({
             wrongSide={prediction.homeTeamCorrectButWrongPosition}
             evaluated={prediction.isEvaluated}
           />
-          <span aria-hidden style={{ color: 'rgb(var(--fg-subtle))' }}>–</span>
+          <span aria-hidden style={{ color: 'rgb(var(--fg-subtle))' }}>
+            –
+          </span>
           <FinalTeam
             teamName={prediction.awayTeamName}
             exact={prediction.awayTeamExactPosition}
@@ -613,16 +694,14 @@ function FinalTeam({
             {teamName}
           </span>
         </>
-      ) : '—'}
+      ) : (
+        '—'
+      )}
     </span>
   );
 }
 
-function finalTeamTone(
-  exact?: boolean | null,
-  wrongSide?: boolean | null,
-  evaluated?: boolean,
-) {
+function finalTeamTone(exact?: boolean | null, wrongSide?: boolean | null, evaluated?: boolean) {
   if (exact === true) {
     return {
       highlighted: true,
@@ -651,41 +730,6 @@ function finalTeamTone(
   };
 }
 
-function finalPredictionTone(prediction: any) {
-  if (!prediction?.isEvaluated) {
-    return {
-      highlighted: false,
-      border: 'rgb(var(--border-subtle))',
-      background: 'rgb(var(--bg-subtle) / 0.5)',
-    };
-  }
-  const hasExact =
-    prediction.homeTeamExactPosition === true ||
-    prediction.awayTeamExactPosition === true;
-  if (hasExact) {
-    return {
-      highlighted: true,
-      border: 'rgb(var(--pitch) / 0.55)',
-      background: 'rgb(var(--pitch) / 0.05)',
-    };
-  }
-  const hasWrongSide =
-    prediction.homeTeamCorrectButWrongPosition === true ||
-    prediction.awayTeamCorrectButWrongPosition === true;
-  if (hasWrongSide) {
-    return {
-      highlighted: true,
-      border: 'rgb(var(--info) / 0.55)',
-      background: 'rgb(var(--info) / 0.05)',
-    };
-  }
-  return {
-    highlighted: true,
-    border: 'rgb(var(--live) / 0.45)',
-    background: 'rgb(var(--live) / 0.05)',
-  };
-}
-
 const sectionTitleStyle: CSSProperties = {
   margin: 0,
   fontSize: '0.68rem',
@@ -711,7 +755,7 @@ const messageStyle: CSSProperties = {
 function compactPredictionCardStyle(
   border: string,
   background: string,
-  highlighted: boolean,
+  highlighted: boolean
 ): CSSProperties {
   return {
     position: 'relative',

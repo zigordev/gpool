@@ -66,11 +66,22 @@ class PrizePayoutDto {
     @Min(1)
     rank: number;
 
-    @ApiProperty({ description: 'Percentage of the prize pool paid to this ranking position', example: 50 })
+    @ApiPropertyOptional({ description: 'Fixed prize amount paid to this ranking position', example: 75 })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    amount?: number;
+
+    @ApiPropertyOptional({
+      description: 'Legacy percentage allocation. Accepted for backwards compatibility.',
+      example: 50,
+      deprecated: true,
+    })
+    @IsOptional()
     @IsNumber()
     @Min(0)
     @Max(100)
-    percentage: number;
+    percentage?: number;
 }
 
 class PrizeDistributionDto {
@@ -79,7 +90,7 @@ class PrizeDistributionDto {
     @Min(0)
     paidPositions: number;
 
-    @ApiProperty({ type: [PrizePayoutDto], description: 'Prize payout percentages by ranking position' })
+    @ApiProperty({ type: [PrizePayoutDto], description: 'Fixed prize amounts by arbitrary ranking position' })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => PrizePayoutDto)
@@ -101,6 +112,28 @@ class PlayerGoalScoringDto {
 
     @ApiProperty({ description: 'Goal points for forwards', example: 3 })
     @IsNumber()
+    forward: number;
+}
+
+class PlayerPenaltyGoalScoringDto {
+    @ApiProperty({ description: 'Penalty-goal points for goalkeepers', example: 10 })
+    @IsNumber()
+    @Min(0)
+    goalkeeper: number;
+
+    @ApiProperty({ description: 'Penalty-goal points for defenders', example: 7 })
+    @IsNumber()
+    @Min(0)
+    defender: number;
+
+    @ApiProperty({ description: 'Penalty-goal points for midfielders', example: 5 })
+    @IsNumber()
+    @Min(0)
+    midfielder: number;
+
+    @ApiProperty({ description: 'Penalty-goal points for forwards', example: 3 })
+    @IsNumber()
+    @Min(0)
     forward: number;
 }
 
@@ -127,10 +160,14 @@ class PlayerScoringDto {
     @IsNumber()
     missedPenalty: number;
 
-    @ApiProperty({ description: 'Points for a penalty goal during regular or extra time', example: 4 })
-    @IsNumber()
-    @Min(0)
-    penaltyGoal: number;
+    @ApiProperty({
+      type: PlayerPenaltyGoalScoringDto,
+      description: 'Penalty-goal points by player position during regular or extra time',
+    })
+    @IsObject()
+    @ValidateNested()
+    @Type(() => PlayerPenaltyGoalScoringDto)
+    penaltyGoal: PlayerPenaltyGoalScoringDto;
 
     @ApiProperty({ description: 'Points for MVP', example: 5 })
     @IsNumber()
@@ -271,7 +308,7 @@ export class PoolConfigDto {
 
     @ApiPropertyOptional({
       type: PrizeDistributionDto,
-      description: 'Prize distribution percentages by ranking position.',
+      description: 'Fixed prize amounts assigned to arbitrary ranking positions.',
     })
     @IsOptional()
     @IsObject()

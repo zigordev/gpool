@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
@@ -21,9 +21,11 @@ import ReactCountryFlag from 'react-country-flag';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
+  const { setPoolActions } = useNavCenter();
   const {
     groups,
     matchesByGroup,
@@ -60,17 +62,15 @@ export default function GroupsPage() {
     [realGroupStandings],
   );
 
-  return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-        <GroupScoringInfoSection
-          groupScoring={groupScoringConfig}
-          defaultExpanded
-        />
+  useLayoutEffect(() => {
+    setPoolActions(
+      <>
+        <GroupScoringInfoSection groupScoring={groupScoringConfig} />
         {bestThirdsRanking.length > 0 || realBestThirdsRanking.length > 0 ? (
           <PoolDetailModalButton
             title={t('poolDetail.groupPhase.bestThirdsTitle')}
             icon={<FaRankingStar size={14} />}
+            label={t('poolDetail.groupPhase.bestThirdsTitle')}
           >
             <BestThirdsStandingsContent
               standings={bestThirdsRanking}
@@ -79,10 +79,22 @@ export default function GroupsPage() {
             />
           </PoolDetailModalButton>
         ) : null}
-      </div>
+      </>,
+    );
+    return () => setPoolActions(null);
+  }, [
+    bestThirdsRanking,
+    groupScoringConfig.exactResultPoints,
+    groupScoringConfig.winnerPoints,
+    realBestThirdsRanking,
+    setPoolActions,
+    t,
+  ]);
 
+  return (
+    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {groups.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             const standings = groupStandings[group] || [];
@@ -90,7 +102,12 @@ export default function GroupsPage() {
             return (
               <Section
                 key={group}
-                title={t('poolDetail.groupPhase.group', { group })}
+                title={
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span aria-hidden style={{ width: 3, height: '1rem', borderRadius: '999px', background: 'rgb(var(--pitch))' }} />
+                    {t('poolDetail.groupPhase.group', { group })}
+                  </span>
+                }
                 trailing={
                   standings.length > 0 || realStandings.length > 0 ? (
                     <PoolDetailModalButton
@@ -108,9 +125,9 @@ export default function GroupsPage() {
                 collapsible
                 defaultExpanded
                 density="compact"
-                tone="subtle"
-                contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-                style={{ padding: '0.45rem 0.55rem' }}
+                tone="plain"
+                contentStyle={{ marginTop: '0.45rem', paddingTop: '0.55rem' }}
+                style={{ padding: '0.7rem 0.1rem 0.8rem' }}
               >
                 {groupMatches.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -232,6 +249,7 @@ function GroupStandingsContent({
           />
         </div>
       ) : null}
+      <FifaStandingsCriteriaLink t={t} />
     </div>
   );
 }
@@ -273,7 +291,30 @@ function BestThirdsStandingsContent({
           />
         </div>
       ) : null}
+      <FifaStandingsCriteriaLink t={t} />
     </div>
+  );
+}
+
+function FifaStandingsCriteriaLink({ t }: Readonly<{ t: TranslationFn }>) {
+  return (
+    <a
+      href="https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifySelf: 'start',
+        gap: '0.3rem',
+        color: 'rgb(var(--fg))',
+        fontSize: '0.8rem',
+        fontWeight: 650,
+      }}
+    >
+      {t('poolDetail.rules.points.fifaRegulationsLink')}
+      <FaExternalLinkAlt size={11} aria-hidden />
+    </a>
   );
 }
 

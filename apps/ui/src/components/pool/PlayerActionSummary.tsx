@@ -27,14 +27,14 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
     { key: 'assists', group: 'match', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'mvps', group: 'match', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'cleanSheets', group: 'match', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'yellowCards', group: 'match', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} size="17" /> },
-    { key: 'redCards', group: 'match', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'red', fill: 'red' }} size="17" /> },
+    { key: 'yellowCards', group: 'match', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /> },
+    { key: 'redCards', group: 'match', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'rgb(var(--live))', fill: 'rgb(var(--live))' }} size="17" /> },
     { key: 'penaltyGoals', group: 'penalty', value: player.penaltyGoals || 0, label: labels.penaltyGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'penaltiesSaved', group: 'penalty', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
-    { key: 'missedPenalties', group: 'penalty', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'red' }} size="17" /> },
+    { key: 'missedPenalties', group: 'penalty', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
     { key: 'shootoutGoals', group: 'shootout', value: player.shootoutGoals || 0, label: labels.shootoutGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'shootoutPenaltiesSaved', group: 'shootout', value: player.shootoutPenaltiesSaved || 0, label: labels.shootoutPenaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
-    { key: 'shootoutMissedPenalties', group: 'shootout', value: player.shootoutMissedPenalties || 0, label: labels.shootoutMissedPenalties, icon: <IoMdCloseCircle style={{ color: 'red' }} size="17" /> },
+    { key: 'shootoutMissedPenalties', group: 'shootout', value: player.shootoutMissedPenalties || 0, label: labels.shootoutMissedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
   ];
   const visibleActions = actions.filter((item) => isPlayerStatEnabled(scoring, position, item.key));
   if (visibleActions.length === 0) return null;
@@ -67,10 +67,10 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                     key={item.key}
                     title={`${item.label}: ${item.value}`}
                     aria-label={`${item.label}: ${item.value}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border-subtle))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', opacity: isZero ? 0.45 : 1, fontSize: '0.58rem', fontWeight: 800, lineHeight: 1 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.58rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
                   >
                     {item.icon}
-                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1 }}>{item.value}</span>
                   </span>
                 );
               })}
@@ -108,10 +108,12 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                   key={item.key}
                   title={`${item.label}: ${item.value}`}
                   aria-label={`${item.label}: ${item.value}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border-subtle))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', opacity: isZero ? 0.5 : 1, fontSize: '0.6rem', fontWeight: 800, lineHeight: 1 }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
                 >
                   {item.icon}
-                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>{item.value}</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1, }}>
+                    {item.value}
+                  </span>
                 </span>
               );
             })}

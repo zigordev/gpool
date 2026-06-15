@@ -8,6 +8,8 @@ interface NavCenterContextValue {
   setCenter: (node: ReactNode) => void;
   subBar: ReactNode;
   setSubBar: (node: ReactNode) => void;
+  poolActions: ReactNode;
+  setPoolActions: (node: ReactNode) => void;
 }
 
 const NavCenterContext = createContext<NavCenterContextValue>({
@@ -15,13 +17,16 @@ const NavCenterContext = createContext<NavCenterContextValue>({
   setCenter: () => {},
   subBar: null,
   setSubBar: () => {},
+  poolActions: null,
+  setPoolActions: () => {},
 });
 
 export function NavCenterProvider({ children }: { children: ReactNode }) {
   const [center, setCenter] = useState<ReactNode>(null);
   const [subBar, setSubBar] = useState<ReactNode>(null);
+  const [poolActions, setPoolActions] = useState<ReactNode>(null);
   return (
-    <NavCenterContext.Provider value={{ center, setCenter, subBar, setSubBar }}>
+    <NavCenterContext.Provider value={{ center, setCenter, subBar, setSubBar, poolActions, setPoolActions }}>
       {children}
     </NavCenterContext.Provider>
   );
