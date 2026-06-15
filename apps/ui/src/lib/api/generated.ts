@@ -416,16 +416,16 @@ export const API_OPERATIONS = [
     ]
   },
   {
-  "method": "GET",
-  "path": "/api/pools/{poolId}/players/{playerId}/insights",
-  "operationId": "PlayerController_getPlayerInsights",
-  "responseCodes": [
-    "200",
-    "400",
-    "403",
-    "404"
-  ]
-},
+    "method": "GET",
+    "path": "/api/pools/{poolId}/players/{playerId}/insights",
+    "operationId": "PlayerController_getPlayerInsights",
+    "responseCodes": [
+      "200",
+      "400",
+      "403",
+      "404"
+    ]
+  },
   {
     "method": "GET",
     "path": "/api/pools/{poolId}/players/selection-statistics",
