@@ -103,6 +103,11 @@ export type ApiOperation = {
   responseCodes: ['200'];
 } | {
   method: 'GET';
+  path: '/api/pools/{poolId}/players/{playerId}/insights';
+  operationId: 'PlayerController_getPlayerInsights';
+  responseCodes: ['200', '400', '403', '404'];  
+} | {
+  method: 'GET';
   path: '/api/pools/{poolId}/players/selection-statistics';
   operationId: 'PlayerController_getSelectionStatistics';
   responseCodes: ['200', '403'];
@@ -233,7 +238,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 46 as const;
+export const API_OPERATION_COUNT = 47 as const;
 
 export const API_OPERATIONS = [
   {
@@ -410,6 +415,17 @@ export const API_OPERATIONS = [
       "200"
     ]
   },
+  {
+  "method": "GET",
+  "path": "/api/pools/{poolId}/players/{playerId}/insights",
+  "operationId": "PlayerController_getPlayerInsights",
+  "responseCodes": [
+    "200",
+    "400",
+    "403",
+    "404"
+  ]
+},
   {
     "method": "GET",
     "path": "/api/pools/{poolId}/players/selection-statistics",
