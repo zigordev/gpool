@@ -152,9 +152,9 @@ export default function AdminPlayersPage() {
   };
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel admin-content">
 
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
           {([
             ['goalkeeper', 'adminResults.players.positions.goalkeeper'],
@@ -177,7 +177,7 @@ export default function AdminPlayersPage() {
       </Section> : null}
 
       {/* Player scoring configuration */}
-      {!systemMode ? <Section title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="muted">
+      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[
@@ -213,15 +213,45 @@ export default function AdminPlayersPage() {
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
             <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.mvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.mvp} attention={playerScoringConfig.mvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, mvp: parsePositive(e.target.value) }))} /></FormField>
-            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'yellow', fill: 'yellow' }} />{t('adminResults.players.scoring.yellowCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.yellowCard} attention={playerScoringConfig.yellowCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, yellowCard: parseNonPositive(e.target.value) }))} /></FormField>
-            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'red', fill: 'red' }} />{t('adminResults.players.scoring.redCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.redCard} attention={playerScoringConfig.redCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, redCard: parseNonPositive(e.target.value) }))} /></FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} />{t('adminResults.players.scoring.yellowCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.yellowCard} attention={playerScoringConfig.yellowCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, yellowCard: parseNonPositive(e.target.value) }))} /></FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><LuRectangleVertical style={{ color: 'rgb(var(--live))', fill: 'rgb(var(--live))' }} />{t('adminResults.players.scoring.redCard')}</span>}><Input type="number" inputMode="numeric" max="0" value={playerScoringConfig.redCard} attention={playerScoringConfig.redCard === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, redCard: parseNonPositive(e.target.value) }))} /></FormField>
           </div>
           <div style={actionGroupStyle}>
             <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.penalty')}</p>
+            <div>
+              <p style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', marginBottom: '0.3rem' }}>
+                <FaFutbol style={{ color: 'rgb(var(--fg))' }} />
+                {t('adminResults.config.players.subgroups.penaltyGoalsByPosition')}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                {[
+                  { position: 'goalkeeper' as const, label: t('adminResults.players.scoring.penaltyGoalGoalkeeper') },
+                  { position: 'defender' as const, label: t('adminResults.players.scoring.penaltyGoalDefender') },
+                  { position: 'midfielder' as const, label: t('adminResults.players.scoring.penaltyGoalMidfielder') },
+                  { position: 'forward' as const, label: t('adminResults.players.scoring.penaltyGoalForward') },
+                ].map(({ position, label }) => (
+                  <FormField key={position} label={label}>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      value={playerScoringConfig.penaltyGoal[position]}
+                      attention={playerScoringConfig.penaltyGoal[position] === ''}
+                      onChange={(event) => setPlayerScoringConfig((previous) => ({
+                        ...previous,
+                        penaltyGoal: {
+                          ...previous.penaltyGoal,
+                          [position]: parsePositive(event.target.value),
+                        },
+                      }))}
+                    />
+                  </FormField>
+                ))}
+              </div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaFutbol style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltyGoal')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltyGoal} attention={playerScoringConfig.penaltyGoal === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltyGoal: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltySaved} attention={playerScoringConfig.penaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltySaved: parsePositive(e.target.value) }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} attention={playerScoringConfig.missedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, missedPenalty: parseSigned(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} attention={playerScoringConfig.missedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, missedPenalty: parseSigned(e.target.value) }))} /></FormField>
             </div>
           </div>
           <div style={actionGroupStyle}>
@@ -229,21 +259,21 @@ export default function AdminPlayersPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaFutbol style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutGoal')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutGoal} attention={playerScoringConfig.shootoutGoal === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutGoal: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutPenaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutPenaltySaved} attention={playerScoringConfig.shootoutPenaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutPenaltySaved: parsePositive(e.target.value) }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'red' }} />{t('adminResults.players.scoring.shootoutMissedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.shootoutMissedPenalty} attention={playerScoringConfig.shootoutMissedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutMissedPenalty: parseSigned(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} />{t('adminResults.players.scoring.shootoutMissedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.shootoutMissedPenalty} attention={playerScoringConfig.shootoutMissedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutMissedPenalty: parseSigned(e.target.value) }))} /></FormField>
             </div>
           </div>
           <div style={actionGroupStyle}>
             <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.tournament')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiLeatherBoot style={{ color: 'gold' }} />{t('adminResults.players.scoring.goldenBoot')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} attention={playerScoringConfig.award.goldenBoot === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: parsePositive(e.target.value) } }))} /></FormField>
-              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: 'gold' }} />{t('adminResults.players.scoring.tournamentMvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} attention={playerScoringConfig.award.tournamentMvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: parsePositive(e.target.value) } }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiLeatherBoot style={{ color: '#D4A017', fill: '#D4A017' }} />{t('adminResults.players.scoring.goldenBoot')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.goldenBoot} attention={playerScoringConfig.award.goldenBoot === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, goldenBoot: parsePositive(e.target.value) } }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaStar style={{ color: '#D4A017', fill: '#D4A017' }} />{t('adminResults.players.scoring.tournamentMvp')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.award.tournamentMvp} attention={playerScoringConfig.award.tournamentMvp === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, award: { ...p.award, tournamentMvp: parsePositive(e.target.value) } }))} /></FormField>
             </div>
           </div>
         </div>
       </Section> : null}
 
       {/* Player stats table */}
-      {systemMode ? <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {systemMode ? <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '0.35rem' }}>
         <PlayerStatsTable
           players={filtered}
           goldenBootPlayerIds={playerAwardWinnersConfig.goldenBootPlayerIds}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
@@ -14,14 +14,18 @@ import {
   GroupScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
+import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
 import { compareThirdPlaceRows, computeGroupStandings, computeRealGroupStandings } from '@/lib/bracket-projection';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { FaExternalLinkAlt } from 'react-icons/fa';
+import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
+import { useNavCenter } from '@/contexts/NavCenterContext';
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
+  const { setPoolActions } = useNavCenter();
   const {
     groups,
     matchesByGroup,
@@ -50,16 +54,47 @@ export default function GroupsPage() {
       .sort(compareThirdPlaceRows),
     [groupStandings],
   );
+  const realBestThirdsRanking = useMemo(
+    () => Object.values(realGroupStandings)
+      .map((standings) => standings[2])
+      .filter(Boolean)
+      .sort(compareThirdPlaceRows),
+    [realGroupStandings],
+  );
+
+  useLayoutEffect(() => {
+    setPoolActions(
+      <>
+        <GroupScoringInfoSection groupScoring={groupScoringConfig} />
+        {bestThirdsRanking.length > 0 || realBestThirdsRanking.length > 0 ? (
+          <PoolDetailModalButton
+            title={t('poolDetail.groupPhase.bestThirdsTitle')}
+            icon={<FaRankingStar size={14} />}
+            label={t('poolDetail.groupPhase.bestThirdsTitle')}
+          >
+            <BestThirdsStandingsContent
+              standings={bestThirdsRanking}
+              realStandings={realBestThirdsRanking}
+              t={t}
+            />
+          </PoolDetailModalButton>
+        ) : null}
+      </>,
+    );
+    return () => setPoolActions(null);
+  }, [
+    bestThirdsRanking,
+    groupScoringConfig.exactResultPoints,
+    groupScoringConfig.winnerPoints,
+    realBestThirdsRanking,
+    setPoolActions,
+    t,
+  ]);
 
   return (
     <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <GroupScoringInfoSection
-        groupScoring={groupScoringConfig}
-        defaultExpanded
-      />
-
       {groups.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             const standings = groupStandings[group] || [];
@@ -67,72 +102,35 @@ export default function GroupsPage() {
             return (
               <Section
                 key={group}
-                title={t('poolDetail.groupPhase.group', { group })}
+                title={
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span aria-hidden style={{ width: 3, height: '1rem', borderRadius: '999px', background: 'rgb(var(--pitch))' }} />
+                    {t('poolDetail.groupPhase.group', { group })}
+                  </span>
+                }
+                trailing={
+                  standings.length > 0 || realStandings.length > 0 ? (
+                    <PoolDetailModalButton
+                      title={`${t('poolDetail.groupPhase.group', { group })} · ${t('poolDetail.groupPhase.standingsTitle')}`}
+                      icon={<FaRankingStar size={14} />}
+                    >
+                      <GroupStandingsContent
+                        standings={standings}
+                        realStandings={realStandings}
+                        t={t}
+                      />
+                    </PoolDetailModalButton>
+                  ) : null
+                }
                 collapsible
                 defaultExpanded
                 density="compact"
-                tone="subtle"
-                contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-                style={{ padding: '0.45rem 0.55rem' }}
+                tone="plain"
+                contentStyle={{ marginTop: '0.45rem', paddingTop: '0.55rem' }}
+                style={{ padding: '0.7rem 0.1rem 0.8rem' }}
               >
                 {groupMatches.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    {standings.length > 0 ? (
-                      <>
-                        <p
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1.25rem minmax(0, 1fr)',
-                            gap: '0.45rem',
-                            alignItems: 'start',
-                            margin: '0.15rem 0 0',
-                            color: 'rgb(var(--fg-muted))',
-                            fontSize: '0.84rem',
-                            lineHeight: 1.45,
-                          }}
-                        >
-                          <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
-                          <span>
-                            {t('poolDetail.rules.points.notRealStanding')}{' '}
-                          </span>
-                        </p>
-                        <PredictionStandingsTable
-                          rows={standings}
-                          t={t}
-                          minWidth={460}
-                          qualificationCutoff={2}
-                          style={{ marginBottom: '0.4rem' }}
-                        />
-                      </>
-                    ) : null}
-                    {realStandings.length > 0 ? (
-                      <>
-                        <p
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1.25rem minmax(0, 1fr)',
-                            gap: '0.45rem',
-                            alignItems: 'start',
-                            margin: '0.15rem 0 0',
-                            color: 'rgb(var(--fg-muted))',
-                            fontSize: '0.84rem',
-                            lineHeight: 1.45,
-                          }}
-                        >
-                          <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.1rem' }} />
-                          <span>
-                            {t('poolDetail.rules.points.realVirtualStanding')}{' '}
-                          </span>
-                        </p>
-                        <PredictionStandingsTable
-                          rows={realStandings}
-                          t={t}
-                          minWidth={460}
-                          qualificationCutoff={2}
-                          style={{ marginBottom: '0.4rem' }}
-                        />
-                      </>
-                    ) : null}
                     {groupMatches.map((match) => {
                       const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
                       const isPastDeadline = Date.now() >= poolDeadline;
@@ -197,25 +195,6 @@ export default function GroupsPage() {
             );
           })}
 
-          {bestThirdsRanking.length > 0 ? (
-            <Section
-              title={t('poolDetail.groupPhase.bestThirdsTitle')}
-              collapsible
-              defaultExpanded
-              density="compact"
-              tone="subtle"
-              contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
-              style={{ padding: '0.45rem 0.55rem' }}
-            >
-              <PredictionStandingsTable
-                rows={bestThirdsRanking}
-                t={t}
-                showGroup
-                minWidth={560}
-                qualificationCutoff={8}
-              />
-            </Section>
-          ) : null}
         </div>
       ) : (
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
@@ -234,6 +213,130 @@ export default function GroupsPage() {
 }
 
 type TranslationFn = (key: string, values?: Record<string, string | number>) => string;
+
+function GroupStandingsContent({
+  standings,
+  realStandings,
+  t,
+}: Readonly<{
+  standings: StandingRow[];
+  realStandings: StandingRow[];
+  t: TranslationFn;
+}>) {
+  return (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      {standings.length > 0 ? (
+        <div style={{ display: 'grid', gap: '0.45rem' }}>
+          <StandingsNotice text={t('poolDetail.rules.points.notRealStanding')} />
+          <PredictionStandingsTable
+            rows={standings}
+            t={t}
+            caption={t('poolDetail.groupPhase.standingsTitle')}
+            minWidth={460}
+            qualificationCutoff={2}
+          />
+        </div>
+      ) : null}
+      {realStandings.length > 0 ? (
+        <div style={{ display: 'grid', gap: '0.45rem' }}>
+          <StandingsNotice text={t('poolDetail.rules.points.realVirtualStanding')} />
+          <PredictionStandingsTable
+            rows={realStandings}
+            t={t}
+            caption={t('poolDetail.rules.points.realVirtualStanding')}
+            minWidth={460}
+            qualificationCutoff={2}
+          />
+        </div>
+      ) : null}
+      <FifaStandingsCriteriaLink t={t} />
+    </div>
+  );
+}
+
+function BestThirdsStandingsContent({
+  standings,
+  realStandings,
+  t,
+}: Readonly<{
+  standings: StandingRow[];
+  realStandings: StandingRow[];
+  t: TranslationFn;
+}>) {
+  return (
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      {standings.length > 0 ? (
+        <div style={{ display: 'grid', gap: '0.45rem' }}>
+          <StandingsNotice text={t('poolDetail.rules.points.notRealStanding')} />
+          <PredictionStandingsTable
+            rows={standings}
+            t={t}
+            caption={t('poolDetail.groupPhase.bestThirdsPredictedTitle')}
+            showGroup
+            minWidth={560}
+            qualificationCutoff={8}
+          />
+        </div>
+      ) : null}
+      {realStandings.length > 0 ? (
+        <div style={{ display: 'grid', gap: '0.45rem' }}>
+          <StandingsNotice text={t('poolDetail.rules.points.realVirtualStanding')} />
+          <PredictionStandingsTable
+            rows={realStandings}
+            t={t}
+            caption={t('poolDetail.groupPhase.bestThirdsRealTitle')}
+            showGroup
+            minWidth={560}
+            qualificationCutoff={8}
+          />
+        </div>
+      ) : null}
+      <FifaStandingsCriteriaLink t={t} />
+    </div>
+  );
+}
+
+function FifaStandingsCriteriaLink({ t }: Readonly<{ t: TranslationFn }>) {
+  return (
+    <a
+      href="https://digitalhub.fifa.com/m/636f5c9c6f29771f/original/FWC2026_regulations_EN.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifySelf: 'start',
+        gap: '0.3rem',
+        color: 'rgb(var(--fg))',
+        fontSize: '0.8rem',
+        fontWeight: 650,
+      }}
+    >
+      {t('poolDetail.rules.points.fifaRegulationsLink')}
+      <FaExternalLinkAlt size={11} aria-hidden />
+    </a>
+  );
+}
+
+function StandingsNotice({ text }: Readonly<{ text: string }>) {
+  return (
+    <p
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1.25rem minmax(0, 1fr)',
+        gap: '0.45rem',
+        alignItems: 'start',
+        margin: 0,
+        color: 'rgb(var(--fg-muted))',
+        fontSize: '0.8rem',
+        lineHeight: 1.4,
+      }}
+    >
+      <IoWarning aria-hidden style={{ color: 'rgb(var(--gold))', marginTop: '0.08rem' }} />
+      <span>{text}</span>
+    </p>
+  );
+}
 
 function PredictionStandingsTable({
   rows,

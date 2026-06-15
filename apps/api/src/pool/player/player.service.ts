@@ -29,6 +29,7 @@ export type PlayerStatKey =
   | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
 export type PlayerMatchType = 'group' | 'final';
+export type PlayerInsightSelectionType = 'position' | 'award';
 
 const POSITIONS: PlayerPosition[] = [...PLAYER_SELECTION_POSITIONS];
 const STATS: PlayerStatKey[] = [
@@ -54,7 +55,12 @@ export const DEFAULT_PLAYER_SCORING = {
     midfielder: 0,
     forward: 0,
   },
-  penaltyGoal: 0,
+  penaltyGoal: {
+    goalkeeper: 0,
+    defender: 0,
+    midfielder: 0,
+    forward: 0,
+  },
   missedPenalty: 0,
   mvp: 0,
   penaltySaved: 0,
@@ -85,25 +91,61 @@ export function resolvePlayerScoring(pool: any) {
   const configured = pool?.config?.playerScoring || {};
   const goal = configured.goal || {};
   const cleanSheet =
-    configured.cleanSheet && typeof configured.cleanSheet === 'object'
-      ? configured.cleanSheet
-      : {};
+    configured.cleanSheet && typeof configured.cleanSheet === 'object' ? configured.cleanSheet : {};
   const legacyCleanSheet = Number(configured.cleanSheet);
   const assist =
     configured.assist && typeof configured.assist === 'object' ? configured.assist : {};
+  const penaltyGoal =
+    configured.penaltyGoal && typeof configured.penaltyGoal === 'object'
+      ? configured.penaltyGoal
+      : {};
+  const legacyPenaltyGoal = Number(configured.penaltyGoal);
   return {
     goal: {
-      goalkeeper: Number.isFinite(Number(goal.goalkeeper)) ? Number(goal.goalkeeper) : DEFAULT_PLAYER_SCORING.goal.goalkeeper,
-      defender: Number.isFinite(Number(goal.defender)) ? Number(goal.defender) : DEFAULT_PLAYER_SCORING.goal.defender,
-      midfielder: Number.isFinite(Number(goal.midfielder)) ? Number(goal.midfielder) : DEFAULT_PLAYER_SCORING.goal.midfielder,
-      forward: Number.isFinite(Number(goal.forward)) ? Number(goal.forward) : DEFAULT_PLAYER_SCORING.goal.forward,
+      goalkeeper: Number.isFinite(Number(goal.goalkeeper))
+        ? Number(goal.goalkeeper)
+        : DEFAULT_PLAYER_SCORING.goal.goalkeeper,
+      defender: Number.isFinite(Number(goal.defender))
+        ? Number(goal.defender)
+        : DEFAULT_PLAYER_SCORING.goal.defender,
+      midfielder: Number.isFinite(Number(goal.midfielder))
+        ? Number(goal.midfielder)
+        : DEFAULT_PLAYER_SCORING.goal.midfielder,
+      forward: Number.isFinite(Number(goal.forward))
+        ? Number(goal.forward)
+        : DEFAULT_PLAYER_SCORING.goal.forward,
     },
-    penaltyGoal: Number.isFinite(Number(configured.penaltyGoal))
-      ? Math.max(0, Number(configured.penaltyGoal))
-      : DEFAULT_PLAYER_SCORING.penaltyGoal,
-    missedPenalty: Number.isFinite(Number(configured.missedPenalty)) ? Number(configured.missedPenalty) : DEFAULT_PLAYER_SCORING.missedPenalty,
-    mvp: Number.isFinite(Number(configured.mvp)) ? Number(configured.mvp) : DEFAULT_PLAYER_SCORING.mvp,
-    penaltySaved: Number.isFinite(Number(configured.penaltySaved)) ? Number(configured.penaltySaved) : DEFAULT_PLAYER_SCORING.penaltySaved,
+    penaltyGoal: {
+      goalkeeper: Number.isFinite(Number(penaltyGoal.goalkeeper))
+        ? Math.max(0, Number(penaltyGoal.goalkeeper))
+        : Number.isFinite(legacyPenaltyGoal)
+          ? Math.max(0, legacyPenaltyGoal)
+          : DEFAULT_PLAYER_SCORING.penaltyGoal.goalkeeper,
+      defender: Number.isFinite(Number(penaltyGoal.defender))
+        ? Math.max(0, Number(penaltyGoal.defender))
+        : Number.isFinite(legacyPenaltyGoal)
+          ? Math.max(0, legacyPenaltyGoal)
+          : DEFAULT_PLAYER_SCORING.penaltyGoal.defender,
+      midfielder: Number.isFinite(Number(penaltyGoal.midfielder))
+        ? Math.max(0, Number(penaltyGoal.midfielder))
+        : Number.isFinite(legacyPenaltyGoal)
+          ? Math.max(0, legacyPenaltyGoal)
+          : DEFAULT_PLAYER_SCORING.penaltyGoal.midfielder,
+      forward: Number.isFinite(Number(penaltyGoal.forward))
+        ? Math.max(0, Number(penaltyGoal.forward))
+        : Number.isFinite(legacyPenaltyGoal)
+          ? Math.max(0, legacyPenaltyGoal)
+          : DEFAULT_PLAYER_SCORING.penaltyGoal.forward,
+    },
+    missedPenalty: Number.isFinite(Number(configured.missedPenalty))
+      ? Number(configured.missedPenalty)
+      : DEFAULT_PLAYER_SCORING.missedPenalty,
+    mvp: Number.isFinite(Number(configured.mvp))
+      ? Number(configured.mvp)
+      : DEFAULT_PLAYER_SCORING.mvp,
+    penaltySaved: Number.isFinite(Number(configured.penaltySaved))
+      ? Number(configured.penaltySaved)
+      : DEFAULT_PLAYER_SCORING.penaltySaved,
     shootoutPenaltySaved: Number.isFinite(Number(configured.shootoutPenaltySaved))
       ? Math.max(0, Number(configured.shootoutPenaltySaved))
       : DEFAULT_PLAYER_SCORING.shootoutPenaltySaved,
@@ -168,7 +210,7 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
     (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
   return (
     (player.goals || 0) * scoring.goal[position] +
-    (player.penaltyGoals || 0) * scoring.penaltyGoal +
+    (player.penaltyGoals || 0) * scoring.penaltyGoal[position] +
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
@@ -187,21 +229,24 @@ export function resolvePlayerAwardWinners(pool: any, players: any[], tournamentA
       goldenBoot: new Set(
         tournamentAwards
           .filter((result) => result.award === 'golden_boot')
-          .map((result) => result.playerId),
+          .map((result) => result.playerId)
       ),
       tournamentMvp: new Set(
         tournamentAwards
           .filter((result) => result.award === 'tournament_mvp')
-          .map((result) => result.playerId),
+          .map((result) => result.playerId)
       ),
     };
   }
   const configured = pool?.config?.playerAwardWinners || {};
   const configuredGoldenBootIds = Array.isArray(configured.goldenBootPlayerIds)
-    ? configured.goldenBootPlayerIds.filter((id: unknown) => typeof id === 'string' && id.trim().length > 0)
+    ? configured.goldenBootPlayerIds.filter(
+        (id: unknown) => typeof id === 'string' && id.trim().length > 0
+      )
     : [];
   const configuredTournamentMvpId =
-    typeof configured.tournamentMvpPlayerId === 'string' && configured.tournamentMvpPlayerId.trim().length > 0
+    typeof configured.tournamentMvpPlayerId === 'string' &&
+    configured.tournamentMvpPlayerId.trim().length > 0
       ? configured.tournamentMvpPlayerId
       : '';
   const maxGoals = Math.max(0, ...players.map((player) => Number(player.goals || 0)));
@@ -211,15 +256,19 @@ export function resolvePlayerAwardWinners(pool: any, players: any[], tournamentA
       configuredGoldenBootIds.length > 0
         ? configuredGoldenBootIds
         : maxGoals > 0
-          ? players.filter((player) => Number(player.goals || 0) === maxGoals).map((player) => player.playerId)
-          : [],
+          ? players
+              .filter((player) => Number(player.goals || 0) === maxGoals)
+              .map((player) => player.playerId)
+          : []
     ),
     tournamentMvp: new Set(
       configuredTournamentMvpId
         ? [configuredTournamentMvpId]
         : maxMvps > 0
-          ? players.filter((player) => Number(player.mvps || 0) === maxMvps).map((player) => player.playerId)
-          : [],
+          ? players
+              .filter((player) => Number(player.mvps || 0) === maxMvps)
+              .map((player) => player.playerId)
+          : []
     ),
   };
 }
@@ -227,7 +276,7 @@ export function resolvePlayerAwardWinners(pool: any, players: any[], tournamentA
 export function computePlayerAwardPoints(
   selection: any,
   winners: ReturnType<typeof resolvePlayerAwardWinners>,
-  scoring: ReturnType<typeof resolvePlayerScoring>,
+  scoring: ReturnType<typeof resolvePlayerScoring>
 ) {
   if (selection.award === 'golden_boot') {
     return winners.goldenBoot.has(selection.playerId) ? scoring.award.goldenBoot : 0;
@@ -242,17 +291,107 @@ export function computePlayerAwardPoints(
 export class PlayerService {
   constructor(private readonly poolRepository: PoolRepository) {}
 
+  async getPlayerInsights(
+    poolId: string,
+    playerId: string,
+    selectionType: PlayerInsightSelectionType,
+    award: PlayerAward | undefined,
+    requesterUserId: string,
+    requesterRole: string
+  ) {
+    if (selectionType !== 'position' && selectionType !== 'award') {
+      throw new BadRequestException('Invalid player selection type');
+    }
+    if (selectionType === 'award' && (!award || !AWARDS.includes(award))) {
+      throw new BadRequestException('A valid player award is required');
+    }
+
+    const pool = await this.poolRepository.getPool(poolId);
+    if (!pool) {
+      throw new NotFoundException(`Pool with ID ${poolId} not found`);
+    }
+    if (Date.now() < resolvePoolDeadline(pool)) {
+      throw new ForbiddenException(
+        'Player insights are only available after the prediction deadline'
+      );
+    }
+    if (!hasPermission(requesterRole || 'user', 'admin')) {
+      const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
+      if (!membership || membership.status !== 'active') {
+        throw new ForbiddenException('You must be an active member of this pool');
+      }
+    }
+
+    const player = await this.poolRepository.getTournamentPlayer(playerId);
+    if (!player) {
+      throw new NotFoundException(`Player with ID ${playerId} not found`);
+    }
+
+    const [members, selections, matchActions] = await Promise.all([
+      this.poolRepository.getPoolMembers(poolId),
+      selectionType === 'award'
+        ? this.poolRepository.getPlayerAwardSelectionsForPool(poolId)
+        : this.poolRepository.getPlayerSelectionsForPool(poolId),
+      this.poolRepository.getTournamentPlayerMatchStats(playerId),
+    ]);
+    const activeMembers = members.filter((member: any) => member.status === 'active');
+    const activeUserIds = new Set(activeMembers.map((member: any) => member.userId));
+    const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
+    const selectedUserIds = new Set(
+      selections
+        .filter(
+          (selection: any) =>
+            activeUserIds.has(selection.userId) &&
+            selection.playerId === playerId &&
+            (selectionType === 'award'
+              ? selection.award === award
+              : isSelectionWithinLimits(selection, limits))
+        )
+        .map((selection: any) => selection.userId)
+    );
+    const memberCount = activeMembers.length;
+    const selectionCount = selectedUserIds.size;
+
+    return {
+      requesterUserId,
+      player,
+      selectionType,
+      award: selectionType === 'award' ? award : null,
+      memberCount,
+      selectionCount,
+      percentage: memberCount > 0 ? Math.round((selectionCount / memberCount) * 1000) / 10 : 0,
+      selectedBy: activeMembers
+        .filter((member: any) => selectedUserIds.has(member.userId))
+        .map((member: any) => ({
+          userId: member.userId,
+          userName:
+            member.userName ||
+            (member.userEmail
+              ? member.userEmail.split('@')[0]
+              : `User ${member.userId.slice(0, 8)}`),
+        }))
+        .sort((a: any, b: any) => {
+          if (a.userId === requesterUserId) return -1;
+          if (b.userId === requesterUserId) return 1;
+          return a.userName.localeCompare(b.userName);
+        }),
+      matches: matchActions,
+    };
+  }
+
   async getPlayerSelectionStatistics(
     poolId: string,
     requesterUserId: string,
-    requesterRole: string,
+    requesterRole: string
   ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
     if (Date.now() < resolvePoolDeadline(pool)) {
-      throw new ForbiddenException('Player selection statistics are only available after the prediction deadline');
+      throw new ForbiddenException(
+        'Player selection statistics are only available after the prediction deadline'
+      );
     }
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
@@ -269,7 +408,7 @@ export class PlayerService {
     const activeUserIds = new Set(
       members
         .filter((member: any) => member.status === 'active')
-        .map((member: any) => member.userId),
+        .map((member: any) => member.userId)
     );
     const memberCount = activeUserIds.size;
     const percentage = (count: number) =>
@@ -304,19 +443,20 @@ export class PlayerService {
       memberCount,
       awards: {
         goldenBoot: aggregate(
-          awardSelections.filter((selection: any) => selection.award === 'golden_boot'),
+          awardSelections.filter((selection: any) => selection.award === 'golden_boot')
         ),
         tournamentMvp: aggregate(
-          awardSelections.filter((selection: any) => selection.award === 'tournament_mvp'),
+          awardSelections.filter((selection: any) => selection.award === 'tournament_mvp')
         ),
       },
       positions: Object.fromEntries(
         POSITIONS.map((position) => [
           position,
-          aggregate(
-            selections.filter((selection: any) => selection.position === position),
-          ).slice(0, 5),
-        ]),
+          aggregate(selections.filter((selection: any) => selection.position === position)).slice(
+            0,
+            5
+          ),
+        ])
       ),
     };
   }
@@ -333,7 +473,7 @@ export class PlayerService {
     const awardWinners = resolvePlayerAwardWinners(pool, players, tournamentAwards);
     const limits = resolvePlayerSelectionLimits(pool?.config?.playerSelectionLimits);
     const validSelections = selections.filter((selection: any) =>
-      isSelectionWithinLimits(selection, limits),
+      isSelectionWithinLimits(selection, limits)
     );
 
     return {
@@ -362,7 +502,7 @@ export class PlayerService {
     playerId: string,
     award: PlayerAward,
     selected: boolean,
-    userRole: string,
+    userRole: string
   ) {
     if (userRole !== 'admin') {
       throw new BadRequestException('Only administrators can update tournament awards');
@@ -394,7 +534,7 @@ export class PlayerService {
       stat: PlayerStatKey;
       delta: number;
     },
-    userRole: string,
+    userRole: string
   ) {
     if (userRole !== 'admin') {
       throw new BadRequestException('Only administrators can update player stats');
@@ -416,7 +556,11 @@ export class PlayerService {
       throw new BadRequestException('Delta must be either -1 or 1');
     }
 
-    const match = await this.poolRepository.getTournamentMatch(poolId, input.matchType, input.matchId);
+    const match = await this.poolRepository.getTournamentMatch(
+      poolId,
+      input.matchType,
+      input.matchId
+    );
     if (!match) {
       throw new NotFoundException(`Match with ID ${input.matchId} not found`);
     }
@@ -432,7 +576,7 @@ export class PlayerService {
       input.matchType,
       input.matchId,
       input.stat,
-      input.delta,
+      input.delta
     );
   }
 
@@ -441,7 +585,7 @@ export class PlayerService {
     userId: string,
     position: PlayerPosition,
     slot: number,
-    playerId: string | null,
+    playerId: string | null
   ) {
     if (!POSITIONS.includes(position)) {
       throw new BadRequestException('Invalid player position');
@@ -453,7 +597,9 @@ export class PlayerService {
     }
     const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
     if (!Number.isInteger(slot) || slot < 1 || slot > limits[position]) {
-      throw new BadRequestException(`Slot must be between 1 and ${limits[position]} for ${position}`);
+      throw new BadRequestException(
+        `Slot must be between 1 and ${limits[position]} for ${position}`
+      );
     }
 
     if (!playerId) {
@@ -470,7 +616,8 @@ export class PlayerService {
     const selections = await this.poolRepository.getPlayerSelections(poolId, userId);
     const teamAlreadySelected = selections.some(
       (selection: any) =>
-        selection.teamId === player.teamId && !(selection.position === position && Number(selection.slot) === slot),
+        selection.teamId === player.teamId &&
+        !(selection.position === position && Number(selection.slot) === slot)
     );
     if (teamAlreadySelected) {
       throw new BadRequestException('Only one regular player per team can be selected');
@@ -483,7 +630,7 @@ export class PlayerService {
     poolId: string,
     userId: string,
     award: PlayerAward,
-    playerId: string | null,
+    playerId: string | null
   ) {
     if (!AWARDS.includes(award)) {
       throw new BadRequestException('Invalid player award');

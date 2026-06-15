@@ -51,11 +51,13 @@
           "cleanSheetsByPosition": "Porterias a cero por posicion",
           "discipline": "Disciplina",
           "goalsByPosition": "Goles por posicion",
-          "individualActions": "Acciones individuales"
+          "individualActions": "Acciones individuales",
+          "penaltyGoalsByPosition": "Goles de penalti por posicion"
         },
         "title": "Jugadores"
       }
     },
+    "configurationFor": "Configuración de {poolName}",
     "dangerZone": {
       "cancelButton": "Cancelar",
       "confirmButton": "Sí, eliminar definitivamente",
@@ -76,7 +78,7 @@
       "enterBothResults": "Introduce resultados para ambos equipos",
       "loadData": "No se pudieron cargar los datos",
       "poolAdminRequired": "Acceso denegado. Se requiere ser administrador de la membresía de la porra.",
-      "prizeDistributionTotal": "La distribucion de premios debe sumar 100%",
+      "prizeDistributionTotal": "Debes repartir todo el dinero disponible usando puestos válidos y no repetidos",
       "saveBracketResult": "No se pudo guardar el resultado del cuadro",
       "saveResults": "No se pudieron guardar los resultados",
       "saveScoring": "No se pudo guardar la configuración de puntuación",
@@ -176,6 +178,10 @@
         "missedPenalty": "Penalti fallado",
         "mvp": "MVP",
         "penaltyGoal": "Gol de penalti",
+        "penaltyGoalDefender": "Gol de penalti de defensa",
+        "penaltyGoalForward": "Gol de penalti de delantero",
+        "penaltyGoalGoalkeeper": "Gol de penalti de portero",
+        "penaltyGoalMidfielder": "Gol de penalti de centrocampista",
         "penaltySaved": "Penalti parado",
         "redCard": "Tarjeta roja",
         "shootoutGoal": "Gol en tanda de penaltis",
@@ -202,12 +208,17 @@
       "finalExactPosition": "Puntos por posicion exacta correcta",
       "groupPhaseExact": "Puntos por resultado exacto",
       "groupPhaseWinner": "Puntos por ganador correcto",
+      "notSavedInvalid": "Distribución de premios sin guardar",
+      "prizeAmountInput": "Importe del premio {number}",
+      "prizeNumber": "Premio {number}",
       "prizePaidPositions": "Puestos con premio",
-      "prizePaidPositionsHint": "Numero de posiciones del ranking que reciben premio.",
+      "prizePaidPositionsHint": "Número de premios que se asignan. Cada premio puede usar cualquier puesto único de la clasificación.",
+      "prizePayoutHint": "El puesto {rank} recibe este importe fijo",
       "prizePercentage": "Porcentaje para el puesto {rank}",
       "prizeRank": "Puesto {rank}",
-      "prizeTotal": "Total configurado: {total}%",
-      "prizeTotalInvalid": "Debe sumar 100%",
+      "prizeRankInput": "Puesto de la clasificación para el premio {number}",
+      "prizeTotal": "Asignado: {total} € de {available} €",
+      "prizeTotalInvalid": "Reparte todo el dinero entre puestos válidos y no repetidos",
       "prizeTotalValid": "Correcto",
       "save": "Guardar configuración de puntuación",
       "savedAuto": "Cambios guardados",
@@ -218,6 +229,7 @@
     "tabs": {
       "configuration": "Configuración",
       "finalPhase": "Fase final",
+      "general": "General",
       "groupPhase": "Fase de grupos",
       "label": "Secciones de administración",
       "missingConfigCount": "{count} configuraciones pendientes",
@@ -225,6 +237,7 @@
       "short": {
         "configuration": "Config.",
         "finalPhase": "Final",
+        "general": "General",
         "groupPhase": "Grupos",
         "players": "Jugadores"
       }
@@ -371,9 +384,9 @@
     "finalPhase": {
       "autoFillConfirmAccept": "Aceptar",
       "autoFillConfirmDescription": "Si aceptas rellenar los dieciseisavos automáticamente, se rellenarán en base a la clasificación de la fase de grupos. Ten en cuenta que cualquier selección realizada hasta el momento, tanto en la ronda de dieciseisavos como en cualquier otra, se perderá.",
-      "autoFillConfirmTitle": "Rellenar dieciseisavos automáticamente",
+      "autoFillConfirmTitle": "Rellenar automáticamente",
       "autoFillError": "No se pudieron rellenar los dieciseisavos automáticamente",
-      "autoFillRoundOf32": "Rellenar dieciseisavos automáticamente",
+      "autoFillRoundOf32": "Rellenar automáticamente",
       "autoFillSuccess": "Dieciseisavos rellenados automáticamente",
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
@@ -384,6 +397,8 @@
       "title": "Fase final"
     },
     "groupPhase": {
+      "bestThirdsPredictedTitle": "Mejores terceros según tus predicciones",
+      "bestThirdsRealTitle": "Mejores terceros de la clasificación real virtual",
       "bestThirdsTitle": "Mejores terceros",
       "group": "Grupo {group}",
       "noMatches": "Aun no hay partidos disponibles.",
@@ -400,7 +415,7 @@
         "status": "Estado",
         "team": "Equipo"
       },
-      "standingsTitle": "Clasificación según tus predicciones",
+      "standingsTitle": "Clasificación",
       "title": "Fase de grupos"
     },
     "info": {
@@ -429,8 +444,8 @@
       "description": "Predicciones y puntos por acciones de jugadores de todos los miembros para este partido.",
       "draw": "Empate",
       "exactPositions": "{count} en la posición exacta",
-      "exactResult": "Resultado exacto",
-      "failed": "Sin acierto",
+      "exactResult": "Exacto",
+      "failed": "Incorrecto",
       "finalStatisticsHint": "Lado correcto indica que el equipo fue colocado en esta posición exacta del cuadro; lado incorrecto, que fue seleccionado en la otra parte del cuadro; y equipo no acertado, que no fue seleccionado.",
       "groupStatisticsHint": "A continuación se muestra el procentaje de participantes que han acertado el 1X2, el resultado exacto o que han fallado su predicción para este partido",
       "homeWin": "Victoria local",
@@ -438,7 +453,7 @@
       "loadError": "No se pudo cargar el detalle del partido.",
       "noPlayerActions": "Ningún jugador seleccionado registró acciones en este partido.",
       "noPrediction": "Sin predicción",
-      "notGuessed": "Equipo no acertado",
+      "notGuessed": "Incorrecto",
       "oneXTwo": "1X2",
       "participants": "Participantes",
       "pendingEvaluation": "Pendiente de evaluación",
@@ -490,6 +505,17 @@
       "editTitle": "Editar jugador",
       "empty": "Aun no hay jugadores del torneo disponibles.",
       "emptySlot": "Sin jugador",
+      "insights": {
+        "actionsByMatch": "Acciones por partido",
+        "finalPhase": "Fase final",
+        "groupPhase": "Fase de grupos",
+        "loadError": "No se pudo cargar el detalle del jugador.",
+        "noActions": "Este jugador todavía no tiene acciones registradas.",
+        "noSelections": "Ningún participante seleccionó a este jugador.",
+        "selectedByCount": "{selected} de {total} participantes seleccionaron a este jugador",
+        "selection": "Selección",
+        "title": "Detalle del jugador"
+      },
       "modalDescription": "Selecciona jugador para el puesto {slot}",
       "noResults": "No hay jugadores que coincidan con la busqueda.",
       "points": "{points} pts",
@@ -634,6 +660,7 @@
   "pools": {
     "actions": {
       "administrate": "Administrar",
+      "configuration": "Configuración de la porra",
       "create": "Crear porra",
       "creating": "Creando...",
       "editTitle": "Editar nombre de la porra",
@@ -683,7 +710,7 @@
       "inviteTitle": "Invitar usuario a {poolName}",
       "poolNameLabel": "Nombre de la porra *",
       "poolNamePlaceholder": "Introduce el nombre de la porra (3-100 caracteres)",
-      "prizePaidPositionsHint": "Numero de posiciones del ranking que reciben premio.",
+      "prizePaidPositionsHint": "Número de premios que se asignan. Puedes elegir cualquier puesto único de la clasificación para cada premio.",
       "prizePaidPositionsLabel": "Puestos con premio"
     },
     "subtitle": "Consulta y gestiona tus porras de futbol",

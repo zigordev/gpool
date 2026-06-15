@@ -5,7 +5,7 @@ type ConfigNumberLike = number | string | null | undefined;
 
 type PlayerScoringLike = {
   goal?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
-  penaltyGoal?: ConfigNumberLike;
+  penaltyGoal?: ConfigNumberLike | Partial<Record<PlayerPosition, ConfigNumberLike>>;
   missedPenalty?: ConfigNumberLike;
   mvp?: ConfigNumberLike;
   penaltySaved?: ConfigNumberLike;
@@ -33,7 +33,11 @@ export function playerStatScoringValue(
     case 'goals':
       return configuredNumber(scoring.goal?.[position]);
     case 'penaltyGoals':
-      return configuredNumber(scoring.penaltyGoal);
+      return configuredNumber(
+        scoring.penaltyGoal && typeof scoring.penaltyGoal === 'object'
+          ? scoring.penaltyGoal[position]
+          : scoring.penaltyGoal,
+      );
     case 'assists':
       return configuredNumber(scoring.assist?.[position]);
     case 'cleanSheets':

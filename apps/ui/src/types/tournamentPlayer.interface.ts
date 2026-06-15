@@ -1,4 +1,4 @@
-import { PlayerPosition } from "./playerPosition.type";
+import { PlayerPosition } from './playerPosition.type';
 
 export interface TournamentPlayer {
   playerId: string;

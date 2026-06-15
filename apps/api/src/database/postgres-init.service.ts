@@ -9,6 +9,7 @@ const TOURNAMENT_ROSTER_POSITIONS: readonly TournamentRosterPosition[] = [
   'forward',
 ];
 const TOURNAMENT_SQUAD_SIZE = 26;
+const POSTGRES_INITIALIZATION_LOCK_ID = 2_026_061_501;
 
 function playerSeedId(teamId: string, position: TournamentRosterPosition, playerName: string): string {
   const playerSlug = playerName
@@ -27,9 +28,27 @@ export class PostgresInitService implements OnModuleInit {
   constructor(private readonly postgres: PostgresService) {}
 
   async onModuleInit(): Promise<void> {
-    await this.ensureSchema();
-    await this.seedTeamsAndMatches();
-    await this.seedBracketMatches();
+    const lockClient = await this.postgres.getClient();
+    let lockAcquired = false;
+    try {
+      await lockClient.query('SELECT pg_advisory_lock($1::bigint)', [
+        POSTGRES_INITIALIZATION_LOCK_ID,
+      ]);
+      lockAcquired = true;
+      await this.ensureSchema();
+      await this.seedTeamsAndMatches();
+      await this.seedBracketMatches();
+    } finally {
+      try {
+        if (lockAcquired) {
+          await lockClient.query('SELECT pg_advisory_unlock($1::bigint)', [
+            POSTGRES_INITIALIZATION_LOCK_ID,
+          ]);
+        }
+      } finally {
+        lockClient.release();
+      }
+    }
   }
 
   private async ensureSchema(): Promise<void> {

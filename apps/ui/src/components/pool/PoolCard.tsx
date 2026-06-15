@@ -1,5 +1,5 @@
 import { CountdownChip } from '@/components/ui/CountdownChip';
-import { Badge } from '../ui/Badge';
+import { IoSettings } from 'react-icons/io5';
 
 export function PoolCard({
   pool,
@@ -8,6 +8,7 @@ export function PoolCard({
   isDisabled,
   requesting,
   onInvite,
+  onConfigure,
   onRequestAccess,
   t,
 }: Readonly<{
@@ -17,6 +18,7 @@ export function PoolCard({
   isDisabled: boolean;
   requesting: boolean;
   onInvite: () => void;
+  onConfigure: () => void;
   onRequestAccess: () => void;
   t: (k: string, p?: Record<string, string | number>) => string;
 }>) {
@@ -27,7 +29,7 @@ export function PoolCard({
   const hasDeadline = Number.isFinite(deadline) && deadline > 0;
 
   return (
-    <button
+    <article
       onClick={onOpen}
       role={isDisabled ? undefined : 'button'}
       tabIndex={isDisabled ? -1 : 0}
@@ -54,10 +56,10 @@ export function PoolCard({
             zIndex: 1,
           }}
         >
-          <span className="badge" style={{ background: 'rgb(255 255 255 / 0.95)', color: 'rgb(var(--pitch))', border: 'none' }}>
+          <span className="badge" style={{ background: 'rgb(var(--surface-strong) / 0.96)', color: 'rgb(var(--pitch))', border: 'none' }}>
             {t('pools.card.members', { count: pool.memberCount || 0 })}
           </span>
-          <span className="badge" style={{ background: 'rgb(255 255 255 / 0.95)', color: 'rgb(var(--pitch))', border: 'none' }}>
+          <span className="badge" style={{ background: 'rgb(var(--surface-strong) / 0.96)', color: 'rgb(var(--pitch))', border: 'none' }}>
             {t('poolDetail.info.entryFee')}: {entryFee > 0 ? `${entryFee} €` : t('poolDetail.info.entryFeeFree')}
           </span>
         </div>
@@ -76,13 +78,33 @@ export function PoolCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                onConfigure();
+              }}
+              title={t('pools.actions.configuration')}
+              aria-label={t('pools.actions.configuration')}
+              className="btn btn-icon"
+              style={{
+                background: 'rgb(var(--surface-strong) / 0.96)',
+                color: 'rgb(var(--fg))',
+                border: 'none',
+                width: '2rem',
+                height: '2rem',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <IoSettings size={14} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
                 onInvite();
               }}
               title={t('pools.actions.inviteTitle')}
               aria-label={t('pools.actions.inviteTitle')}
               className="btn btn-icon"
               style={{
-                background: 'rgb(255 255 255 / 0.95)',
+                background: 'rgb(var(--surface-strong) / 0.96)',
                 color: 'rgb(var(--fg))',
                 border: 'none',
                 width: '2rem',
@@ -180,6 +202,6 @@ export function PoolCard({
           </div>
         </div>
       </div>
-    </button>
+    </article>
   );
 }

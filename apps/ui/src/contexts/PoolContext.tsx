@@ -47,13 +47,13 @@ export const PLAYER_AWARDS: Array<{ key: PlayerAward; labelKey: string; descript
     key: 'golden_boot',
     labelKey: 'poolDetail.players.awards.goldenBoot',
     descriptionKey: 'poolDetail.players.awards.goldenBootDescription',
-    icon: <GiLeatherBoot style={{ color: 'gold' }} size="27" />,
+    icon: <GiLeatherBoot style={{ color: '#D4A017', fill: '#D4A017' }} size="27" />,
   },
   {
     key: 'tournament_mvp',
     labelKey: 'poolDetail.players.awards.tournamentMvp',
     descriptionKey: 'poolDetail.players.awards.tournamentMvpDescription',
-    icon: <FaStar style={{ color: 'gold' }} size="27" />,
+    icon: <FaStar style={{ color: '#D4A017', fill: '#D4A017' }} size="27" />,
   },
 ];
 
@@ -76,8 +76,31 @@ export function resolvePrizeDistribution(pool: any): PrizePayout[] {
   const entryFee = pool?.config?.entryFee;
   if (typeof entryFee === 'number' && entryFee === 0) return [];
   const raw = pool?.config?.prizeDistribution;
+  const memberCount = Number.isFinite(Number(pool?.memberCount))
+    ? Math.max(0, Math.floor(Number(pool.memberCount)))
+    : Array.isArray(pool?.members)
+      ? pool.members.length
+      : 0;
+  const totalPrizePool = Math.max(0, Number(entryFee) || 0) * memberCount;
+
   if (raw && Array.isArray(raw.payouts) && raw.payouts.length > 0) {
-    const valid = raw.payouts
+    const amountPayouts = raw.payouts
+      .filter(
+        (p: any) =>
+          p &&
+          typeof p.rank === 'number' &&
+          Number.isFinite(p.rank) &&
+          p.rank >= 1 &&
+          typeof p.amount === 'number' &&
+          Number.isFinite(p.amount) &&
+          p.amount >= 0,
+      )
+      .map((p: any) => ({ rank: p.rank, amount: p.amount }));
+    if (amountPayouts.length > 0) {
+      return amountPayouts.sort((a: PrizePayout, b: PrizePayout) => a.rank - b.rank);
+    }
+
+    const percentagePayouts = raw.payouts
       .filter(
         (p: any) =>
           p &&
@@ -87,19 +110,26 @@ export function resolvePrizeDistribution(pool: any): PrizePayout[] {
           typeof p.percentage === 'number' &&
           Number.isFinite(p.percentage) &&
           p.percentage >= 0,
-      )
-      .map((p: any) => ({ rank: p.rank, percentage: p.percentage }));
-    if (valid.length > 0) return valid.sort((a: PrizePayout, b: PrizePayout) => a.rank - b.rank);
+      );
+    const percentageTotal = percentagePayouts.reduce(
+      (sum: number, payout: any) => sum + payout.percentage,
+      0,
+    );
+    if (percentagePayouts.length > 0 && percentageTotal > 0) {
+      return percentagePayouts
+        .map((p: any) => ({
+          rank: p.rank,
+          amount: totalPrizePool * (p.percentage / percentageTotal),
+        }))
+        .sort((a: PrizePayout, b: PrizePayout) => a.rank - b.rank);
+    }
   }
-  return [{ rank: 1, percentage: 100 }];
+  return totalPrizePool > 0 ? [{ rank: 1, amount: totalPrizePool }] : [];
 }
 
-export function computePrize(total: number, distribution: PrizePayout[], rank: number): number {
+export function computePrize(_total: number, distribution: PrizePayout[], rank: number): number {
   const payout = distribution.find((p) => p.rank === rank);
-  if (!payout) return 0;
-  const sum = distribution.reduce((acc, p) => acc + p.percentage, 0);
-  if (sum <= 0) return 0;
-  return total * (payout.percentage / sum);
+  return payout?.amount ?? 0;
 }
 
 function normalizeBracketScoring(value: any): BracketScoringConfig {

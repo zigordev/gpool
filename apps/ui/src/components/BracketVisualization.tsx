@@ -320,15 +320,13 @@ export function BracketVisualization({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
-              padding: '0.25rem 0.55rem',
+              padding: '0.2rem 0.1rem 0.35rem',
               fontSize: '0.62rem',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
+              fontWeight: 800,
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: tone.label,
-              background: tone.tint,
-              border: `1px solid ${tone.border}`,
-              borderRadius: '999px',
+              borderBottom: `2px solid ${tone.border}`,
               whiteSpace: 'nowrap',
               maxWidth: '100%',
               overflow: 'hidden',
@@ -343,7 +341,7 @@ export function BracketVisualization({
                 width: '6px',
                 height: '6px',
                 borderRadius: '999px',
-                background: tone.label,
+                background: 'rgb(var(--pitch))',
                 flexShrink: 0,
               }}
             />
@@ -479,15 +477,13 @@ export function BracketVisualization({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
-              padding: '0.25rem 0.55rem',
+              padding: '0.2rem 0.1rem 0.35rem',
               fontSize: '0.62rem',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
+              fontWeight: 800,
+              letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: tone.label,
-              background: tone.tint,
-              border: `1px solid ${tone.border}`,
-              borderRadius: '999px',
+              borderBottom: `2px solid ${tone.border}`,
               whiteSpace: 'nowrap',
             }}
           >
@@ -498,7 +494,7 @@ export function BracketVisualization({
                 width: '6px',
                 height: '6px',
                 borderRadius: '999px',
-                background: tone.label,
+                background: 'rgb(var(--pitch))',
                 flexShrink: 0,
               }}
             />
@@ -672,14 +668,12 @@ export function BracketVisualization({
             }
           }}
           style={{
-            background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
-            backdropFilter: 'blur(12px) saturate(140%)',
-            WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-            border: '1px solid rgb(var(--border))',
-            borderTop: `3px solid ${tone.label}`,
-            boxShadow: `inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10), 0 0 0 1px ${tone.ring}`,
-            padding: '0.45rem',
-            borderRadius: 'var(--radius-sm)',
+            background: 'rgb(var(--bg-elevated) / 0.92)',
+            border: `1px solid ${tone.border}`,
+            borderLeft: `3px solid ${tone.label}`,
+            boxShadow: '0 3px 10px rgb(15 23 28 / 0.07)',
+            padding: '0.48rem',
+            borderRadius: 'var(--radius-md)',
             minWidth: `${MATCH_BOX_WIDTH - 8}px`,
             display: 'flex',
             flexDirection: 'column',
@@ -739,15 +733,17 @@ export function BracketVisualization({
                   backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
                     ? 'rgb(var(--gold) / 0.08)'
                     : isDisabled
-                    ? 'rgb(var(--bg-subtle))'
+                    ? 'rgb(var(--disabled-bg))'
                     : 'rgb(var(--input-bg))',
                   border: `1px solid ${
                     prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
                       ? 'rgb(var(--gold))'
+                      : isDisabled
+                      ? 'rgb(var(--disabled-border))'
                       : 'rgb(var(--border))'
                   }`,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  opacity: isDisabled ? 0.7 : 1,
+                  opacity: 1,
                 }),
               })}
             />
@@ -805,12 +801,12 @@ export function BracketVisualization({
   return (
     <div
       ref={bracketScrollRef}
+      className="bracket-scroll"
       onScroll={handleBracketScroll}
       style={{
         overflowX: 'auto',
         overflowY: 'visible',
-        padding: '0.5rem 0.5rem 0.5rem',
-        margin: '0 -0.5rem',
+        padding: '0.35rem 0 0.65rem',
       }}
     >
       <div
@@ -839,10 +835,10 @@ export function BracketVisualization({
             d={connectorPaths.join(' ')}
             fill="none"
             stroke="rgb(var(--fg))"
-            strokeWidth="2"
+            strokeWidth="1.5"
             strokeLinejoin="round"
             strokeLinecap="round"
-            opacity="0.9"
+            opacity="0.28"
           />
         </svg>
         <div
@@ -1004,14 +1000,12 @@ function BracketMatchBox({
         }
       }}
       style={{
-        background: `linear-gradient(var(--card-sheen), var(--card-sheen)), rgb(var(--bg-elevated))`,
-        backdropFilter: 'blur(12px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
-        border: '1px solid rgb(var(--border))',
-        borderTop: `3px solid ${phaseTone.label}`,
-        boxShadow: `inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10), 0 0 0 1px ${phaseTone.ring}`,
-        padding: '0.35rem 0.45rem',
-        borderRadius: 'var(--radius-sm)',
+        background: 'rgb(var(--match-neutral-bg))',
+        border: '1px solid rgb(var(--control-border))',
+        borderLeft: `3px solid rgb(var(--control-border))`,
+        boxShadow: 'var(--shadow-sm)',
+        padding: '0.42rem 0.48rem',
+        borderRadius: 'var(--radius-md)',
         minWidth: `${MATCH_BOX_WIDTH - 8}px`,
         minHeight: 102,
         display: 'flex',
@@ -1127,7 +1121,7 @@ function BracketSlot({
     } else if (isIncorrect) {
       tintBg = 'rgb(var(--live) / 0.06)';
     } else if (disabled) {
-      tintBg = 'rgb(var(--bg-subtle))';
+      tintBg = 'rgb(var(--disabled-bg))';
     }
 
   const options = teams.map((team) => {
@@ -1187,9 +1181,11 @@ function BracketSlot({
           control: (base) => ({
             ...base,
             backgroundColor: tintBg,
-            border: `${hasStatusBorder ? 3 : 1}px solid ${borderColor}`,
+            border: `${hasStatusBorder ? 3 : 1}px solid ${
+              disabled && !hasStatusBorder ? 'rgb(var(--disabled-border))' : borderColor
+            }`,
             cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.7 : 1,
+            opacity: 1,
           }),
           menuPortal: (base) => ({
             ...base,

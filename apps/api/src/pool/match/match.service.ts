@@ -161,13 +161,21 @@ export class MatchService {
     if (!match) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
+    const matchTeamIds = [match.homeTeamId, match.awayTeamId].filter(
+      (teamId): teamId is string => typeof teamId === 'string' && teamId.length > 0,
+    );
 
     const [members, predictions, selectedPlayerActions] = await Promise.all([
       this.poolRepository.getPoolMembers(poolId),
       matchType === 'group'
         ? this.poolRepository.getAllPredictionsForMatch(matchId, poolId)
         : this.poolRepository.getAllBracketPredictionsForMatch(matchId),
-      this.poolRepository.getPlayerSelectionsWithMatchStats(poolId, matchType, matchId),
+      this.poolRepository.getPlayerSelectionsWithMatchStats(
+        poolId,
+        matchType,
+        matchId,
+        matchTeamIds,
+      ),
     ]);
     const relevantPredictions = matchType === 'final'
       ? predictions.filter((prediction: any) => prediction.poolId === poolId)

@@ -473,6 +473,96 @@ export class PoolRepository {
     return result.rows[0] || null;
   }
 
+  async getTournamentPlayerMatchStats(playerId: string) {
+    const result = await this.postgres.query(
+      `
+        SELECT *
+        FROM (
+          SELECT
+            ms.match_type AS "matchType",
+            ms.match_id AS "matchId",
+            g.match_number AS "matchNumber",
+            g.phase,
+            g.home_team_id AS "homeTeamId",
+            g.home_team_name AS "homeTeamName",
+            g.away_team_id AS "awayTeamId",
+            g.away_team_name AS "awayTeamName",
+            g.home_result AS "homeResult",
+            g.away_result AS "awayResult",
+            g.scheduled_at::text AS "scheduledAt",
+            ms.goals::int AS goals,
+            ms.penalty_goals::int AS "penaltyGoals",
+            ms.missed_penalties::int AS "missedPenalties",
+            ms.mvps::int AS mvps,
+            ms.penalties_saved::int AS "penaltiesSaved",
+            ms.shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
+            ms.shootout_goals::int AS "shootoutGoals",
+            ms.shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            ms.clean_sheets::int AS "cleanSheets",
+            ms.assists::int AS assists,
+            ms.yellow_cards::int AS "yellowCards",
+            ms.red_cards::int AS "redCards"
+          FROM tournament_player_match_stats ms
+          INNER JOIN group_phase_matches g
+            ON ms.match_type = 'group'
+            AND g.pool_id = 'all-pools'
+            AND g.match_id = ms.match_id
+          WHERE ms.player_id = $1
+
+          UNION ALL
+
+          SELECT
+            ms.match_type AS "matchType",
+            ms.match_id AS "matchId",
+            f.match_number AS "matchNumber",
+            f.phase,
+            f.home_team_id AS "homeTeamId",
+            f.home_team_name AS "homeTeamName",
+            f.away_team_id AS "awayTeamId",
+            f.away_team_name AS "awayTeamName",
+            f.home_result AS "homeResult",
+            f.away_result AS "awayResult",
+            f.scheduled_at::text AS "scheduledAt",
+            ms.goals::int AS goals,
+            ms.penalty_goals::int AS "penaltyGoals",
+            ms.missed_penalties::int AS "missedPenalties",
+            ms.mvps::int AS mvps,
+            ms.penalties_saved::int AS "penaltiesSaved",
+            ms.shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
+            ms.shootout_goals::int AS "shootoutGoals",
+            ms.shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            ms.clean_sheets::int AS "cleanSheets",
+            ms.assists::int AS assists,
+            ms.yellow_cards::int AS "yellowCards",
+            ms.red_cards::int AS "redCards"
+          FROM tournament_player_match_stats ms
+          INNER JOIN final_phase_matches f
+            ON ms.match_type = 'final'
+            AND f.pool_id = 'all-pools'
+            AND f.bracket_match_id = ms.match_id
+          WHERE ms.player_id = $1
+        ) matches
+        WHERE
+          goals > 0
+          OR "penaltyGoals" > 0
+          OR "missedPenalties" > 0
+          OR mvps > 0
+          OR "penaltiesSaved" > 0
+          OR "shootoutPenaltiesSaved" > 0
+          OR "shootoutGoals" > 0
+          OR "shootoutMissedPenalties" > 0
+          OR "cleanSheets" > 0
+          OR assists > 0
+          OR "yellowCards" > 0
+          OR "redCards" > 0
+        ORDER BY "scheduledAt" ASC NULLS LAST, "matchNumber" ASC
+      `,
+      [playerId],
+    );
+
+    return result.rows;
+  }
+
   async getTournamentMatch(_poolId: string, matchType: 'group' | 'final', matchId: string) {
     const table = matchType === 'group' ? 'group_phase_matches' : 'final_phase_matches';
     const idColumn = matchType === 'group' ? 'match_id' : 'bracket_match_id';
@@ -605,6 +695,7 @@ export class PoolRepository {
     poolId: string,
     matchType: 'group' | 'final',
     matchId: string,
+    teamIds: string[],
   ) {
     const result = await this.postgres.query(
       `
@@ -620,42 +711,29 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
-          ms.goals::int AS goals,
-          ms.penalty_goals::int AS "penaltyGoals",
-          ms.missed_penalties::int AS "missedPenalties",
-          ms.mvps::int AS mvps,
-          ms.penalties_saved::int AS "penaltiesSaved",
-          ms.shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
-          ms.shootout_goals::int AS "shootoutGoals",
-          ms.shootout_missed_penalties::int AS "shootoutMissedPenalties",
-          ms.clean_sheets::int AS "cleanSheets",
-          ms.assists::int AS assists,
-          ms.yellow_cards::int AS "yellowCards",
-          ms.red_cards::int AS "redCards"
+          COALESCE(ms.goals, 0)::int AS goals,
+          COALESCE(ms.penalty_goals, 0)::int AS "penaltyGoals",
+          COALESCE(ms.missed_penalties, 0)::int AS "missedPenalties",
+          COALESCE(ms.mvps, 0)::int AS mvps,
+          COALESCE(ms.penalties_saved, 0)::int AS "penaltiesSaved",
+          COALESCE(ms.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(ms.shootout_goals, 0)::int AS "shootoutGoals",
+          COALESCE(ms.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ms.clean_sheets, 0)::int AS "cleanSheets",
+          COALESCE(ms.assists, 0)::int AS assists,
+          COALESCE(ms.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ms.red_cards, 0)::int AS "redCards"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
-        INNER JOIN tournament_player_match_stats ms
+        LEFT JOIN tournament_player_match_stats ms
           ON ms.player_id = s.player_id
           AND ms.match_type = $2
           AND ms.match_id = $3
         WHERE s.pool_id = $1
-          AND (
-            ms.goals +
-            ms.penalty_goals +
-            ms.missed_penalties +
-            ms.mvps +
-            ms.penalties_saved +
-            ms.shootout_penalties_saved +
-            ms.shootout_goals +
-            ms.shootout_missed_penalties +
-            ms.clean_sheets +
-            ms.assists +
-            ms.yellow_cards +
-            ms.red_cards
-          ) > 0
+          AND p.team_id = ANY($4::text[])
         ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
       `,
-      [poolId, matchType, matchId],
+      [poolId, matchType, matchId, teamIds],
     );
 
     return result.rows;

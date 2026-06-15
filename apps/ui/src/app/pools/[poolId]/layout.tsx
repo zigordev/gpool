@@ -4,7 +4,6 @@ import { useLayoutEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { Badge } from '@/components/ui/Badge';
@@ -13,13 +12,10 @@ import { Loading } from '@/components/Loading';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
 import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
 import { GiSoccerKick } from 'react-icons/gi';
-import { IoSettings } from 'react-icons/io5';
 import {
   PoolProvider,
   usePoolContext,
 } from '@/contexts/PoolContext';
-
-const MEMBER_SEGMENT_TO_ADMIN: Record<string, string> = { ranking: 'ranking', groups: 'groups', final: 'final', players: 'players' };
 
 function PoolNav() {
   const { t } = useI18n();
@@ -83,26 +79,11 @@ function PoolNav() {
 }
 
 function PoolBreadcrumbs() {
-  const { t } = useI18n();
-  const { user } = useAuth();
   const pathname = usePathname();
-  const { pool, poolId, poolDeadline } = usePoolContext();
-  const { setSubBar } = useNavCenter();
+  const { pool, poolDeadline } = usePoolContext();
+  const { poolActions, setSubBar } = useNavCenter();
 
-  const isPoolAdmin = pool?.userMembership?.role === 'admin';
   const isAdminRoute = pathname.includes('/admin');
-
-  const routes = [
-    { segment: 'ranking', label: t('poolDetail.tabs.ranking') },
-    { segment: 'groups', label: t('poolDetail.tabs.groupPhase') },
-    { segment: 'final', label: t('poolDetail.tabs.finalPhase') },
-    { segment: 'players', label: t('poolDetail.tabs.players') },
-  ];
-
-  const activeRoute = routes.find(({ segment }) => {
-    const href = `/pools/${poolId}/${segment}`;
-    return pathname === href || pathname.startsWith(href + '/');
-  });
 
   useLayoutEffect(() => {
     if (isAdminRoute) return;
@@ -113,55 +94,13 @@ function PoolBreadcrumbs() {
         </div>
         <div className="pool-header-countdown"><CountdownChip deadline={poolDeadline} /></div>
         <div className="nav-sub-bar-actions pool-header-actions">
-          {isPoolAdmin ? (
-            <div
-              role="group"
-              aria-label={t('poolDetail.mode.label')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                border: '1px solid rgb(var(--border))',
-                borderRadius: '999px',
-                overflow: 'hidden',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-              }}
-            >
-              <span
-                aria-current="true"
-                style={{
-                  padding: '0.22rem 0.6rem',
-                  background: 'rgb(var(--fg) / 0.10)',
-                  color: 'rgb(var(--fg))',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('poolDetail.mode.member')}
-              </span>
-              <Link
-                href={`/pools/${poolId}/admin/${MEMBER_SEGMENT_TO_ADMIN[activeRoute?.segment || ''] || 'groups'}`}
-                style={{
-                  padding: '0.22rem 0.6rem',
-                  background: 'transparent',
-                  color: 'rgb(var(--fg-muted))',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <IoSettings size={10} aria-hidden />
-                {t('poolDetail.mode.admin')}
-              </Link>
-            </div>
-          ) : null}
+          {poolActions}
         </div>
       </div>,
     );
     return () => setSubBar(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, isPoolAdmin, poolDeadline, poolId, pathname, isAdminRoute]);
+  }, [pool, poolDeadline, pathname, isAdminRoute, poolActions]);
 
   return null;
 }

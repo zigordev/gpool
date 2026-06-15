@@ -30,13 +30,13 @@ const STATE_TONES: Record<
   MatchPredictionState,
   { border: string; tint: string; statusBadge: 'pitch' | 'sunset' | 'live' | 'info' | 'neutral' | 'gold' | null }
 > = {
-  open:           { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-elevated))',                   statusBadge: null },
+  open:           { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: null },
   incomplete:     { border: 'rgb(var(--gold) / 0.55)',     tint: 'rgb(var(--gold) / 0.08)',                   statusBadge: 'gold' },
-  locked:         { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-subtle))',                     statusBadge: 'neutral' },
+  locked:         { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
   exact:          { border: 'rgb(var(--pitch) / 0.55)',    tint: 'rgb(var(--pitch) / 0.08)',                  statusBadge: 'pitch' },
   'correct-winner':{ border: 'rgb(var(--info) / 0.55)',   tint: 'rgb(var(--info) / 0.08)',                   statusBadge: 'info' },
   incorrect:      { border: 'rgb(var(--live) / 0.45)',     tint: 'rgb(var(--live) / 0.07)',                   statusBadge: 'live' },
-  pending:        { border: 'rgb(var(--border))',          tint: 'rgb(var(--bg-subtle))',                     statusBadge: 'neutral' },
+  pending:        { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
 };
 
 export function MatchPredictionCard({
@@ -92,12 +92,9 @@ export function MatchPredictionCard({
         gap: '0.25rem 0.35rem',
         padding: '0.38rem 0.5rem',
         borderRadius: 'var(--radius-sm)',
-        background: `linear-gradient(var(--card-sheen), var(--card-sheen)), ${tone.tint}`,
-        backdropFilter: 'blur(12px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(140%)',
+        background: tone.tint,
         border: `${hasStatusBorder ? 3 : 1}px solid ${tone.border}`,
-        boxShadow: 'inset 0 1px 0 var(--card-inset-highlight), 0 3px 10px rgb(0 0 0 / 0.10)',
-        opacity: disabled && state !== 'incorrect' && state !== 'exact' && state !== 'correct-winner' ? 0.85 : 1,
+        boxShadow: 'var(--shadow-sm)',
         cursor: onOpenInsights ? 'pointer' : undefined,
       }}
     >
@@ -160,9 +157,9 @@ export function MatchPredictionCard({
             fontFamily: 'var(--font-display, inherit)',
             fontSize: '0.98rem',
             fontWeight: 700,
-            color: 'rgb(var(--fg))',
-            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--input-bg))',
-            border: '1px solid rgb(var(--border))',
+            color: disabled ? 'rgb(var(--fg-muted))' : 'rgb(var(--fg))',
+            background: disabled ? 'rgb(var(--disabled-bg))' : 'rgb(var(--input-bg))',
+            border: `1px solid rgb(var(--${disabled ? 'disabled-border' : 'border'}))`,
             borderRadius: 'var(--radius-md)',
             fontVariantNumeric: 'tabular-nums',
             transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
@@ -200,9 +197,9 @@ export function MatchPredictionCard({
             fontFamily: 'var(--font-display, inherit)',
             fontSize: '0.98rem',
             fontWeight: 700,
-            color: 'rgb(var(--fg))',
-            background: disabled ? 'rgb(var(--bg-subtle))' : 'rgb(var(--input-bg))',
-            border: '1px solid rgb(var(--border))',
+            color: disabled ? 'rgb(var(--fg-muted))' : 'rgb(var(--fg))',
+            background: disabled ? 'rgb(var(--disabled-bg))' : 'rgb(var(--input-bg))',
+            border: `1px solid rgb(var(--${disabled ? 'disabled-border' : 'border'}))`,
             borderRadius: 'var(--radius-md)',
             fontVariantNumeric: 'tabular-nums',
             transition: 'border-color 0.18s ease, box-shadow 0.18s ease',

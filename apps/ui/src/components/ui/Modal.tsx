@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 interface Props {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title: ReactNode;
   description?: string;
   children: ReactNode;
   /** Footer area — typically your action buttons. */
@@ -107,10 +107,11 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: description ? '0.4rem' : '1.25rem' }}>
-          <div>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h2
               id={titleId}
               style={{
+                width: '100%',
                 fontFamily: 'var(--font-display, inherit)',
                 fontSize: '1.4rem',
                 fontWeight: 700,

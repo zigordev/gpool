@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 
 type Density = 'default' | 'compact';
-type Tone = 'surface' | 'subtle' | 'muted';
+type Tone = 'surface' | 'subtle' | 'muted' | 'plain';
 
 interface Props {
   title: ReactNode;
@@ -21,6 +21,7 @@ interface Props {
   onExpandedChange?: (next: boolean) => void;
   density?: Density;
   tone?: Tone;
+  className?: string;
   style?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
   children: ReactNode;
@@ -37,6 +38,7 @@ export function Section({
   onExpandedChange,
   density = 'default',
   tone = 'surface',
+  className,
   style,
   contentStyle,
   children,
@@ -121,7 +123,7 @@ export function Section({
               width: '1.75rem',
               height: '1.75rem',
               borderRadius: '999px',
-              background: 'rgb(var(--bg-subtle))',
+              background: tone === 'plain' ? 'transparent' : 'rgb(var(--bg-subtle))',
               color: 'rgb(var(--fg-muted))',
               transition: 'transform 0.18s ease, background 0.18s ease',
               transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -138,12 +140,13 @@ export function Section({
 
   return (
     <section
-      className={tone === 'surface' ? 'surface' : ''}
+      className={[tone === 'surface' ? 'surface' : '', className].filter(Boolean).join(' ')}
       style={{
         padding: `${padY} ${padX}`,
         background: tone === 'subtle' || tone === 'muted' ? 'var(--panel-muted-bg)' : undefined,
-        border: tone === 'subtle' || tone === 'muted' ? '1px solid rgb(var(--border) / 0.5)' : undefined,
+        border: tone === 'subtle' || tone === 'muted' ? '1px solid rgb(var(--border) / 0.75)' : undefined,
         borderRadius: tone === 'subtle' || tone === 'muted' ? 'var(--radius-lg)' : undefined,
+        borderBottom: tone === 'plain' ? '1px solid rgb(var(--border) / 0.72)' : undefined,
         ...style,
       }}
     >

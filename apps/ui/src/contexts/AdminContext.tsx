@@ -55,7 +55,7 @@ export type AdminBracketScoringConfig = AdminBracketRoundScoring & {
 
 export type AdminPlayerScoringConfig = {
   goal: PositionScoring;
-  penaltyGoal: ConfigNumber;
+  penaltyGoal: PositionScoring;
   missedPenalty: ConfigNumber;
   mvp: ConfigNumber;
   penaltySaved: ConfigNumber;
@@ -88,7 +88,7 @@ function emptyBracketScoring(): AdminBracketScoringConfig {
 
 export const DEFAULT_PLAYER_SCORING: AdminPlayerScoringConfig = {
   goal: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
-  penaltyGoal: '',
+  penaltyGoal: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
   missedPenalty: '',
   mvp: '',
   penaltySaved: '',
@@ -155,24 +155,56 @@ export function prizePaidPositionsLimit(memberCount?: number): number {
   return Math.max(0, Math.min(MAX_PAID_POSITIONS, Math.floor(memberCount || 0)));
 }
 
-export function normalizePrizeDistribution(value: any, maxPaidPositions = MAX_PAID_POSITIONS): PrizePayout[] {
-  const paidPositions = Math.max(0, Math.min(maxPaidPositions, Number.parseInt(String(value?.paidPositions ?? value?.positions ?? 0), 10) || 0));
+export function normalizePrizeDistribution(
+  value: any,
+  maxPaidPositions = MAX_PAID_POSITIONS,
+  totalPrizePool = 0,
+): PrizePayout[] {
   const source = Array.isArray(value?.payouts) ? value.payouts : Array.isArray(value) ? value : [];
-  const byRank = new Map<number, number>();
-  source.forEach((row: any, index: number) => {
-    const rank = Number.parseInt(String(row?.rank ?? row?.position ?? index + 1), 10);
-    const percentage = Number.parseFloat(String(row?.percentage ?? 0));
-    if (Number.isFinite(rank) && rank > 0) byRank.set(rank, Number.isFinite(percentage) ? Math.max(0, Math.min(100, percentage)) : 0);
-  });
+  if (source.length === 0 && totalPrizePool > 0) {
+    return [{ rank: 1, amount: totalPrizePool }];
+  }
+  const requestedCount = Number.parseInt(
+    String(value?.paidPositions ?? value?.positions ?? source.length),
+    10,
+  ) || 0;
+  const paidPositions = Math.max(0, Math.min(maxPaidPositions, requestedCount));
+  const percentageTotal = source.reduce((sum: number, row: any) => {
+    const percentage = Number.parseFloat(String(row?.percentage));
+    return sum + (Number.isFinite(percentage) && percentage >= 0 ? percentage : 0);
+  }, 0);
+
   return Array.from({ length: paidPositions }, (_, index) => {
-    const rank = index + 1;
-    return { rank, percentage: byRank.get(rank) ?? 0 };
+    const row = source[index];
+    const rank = Number.parseInt(String(row?.rank ?? row?.position ?? index + 1), 10);
+    const rawAmount = Number.parseFloat(String(row?.amount));
+    const percentage = Number.parseFloat(String(row?.percentage));
+    const amount = Number.isFinite(rawAmount)
+      ? Math.max(0, rawAmount)
+      : Number.isFinite(percentage) && percentageTotal > 0
+        ? Math.max(0, totalPrizePool * (percentage / percentageTotal))
+        : 0;
+
+    return {
+      rank: Number.isFinite(rank) && rank > 0 ? rank : index + 1,
+      amount,
+    };
   });
 }
 
 export function resizePrizeDistribution(rows: PrizePayout[], count: number, maxPaidPositions = MAX_PAID_POSITIONS): PrizePayout[] {
   const normalizedCount = Math.max(0, Math.min(maxPaidPositions, count));
-  return Array.from({ length: normalizedCount }, (_, index) => ({ rank: index + 1, percentage: rows[index]?.percentage ?? 0 }));
+  const next = rows.slice(0, normalizedCount);
+  const usedRanks = new Set(next.map((row) => row.rank));
+
+  while (next.length < normalizedCount) {
+    let rank = 1;
+    while (usedRanks.has(rank)) rank += 1;
+    next.push({ rank, amount: 0 });
+    usedRanks.add(rank);
+  }
+
+  return next;
 }
 
 export function normalizeGroupScoring(value: any): GroupScoringConfig {
@@ -211,6 +243,25 @@ export function resolveCleanSheetScoring(value: any): PositionScoring {
   };
 }
 
+function resolvePositionConfigScoring(value: any): PositionScoring {
+  const legacy = readConfigNumber(value);
+  const source = value && typeof value === 'object' ? value : {};
+  return {
+    goalkeeper: isConfiguredNumber(readConfigNumber(source.goalkeeper))
+      ? readConfigNumber(source.goalkeeper)
+      : legacy,
+    defender: isConfiguredNumber(readConfigNumber(source.defender))
+      ? readConfigNumber(source.defender)
+      : legacy,
+    midfielder: isConfiguredNumber(readConfigNumber(source.midfielder))
+      ? readConfigNumber(source.midfielder)
+      : legacy,
+    forward: isConfiguredNumber(readConfigNumber(source.forward))
+      ? readConfigNumber(source.forward)
+      : legacy,
+  };
+}
+
 export function normalizePlayerScoring(value: any): AdminPlayerScoringConfig {
   const goal = value?.goal || {};
   const assist = value?.assist || {};
@@ -221,7 +272,7 @@ export function normalizePlayerScoring(value: any): AdminPlayerScoringConfig {
       midfielder: readConfigNumber(goal.midfielder),
       forward: readConfigNumber(goal.forward),
     },
-    penaltyGoal: readConfigNumber(value?.penaltyGoal),
+    penaltyGoal: resolvePositionConfigScoring(value?.penaltyGoal),
     missedPenalty: readConfigNumber(value?.missedPenalty, { allowNegative: true }),
     mvp: readConfigNumber(value?.mvp),
     penaltySaved: readConfigNumber(value?.penaltySaved),
@@ -260,8 +311,12 @@ export function bracketScoringMissingCount(scoring: AdminBracketScoringConfig): 
 
 export function playerScoringMissingCount(scoring: AdminPlayerScoringConfig): number {
   return missingConfigCount([
-    ...POSITION_KEYS.flatMap((position) => [scoring.goal[position], scoring.assist[position], scoring.cleanSheet[position]]),
-    scoring.penaltyGoal,
+    ...POSITION_KEYS.flatMap((position) => [
+      scoring.goal[position],
+      scoring.penaltyGoal[position],
+      scoring.assist[position],
+      scoring.cleanSheet[position],
+    ]),
     scoring.missedPenalty,
     scoring.mvp,
     scoring.penaltySaved,
@@ -283,6 +338,7 @@ export function buildConfigPayloadFrom(input: {
   awardWinners: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
   deadlineLocal: string;
   entryFee: number;
+  memberCount: number;
   prizeDistribution: PrizePayout[];
 }) {
   const scoring = groupScoringMissingCount(input.scoring) === 0
@@ -297,13 +353,26 @@ export function buildConfigPayloadFrom(input: {
         rounds: input.bracketScoring.rounds,
       }
     : null;
-  const prizeTotal = input.prizeDistribution.reduce(
-    (sum, row) => sum + row.percentage,
-    0,
+  const entryFee = Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0;
+  const memberCount = Number.isFinite(input.memberCount)
+    ? Math.max(0, Math.floor(input.memberCount))
+    : 0;
+  const prizePoolTotal = entryFee * memberCount;
+  const prizeTotal = input.prizeDistribution.reduce((sum, row) => sum + row.amount, 0);
+  const ranks = input.prizeDistribution.map((row) => row.rank);
+  const ranksAreValid =
+    ranks.every((rank) => Number.isInteger(rank) && rank >= 1 && rank <= memberCount) &&
+    new Set(ranks).size === ranks.length;
+  const amountsAreValid = input.prizeDistribution.every(
+    (row) => Number.isFinite(row.amount) && row.amount > 0,
   );
   const prizeDistributionIsValid =
-    input.prizeDistribution.length === 0 ||
-    Math.abs(prizeTotal - 100) <= 0.01;
+    prizePoolTotal === 0
+      ? input.prizeDistribution.length === 0
+      : input.prizeDistribution.length > 0 &&
+        ranksAreValid &&
+        amountsAreValid &&
+        Math.abs(prizeTotal - prizePoolTotal) <= 0.01;
 
   return {
     scoring,
@@ -312,14 +381,14 @@ export function buildConfigPayloadFrom(input: {
     playerSelectionLimits: input.playerSelectionLimits,
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
-    entryFee: Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0,
+    entryFee,
     ...(prizeDistributionIsValid
       ? {
           prizeDistribution: {
             paidPositions: input.prizeDistribution.length,
-            payouts: input.prizeDistribution.map((row, index) => ({
-              rank: index + 1,
-              percentage: Number(row.percentage.toFixed(2)),
+            payouts: input.prizeDistribution.map((row) => ({
+              rank: row.rank,
+              amount: Number(row.amount.toFixed(2)),
             })),
           },
         }
@@ -332,7 +401,7 @@ export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlay
   const assistPoints = (player.assists || 0) * pointsValue(scoring.assist[player.position]);
   const cardPoints = (player.yellowCards || 0) * pointsValue(scoring.yellowCard) + (player.redCards || 0) * pointsValue(scoring.redCard);
   return (player.goals || 0) * pointsValue(scoring.goal[player.position]) +
-    (player.penaltyGoals || 0) * pointsValue(scoring.penaltyGoal) +
+    (player.penaltyGoals || 0) * pointsValue(scoring.penaltyGoal[player.position]) +
     (player.missedPenalties || 0) * pointsValue(scoring.missedPenalty) +
     (player.mvps || 0) * pointsValue(scoring.mvp) +
     (player.penaltiesSaved || 0) * pointsValue(scoring.penaltySaved) +
@@ -390,6 +459,8 @@ interface AdminContextValue {
   bracketResults: Record<string, { homeResult: number | ''; awayResult: number | '' }>;
   maxPrizePaidPositions: number;
   prizeTotal: number;
+  prizePoolTotal: number;
+  prizeRanksInvalid: boolean;
   prizeTotalInvalid: boolean;
   groupConfigMissingCount: number;
   finalConfigMissingCount: number;
@@ -513,7 +584,13 @@ export function AdminProvider({
           setPoolMemberCount(memberCount);
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
           setEntryFee(typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0);
-          setPrizeDistribution(normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount)));
+          const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
+          const loadedPrizePoolTotal = loadedEntryFee * memberCount;
+          setPrizeDistribution(normalizePrizeDistribution(
+            pool?.config?.prizeDistribution,
+            prizePaidPositionsLimit(memberCount),
+            loadedPrizePoolTotal,
+          ));
           const loadedScoring = normalizeGroupScoring(pool?.config?.scoring);
           const loadedBracketScoring = normalizeBracketScoring(pool?.config?.bracketScoring);
           const loadedPlayerScoring = normalizePlayerScoring(pool?.config?.playerScoring);
@@ -539,9 +616,12 @@ export function AdminProvider({
           setPlayerAwardWinnersConfig(loadedAwardWinners);
 
           const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
-          const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
-          const loadedPrizeDistribution = normalizePrizeDistribution(pool?.config?.prizeDistribution, prizePaidPositionsLimit(memberCount));
-          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, entryFee: loadedEntryFee, prizeDistribution: loadedPrizeDistribution }));
+          const loadedPrizeDistribution = normalizePrizeDistribution(
+            pool?.config?.prizeDistribution,
+            prizePaidPositionsLimit(memberCount),
+            loadedPrizePoolTotal,
+          );
+          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, entryFee: loadedEntryFee, memberCount, prizeDistribution: loadedPrizeDistribution }));
 
           const bracketData = bracketResponse.data || {};
           setBracket(bracketData);
@@ -622,7 +702,8 @@ export function AdminProvider({
 
   const autoSaveConfig = async () => {
     if (!poolId) return;
-    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution });
+    if (prizeTotalInvalid) return;
+    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, entryFee, memberCount: poolMemberCount, prizeDistribution });
     const snapshot = JSON.stringify(payload);
     if (snapshot === lastSavedConfig.current) return;
     try {
@@ -811,8 +892,24 @@ export function AdminProvider({
   };
 
   const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
-  const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.percentage, 0);
-  const prizeTotalInvalid = prizeDistribution.length > 0 && Math.abs(prizeTotal - 100) > 0.01;
+  const prizePoolTotal = entryFee * poolMemberCount;
+  const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.amount, 0);
+  const prizeRanks = prizeDistribution.map((row) => row.rank);
+  const prizeRanksInvalid =
+    prizeRanks.some(
+      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxPrizePaidPositions,
+    ) ||
+    new Set(prizeRanks).size !== prizeRanks.length;
+  const prizeAmountsInvalid = prizeDistribution.some(
+    (row) => !Number.isFinite(row.amount) || row.amount <= 0,
+  );
+  const prizeTotalInvalid =
+    prizePoolTotal > 0
+      ? prizeDistribution.length === 0 ||
+        prizeRanksInvalid ||
+        prizeAmountsInvalid ||
+        Math.abs(prizeTotal - prizePoolTotal) > 0.01
+      : prizeDistribution.length > 0;
   const groupConfigMissingCount = groupScoringMissingCount(scoringConfig);
   const finalConfigMissingCount = bracketScoringMissingCount(bracketScoringConfig);
   const playersConfigMissingCount = playerScoringMissingCount(playerScoringConfig);
@@ -824,7 +921,7 @@ export function AdminProvider({
     prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
     playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingPlayerAward, updatingTeamFairPlay, updatingMatch,
-    submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizeTotalInvalid,
+    submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizePoolTotal, prizeRanksInvalid, prizeTotalInvalid,
     groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount,
     handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange, handlePlayerAwardToggle, handleTeamFairPlayChange,
   };
