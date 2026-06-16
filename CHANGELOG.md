@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.33](https://github.com/zigorlsp7/gpool/compare/v0.1.32...v0.1.33) (2026-06-16)
+
+
+### Bug Fixes
+
+* fix missing player in admin view ([#101](https://github.com/zigorlsp7/gpool/issues/101)) ([e8458d4](https://github.com/zigorlsp7/gpool/commit/e8458d435356d8d97708186a354c21867635c5f3))
+
 ## [0.1.32](https://github.com/zigorlsp7/gpool/compare/v0.1.31...v0.1.32) (2026-06-16)
 
 
