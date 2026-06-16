@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.32](https://github.com/zigordev/gpool/compare/v0.1.31...v0.1.32) (2026-06-16)
+
+
+### Features
+
+* improve model ids structure ([#99](https://github.com/zigordev/gpool/issues/99)) ([5879ceb](https://github.com/zigordev/gpool/commit/5879ceb7eef653dda656831a4007f7927a3c8e78))
+
 ## [0.1.31](https://github.com/zigordev/gpool/compare/v0.1.30...v0.1.31) (2026-06-16)
 
 
