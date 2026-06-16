@@ -154,13 +154,16 @@ export class MatchService {
       }
     }
 
-    const match = matchType === 'group'
+    const storedMatch = matchType === 'group'
       ? await this.poolRepository.getMatch(matchId)
       : (await this.poolRepository.getBracketMatches('all-pools'))
           .find((candidate: any) => candidate.bracketMatchId === matchId);
-    if (!match) {
+    if (!storedMatch) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
+    const match = matchType === 'final'
+      ? await this.hydrateBracketMatchTeamNames(storedMatch)
+      : storedMatch;
     const matchTeamIds = [match.homeTeamId, match.awayTeamId].filter(
       (teamId): teamId is string => typeof teamId === 'string' && teamId.length > 0,
     );
@@ -212,6 +215,19 @@ export class MatchService {
           prediction: predictionByUser.get(member.userId) || null,
           playerActions: actionsByUser.get(member.userId) || [],
         })),
+    };
+  }
+
+  private async hydrateBracketMatchTeamNames(match: any) {
+    const [homeTeam, awayTeam] = await Promise.all([
+      match.homeTeamId ? this.poolRepository.getTeam(match.homeTeamId) : null,
+      match.awayTeamId ? this.poolRepository.getTeam(match.awayTeamId) : null,
+    ]);
+
+    return {
+      ...match,
+      homeTeamName: homeTeam?.name || match.homeTeamName,
+      awayTeamName: awayTeam?.name || match.awayTeamName,
     };
   }
 
