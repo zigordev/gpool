@@ -28,8 +28,6 @@ export const PHASES = [
   { key: 'finals', labelKey: 'bracket.round.final', matches: 1 },
 ] as const;
 
-export const MAX_PAID_POSITIONS = 20;
-
 export type ConfigNumber = number | '';
 type PlayerPositionKey = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 type PositionScoring = Record<PlayerPositionKey, ConfigNumber>;
@@ -151,13 +149,12 @@ function resolveDeadline(pool: any): number {
 }
 
 export function prizePaidPositionsLimit(memberCount?: number): number {
-  if (!Number.isFinite(memberCount)) return MAX_PAID_POSITIONS;
-  return Math.max(0, Math.min(MAX_PAID_POSITIONS, Math.floor(memberCount || 0)));
+  return Number.isFinite(memberCount) ? Math.max(0, Math.floor(memberCount || 0)) : 0;
 }
 
 export function normalizePrizeDistribution(
   value: any,
-  maxPaidPositions = MAX_PAID_POSITIONS,
+  maxPaidPositions = prizePaidPositionsLimit(),
   totalPrizePool = 0,
 ): PrizePayout[] {
   const source = Array.isArray(value?.payouts) ? value.payouts : Array.isArray(value) ? value : [];
@@ -192,7 +189,7 @@ export function normalizePrizeDistribution(
   });
 }
 
-export function resizePrizeDistribution(rows: PrizePayout[], count: number, maxPaidPositions = MAX_PAID_POSITIONS): PrizePayout[] {
+export function resizePrizeDistribution(rows: PrizePayout[], count: number, maxPaidPositions = prizePaidPositionsLimit()): PrizePayout[] {
   const normalizedCount = Math.max(0, Math.min(maxPaidPositions, count));
   const next = rows.slice(0, normalizedCount);
   const usedRanks = new Set(next.map((row) => row.rank));
