@@ -36,7 +36,7 @@ const STAT_COLUMNS: Array<{
   {
     key: 'mvps',
     group: 'match',
-    icon: <FaStar style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />,
+    icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size={13} />,
     labelKey: 'poolDetail.players.actions.mvps',
   },
   {
