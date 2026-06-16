@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.35](https://github.com/zigorlsp7/gpool/compare/v0.1.34...v0.1.35) (2026-06-16)
+
+
+### Bug Fixes
+
+* waiting for result instead of no prediction ([#105](https://github.com/zigorlsp7/gpool/issues/105)) ([f879825](https://github.com/zigorlsp7/gpool/commit/f879825c8ef2e5dfef07335adf9c2eb7071a7d2c))
+
 ## [0.1.34](https://github.com/zigorlsp7/gpool/compare/v0.1.33...v0.1.34) (2026-06-16)
 
 
