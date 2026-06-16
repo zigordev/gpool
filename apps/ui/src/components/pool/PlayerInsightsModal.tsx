@@ -49,6 +49,7 @@ type PlayerInsightsData = {
     teamName: string;
     position: PlayerPosition;
     imageUrl?: string;
+    shirtNumber?: number | null;
   };
   memberCount: number;
   selectionCount: number;
@@ -243,7 +244,7 @@ export function PlayerInsightsModal({
 function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', minWidth: 0 }}>
-      <PlayerShirt teamName={data.player.teamName} size={32} />
+      <PlayerShirt teamName={data.player.teamName} shirtNumber={data.player.shirtNumber} size={32} />
       {data.player.imageUrl ? (
         <img
           src={data.player.imageUrl}

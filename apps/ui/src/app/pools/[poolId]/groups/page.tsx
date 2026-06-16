@@ -273,7 +273,7 @@ function BestThirdsStandingsContent({
             t={t}
             caption={t('poolDetail.groupPhase.bestThirdsPredictedTitle')}
             showGroup
-            minWidth={560}
+            minWidth={680}
             qualificationCutoff={8}
           />
         </div>
@@ -286,7 +286,7 @@ function BestThirdsStandingsContent({
             t={t}
             caption={t('poolDetail.groupPhase.bestThirdsRealTitle')}
             showGroup
-            minWidth={560}
+            minWidth={680}
             qualificationCutoff={8}
           />
         </div>
@@ -375,37 +375,21 @@ function PredictionStandingsTable({
 
   return (
     <div
+      className="data-table-frame"
       style={{
-        overflow: 'clip',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid rgb(var(--border))',
-        background: 'rgb(var(--bg-elevated))',
-        boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
         ...style,
       }}
     >
       {caption ? (
-        <div
-          style={{
-            padding: '0.5rem 0.6rem',
-            background: 'rgb(var(--panel-muted-bg-solid))',
-            borderBottom: '1px solid rgb(var(--border))',
-            color: 'rgb(var(--fg-subtle))',
-            fontSize: '0.65rem',
-            fontWeight: 800,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-          }}
-        >
+        <div className="data-table-caption">
           {caption}
         </div>
       ) : null}
-      <div style={{ overflowX: 'auto' }}>
+      <div className="data-table-scroll">
         <table
+          className="data-table"
           style={{
-            width: '100%',
             minWidth,
-            borderCollapse: 'collapse',
           }}
         >
           <thead>
@@ -416,7 +400,15 @@ function PredictionStandingsTable({
               }}
             >
               {columns.map((column) => (
-                <th key={column.key} scope="col" style={{ ...standingsThStyle, textAlign: column.align }}>
+                <th
+                  key={column.key}
+                  scope="col"
+                  style={{
+                    ...standingsThStyle,
+                    ...standingsStickyHeaderStyle(column.key),
+                    textAlign: column.align,
+                  }}
+                >
                   {column.label}
                 </th>
               ))}
@@ -427,10 +419,10 @@ function PredictionStandingsTable({
               const qualified = index < qualificationCutoff;
               return (
                 <tr key={`${row.group}-${row.teamId}`} style={{ borderBottom: '1px solid rgb(var(--border) / 0.65)' }}>
-                  <td style={{ ...standingsTdStyle, textAlign: 'center', fontWeight: 800, color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))' }}>
+                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('position'), textAlign: 'center', fontWeight: 800, color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))' }}>
                     {index + 1}
                   </td>
-                  <td style={{ ...standingsTdStyle, textAlign: 'left', fontWeight: 700, minWidth: '10rem' }}>
+                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('team'), textAlign: 'left', fontWeight: 700, minWidth: '10rem' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
                       <ReactCountryFlag countryCode={countryIsoCode(row.name)} svg style={{ width: '1.5em', height: '1.5em', flexShrink: 0 }} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{countryDisplayName(row.name, t)}</span>
@@ -478,9 +470,15 @@ function PredictionStandingsTable({
 const standingsThStyle: CSSProperties = {
   padding: '0.5rem 0.65rem',
   fontSize: '0.72rem',
-  fontWeight: 700,
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
   color: 'rgb(var(--fg-muted))',
   whiteSpace: 'nowrap',
+  position: 'sticky',
+  top: 0,
+  zIndex: 2,
+  background: 'rgb(var(--panel-muted-bg-solid))',
 };
 
 const standingsTdStyle: CSSProperties = {
@@ -502,3 +500,50 @@ const standingsPointsStyle: CSSProperties = {
   fontWeight: 900,
   color: 'rgb(var(--fg))',
 };
+
+function standingsStickyHeaderStyle(key: string): CSSProperties {
+  if (key === 'position') {
+    return {
+      left: 0,
+      zIndex: 6,
+      width: '3.2rem',
+      minWidth: '3.2rem',
+      background: 'rgb(var(--panel-muted-bg-solid))',
+    };
+  }
+  if (key === 'team') {
+    return {
+      left: '3.2rem',
+      zIndex: 6,
+      minWidth: '10rem',
+      background: 'rgb(var(--panel-muted-bg-solid))',
+      borderRight: '1px solid rgb(var(--border))',
+    };
+  }
+  return {};
+}
+
+function standingsStickyCellStyle(key: string): CSSProperties {
+  if (key === 'position') {
+    return {
+      position: 'sticky',
+      left: 0,
+      zIndex: 4,
+      width: '3.2rem',
+      minWidth: '3.2rem',
+      background: 'rgb(var(--bg-elevated))',
+      backgroundClip: 'padding-box',
+    };
+  }
+  if (key === 'team') {
+    return {
+      position: 'sticky',
+      left: '3.2rem',
+      zIndex: 4,
+      background: 'rgb(var(--bg-elevated))',
+      backgroundClip: 'padding-box',
+      borderRight: '1px solid rgb(var(--border))',
+    };
+  }
+  return {};
+}

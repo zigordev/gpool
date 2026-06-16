@@ -8,7 +8,7 @@ import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 
 function ScoreInput({
@@ -169,6 +169,66 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
   );
 }
 
+const adminFairPlayThStyle: CSSProperties = {
+  padding: '0.55rem 0.65rem',
+  fontSize: '0.62rem',
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  color: 'rgb(var(--fg-muted))',
+  whiteSpace: 'nowrap',
+  position: 'sticky',
+  top: 0,
+  zIndex: 2,
+  background: 'rgb(var(--panel-muted-bg-solid))',
+};
+
+const adminFairPlayTdStyle: CSSProperties = {
+  padding: '0.45rem 0.65rem',
+  fontSize: '0.82rem',
+  verticalAlign: 'middle',
+};
+
+function adminFairPlayStickyHeaderStyle(key: 'rank' | 'team'): CSSProperties {
+  if (key === 'rank') {
+    return {
+      left: 0,
+      zIndex: 6,
+      background: 'rgb(var(--panel-muted-bg-solid))',
+    };
+  }
+  return {
+    left: '3.5rem',
+    zIndex: 6,
+    minWidth: '12rem',
+    background: 'rgb(var(--panel-muted-bg-solid))',
+    borderRight: '1px solid rgb(var(--border))',
+  };
+}
+
+function adminFairPlayStickyCellStyle(key: 'rank' | 'team'): CSSProperties {
+  if (key === 'rank') {
+    return {
+      position: 'sticky',
+      left: 0,
+      zIndex: 4,
+      width: '3.5rem',
+      minWidth: '3.5rem',
+      background: 'rgb(var(--bg-elevated))',
+      backgroundClip: 'padding-box',
+    };
+  }
+  return {
+    position: 'sticky',
+    left: '3.5rem',
+    zIndex: 4,
+    minWidth: '12rem',
+    background: 'rgb(var(--bg-elevated))',
+    backgroundClip: 'padding-box',
+    borderRight: '1px solid rgb(var(--border))',
+  };
+}
+
 function FairPlayTable({
   teams,
   updatingTeamId,
@@ -268,16 +328,16 @@ function FairPlayTable({
         </span>
       </p>
       <div className="admin-table-frame">
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <table className="data-table" style={{ minWidth: '28rem' }}>
           <thead style={{ background: 'rgb(var(--panel-muted-bg-solid))' }}>
             <tr>
-              <th scope="col" style={{ width: '3.5rem', padding: '0.55rem 0.5rem', textAlign: 'center', fontSize: '0.75rem' }}>
+              <th scope="col" style={{ ...adminFairPlayThStyle, ...adminFairPlayStickyHeaderStyle('rank'), width: '3.5rem', textAlign: 'center' }}>
                 {t('adminResults.groupPhase.fairPlay.rank')}
               </th>
-              <th scope="col" style={{ padding: '0.55rem 0.7rem', textAlign: 'left', fontSize: '0.75rem' }}>
+              <th scope="col" style={{ ...adminFairPlayThStyle, ...adminFairPlayStickyHeaderStyle('team'), textAlign: 'left' }}>
                 {t('adminResults.groupPhase.fairPlay.team')}
               </th>
-              <th scope="col" style={{ width: '6.5rem', padding: '0.55rem 0.5rem', textAlign: 'right', fontSize: '0.75rem' }}>
+              <th scope="col" style={{ ...adminFairPlayThStyle, width: '6.5rem', textAlign: 'right' }}>
                 {t('adminResults.groupPhase.fairPlay.points')}
               </th>
             </tr>
@@ -292,16 +352,16 @@ function FairPlayTable({
                 }}
                 style={{ borderTop: '1px solid rgb(var(--border-subtle))' }}
               >
-                <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center', color: 'rgb(var(--fg-muted))', fontSize: '0.82rem', fontWeight: 700 }}>
+                <td style={{ ...adminFairPlayTdStyle, ...adminFairPlayStickyCellStyle('rank'), textAlign: 'center', color: 'rgb(var(--fg-muted))', fontWeight: 700 }}>
                   {index + 1}
                 </td>
-                <td style={{ minWidth: 0, padding: '0.45rem 0.5rem' }}>
+                <td style={{ ...adminFairPlayTdStyle, ...adminFairPlayStickyCellStyle('team'), minWidth: 0 }}>
                   <span style={{ display: 'flex', minWidth: 0, alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem', fontWeight: 600 }}>
                     <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '1.5em', height: '1.5em' }} />
                     <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</span>
                   </span>
                 </td>
-                <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
+                <td style={{ ...adminFairPlayTdStyle, padding: '0.35rem 0.5rem', textAlign: 'right' }}>
                   <input
                     className="input"
                     type="text"
