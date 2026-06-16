@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.31](https://github.com/zigordev/gpool/compare/v0.1.30...v0.1.31) (2026-06-16)
+
+
+### Bug Fixes
+
+* icons colors mismatch ([#97](https://github.com/zigordev/gpool/issues/97)) ([42db175](https://github.com/zigordev/gpool/commit/42db175cb3924c2f55ceb87795fa4c5f04cb59f5))
+
 ## [0.1.30](https://github.com/zigordev/gpool/compare/v0.1.29...v0.1.30) (2026-06-15)
 
 
