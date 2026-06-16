@@ -9,6 +9,7 @@ export interface TournamentPlayer {
   imageUrl?: string;
   countryCode?: string;
   flagEmoji?: string;
+  shirtNumber?: number | null;
   goals?: number;
   penaltyGoals?: number;
   missedPenalties?: number;

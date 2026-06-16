@@ -58,7 +58,16 @@ export function PoolDetailModalButton({
         {label ? <span>{label}</span> : null}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title={title} size="lg">
-        <div style={{ maxHeight: 'min(68vh, 620px)', overflowY: 'auto', paddingRight: '0.2rem' }}>
+        <div
+          style={{
+            maxHeight: 'min(68vh, 620px)',
+            minWidth: 0,
+            maxWidth: '100%',
+            overflowX: 'hidden',
+            overflowY: 'auto',
+            paddingRight: '0.2rem',
+          }}
+        >
           {children}
         </div>
       </Modal>

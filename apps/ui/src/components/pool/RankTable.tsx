@@ -37,23 +37,9 @@ export function RankTable({
   const { t } = useI18n();
 
   return (
-    <div
-      style={{
-        overflow: 'clip',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid rgb(var(--border))',
-        background: 'rgb(var(--bg-elevated))',
-        boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
-      }}
-    >
-      <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
-      <table
-        className="rank-table"
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-        }}
-      >
+    <div className="data-table-frame">
+      <div className="data-table-scroll">
+        <table className="data-table rank-table">
         <thead>
           <tr
             style={{
@@ -62,7 +48,7 @@ export function RankTable({
             }}
           >
             <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))' }}></th>
-            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: '3.6rem', zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', boxShadow: '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)' }}></th>
+            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: 'calc(3.6rem - 1px)', zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', borderLeft: '1px solid rgb(var(--panel-muted-bg-solid))', borderRight: '1px solid rgb(var(--border))' }}></th>
             <th style={thStyle}>
               <RankHeaderIconLabel icon={<FaLayerGroup aria-hidden />} label={t('poolDetail.ranking.groupPhasePoints')} />
             </th>
@@ -105,24 +91,12 @@ export function RankTable({
                 <td style={{ ...tdStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 4, background: stickyCellBackground, backgroundClip: 'padding-box' }}>
                   <span
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '2.1rem',
-                      height: '2.1rem',
-                      borderRadius: '999px',
-                      background: isCurrentUser
-                        ? 'rgb(var(--accent-from) / 0.12)'
-                        : 'rgb(var(--bg-subtle))',
                       color: isCurrentUser
                         ? 'rgb(var(--accent-from))'
                         : 'rgb(var(--fg-muted))',
-                      border: isCurrentUser
-                        ? '1px solid rgb(var(--accent-from) / 0.30)'
-                        : '1px solid rgb(var(--border))',
                       fontFamily: 'var(--font-display, inherit)',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
@@ -138,11 +112,12 @@ export function RankTable({
                     fontWeight: 600,
                     color: 'rgb(var(--fg))',
                     position: 'sticky',
-                    left: '3.6rem',
+                    left: 'calc(3.6rem - 1px)',
                     zIndex: 4,
                     background: stickyCellBackground,
                     backgroundClip: 'padding-box',
-                    boxShadow: '4px 0 0 rgb(var(--bg-elevated)), 7px 0 10px rgb(0 0 0 / 0.10)',
+                    borderLeft: `1px solid ${stickyCellBackground}`,
+                    borderRight: '1px solid rgb(var(--border))',
                   }}
                 >
                   <span
@@ -229,7 +204,7 @@ export function RankTable({
             );
           })}
         </tbody>
-      </table>
+        </table>
       </div>
 
       <div

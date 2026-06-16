@@ -390,7 +390,7 @@ function SpyPlayersView({
                 </span>
                 {sel ? (
                   <>
-                    <PlayerShirt teamName={sel.teamName} size={25} />
+                    <PlayerShirt teamName={sel.teamName} shirtNumber={sel.shirtNumber} size={25} />
                     <ReactCountryFlag
                       countryCode={countryIsoCode(sel.teamName)}
                       svg
@@ -472,7 +472,7 @@ function SpyPlayersView({
                   ) : null}
                   {sel ? (
                     <>
-                      <PlayerShirt teamName={sel.teamName} size={25} />
+                      <PlayerShirt teamName={sel.teamName} shirtNumber={sel.shirtNumber} size={25} />
                       <ReactCountryFlag
                         countryCode={countryIsoCode(sel.teamName)}
                         svg

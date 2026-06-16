@@ -1078,6 +1078,42 @@ html.dark .players-pitch-board {
   min-width: 540px;
 }
 
+.data-table-frame {
+  min-width: 0;
+  max-width: 100%;
+  overflow: clip;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--border));
+  background: rgb(var(--bg-elevated));
+  box-shadow: 0 4px 14px rgb(15 23 42 / 0.08);
+}
+
+.data-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
+  scrollbar-gutter: stable;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table-caption {
+  padding: 0.5rem 0.6rem;
+  background: rgb(var(--panel-muted-bg-solid));
+  border-bottom: 1px solid rgb(var(--border));
+  color: rgb(var(--fg-subtle));
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .rank-table-user-col {
   min-width: 10rem;
 }
@@ -1467,10 +1503,13 @@ html.dark .players-pitch-board {
 
 .admin-table-frame {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
   background: rgb(var(--bg-elevated));
-  border: 1px solid rgb(var(--control-border));
+  border: 1px solid rgb(var(--border));
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 14px rgb(15 23 42 / 0.08);
+  scrollbar-gutter: stable;
 }
 
 .admin-bracket-workspace {
@@ -1707,9 +1746,26 @@ html.dark .players-pitch-board {
   width: 100%;
   max-width: 520px;
   max-height: min(90vh, calc(100dvh - 2rem));
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 1.5rem;
   animation: gp-slide-up-in var(--motion) var(--ease-out) both;
+}
+
+.modal-body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.modal-body p,
+.modal-body li,
+.modal-body dd,
+.modal-body blockquote {
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 640px) {

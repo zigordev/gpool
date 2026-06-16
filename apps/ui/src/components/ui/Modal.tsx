@@ -144,7 +144,7 @@ export function Modal({
 
         {description ? <div style={{ marginBottom: '1.25rem' }} /> : null}
 
-        <div>{children}</div>
+        <div className="modal-body">{children}</div>
 
         {footer ? (
           <div

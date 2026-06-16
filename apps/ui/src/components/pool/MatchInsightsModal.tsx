@@ -22,6 +22,7 @@ type PlayerAction = {
   name: string;
   teamName: string;
   position: PlayerPosition;
+  shirtNumber?: number | null;
   points: number;
   goals?: number;
   penaltyGoals?: number;
@@ -160,7 +161,7 @@ export function MatchInsightsModal({
                                 label={t('poolDetail.players.points', { points: player.points })}
                               />
                             ) : null}
-                            <PlayerShirt teamName={player.teamName} size={27} />
+                            <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={27} />
                             <ReactCountryFlag
                               countryCode={countryIsoCode(player.teamName)}
                               svg

@@ -192,15 +192,7 @@ export function PlayerStatsTable({
   });
 
   return (
-    <div
-      style={{
-        overflow: 'clip',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid rgb(var(--border))',
-        background: 'rgb(var(--bg-elevated))',
-        boxShadow: '0 4px 14px rgb(15 23 42 / 0.08)',
-      }}
-    >
+    <div className="data-table-frame">
       {toolbar ? (
         <div
           style={{
@@ -225,8 +217,8 @@ export function PlayerStatsTable({
           {t('poolDetail.players.empty')}
         </p>
       ) : (
-        <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '65vh' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: tableMinWidth }}>
+        <div className="data-table-scroll">
+          <table className="data-table" style={{ minWidth: tableMinWidth }}>
             <thead>
               <tr
                 style={{
@@ -244,8 +236,7 @@ export function PlayerStatsTable({
                     left: 0,
                     zIndex: 5,
                     background: 'rgb(var(--panel-muted-bg-solid))',
-                    boxShadow:
-                      '4px 0 0 rgb(var(--panel-muted-bg-solid)), 7px 0 10px rgb(0 0 0 / 0.10)',
+                    borderRight: '1px solid rgb(var(--border))',
                   }}
                 >
                   {t('poolDetail.players.title')}
@@ -338,11 +329,11 @@ export function PlayerStatsTable({
                         left: 0,
                         zIndex: 1,
                         background: 'rgb(var(--bg-elevated))',
-                        boxShadow: '2px 0 4px rgb(0 0 0 / 0.06)',
+                        borderRight: '1px solid rgb(var(--border))',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <PlayerShirt teamName={player.teamName} size={30} />
+                        <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={30} />
                         {player.imageUrl ? (
                           <span
                             aria-hidden
