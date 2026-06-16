@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.36](https://github.com/zigorlsp7/gpool/compare/v0.1.35...v0.1.36) (2026-06-16)
+
+
+### Bug Fixes
+
+* real standings correct tie criteria ([#107](https://github.com/zigorlsp7/gpool/issues/107)) ([0616b79](https://github.com/zigorlsp7/gpool/commit/0616b79dcca858a34c510bcce219c49d69270425))
+
 ## [0.1.35](https://github.com/zigorlsp7/gpool/compare/v0.1.34...v0.1.35) (2026-06-16)
 
 
