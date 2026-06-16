@@ -384,9 +384,9 @@
     "finalPhase": {
       "autoFillConfirmAccept": "Aceptar",
       "autoFillConfirmDescription": "Si aceptas rellenar los dieciseisavos automáticamente, se rellenarán en base a la clasificación de la fase de grupos. Ten en cuenta que cualquier selección realizada hasta el momento, tanto en la ronda de dieciseisavos como en cualquier otra, se perderá.",
-      "autoFillConfirmTitle": "Rellenar automáticamente",
+      "autoFillConfirmTitle": "Rellenar dieciseisavos automáticamente",
       "autoFillError": "No se pudieron rellenar los dieciseisavos automáticamente",
-      "autoFillRoundOf32": "Rellenar automáticamente",
+      "autoFillRoundOf32": "Auto",
       "autoFillSuccess": "Dieciseisavos rellenados automáticamente",
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
