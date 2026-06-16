@@ -460,6 +460,7 @@ function MatchSummary({
         gap: compact ? '0.35rem' : '0.65rem',
         alignItems: 'center',
         width: '100%',
+        minWidth: 0,
         padding: compact ? 0 : '0.7rem',
         borderRadius: 'var(--radius-sm)',
         background: compact ? undefined : 'rgb(var(--panel-muted-bg-solid))',
@@ -762,6 +763,8 @@ function compactPredictionCardStyle(
     position: 'relative',
     display: 'inline-flex',
     alignItems: 'center',
+    flexShrink: 1,
+    flexWrap: 'wrap',
     gap: '0.3rem',
     minWidth: 0,
     maxWidth: '100%',
@@ -775,12 +778,12 @@ function compactPredictionCardStyle(
 
 const compactPredictionStatusStyle: CSSProperties = {
   maxWidth: '6rem',
-  overflow: 'hidden',
   color: 'rgb(var(--fg-muted))',
   fontSize: '0.58rem',
   fontWeight: 700,
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  lineHeight: 1.15,
+  overflowWrap: 'anywhere',
+  whiteSpace: 'normal',
 };
 
 const finalTeamsStyle: CSSProperties = {
@@ -803,6 +806,7 @@ const memberHeaderStyle: CSSProperties = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '0.55rem',
+  flexWrap: 'wrap',
   minWidth: 0,
 };
 

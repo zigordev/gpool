@@ -102,7 +102,11 @@ function SpyPicksModal({
 
   return (
     <Modal open={open} onClose={onClose} title={userName} size="lg">
-      <div className="players-tab-bar" role="tablist" style={{ marginBottom: '1rem' }}>
+      <div
+        className="players-tab-bar"
+        role="tablist"
+        style={{ display: 'flex', width: 'fit-content', margin: '0 auto 1rem' }}
+      >
         {(['groups', 'final', 'players'] as const).map((key) => (
           <button
             key={key}
@@ -612,8 +616,7 @@ export function RankingContent({
 
   return (
     <div
-      className="content-panel"
-      style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      className="content-panel main-view-stack"
     >
       {ranking.length > 0 ? (
         <RankTable

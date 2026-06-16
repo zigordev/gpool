@@ -200,7 +200,9 @@ function adminFairPlayStickyHeaderStyle(key: 'rank' | 'team'): CSSProperties {
   return {
     left: '3.5rem',
     zIndex: 6,
-    minWidth: '12rem',
+    width: '9rem',
+    minWidth: '9rem',
+    maxWidth: '9rem',
     background: 'rgb(var(--panel-muted-bg-solid))',
     borderRight: '1px solid rgb(var(--border))',
   };
@@ -222,7 +224,9 @@ function adminFairPlayStickyCellStyle(key: 'rank' | 'team'): CSSProperties {
     position: 'sticky',
     left: '3.5rem',
     zIndex: 4,
-    minWidth: '12rem',
+    width: '9rem',
+    minWidth: '9rem',
+    maxWidth: '9rem',
     background: 'rgb(var(--bg-elevated))',
     backgroundClip: 'padding-box',
     borderRight: '1px solid rgb(var(--border))',

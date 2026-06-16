@@ -135,9 +135,9 @@ export default function FinalPage() {
   };
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel main-view-stack">
       {Object.keys(bracket).length > 0 ? (
-        <section className="bracket-workspace">
+        <section className="bracket-workspace main-view-surface">
           <BracketVisualization
             bracket={bracket}
             teams={teams}
