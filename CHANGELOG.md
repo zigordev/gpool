@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.35](https://github.com/zigordev/gpool/compare/v0.1.34...v0.1.35) (2026-06-16)
+
+
+### Bug Fixes
+
+* waiting for result instead of no prediction ([#105](https://github.com/zigordev/gpool/issues/105)) ([16d3171](https://github.com/zigordev/gpool/commit/16d3171853c108a516264b4309fd3026666ba668))
+
 ## [0.1.34](https://github.com/zigordev/gpool/compare/v0.1.33...v0.1.34) (2026-06-16)
 
 
