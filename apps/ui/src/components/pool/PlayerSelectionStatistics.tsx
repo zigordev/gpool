@@ -91,7 +91,7 @@ export function PlayerSelectionStatistics({
           />
           <StatisticsGroup
             title={t('poolDetail.players.awards.tournamentMvp')}
-            icon={<FaStar aria-hidden style={{ color: 'rgb(var(--gold))' }} />}
+            icon={<FaStar aria-hidden style={{ color: '#D4A017', fill: '#D4A017' }} />}
             players={statistics.awards.tournamentMvp}
             emptyLabel={t('poolDetail.players.statistics.empty')}
           />

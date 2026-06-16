@@ -33,7 +33,10 @@
   },
   "overrides": {
     "multer": "2.1.1",
-    "protobufjs": "8.2.0",
+    "protobufjs": "8.6.3",
+    "@grpc/proto-loader": {
+      "protobufjs": "7.6.4"
+    },
     "@nestjs/platform-express": {
       "multer": "2.1.1"
     }
@@ -42,6 +45,7 @@
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
     "@types/node": "^20.10.0",
+    "glob": "^10.5.0",
     "husky": "^9.1.7",
     "prettier": "^3.1.0",
     "typescript": "^5.3.0"
