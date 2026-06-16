@@ -452,7 +452,7 @@
       "incorrectSide": "Wrong side",
       "loadError": "Could not load the match details.",
       "noPlayerActions": "No selected player recorded actions in this match.",
-      "noPrediction": "No prediction",
+      "noResult": "Waiting for result",
       "notGuessed": "Incorrect",
       "oneXTwo": "1X2",
       "participants": "Participants",
