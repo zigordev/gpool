@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { PostgresService } from '../../database/postgres.service';
 
 const PLAYER_STAT_COLUMNS = {
@@ -1143,7 +1144,7 @@ export class PoolRepository {
   }
 
   async createPrediction(poolId: string, matchId: string, userId: string, homeScore: number, awayScore: number) {
-    const predictionId = `${poolId}-${matchId}-${userId}`;
+    const predictionId = randomUUID();
     const now = Math.floor(Date.now() / 1000);
 
     const result = await this.postgres.query(
@@ -1159,7 +1160,7 @@ export class PoolRepository {
           updated_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
-        ON CONFLICT (prediction_id)
+        ON CONFLICT (pool_id, match_id, user_id)
         DO UPDATE SET
           home_score = EXCLUDED.home_score,
           away_score = EXCLUDED.away_score,
@@ -1189,21 +1190,19 @@ export class PoolRepository {
   }
 
   async deletePrediction(poolId: string, matchId: string, userId: string) {
-    const predictionId = `${poolId}-${matchId}-${userId}`;
-    await this.postgres.query(
+    const result = await this.postgres.query(
       `
         DELETE FROM group_phase_predictions
-        WHERE prediction_id = $1
+        WHERE pool_id = $1 AND match_id = $2 AND user_id = $3
+        RETURNING prediction_id AS "predictionId"
       `,
-      [predictionId],
+      [poolId, matchId, userId],
     );
 
-    return { predictionId, poolId, matchId, userId, cleared: true };
+    return { predictionId: result.rows[0]?.predictionId || null, poolId, matchId, userId, cleared: true };
   }
 
   async getPrediction(poolId: string, matchId: string, userId: string) {
-    const predictionId = `${poolId}-${matchId}-${userId}`;
-
     const result = await this.postgres.query(
       `
         SELECT
@@ -1220,9 +1219,9 @@ export class PoolRepository {
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
         FROM group_phase_predictions
-        WHERE prediction_id = $1
+        WHERE pool_id = $1 AND match_id = $2 AND user_id = $3
       `,
-      [predictionId],
+      [poolId, matchId, userId],
     );
 
     return result.rows[0] || null;
@@ -1298,7 +1297,7 @@ export class PoolRepository {
           points = 0,
           evaluated_at = NULL
         WHERE match_id = $1
-          AND ($2::text IS NULL OR pool_id = $2)
+          AND ($2::uuid IS NULL OR pool_id = $2)
       `,
       [matchId, poolId ?? null],
     );
@@ -1322,7 +1321,7 @@ export class PoolRepository {
           evaluated_at::int AS "evaluatedAt"
         FROM group_phase_predictions
         WHERE match_id = $1
-          AND ($2::text IS NULL OR pool_id = $2)
+          AND ($2::uuid IS NULL OR pool_id = $2)
       `,
       [matchId, poolId ?? null],
     );
@@ -1695,7 +1694,7 @@ export class PoolRepository {
     predictedWinnerTeamId?: string,
     predictedWinnerTeamName?: string,
   ) {
-    const bracketPredictionId = `${poolId}-${bracketMatchId}-${userId}`;
+    const bracketPredictionId = randomUUID();
     const now = Math.floor(Date.now() / 1000);
 
     const result = await this.postgres.query(
@@ -1717,7 +1716,7 @@ export class PoolRepository {
           updated_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, FALSE, $11, $11)
-        ON CONFLICT (bracket_prediction_id)
+        ON CONFLICT (pool_id, bracket_match_id, user_id)
         DO UPDATE SET
           home_team_id = EXCLUDED.home_team_id,
           home_team_name = EXCLUDED.home_team_name,
@@ -1799,7 +1798,6 @@ export class PoolRepository {
   }
 
   async getBracketPrediction(poolId: string, bracketMatchId: string, userId: string) {
-    const bracketPredictionId = `${poolId}-${bracketMatchId}-${userId}`;
     const result = await this.postgres.query(
       `
         SELECT
@@ -1824,9 +1822,9 @@ export class PoolRepository {
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
         FROM final_phase_predictions
-        WHERE bracket_prediction_id = $1
+        WHERE pool_id = $1 AND bracket_match_id = $2 AND user_id = $3
       `,
-      [bracketPredictionId],
+      [poolId, bracketMatchId, userId],
     );
     return result.rows[0] || null;
   }

@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PostgresService } from './postgres.service';
+import { worldCupPlayerId } from './world-cup-2026-player-identities';
 import { WORLD_CUP_2026_ROSTERS, type TournamentRosterPosition } from './world-cup-2026-rosters';
 
 const TOURNAMENT_ROSTER_POSITIONS: readonly TournamentRosterPosition[] = [
@@ -10,16 +11,6 @@ const TOURNAMENT_ROSTER_POSITIONS: readonly TournamentRosterPosition[] = [
 ];
 const TOURNAMENT_SQUAD_SIZE = 26;
 const POSTGRES_INITIALIZATION_LOCK_ID = 2_026_061_501;
-
-function playerSeedId(teamId: string, position: TournamentRosterPosition, playerName: string): string {
-  const playerSlug = playerName
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return `${teamId}-${position}-${playerSlug}`;
-}
 
 @Injectable()
 export class PostgresInitService implements OnModuleInit {
@@ -54,7 +45,7 @@ export class PostgresInitService implements OnModuleInit {
   private async ensureSchema(): Promise<void> {
     await this.postgres.query(`
       CREATE TABLE IF NOT EXISTS users (
-        user_id TEXT PRIMARY KEY,
+        user_id UUID PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         picture TEXT NOT NULL DEFAULT '',
@@ -66,8 +57,8 @@ export class PostgresInitService implements OnModuleInit {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS locale TEXT NOT NULL DEFAULT 'es';
 
       CREATE TABLE IF NOT EXISTS pools (
-        pool_id TEXT PRIMARY KEY,
-        admin_user_id TEXT NOT NULL,
+        pool_id UUID PRIMARY KEY,
+        admin_user_id UUID NOT NULL,
         admin_name TEXT NOT NULL DEFAULT '',
         admin_email TEXT NOT NULL DEFAULT '',
         name TEXT NOT NULL,
@@ -79,8 +70,8 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_pools_admin_user_id ON pools(admin_user_id);
 
       CREATE TABLE IF NOT EXISTS pool_memberships (
-        pool_id TEXT NOT NULL REFERENCES pools(pool_id) ON DELETE CASCADE,
-        user_id TEXT NOT NULL,
+        pool_id UUID NOT NULL REFERENCES pools(pool_id) ON DELETE CASCADE,
+        user_id UUID NOT NULL,
         role TEXT NOT NULL DEFAULT 'member',
         status TEXT NOT NULL DEFAULT 'active',
         joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -128,7 +119,7 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_teams_group_id ON teams(group_id);
 
       CREATE TABLE IF NOT EXISTS tournament_players (
-        player_id TEXT PRIMARY KEY,
+        player_id UUID PRIMARY KEY,
         team_id TEXT NOT NULL REFERENCES teams(team_id) ON DELETE CASCADE,
         team_name TEXT NOT NULL,
         name TEXT NOT NULL,
@@ -143,7 +134,7 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_tournament_players_team_id ON tournament_players(team_id);
 
       CREATE TABLE IF NOT EXISTS tournament_player_stats (
-        player_id TEXT PRIMARY KEY REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        player_id UUID PRIMARY KEY REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         goals INTEGER NOT NULL DEFAULT 0,
         penalty_goals INTEGER NOT NULL DEFAULT 0,
         missed_penalties INTEGER NOT NULL DEFAULT 0,
@@ -171,7 +162,7 @@ export class PostgresInitService implements OnModuleInit {
       CREATE TABLE IF NOT EXISTS tournament_player_match_stats (
         match_type TEXT NOT NULL CHECK (match_type IN ('group', 'final')),
         match_id TEXT NOT NULL,
-        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        player_id UUID NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         goals INTEGER NOT NULL DEFAULT 0,
         penalty_goals INTEGER NOT NULL DEFAULT 0,
         missed_penalties INTEGER NOT NULL DEFAULT 0,
@@ -195,7 +186,7 @@ export class PostgresInitService implements OnModuleInit {
 
       CREATE TABLE IF NOT EXISTS tournament_player_awards (
         award TEXT NOT NULL CHECK (award IN ('golden_boot', 'tournament_mvp')),
-        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        player_id UUID NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         updated_at BIGINT NOT NULL,
         PRIMARY KEY (award, player_id)
       );
@@ -204,11 +195,11 @@ export class PostgresInitService implements OnModuleInit {
         WHERE award = 'tournament_mvp';
 
       CREATE TABLE IF NOT EXISTS pool_player_selections (
-        pool_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
+        pool_id UUID NOT NULL,
+        user_id UUID NOT NULL,
         position TEXT NOT NULL CHECK (position IN ('goalkeeper', 'defender', 'midfielder', 'forward')),
         slot INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 12),
-        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        player_id UUID NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL,
         PRIMARY KEY (pool_id, user_id, position, slot),
@@ -219,10 +210,10 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_pool_player_selections_user_pool ON pool_player_selections(user_id, pool_id);
 
       CREATE TABLE IF NOT EXISTS pool_player_award_selections (
-        pool_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
+        pool_id UUID NOT NULL,
+        user_id UUID NOT NULL,
         award TEXT NOT NULL CHECK (award IN ('golden_boot', 'tournament_mvp')),
-        player_id TEXT NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
+        player_id UUID NOT NULL REFERENCES tournament_players(player_id) ON DELETE CASCADE,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL,
         PRIMARY KEY (pool_id, user_id, award)
@@ -252,10 +243,10 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_group_phase_matches_pool_number ON group_phase_matches(pool_id, match_number);
 
       CREATE TABLE IF NOT EXISTS group_phase_predictions (
-        prediction_id TEXT PRIMARY KEY,
-        pool_id TEXT NOT NULL,
+        prediction_id UUID PRIMARY KEY,
+        pool_id UUID NOT NULL,
         match_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
+        user_id UUID NOT NULL,
         home_score INTEGER NOT NULL,
         away_score INTEGER NOT NULL,
         is_correct BOOLEAN,
@@ -293,10 +284,10 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_final_phase_matches_pool_phase ON final_phase_matches(pool_id, phase);
 
       CREATE TABLE IF NOT EXISTS final_phase_predictions (
-        bracket_prediction_id TEXT PRIMARY KEY,
-        pool_id TEXT NOT NULL,
+        bracket_prediction_id UUID PRIMARY KEY,
+        pool_id UUID NOT NULL,
         bracket_match_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
+        user_id UUID NOT NULL,
         home_team_id TEXT,
         home_team_name TEXT,
         away_team_id TEXT,
@@ -323,8 +314,8 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_final_phase_predictions_pool_id ON final_phase_predictions(pool_id);
 
       CREATE TABLE IF NOT EXISTS notifications (
-        notification_id TEXT PRIMARY KEY,
-        user_id TEXT,
+        notification_id UUID PRIMARY KEY,
+        user_id UUID,
         type TEXT NOT NULL,
         status TEXT NOT NULL,
         recipient TEXT NOT NULL,
@@ -341,7 +332,447 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_notifications_event_id ON notifications((metadata->>'eventId'));
     `);
 
+    await this.migrateEntityIdsToUuid();
+    await this.migratePredictionIdsToUuid();
+    await this.migrateTournamentPlayerIdsToUuid();
     this.logger.log('Postgres schema verified');
+  }
+
+  private uuidExpressionForTextId(columnSql: string, namespace: string): string {
+    return `
+      CASE
+        WHEN ${columnSql} ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          THEN ${columnSql}::uuid
+        ELSE (
+          substring(md5('${namespace}:' || ${columnSql}) from 1 for 8) || '-' ||
+          substring(md5('${namespace}:' || ${columnSql}) from 9 for 4) || '-' ||
+          substring(md5('${namespace}:' || ${columnSql}) from 13 for 4) || '-' ||
+          substring(md5('${namespace}:' || ${columnSql}) from 17 for 4) || '-' ||
+          substring(md5('${namespace}:' || ${columnSql}) from 21 for 12)
+        )::uuid
+      END
+    `;
+  }
+
+  private async migrateEntityIdsToUuid(): Promise<void> {
+    const client = await this.postgres.getClient();
+    try {
+      const columnTypes = await client.query(
+        `
+          SELECT table_name, column_name, data_type
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND (
+              (table_name = 'users' AND column_name = 'user_id')
+              OR (table_name = 'pools' AND column_name IN ('pool_id', 'admin_user_id'))
+              OR (table_name = 'notifications' AND column_name = 'notification_id')
+            )
+        `,
+      );
+      const typeByColumn = new Map(
+        columnTypes.rows.map((row: any) => [`${row.table_name}.${row.column_name}`, row.data_type]),
+      );
+      if (
+        typeByColumn.get('users.user_id') === 'uuid' &&
+        typeByColumn.get('pools.pool_id') === 'uuid' &&
+        typeByColumn.get('pools.admin_user_id') === 'uuid' &&
+        typeByColumn.get('notifications.notification_id') === 'uuid'
+      ) {
+        return;
+      }
+
+      await client.query('BEGIN');
+      await client.query(`
+        CREATE TEMP TABLE user_id_migration AS
+        SELECT DISTINCT
+          old_id,
+          ${this.uuidExpressionForTextId('old_id', 'gpool-user')} AS new_id
+        FROM (
+          SELECT user_id::text AS old_id FROM users
+          UNION
+          SELECT admin_user_id::text AS old_id FROM pools
+          UNION
+          SELECT user_id::text AS old_id FROM pool_memberships
+          UNION
+          SELECT user_id::text AS old_id FROM pool_player_selections
+          UNION
+          SELECT user_id::text AS old_id FROM pool_player_award_selections
+          UNION
+          SELECT user_id::text AS old_id FROM group_phase_predictions
+          UNION
+          SELECT user_id::text AS old_id FROM final_phase_predictions
+          UNION
+          SELECT user_id::text AS old_id FROM notifications WHERE user_id IS NOT NULL
+        ) ids;
+
+        CREATE TEMP TABLE pool_id_migration AS
+        SELECT DISTINCT
+          old_id,
+          ${this.uuidExpressionForTextId('old_id', 'gpool-pool')} AS new_id
+        FROM (
+          SELECT pool_id::text AS old_id FROM pools
+          UNION
+          SELECT pool_id::text AS old_id FROM pool_memberships
+          UNION
+          SELECT pool_id::text AS old_id FROM pool_player_selections
+          UNION
+          SELECT pool_id::text AS old_id FROM pool_player_award_selections
+          UNION
+          SELECT pool_id::text AS old_id FROM group_phase_predictions
+          UNION
+          SELECT pool_id::text AS old_id FROM final_phase_predictions
+        ) ids;
+
+        CREATE TEMP TABLE notification_id_migration AS
+        SELECT
+          notification_id::text AS old_id,
+          ${this.uuidExpressionForTextId('notification_id::text', 'gpool-notification')} AS new_id
+        FROM notifications;
+      `);
+
+      await client.query(`
+        ALTER TABLE pool_memberships DROP CONSTRAINT IF EXISTS pool_memberships_pool_id_fkey;
+
+        UPDATE users target
+        SET user_id = migration.new_id::text
+        FROM user_id_migration migration
+        WHERE target.user_id::text = migration.old_id
+          AND migration.old_id <> migration.new_id::text;
+
+        UPDATE pools target
+        SET
+          pool_id = pool_migration.new_id::text,
+          admin_user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.admin_user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE pool_memberships target
+        SET
+          pool_id = pool_migration.new_id::text,
+          user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE pool_player_selections target
+        SET
+          pool_id = pool_migration.new_id::text,
+          user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE pool_player_award_selections target
+        SET
+          pool_id = pool_migration.new_id::text,
+          user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE group_phase_predictions target
+        SET
+          pool_id = pool_migration.new_id::text,
+          user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE final_phase_predictions target
+        SET
+          pool_id = pool_migration.new_id::text,
+          user_id = user_migration.new_id::text
+        FROM pool_id_migration pool_migration, user_id_migration user_migration
+        WHERE target.pool_id::text = pool_migration.old_id
+          AND target.user_id::text = user_migration.old_id
+          AND (
+            pool_migration.old_id <> pool_migration.new_id::text
+            OR user_migration.old_id <> user_migration.new_id::text
+          );
+
+        UPDATE notifications target
+        SET notification_id = notification_migration.new_id::text
+        FROM notification_id_migration notification_migration
+        WHERE target.notification_id::text = notification_migration.old_id
+          AND notification_migration.old_id <> notification_migration.new_id::text;
+
+        UPDATE notifications target
+        SET user_id = user_migration.new_id::text
+        FROM user_id_migration user_migration
+        WHERE target.user_id::text = user_migration.old_id
+          AND user_migration.old_id <> user_migration.new_id::text;
+      `);
+
+      await client.query(`
+        ALTER TABLE users ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE pools ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE pools ALTER COLUMN admin_user_id TYPE UUID USING admin_user_id::uuid;
+        ALTER TABLE pool_memberships ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE pool_memberships ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE pool_player_selections ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE pool_player_selections ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE pool_player_award_selections ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE pool_player_award_selections ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE group_phase_predictions ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE group_phase_predictions ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE final_phase_predictions ALTER COLUMN pool_id TYPE UUID USING pool_id::uuid;
+        ALTER TABLE final_phase_predictions ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+        ALTER TABLE notifications ALTER COLUMN notification_id TYPE UUID USING notification_id::uuid;
+        ALTER TABLE notifications ALTER COLUMN user_id TYPE UUID USING user_id::uuid;
+
+        ALTER TABLE pool_memberships
+          ADD CONSTRAINT pool_memberships_pool_id_fkey
+          FOREIGN KEY (pool_id) REFERENCES pools(pool_id) ON DELETE CASCADE;
+      `);
+
+      await client.query('COMMIT');
+    } catch (error: any) {
+      await client.query('ROLLBACK');
+      this.logger.error(`Failed to migrate entity IDs to UUID: ${error.message}`, error.stack);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async migratePredictionIdsToUuid(): Promise<void> {
+    const client = await this.postgres.getClient();
+    try {
+      const columnTypes = await client.query(
+        `
+          SELECT table_name, column_name, data_type
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND (
+              (table_name = 'group_phase_predictions' AND column_name = 'prediction_id')
+              OR (table_name = 'final_phase_predictions' AND column_name = 'bracket_prediction_id')
+            )
+        `,
+      );
+      const typeByColumn = new Map(
+        columnTypes.rows.map((row: any) => [`${row.table_name}.${row.column_name}`, row.data_type]),
+      );
+      if (
+        typeByColumn.get('group_phase_predictions.prediction_id') === 'uuid' &&
+        typeByColumn.get('final_phase_predictions.bracket_prediction_id') === 'uuid'
+      ) {
+        return;
+      }
+
+      await client.query('BEGIN');
+      await client.query(`
+        ALTER TABLE group_phase_predictions
+          ALTER COLUMN prediction_id TYPE UUID
+          USING ${this.uuidExpressionForTextId('prediction_id', 'gpool-group-phase-prediction')};
+
+        ALTER TABLE final_phase_predictions
+          ALTER COLUMN bracket_prediction_id TYPE UUID
+          USING ${this.uuidExpressionForTextId('bracket_prediction_id', 'gpool-final-phase-prediction')};
+      `);
+      await client.query('COMMIT');
+    } catch (error: any) {
+      await client.query('ROLLBACK');
+      this.logger.error(`Failed to migrate prediction IDs to UUID: ${error.message}`, error.stack);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async migrateTournamentPlayerIdsToUuid(): Promise<void> {
+    const client = await this.postgres.getClient();
+    try {
+      const columnTypeResult = await client.query(
+        `
+          SELECT data_type
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'tournament_players'
+            AND column_name = 'player_id'
+        `,
+      );
+      if (columnTypeResult.rows[0]?.data_type === 'uuid') {
+        return;
+      }
+
+      await client.query('BEGIN');
+      await client.query(`
+        CREATE TEMP TABLE player_id_migration AS
+        WITH existing_players AS (
+          SELECT player_id::text AS old_id
+          FROM tournament_players
+        ),
+        hashed_players AS (
+          SELECT
+            old_id,
+            md5('gpool-world-cup-2026-player:' || old_id) AS hash
+          FROM existing_players
+        )
+        SELECT
+          old_id,
+          CASE
+            WHEN old_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+              THEN old_id::uuid
+            ELSE (
+              substring(hash from 1 for 8) || '-' ||
+              substring(hash from 9 for 4) || '-' ||
+              substring(hash from 13 for 4) || '-' ||
+              substring(hash from 17 for 4) || '-' ||
+              substring(hash from 21 for 12)
+            )::uuid
+          END AS new_id
+        FROM hashed_players;
+      `);
+
+      await client.query(`
+        INSERT INTO tournament_players (
+          player_id,
+          team_id,
+          team_name,
+          name,
+          position,
+          image_url,
+          country_code,
+          flag_emoji,
+          created_at,
+          updated_at
+        )
+        SELECT
+          migration.new_id::text,
+          players.team_id,
+          players.team_name,
+          players.name,
+          players.position,
+          players.image_url,
+          players.country_code,
+          players.flag_emoji,
+          players.created_at,
+          players.updated_at
+        FROM tournament_players players
+        INNER JOIN player_id_migration migration
+          ON migration.old_id = players.player_id::text
+        WHERE migration.old_id <> migration.new_id::text
+        ON CONFLICT (player_id) DO UPDATE SET
+          team_id = EXCLUDED.team_id,
+          team_name = EXCLUDED.team_name,
+          name = EXCLUDED.name,
+          position = EXCLUDED.position,
+          image_url = EXCLUDED.image_url,
+          country_code = EXCLUDED.country_code,
+          flag_emoji = EXCLUDED.flag_emoji,
+          updated_at = COALESCE(EXCLUDED.updated_at, EXCLUDED.created_at);
+      `);
+
+      for (const table of [
+        'tournament_player_stats',
+        'tournament_player_match_stats',
+        'tournament_player_awards',
+        'pool_player_selections',
+        'pool_player_award_selections',
+      ]) {
+        await client.query(`
+          UPDATE ${table} target
+          SET player_id = migration.new_id::text
+          FROM player_id_migration migration
+          WHERE target.player_id::text = migration.old_id
+            AND migration.old_id <> migration.new_id::text;
+        `);
+      }
+
+      await client.query(`
+        UPDATE pools pool
+        SET config = jsonb_set(
+          pool.config,
+          '{playerAwardWinners,goldenBootPlayerIds}',
+          (
+            SELECT COALESCE(jsonb_agg(to_jsonb(COALESCE(migration.new_id::text, ids.value))), '[]'::jsonb)
+            FROM jsonb_array_elements_text(pool.config #> '{playerAwardWinners,goldenBootPlayerIds}') AS ids(value)
+            LEFT JOIN player_id_migration migration ON migration.old_id = ids.value
+          ),
+          true
+        )
+        WHERE pool.config #> '{playerAwardWinners,goldenBootPlayerIds}' IS NOT NULL;
+      `);
+
+      await client.query(`
+        UPDATE pools pool
+        SET config = jsonb_set(
+          pool.config,
+          '{playerAwardWinners,tournamentMvpPlayerId}',
+          to_jsonb(COALESCE(migration.new_id::text, pool.config #>> '{playerAwardWinners,tournamentMvpPlayerId}')),
+          true
+        )
+        FROM player_id_migration migration
+        WHERE pool.config #>> '{playerAwardWinners,tournamentMvpPlayerId}' = migration.old_id;
+      `);
+
+      await client.query(`
+        DELETE FROM tournament_players players
+        USING player_id_migration migration
+        WHERE players.player_id::text = migration.old_id
+          AND migration.old_id <> migration.new_id::text;
+      `);
+
+      await client.query(`
+        ALTER TABLE tournament_player_stats DROP CONSTRAINT IF EXISTS tournament_player_stats_player_id_fkey;
+        ALTER TABLE tournament_player_match_stats DROP CONSTRAINT IF EXISTS tournament_player_match_stats_player_id_fkey;
+        ALTER TABLE tournament_player_awards DROP CONSTRAINT IF EXISTS tournament_player_awards_player_id_fkey;
+        ALTER TABLE pool_player_selections DROP CONSTRAINT IF EXISTS pool_player_selections_player_id_fkey;
+        ALTER TABLE pool_player_award_selections DROP CONSTRAINT IF EXISTS pool_player_award_selections_player_id_fkey;
+
+        ALTER TABLE tournament_players ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+        ALTER TABLE tournament_player_stats ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+        ALTER TABLE tournament_player_match_stats ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+        ALTER TABLE tournament_player_awards ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+        ALTER TABLE pool_player_selections ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+        ALTER TABLE pool_player_award_selections ALTER COLUMN player_id TYPE UUID USING player_id::uuid;
+
+        ALTER TABLE tournament_player_stats
+          ADD CONSTRAINT tournament_player_stats_player_id_fkey
+          FOREIGN KEY (player_id) REFERENCES tournament_players(player_id) ON DELETE CASCADE;
+        ALTER TABLE tournament_player_match_stats
+          ADD CONSTRAINT tournament_player_match_stats_player_id_fkey
+          FOREIGN KEY (player_id) REFERENCES tournament_players(player_id) ON DELETE CASCADE;
+        ALTER TABLE tournament_player_awards
+          ADD CONSTRAINT tournament_player_awards_player_id_fkey
+          FOREIGN KEY (player_id) REFERENCES tournament_players(player_id) ON DELETE CASCADE;
+        ALTER TABLE pool_player_selections
+          ADD CONSTRAINT pool_player_selections_player_id_fkey
+          FOREIGN KEY (player_id) REFERENCES tournament_players(player_id) ON DELETE CASCADE;
+        ALTER TABLE pool_player_award_selections
+          ADD CONSTRAINT pool_player_award_selections_player_id_fkey
+          FOREIGN KEY (player_id) REFERENCES tournament_players(player_id) ON DELETE CASCADE;
+      `);
+
+      await client.query('COMMIT');
+    } catch (error: any) {
+      await client.query('ROLLBACK');
+      this.logger.error(`Failed to migrate tournament player IDs to UUID: ${error.message}`, error.stack);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private async seedTeamsAndMatches(): Promise<void> {
@@ -614,7 +1045,7 @@ export class PostgresInitService implements OnModuleInit {
       const meta = countryMeta[team.name] || { code: team.code, flag: '' };
       return TOURNAMENT_ROSTER_POSITIONS.flatMap((position) =>
         roster.players[position].map((name) => ({
-          playerId: playerSeedId(team.teamId, position, name),
+          playerId: worldCupPlayerId(team.teamId, position, name),
           teamId: team.teamId,
           teamName: team.name,
           name,
@@ -694,7 +1125,7 @@ export class PostgresInitService implements OnModuleInit {
             flag_emoji,
             created_at
           FROM UNNEST(
-            $1::text[],
+            $1::uuid[],
             $2::text[],
             $3::text[],
             $4::text[],
@@ -738,7 +1169,27 @@ export class PostgresInitService implements OnModuleInit {
         `
           DELETE FROM tournament_players
           WHERE team_id = ANY($1::text[])
-            AND NOT (player_id = ANY($2::text[]))
+            AND NOT (player_id = ANY($2::uuid[]))
+            AND NOT EXISTS (
+              SELECT 1 FROM tournament_player_stats stats
+              WHERE stats.player_id = tournament_players.player_id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM tournament_player_match_stats match_stats
+              WHERE match_stats.player_id = tournament_players.player_id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM tournament_player_awards awards
+              WHERE awards.player_id = tournament_players.player_id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM pool_player_selections selections
+              WHERE selections.player_id = tournament_players.player_id
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM pool_player_award_selections award_selections
+              WHERE award_selections.player_id = tournament_players.player_id
+            )
         `,
         [teams.map((team) => team.teamId), playerIds],
       );
