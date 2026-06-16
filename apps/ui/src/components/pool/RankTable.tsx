@@ -47,8 +47,7 @@ export function RankTable({
               borderBottom: '1px solid rgb(var(--border))',
             }}
           >
-            <th style={{ ...thStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))' }}></th>
-            <th className="rank-table-user-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: 'calc(3.6rem - 1px)', zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', borderLeft: '1px solid rgb(var(--panel-muted-bg-solid))', borderRight: '1px solid rgb(var(--border))' }}></th>
+            <th className="rank-table-identity-col" style={{ ...thStyle, textAlign: 'left', position: 'sticky', left: 0, zIndex: 5, background: 'rgb(var(--panel-muted-bg-solid))', borderRight: '1px solid rgb(var(--border))' }}></th>
             <th style={thStyle}>
               <RankHeaderIconLabel icon={<FaLayerGroup aria-hidden />} label={t('poolDetail.ranking.groupPhasePoints')} />
             </th>
@@ -88,55 +87,49 @@ export function RankTable({
                   borderBottom: '1px solid rgb(var(--border) / 0.65)',
                 }}
               >
-                <td style={{ ...tdStyle, width: '3.6rem', position: 'sticky', left: 0, zIndex: 4, background: stickyCellBackground, backgroundClip: 'padding-box' }}>
-                  <span
-                    style={{
-                      color: isCurrentUser
-                        ? 'rgb(var(--accent-from))'
-                        : 'rgb(var(--fg-muted))',
-                      fontFamily: 'var(--font-display, inherit)',
-                      fontSize: '0.82rem',
-                      fontWeight: 800,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {entry.rank}
-                  </span>
-                </td>
-
                 <td
-                  className="rank-table-user-col"
+                  className="rank-table-identity-col"
                   style={{
                     ...tdStyle,
                     textAlign: 'left',
                     fontWeight: 600,
                     color: 'rgb(var(--fg))',
                     position: 'sticky',
-                    left: 'calc(3.6rem - 1px)',
+                    left: 0,
                     zIndex: 4,
                     background: stickyCellBackground,
-                    backgroundClip: 'padding-box',
-                    borderLeft: `1px solid ${stickyCellBackground}`,
                     borderRight: '1px solid rgb(var(--border))',
                   }}
                 >
-                  <span
-                    className="rank-table-user-full"
-                    style={{
-                      display: 'block',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {entry.userName}
-                  </span>
-                  <span
-                    className="rank-table-user-initials"
-                    title={entry.userName}
-                    aria-label={entry.userName}
-                  >
-                    {getInitials(entry.userName)}
+                  <span className="rank-table-identity">
+                    <span
+                      className="rank-table-rank"
+                      style={{
+                        color: isCurrentUser
+                          ? 'rgb(var(--accent-from))'
+                          : 'rgb(var(--fg-muted))',
+                      }}
+                    >
+                      {entry.rank}
+                    </span>
+                    <span
+                      className="rank-table-user-full"
+                      style={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {entry.userName}
+                    </span>
+                    <span
+                      className="rank-table-user-initials"
+                      title={entry.userName}
+                      aria-label={entry.userName}
+                    >
+                      {getInitials(entry.userName)}
+                    </span>
                   </span>
                 </td>
 

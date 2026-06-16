@@ -92,9 +92,9 @@ export default function GroupsPage() {
   ]);
 
   return (
-    <div className="content-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="content-panel main-view-stack">
       {groups.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="main-section-list">
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             const standings = groupStandings[group] || [];
@@ -126,11 +126,11 @@ export default function GroupsPage() {
                 defaultExpanded
                 density="compact"
                 tone="plain"
-                contentStyle={{ marginTop: '0.45rem', paddingTop: '0.55rem' }}
-                style={{ padding: '0.7rem 0.1rem 0.8rem' }}
+                className="main-section-plain"
+                contentStyle={{ marginTop: '0.35rem', paddingTop: '0.45rem' }}
               >
                 {groupMatches.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     {groupMatches.map((match) => {
                       const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
                       const isPastDeadline = Date.now() >= poolDeadline;
@@ -273,7 +273,7 @@ function BestThirdsStandingsContent({
             t={t}
             caption={t('poolDetail.groupPhase.bestThirdsPredictedTitle')}
             showGroup
-            minWidth={680}
+            minWidth={520}
             qualificationCutoff={8}
           />
         </div>
@@ -286,7 +286,7 @@ function BestThirdsStandingsContent({
             t={t}
             caption={t('poolDetail.groupPhase.bestThirdsRealTitle')}
             showGroup
-            minWidth={680}
+            minWidth={520}
             qualificationCutoff={8}
           />
         </div>
@@ -406,6 +406,7 @@ function PredictionStandingsTable({
                   style={{
                     ...standingsThStyle,
                     ...standingsStickyHeaderStyle(column.key),
+                    ...standingsColumnStyle(column.key),
                     textAlign: column.align,
                   }}
                 >
@@ -422,14 +423,14 @@ function PredictionStandingsTable({
                   <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('position'), textAlign: 'center', fontWeight: 800, color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))' }}>
                     {index + 1}
                   </td>
-                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('team'), textAlign: 'left', fontWeight: 700, minWidth: '10rem' }}>
+                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('team'), textAlign: 'left', fontWeight: 700 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
                       <ReactCountryFlag countryCode={countryIsoCode(row.name)} svg style={{ width: '1.5em', height: '1.5em', flexShrink: 0 }} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{countryDisplayName(row.name, t)}</span>
                     </span>
                   </td>
                   {showGroup ? (
-                    <td style={{ ...standingsTdStyle, textAlign: 'center', fontWeight: 800 }}>{row.group}</td>
+                    <td style={{ ...standingsTdStyle, ...standingsColumnStyle('group'), textAlign: 'center', fontWeight: 800 }}>{row.group}</td>
                   ) : null}
                   <td style={standingsPointsStyle}>{row.points}</td>
                   <td style={standingsNumberStyle}>{row.played}</td>
@@ -468,7 +469,7 @@ function PredictionStandingsTable({
 }
 
 const standingsThStyle: CSSProperties = {
-  padding: '0.5rem 0.65rem',
+  padding: '0.5rem 0.45rem',
   fontSize: '0.72rem',
   fontWeight: 800,
   textTransform: 'uppercase',
@@ -482,7 +483,7 @@ const standingsThStyle: CSSProperties = {
 };
 
 const standingsTdStyle: CSSProperties = {
-  padding: '0.5rem 0.65rem',
+  padding: '0.5rem 0.45rem',
   fontSize: '0.76rem',
   color: 'rgb(var(--fg))',
   verticalAlign: 'middle',
@@ -515,7 +516,9 @@ function standingsStickyHeaderStyle(key: string): CSSProperties {
     return {
       left: '3.2rem',
       zIndex: 6,
-      minWidth: '10rem',
+      width: '8rem',
+      minWidth: '8rem',
+      maxWidth: '8rem',
       background: 'rgb(var(--panel-muted-bg-solid))',
       borderRight: '1px solid rgb(var(--border))',
     };
@@ -540,9 +543,40 @@ function standingsStickyCellStyle(key: string): CSSProperties {
       position: 'sticky',
       left: '3.2rem',
       zIndex: 4,
+      width: '8rem',
+      minWidth: '8rem',
+      maxWidth: '8rem',
       background: 'rgb(var(--bg-elevated))',
       backgroundClip: 'padding-box',
       borderRight: '1px solid rgb(var(--border))',
+    };
+  }
+  return {};
+}
+
+function standingsColumnStyle(key: string): CSSProperties {
+  if (key === 'group') {
+    return {
+      width: '2.6rem',
+      minWidth: '2.6rem',
+      maxWidth: '2.6rem',
+      paddingLeft: '0.35rem',
+      paddingRight: '0.35rem',
+    };
+  }
+  if (
+    key === 'points' ||
+    key === 'played' ||
+    key === 'goalsFor' ||
+    key === 'goalsAgainst' ||
+    key === 'goalDifference'
+  ) {
+    return {
+      width: '3.4rem',
+      minWidth: '3.4rem',
+      maxWidth: '3.4rem',
+      paddingLeft: '0.3rem',
+      paddingRight: '0.3rem',
     };
   }
   return {};
