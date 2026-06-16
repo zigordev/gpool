@@ -777,7 +777,7 @@ export function computeRealGroupStandings(
       }
     });
 
-    standings[group] = rankGroupFromResults(Array.from(rowsByTeam.values()));
+    standings[group] = rankGroupFromResults(Array.from(rowsByTeam.values()), groupMatches);
   });
 
   return standings;
@@ -785,16 +785,62 @@ export function computeRealGroupStandings(
 
 function rankGroupFromResults(
   rows: StandingRow[],
+  groupMatches: Match[],
 ): StandingRow[] {
-  return [...rows].sort((a, b) => {
-    return (
-      b.points - a.points ||
-      b.goalDifference - a.goalDifference ||
-      b.goalsFor - a.goalsFor ||
-      a.fairPlay - b.fairPlay ||
-      a.name.localeCompare(b.name)
-    );
+  const byPoints = new Map<number, StandingRow[]>();
+  rows.forEach((row) => {
+    const bucket = byPoints.get(row.points) || [];
+    bucket.push(row);
+    byPoints.set(row.points, bucket);
   });
+
+  return Array.from(byPoints.entries())
+    .sort(([a], [b]) => b - a)
+    .flatMap(([, tiedRows]: [number, StandingRow[]]) => {
+      if (tiedRows.length <= 1) return tiedRows;
+
+      const tiedIds = new Set(tiedRows.map((row: StandingRow) => row.teamId));
+      const headToHead = new Map<string, { points: number; goalDifference: number; goalsFor: number }>();
+      tiedRows.forEach((row: StandingRow) =>
+        headToHead.set(row.teamId, { points: 0, goalDifference: 0, goalsFor: 0 })
+      );
+
+      groupMatches.forEach((match) => {
+        if (!match.homeTeamId || !match.awayTeamId) return;
+        if (!tiedIds.has(match.homeTeamId) || !tiedIds.has(match.awayTeamId)) return;
+        if (typeof match.homeResult !== 'number' || typeof match.awayResult !== 'number') return;
+        if (!Number.isFinite(match.homeResult) || !Number.isFinite(match.awayResult)) return;
+        if (match.status && match.status !== 'completed') return;
+
+        const home = headToHead.get(match.homeTeamId);
+        const away = headToHead.get(match.awayTeamId);
+        if (!home || !away) return;
+
+        home.goalsFor += match.homeResult;
+        away.goalsFor += match.awayResult;
+        home.goalDifference += match.homeResult - match.awayResult;
+        away.goalDifference += match.awayResult - match.homeResult;
+        if (match.homeResult > match.awayResult) {
+          home.points += 3;
+        } else if (match.homeResult < match.awayResult) {
+          away.points += 3;
+        } else {
+          home.points += 1;
+          away.points += 1;
+        }
+      });
+
+      return tiedRows.slice().sort((a: StandingRow, b: StandingRow) => {
+        const home = headToHead.get(a.teamId);
+        const away = headToHead.get(b.teamId);
+        return (
+          (away?.points ?? 0) - (home?.points ?? 0) ||
+          (away?.goalDifference ?? 0) - (home?.goalDifference ?? 0) ||
+          (away?.goalsFor ?? 0) - (home?.goalsFor ?? 0) ||
+          compareRows(a, b)
+        );
+      });
+    });
 }
 
 function selectedTeam(prediction: BracketPredictionProjection | undefined, side: 'home' | 'away'): Team | null {
