@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.33](https://github.com/zigordev/gpool/compare/v0.1.32...v0.1.33) (2026-06-16)
+
+
+### Bug Fixes
+
+* fix missing player in admin view ([#101](https://github.com/zigordev/gpool/issues/101)) ([d008315](https://github.com/zigordev/gpool/commit/d008315ee2c83662c08a1f6ee7c4aa9825f5228a))
+
 ## [0.1.32](https://github.com/zigordev/gpool/compare/v0.1.31...v0.1.32) (2026-06-16)
 
 
