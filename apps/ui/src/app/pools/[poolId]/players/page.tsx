@@ -186,8 +186,7 @@ export default function PlayersPage() {
   if (players.length === 0) {
     return (
       <div
-        className="content-panel"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        className="content-panel main-view-stack"
       >
         <p
           style={{
@@ -206,8 +205,7 @@ export default function PlayersPage() {
 
   return (
     <div
-      className="content-panel"
-      style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+      className="content-panel main-view-stack"
     >
       <div className="players-toolbar players-toolbar--tabs-only">
         <div className="players-tab-bar" role="tablist">
