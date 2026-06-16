@@ -32,6 +32,7 @@ type PlayerOption = {
   label: string;
   teamName: string;
   teamId: string;
+  shirtNumber?: number | null;
   isDisabled: boolean;
 };
 
@@ -94,7 +95,7 @@ export default function PlayersPage() {
   const lockedPlayerIdentity = (player: TournamentPlayer | null | undefined) =>
     player ? (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
-        <PlayerShirt teamName={player.teamName} size={29} />
+        <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={29} />
         <div style={{ display: 'grid', gap: '0.18rem', minWidth: 0 }}>
           <strong
             style={{
@@ -370,6 +371,7 @@ export default function PlayersPage() {
                                   label: player.name,
                                   teamName: player.teamName,
                                   teamId: player.teamId,
+                                  shirtNumber: player.shirtNumber,
                                   isDisabled: false,
                                 }))}
                               value={
@@ -379,6 +381,7 @@ export default function PlayersPage() {
                                       label: selected.name,
                                       teamName: selected.teamName,
                                       teamId: selected.teamId,
+                                      shirtNumber: selected.shirtNumber,
                                       isDisabled: false,
                                     }
                                   : null
@@ -394,7 +397,7 @@ export default function PlayersPage() {
                                 <span
                                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                                 >
-                                  <PlayerShirt teamName={option.teamName} size={25} />
+                                  <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
                                   <ReactCountryFlag
                                     countryCode={countryIsoCode(option.teamName)}
                                     svg
@@ -527,6 +530,7 @@ export default function PlayersPage() {
                               label: player.name,
                               teamName: player.teamName,
                               teamId: player.teamId,
+                              shirtNumber: player.shirtNumber,
                               isDisabled: takenTeamIds.has(player.teamId),
                             }));
                           const selectedOption = selected
@@ -535,6 +539,7 @@ export default function PlayersPage() {
                                 label: selected.name,
                                 teamName: selected.teamName,
                                 teamId: selected.teamId,
+                                shirtNumber: selected.shirtNumber,
                                 isDisabled: false,
                               })
                             : null;
@@ -620,7 +625,7 @@ export default function PlayersPage() {
                                           gap: '0.4rem',
                                         }}
                                       >
-                                        <PlayerShirt teamName={option.teamName} size={25} />
+                                        <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
                                         <ReactCountryFlag
                                           countryCode={countryIsoCode(option.teamName)}
                                           svg
@@ -797,6 +802,7 @@ export default function PlayersPage() {
                                   label: player.name,
                                   teamName: player.teamName,
                                   teamId: player.teamId,
+                                  shirtNumber: player.shirtNumber,
                                   isDisabled: false,
                                 }))}
                               value={
@@ -806,6 +812,7 @@ export default function PlayersPage() {
                                       label: selected.name,
                                       teamName: selected.teamName,
                                       teamId: selected.teamId,
+                                      shirtNumber: selected.shirtNumber,
                                       isDisabled: false,
                                     }
                                   : null
@@ -821,7 +828,7 @@ export default function PlayersPage() {
                                 <span
                                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                                 >
-                                  <PlayerShirt teamName={option.teamName} size={25} />
+                                  <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
                                   <ReactCountryFlag
                                     countryCode={countryIsoCode(option.teamName)}
                                     svg
@@ -903,6 +910,7 @@ export default function PlayersPage() {
                           label: player.name,
                           teamName: player.teamName,
                           teamId: player.teamId,
+                          shirtNumber: player.shirtNumber,
                           isDisabled: takenTeamIds.has(player.teamId),
                         }));
                       const selectedOption = selected
@@ -911,6 +919,7 @@ export default function PlayersPage() {
                             label: selected.name,
                             teamName: selected.teamName,
                             teamId: selected.teamId,
+                            shirtNumber: selected.shirtNumber,
                             isDisabled: false,
                           })
                         : null;
@@ -990,7 +999,7 @@ export default function PlayersPage() {
                                   <span
                                     style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                                   >
-                                    <PlayerShirt teamName={option.teamName} size={25} />
+                                    <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
                                     <ReactCountryFlag
                                       countryCode={countryIsoCode(option.teamName)}
                                       svg

@@ -47,6 +47,7 @@ const STATS: PlayerStatKey[] = [
   'redCards',
 ];
 const AWARDS: PlayerAward[] = ['golden_boot', 'tournament_mvp'];
+const SYSTEM_POOL_ID = 'all-pools';
 
 export const DEFAULT_PLAYER_SCORING = {
   goal: {
@@ -430,6 +431,7 @@ export class PlayerService {
             teamName: item.teamName,
             position: item.position,
             imageUrl: item.imageUrl,
+            shirtNumber: item.shirtNumber,
             count: 1,
           });
         });
@@ -462,6 +464,30 @@ export class PlayerService {
   }
 
   async getPlayerSelectionState(poolId: string, userId: string) {
+    if (poolId === SYSTEM_POOL_ID) {
+      const [players, tournamentAwards] = await Promise.all([
+        this.poolRepository.getTournamentPlayers(),
+        this.poolRepository.getTournamentPlayerAwards(),
+      ]);
+      const scoring = resolvePlayerScoring(null);
+      const awardWinners = resolvePlayerAwardWinners(null, players, tournamentAwards);
+
+      return {
+        players: players.map((player: any) => ({
+          ...player,
+          totalPoints: computePlayerPoints(player, scoring),
+        })),
+        selections: [],
+        awardSelections: [],
+        limits: resolvePlayerSelectionLimits(undefined),
+        scoring,
+        awardWinners: {
+          goldenBootPlayerIds: [...awardWinners.goldenBoot],
+          tournamentMvpPlayerId: [...awardWinners.tournamentMvp][0] || '',
+        },
+      };
+    }
+
     const [pool, players, selections, awardSelections, tournamentAwards] = await Promise.all([
       this.poolRepository.getPool(poolId),
       this.poolRepository.getTournamentPlayers(),

@@ -16,6 +16,7 @@ type PopularPlayer = {
   name: string;
   teamName: string;
   position: PlayerPosition;
+  shirtNumber?: number | null;
   count: number;
   percentage: number;
 };
@@ -197,7 +198,7 @@ function StatisticsGroup({
                   fontWeight: 750,
                 }}
               >
-                <PlayerShirt teamName={player.teamName} size={25} />
+                <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={25} />
                 <ReactCountryFlag
                   countryCode={countryIsoCode(player.teamName)}
                   svg
