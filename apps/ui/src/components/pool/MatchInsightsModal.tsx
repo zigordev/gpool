@@ -648,7 +648,7 @@ function groupPredictionStatus(prediction: any, t: (key: string) => string) {
   if (prediction?.isExactMatch === true) return t('poolDetail.match.exactBadge');
   if (prediction?.isCorrect === true) return t('poolDetail.match.correctWinnerBadge');
   if (prediction?.isCorrect === false) return t('poolDetail.match.incorrectBadge');
-  return t('poolDetail.matchInsights.noPrediction');
+  return t('poolDetail.matchInsights.noResult');
 }
 
 function FinalTeam({

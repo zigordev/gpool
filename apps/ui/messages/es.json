@@ -452,7 +452,7 @@
       "incorrectSide": "Lado incorrecto",
       "loadError": "No se pudo cargar el detalle del partido.",
       "noPlayerActions": "Ningún jugador seleccionado registró acciones en este partido.",
-      "noPrediction": "Sin predicción",
+      "noResult": "Esperando resultado",
       "notGuessed": "Incorrecto",
       "oneXTwo": "1X2",
       "participants": "Participantes",
