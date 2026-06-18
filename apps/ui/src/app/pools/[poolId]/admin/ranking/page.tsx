@@ -19,6 +19,7 @@ export default function AdminRankingPage() {
   const {
     poolId, poolName, setPoolName,
     deadlineLocal, setDeadlineLocal,
+    matchdaySeparatorTime, setMatchdaySeparatorTime,
     entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution,
     maxPrizePaidPositions, prizeTotal, prizePoolTotal, prizeRanksInvalid, prizeTotalInvalid,
@@ -65,6 +66,9 @@ export default function AdminRankingPage() {
             </FormField>
             <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
               <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
+            </FormField>
+            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.matchdaySeparatorTime')}</span>} hint={t('adminResults.scoring.matchdaySeparatorTimeHint')}>
+              <Input type="time" value={matchdaySeparatorTime} onChange={(e) => setMatchdaySeparatorTime(e.target.value)} />
             </FormField>
           </div>
           <div style={configPairGrid}>

@@ -205,7 +205,7 @@ interface PoolContextValue {
   matchesByGroup: Record<string, Match[]>;
   groups: string[];
   predictions: Record<string, Prediction>;
-  ranking: Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }>;
+  ranking: Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; movement?: { previousRank: number; delta: number; matchdayPoints: number } }>;
   bracket: Record<string, any[]>;
   bracketPredictions: Record<string, any>;
   effectiveBracketPredictions: Record<string, any>;
@@ -261,7 +261,7 @@ export function PoolProvider({ children }: { children: React.ReactNode }) {
   const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [loading, setLoading] = useState(true);
   const [saveTimers, setSaveTimers] = useState<Record<string, NodeJS.Timeout>>({});
-  const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }>>([]);
+  const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; movement?: { previousRank: number; delta: number; matchdayPoints: number } }>>([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
 const [teams, setTeams] = useState<Team[]>([]);

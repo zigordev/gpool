@@ -867,6 +867,73 @@ export class PoolRepository {
     return result.rows;
   }
 
+  async getPlayerSelectionsWithMatchStatsForWindow(
+    poolId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ) {
+    const result = await this.postgres.query(
+      `
+        WITH match_window AS (
+          SELECT
+            'group'::text AS match_type,
+            match_id::text AS match_id
+          FROM group_phase_matches
+          WHERE scheduled_at >= $2::timestamptz
+            AND scheduled_at < $3::timestamptz
+          UNION ALL
+          SELECT
+            'final'::text AS match_type,
+            bracket_match_id::text AS match_id
+          FROM final_phase_matches
+          WHERE scheduled_at >= $2::timestamptz
+            AND scheduled_at < $3::timestamptz
+        )
+        SELECT
+          s.pool_id AS "poolId",
+          s.user_id AS "userId",
+          s.position,
+          s.slot::int AS slot,
+          s.player_id AS "playerId",
+          p.team_id AS "teamId",
+          p.team_name AS "teamName",
+          p.name,
+          COALESCE(SUM(ms.goals), 0)::int AS goals,
+          COALESCE(SUM(ms.penalty_goals), 0)::int AS "penaltyGoals",
+          COALESCE(SUM(ms.missed_penalties), 0)::int AS "missedPenalties",
+          COALESCE(SUM(ms.mvps), 0)::int AS mvps,
+          COALESCE(SUM(ms.penalties_saved), 0)::int AS "penaltiesSaved",
+          COALESCE(SUM(ms.shootout_penalties_saved), 0)::int AS "shootoutPenaltiesSaved",
+          COALESCE(SUM(ms.shootout_goals), 0)::int AS "shootoutGoals",
+          COALESCE(SUM(ms.shootout_missed_penalties), 0)::int AS "shootoutMissedPenalties",
+          COALESCE(SUM(ms.clean_sheets), 0)::int AS "cleanSheets",
+          COALESCE(SUM(ms.assists), 0)::int AS assists,
+          COALESCE(SUM(ms.yellow_cards), 0)::int AS "yellowCards",
+          COALESCE(SUM(ms.red_cards), 0)::int AS "redCards"
+        FROM pool_player_selections s
+        INNER JOIN tournament_players p ON p.player_id = s.player_id
+        INNER JOIN tournament_player_match_stats ms ON ms.player_id = s.player_id
+        INNER JOIN match_window mw
+          ON mw.match_type = ms.match_type
+          AND mw.match_id = ms.match_id
+        WHERE s.pool_id = $1
+        GROUP BY
+          s.pool_id,
+          s.user_id,
+          s.position,
+          s.slot,
+          s.player_id,
+          p.team_id,
+          p.team_name,
+          p.name
+        ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
+      `,
+      [poolId, windowStart.toISOString(), windowEnd.toISOString()],
+    );
+
+    return result.rows;
+  }
+
   async getPlayerAwardSelections(poolId: string, userId: string) {
     const result = await this.postgres.query(
       `

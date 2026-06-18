@@ -208,6 +208,8 @@
       "finalExactPosition": "Puntos por posicion exacta correcta",
       "groupPhaseExact": "Puntos por resultado exacto",
       "groupPhaseWinner": "Puntos por ganador correcto",
+      "matchdaySeparatorTime": "Separador de jornada",
+      "matchdaySeparatorTimeHint": "Hora del día que se usa para agrupar los próximos partidos por jornadas.",
       "notSavedInvalid": "Distribución de premios sin guardar",
       "prizeAmountInput": "Importe del premio {number}",
       "prizeNumber": "Premio {number}",
@@ -401,6 +403,7 @@
       "bestThirdsRealTitle": "Mejores terceros de la clasificación real virtual",
       "bestThirdsTitle": "Mejores terceros",
       "group": "Grupo {group}",
+      "nextMatchdayTitle": "Próxima jornada",
       "noMatches": "Aun no hay partidos disponibles.",
       "standings": {
         "eliminated": "Fuera",
@@ -452,6 +455,7 @@
       "incorrectSide": "Lado incorrecto",
       "loadError": "No se pudo cargar el detalle del partido.",
       "noPlayerActions": "Ningún jugador seleccionado registró acciones en este partido.",
+      "noPrediction": "Sin predicción",
       "noResult": "Esperando resultado",
       "notGuessed": "Incorrecto",
       "oneXTwo": "1X2",
@@ -512,6 +516,7 @@
         "loadError": "No se pudo cargar el detalle del jugador.",
         "noActions": "Este jugador todavía no tiene acciones registradas.",
         "noSelections": "Ningún participante seleccionó a este jugador.",
+        "open": "Ver detalle del jugador",
         "selectedByCount": "{selected} de {total} participantes seleccionaron a este jugador",
         "selection": "Selección",
         "title": "Detalle del jugador"
@@ -551,6 +556,12 @@
       "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",
       "finalPhasePoints": "Fase final",
       "groupPhasePoints": "Fase grupos",
+      "movement": {
+        "down": "Bajó {positions} puesto(s) con {points} puntos en la jornada anterior",
+        "previousRank": "Puesto anterior: {rank}",
+        "same": "Sin cambio de puesto con {points} puntos en la jornada anterior",
+        "up": "Subió {positions} puesto(s) con {points} puntos en la jornada anterior"
+      },
       "playerPoints": "Jugadores",
       "prize": "Premio",
       "title": "Clasificación",

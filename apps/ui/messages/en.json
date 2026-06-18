@@ -208,6 +208,8 @@
       "finalExactPosition": "Points for exact correct position",
       "groupPhaseExact": "Points for exact result",
       "groupPhaseWinner": "Points for correct winner",
+      "matchdaySeparatorTime": "Matchday separator",
+      "matchdaySeparatorTimeHint": "Time of day used to group upcoming matches into matchdays.",
       "notSavedInvalid": "Prize distribution not saved",
       "prizeAmountInput": "Amount for prize {number}",
       "prizeNumber": "Prize {number}",
@@ -401,6 +403,7 @@
       "bestThirdsRealTitle": "Real virtual best third-placed teams",
       "bestThirdsTitle": "Best third-placed teams",
       "group": "Group {group}",
+      "nextMatchdayTitle": "Next matchday",
       "noMatches": "There are no matches available yet.",
       "standings": {
         "eliminated": "Out",
@@ -452,6 +455,7 @@
       "incorrectSide": "Wrong side",
       "loadError": "Could not load the match details.",
       "noPlayerActions": "No selected player recorded actions in this match.",
+      "noPrediction": "No prediction",
       "noResult": "Waiting for result",
       "notGuessed": "Incorrect",
       "oneXTwo": "1X2",
@@ -512,6 +516,7 @@
         "loadError": "Could not load the player details.",
         "noActions": "This player has no recorded actions yet.",
         "noSelections": "No participant selected this player.",
+        "open": "View player details",
         "selectedByCount": "{selected} of {total} participants selected this player",
         "selection": "Selection",
         "title": "Player details"
@@ -551,6 +556,12 @@
       "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",
       "finalPhasePoints": "Final phase",
       "groupPhasePoints": "Group phase",
+      "movement": {
+        "down": "Dropped {positions} position(s) with {points} points in the previous matchday",
+        "previousRank": "Previous rank: {rank}",
+        "same": "No rank change with {points} points in the previous matchday",
+        "up": "Climbed {positions} position(s) with {points} points in the previous matchday"
+      },
       "playerPoints": "Players",
       "prize": "Prize",
       "title": "Ranking",

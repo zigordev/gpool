@@ -450,6 +450,8 @@ function MatchSummary({
     match.homeTeamName || match.homeSourceLabel || t('poolDetail.matchInsights.pendingTeam');
   const awayName =
     match.awayTeamName || match.awaySourceLabel || t('poolDetail.matchInsights.pendingTeam');
+  const homeIsoCode = match.homeTeamId ? countryIsoCode(match.homeTeamName) : '';
+  const awayIsoCode = match.awayTeamId ? countryIsoCode(match.awayTeamName) : '';
   const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
 
   return (
@@ -478,15 +480,17 @@ function MatchSummary({
           color: 'rgb(var(--fg))',
         }}
       >
-        <ReactCountryFlag
-          countryCode={countryIsoCode(homeName)}
-          svg
-          style={{
-            width: compact ? '1.3em' : '1.65em',
-            height: compact ? '1.3em' : '1.65em',
-            flexShrink: 0,
-          }}
-        />
+        {homeIsoCode ? (
+          <ReactCountryFlag
+            countryCode={homeIsoCode}
+            svg
+            style={{
+              width: compact ? '1.3em' : '1.65em',
+              height: compact ? '1.3em' : '1.65em',
+              flexShrink: 0,
+            }}
+          />
+        ) : null}
         <span
           style={{
             maxWidth: '100%',
@@ -535,15 +539,17 @@ function MatchSummary({
         >
           {awayName}
         </span>
-        <ReactCountryFlag
-          countryCode={countryIsoCode(awayName)}
-          svg
-          style={{
-            width: compact ? '1.3em' : '1.65em',
-            height: compact ? '1.3em' : '1.65em',
-            flexShrink: 0,
-          }}
-        />
+        {awayIsoCode ? (
+          <ReactCountryFlag
+            countryCode={awayIsoCode}
+            svg
+            style={{
+              width: compact ? '1.3em' : '1.65em',
+              height: compact ? '1.3em' : '1.65em',
+              flexShrink: 0,
+            }}
+          />
+        ) : null}
       </span>
     </span>
   );

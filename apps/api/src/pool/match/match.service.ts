@@ -341,6 +341,8 @@ export class MatchService {
       playerAwardSelections,
       tournamentPlayers,
       tournamentAwards,
+      groupMatches,
+      bracketMatches,
     ] = await Promise.all([
       this.poolRepository.getPool(poolId),
       this.poolRepository.getAllPredictionsForPool(poolId),
@@ -350,14 +352,21 @@ export class MatchService {
       this.poolRepository.getPlayerAwardSelectionsForPool(poolId),
       this.poolRepository.getTournamentPlayers(),
       this.poolRepository.getTournamentPlayerAwards(),
+      this.poolRepository.getMatchesByPool('all-pools'),
+      this.poolRepository.getBracketMatches('all-pools'),
     ]);
 
     const memberUserIds = new Set(members.map((member: any) => member.userId));
 
-    const userPoints = new Map<
-      string,
-      { userId: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; userName: string; userEmail?: string }
-    >();
+    type RankingAccumulator = {
+      userId: string;
+      groupPhasePoints: number;
+      finalPhasePoints: number;
+      playerPoints: number;
+      userName: string;
+      userEmail?: string;
+    };
+    const userPoints = new Map<string, RankingAccumulator>();
     members.forEach((member: any) => {
       const email = member.userEmail || '';
       const userName = member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
@@ -417,8 +426,27 @@ export class MatchService {
       }
     });
 
-    return Array.from(userPoints.values())
-      .sort((a, b) => (b.groupPhasePoints + b.finalPhasePoints + b.playerPoints) - (a.groupPhasePoints + a.finalPhasePoints + a.playerPoints))
+    const latestWindow = latestCompletedMatchdayWindow(
+      [...groupMatches, ...bracketMatches],
+      pool?.config?.matchdaySeparatorTime,
+    );
+    const matchdayPoints = latestWindow
+      ? await this.getMatchdayPointsForUsers({
+          poolId,
+          allPredictions,
+          bracketPredictions,
+          groupMatches,
+          bracketMatches,
+          memberUserIds,
+          playerScoring,
+          playerSelectionLimits,
+          windowStart: latestWindow.start,
+          windowEnd: latestWindow.end,
+        })
+      : new Map<string, number>();
+
+    const currentRanking = Array.from(userPoints.values())
+      .sort((a, b) => totalPoints(b) - totalPoints(a))
       .map((entry, index) => ({
         rank: index + 1,
         userId: entry.userId,
@@ -428,5 +456,155 @@ export class MatchService {
         finalPhasePoints: entry.finalPhasePoints,
         playerPoints: entry.playerPoints,
       }));
+
+    const currentRankByUser = new Map(currentRanking.map((entry) => [entry.userId, entry.rank]));
+    const previousRankByUser = new Map(
+      Array.from(userPoints.values())
+        .sort((a, b) => {
+          const pointDiff =
+            (totalPoints(b) - (matchdayPoints.get(b.userId) || 0)) -
+            (totalPoints(a) - (matchdayPoints.get(a.userId) || 0));
+          if (pointDiff !== 0) return pointDiff;
+          return (currentRankByUser.get(a.userId) || 0) - (currentRankByUser.get(b.userId) || 0);
+        })
+        .map((entry, index) => [entry.userId, index + 1]),
+    );
+
+    if (!latestWindow) {
+      return currentRanking;
+    }
+
+    return currentRanking.map((entry) => {
+      const previousRank = previousRankByUser.get(entry.userId) || entry.rank;
+      const delta = previousRank - entry.rank;
+      return {
+        ...entry,
+        movement: {
+          previousRank,
+          delta,
+          matchdayPoints: matchdayPoints.get(entry.userId) || 0,
+        },
+      };
+    });
   }
+
+  private async getMatchdayPointsForUsers({
+    poolId,
+    allPredictions,
+    bracketPredictions,
+    groupMatches,
+    bracketMatches,
+    memberUserIds,
+    playerScoring,
+    playerSelectionLimits,
+    windowStart,
+    windowEnd,
+  }: {
+    poolId: string;
+    allPredictions: any[];
+    bracketPredictions: any[];
+    groupMatches: any[];
+    bracketMatches: any[];
+    memberUserIds: Set<string>;
+    playerScoring: ReturnType<typeof resolvePlayerScoring>;
+    playerSelectionLimits: ReturnType<typeof resolvePlayerSelectionLimits>;
+    windowStart: Date;
+    windowEnd: Date;
+  }) {
+    const groupMatchIds = new Set(
+      groupMatches
+        .filter((match: any) => isMatchInWindow(match, windowStart, windowEnd))
+        .map((match: any) => match.matchId),
+    );
+    const bracketMatchIds = new Set(
+      bracketMatches
+        .filter((match: any) => isMatchInWindow(match, windowStart, windowEnd))
+        .map((match: any) => match.bracketMatchId),
+    );
+    const pointsByUser = new Map<string, number>();
+    const addPoints = (userId: string, points: number) => {
+      if (!memberUserIds.has(userId)) return;
+      pointsByUser.set(userId, (pointsByUser.get(userId) || 0) + points);
+    };
+
+    allPredictions.forEach((prediction: any) => {
+      if (groupMatchIds.has(prediction.matchId)) {
+        addPoints(prediction.userId, prediction.points || 0);
+      }
+    });
+
+    bracketPredictions.forEach((prediction: any) => {
+      if (bracketMatchIds.has(prediction.bracketMatchId)) {
+        addPoints(prediction.userId, prediction.points || 0);
+      }
+    });
+
+    const playerSelections = await this.poolRepository.getPlayerSelectionsWithMatchStatsForWindow(
+      poolId,
+      windowStart,
+      windowEnd,
+    );
+    playerSelections.forEach((selection: any) => {
+      if (
+        !memberUserIds.has(selection.userId) ||
+        !isSelectionWithinLimits(selection, playerSelectionLimits)
+      ) {
+        return;
+      }
+      addPoints(selection.userId, computePlayerPoints(selection, playerScoring));
+    });
+
+    return pointsByUser;
+  }
+}
+
+function totalPoints(entry: { groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }) {
+  return entry.groupPhasePoints + entry.finalPhasePoints + entry.playerPoints;
+}
+
+function latestCompletedMatchdayWindow(
+  matches: any[],
+  separatorTime: unknown,
+): { start: Date; end: Date } | null {
+  const completedMatches = matches
+    .filter((match) => typeof match.homeResult === 'number' && typeof match.awayResult === 'number')
+    .map((match) => ({ match, scheduledAt: new Date(match.scheduledAt).getTime() }))
+    .filter((entry) => Number.isFinite(entry.scheduledAt))
+    .sort((a, b) => b.scheduledAt - a.scheduledAt);
+
+  if (completedMatches.length === 0) return null;
+  return matchdayWindowFor(new Date(completedMatches[0].scheduledAt), separatorTime);
+}
+
+function isMatchInWindow(match: any, windowStart: Date, windowEnd: Date) {
+  const scheduledAt = new Date(match.scheduledAt).getTime();
+  return (
+    Number.isFinite(scheduledAt) &&
+    scheduledAt >= windowStart.getTime() &&
+    scheduledAt < windowEnd.getTime()
+  );
+}
+
+function matchdayWindowFor(date: Date, separatorTime: unknown): { start: Date; end: Date } {
+  const separator = parseMatchdaySeparatorTime(separatorTime);
+  const start = new Date(date);
+  start.setHours(separator.hours, separator.minutes, 0, 0);
+  if (date.getTime() < start.getTime()) {
+    start.setDate(start.getDate() - 1);
+  }
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+}
+
+function parseMatchdaySeparatorTime(value: unknown): { hours: number; minutes: number } {
+  if (typeof value !== 'string') return { hours: 14, minutes: 0 };
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return { hours: 14, minutes: 0 };
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return { hours: 14, minutes: 0 };
+  }
+  return { hours, minutes };
 }

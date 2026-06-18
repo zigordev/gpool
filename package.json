@@ -32,13 +32,13 @@
     "contract:gen:web": "node ./scripts/generate-api-contract.mjs"
   },
   "overrides": {
-    "multer": "2.1.1",
+    "multer": "2.2.0",
     "protobufjs": "8.6.3",
     "@grpc/proto-loader": {
       "protobufjs": "7.6.4"
     },
     "@nestjs/platform-express": {
-      "multer": "2.1.1"
+      "multer": "2.2.0"
     }
   },
   "devDependencies": {

@@ -298,6 +298,14 @@ export class PoolConfigDto {
     deadline?: number;
 
     @ApiPropertyOptional({
+      description: 'Time of day that separates tournament matchdays, in 24-hour HH:mm format.',
+      example: '14:00',
+    })
+    @IsOptional()
+    @IsString()
+    matchdaySeparatorTime?: string;
+
+    @ApiPropertyOptional({
       description: 'Required entry price (e.g. in EUR) to participate in the pool.',
       example: 10,
     })

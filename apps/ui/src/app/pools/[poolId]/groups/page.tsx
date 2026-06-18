@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
@@ -37,6 +37,7 @@ export default function GroupsPage() {
     handleScoreChange,
   } = usePoolContext();
   const [insightsTarget, setInsightsTarget] = useState<MatchInsightsTarget | null>(null);
+  const [matchdayNow, setMatchdayNow] = useState(() => Date.now());
   const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
   const playerScoringConfig = resolvePlayerInfoScoring(pool?.config?.playerScoring);
   const groupStandings = useMemo(
@@ -61,6 +62,15 @@ export default function GroupsPage() {
       .sort(compareThirdPlaceRows),
     [realGroupStandings],
   );
+  const nextMatchdayMatches = useMemo(
+    () => findNextMatchdayMatches(matchesByGroup, pool?.config?.matchdaySeparatorTime, matchdayNow),
+    [matchesByGroup, matchdayNow, pool?.config?.matchdaySeparatorTime],
+  );
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setMatchdayNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useLayoutEffect(() => {
     setPoolActions(
@@ -91,10 +101,83 @@ export default function GroupsPage() {
     t,
   ]);
 
+  const renderMatchCard = (match: Match) => {
+    const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
+    const isPastDeadline = Date.now() >= poolDeadline;
+    const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+    });
+    const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
+
+    const hasResults = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
+    const isExactMatch = isPastDeadline && hasResults && prediction.isExactMatch === true;
+    const isCorrectWinner = isPastDeadline && hasResults && prediction.isCorrect === true && !isExactMatch;
+    const hasUserPrediction = prediction.homeScore !== '' && prediction.awayScore !== '';
+    const isIncorrect = isPastDeadline && hasResults && hasUserPrediction && prediction.isCorrect === false;
+    const isIncomplete =
+      !isPastDeadline &&
+      (prediction.homeScore === '' || prediction.awayScore === '');
+
+    let state: MatchPredictionState;
+    let badgeLabel: string | undefined;
+    if (isExactMatch) { state = 'exact'; badgeLabel = t('poolDetail.match.exactBadge'); }
+    else if (isCorrectWinner) { state = 'correct-winner'; badgeLabel = t('poolDetail.match.correctWinnerBadge'); }
+    else if (isIncorrect) { state = 'incorrect'; badgeLabel = t('poolDetail.match.incorrectBadge'); }
+    else if (hasResults && !hasUserPrediction && isPastDeadline) { state = 'pending'; badgeLabel = t('poolDetail.match.pendingBadge'); }
+    else if (!hasResults && isPastDeadline) { state = 'locked'; badgeLabel = t('poolDetail.deadline.passedShort'); }
+    else if (isIncomplete) { state = 'incomplete'; badgeLabel = t('poolDetail.match.incomplete'); }
+    else { state = 'open'; }
+
+    return (
+      <MatchPredictionCard
+        key={match.matchId}
+        matchDate={matchDate}
+        homeTeamName={match.homeTeamName}
+        awayTeamName={match.awayTeamName}
+        homeScore={prediction.homeScore}
+        awayScore={prediction.awayScore}
+        homeResult={typeof match.homeResult === 'number' ? match.homeResult : undefined}
+        awayResult={typeof match.awayResult === 'number' ? match.awayResult : undefined}
+        pointsEarned={prediction.points || 0}
+        state={state}
+        badgeLabel={badgeLabel}
+        disabled={isPastDeadline}
+        onChange={(side, value) => handleScoreChange(match.matchId, side, value)}
+        isPastDeadline={isPastDeadline}
+        onOpenInsights={
+          isPastDeadline
+            ? () => setInsightsTarget({
+                matchId: match.matchId,
+                matchType: 'group',
+              })
+            : undefined
+        }
+      />
+    );
+  };
+
   return (
     <div className="content-panel main-view-stack">
       {groups.length > 0 ? (
         <div className="main-section-list">
+          {nextMatchdayMatches.length > 0 ? (
+            <Section
+              title={
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span aria-hidden style={{ width: 3, height: '1rem', borderRadius: '999px', background: 'rgb(var(--fg))' }} />
+                  {t('poolDetail.groupPhase.nextMatchdayTitle')}
+                </span>
+              }
+              density="compact"
+              tone="plain"
+              className="main-section-plain"
+              contentStyle={{ marginTop: '0.35rem', paddingTop: '0.45rem' }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {nextMatchdayMatches.map(renderMatchCard)}
+              </div>
+            </Section>
+          ) : null}
           {groups.map((group) => {
             const groupMatches = matchesByGroup[group] || [];
             const standings = groupStandings[group] || [];
@@ -131,60 +214,7 @@ export default function GroupsPage() {
               >
                 {groupMatches.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    {groupMatches.map((match) => {
-                      const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
-                      const isPastDeadline = Date.now() >= poolDeadline;
-                      const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
-                        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
-                      });
-                      const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
-
-                      const hasResults = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
-                      const isExactMatch = isPastDeadline && hasResults && prediction.isExactMatch === true;
-                      const isCorrectWinner = isPastDeadline && hasResults && prediction.isCorrect === true && !isExactMatch;
-                      const hasUserPrediction = prediction.homeScore !== '' && prediction.awayScore !== '';
-                      const isIncorrect = isPastDeadline && hasResults && hasUserPrediction && prediction.isCorrect === false;
-                      const isIncomplete =
-                        !isPastDeadline &&
-                        (prediction.homeScore === '' || prediction.awayScore === '');
-
-                      let state: MatchPredictionState;
-                      let badgeLabel: string | undefined;
-                      if (isExactMatch) { state = 'exact'; badgeLabel = t('poolDetail.match.exactBadge'); }
-                      else if (isCorrectWinner) { state = 'correct-winner'; badgeLabel = t('poolDetail.match.correctWinnerBadge'); }
-                      else if (isIncorrect) { state = 'incorrect'; badgeLabel = t('poolDetail.match.incorrectBadge'); }
-                      else if (hasResults && !hasUserPrediction && isPastDeadline) { state = 'pending'; badgeLabel = t('poolDetail.match.pendingBadge'); }
-                      else if (!hasResults && isPastDeadline) { state = 'locked'; badgeLabel = t('poolDetail.deadline.passedShort'); }
-                      else if (isIncomplete) { state = 'incomplete'; badgeLabel = t('poolDetail.match.incomplete'); }
-                      else { state = 'open'; }
-
-                      return (
-                        <MatchPredictionCard
-                          key={match.matchId}
-                          matchDate={matchDate}
-                          homeTeamName={match.homeTeamName}
-                          awayTeamName={match.awayTeamName}
-                          homeScore={prediction.homeScore}
-                          awayScore={prediction.awayScore}
-                          homeResult={typeof match.homeResult === 'number' ? match.homeResult : undefined}
-                          awayResult={typeof match.awayResult === 'number' ? match.awayResult : undefined}
-                          pointsEarned={prediction.points || 0}
-                          state={state}
-                          badgeLabel={badgeLabel}
-                          disabled={isPastDeadline}
-                          onChange={(side, value) => handleScoreChange(match.matchId, side, value)}
-                          isPastDeadline={isPastDeadline}
-                          onOpenInsights={
-                            isPastDeadline
-                              ? () => setInsightsTarget({
-                                  matchId: match.matchId,
-                                  matchType: 'group',
-                                })
-                              : undefined
-                          }
-                        />
-                      );
-                    })}
+                    {groupMatches.map(renderMatchCard)}
                   </div>
                 ) : (
                   <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '0.75rem', margin: 0 }}>
@@ -213,6 +243,72 @@ export default function GroupsPage() {
 }
 
 type TranslationFn = (key: string, values?: Record<string, string | number>) => string;
+
+const DEFAULT_MATCHDAY_SEPARATOR_TIME = '14:00';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function findNextMatchdayMatches(
+  matchesByGroup: Record<string, Match[]>,
+  separatorTime: unknown,
+  nowMs: number,
+): Match[] {
+  const separator = parseMatchdaySeparatorTime(separatorTime);
+  const now = new Date(nowMs);
+  const upcoming = Object.values(matchesByGroup)
+    .flat()
+    .filter((match) => {
+      const scheduledAt = new Date(match.scheduledAt).getTime();
+      return Number.isFinite(scheduledAt) && scheduledAt >= nowMs;
+    })
+    .sort((a, b) => {
+      const dateDiff = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+    });
+
+  if (upcoming.length === 0) return [];
+
+  let windowStartMs = nowMs;
+  let windowEndMs = nextCalendarDaySeparator(now, separator).getTime();
+  const lastMatchMs = new Date(upcoming[upcoming.length - 1].scheduledAt).getTime();
+
+  while (windowStartMs <= lastMatchMs) {
+    const matchesInWindow = upcoming.filter((match) => {
+      const scheduledAt = new Date(match.scheduledAt).getTime();
+      return scheduledAt >= windowStartMs && scheduledAt < windowEndMs;
+    });
+    if (matchesInWindow.length > 0) return matchesInWindow;
+    windowStartMs = windowEndMs;
+    windowEndMs += ONE_DAY_MS;
+  }
+
+  return [];
+}
+
+function parseMatchdaySeparatorTime(value: unknown): { hours: number; minutes: number } {
+  if (typeof value !== 'string') return { hours: 14, minutes: 0 };
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim() || DEFAULT_MATCHDAY_SEPARATOR_TIME);
+  if (!match) return { hours: 14, minutes: 0 };
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return { hours: 14, minutes: 0 };
+  }
+  return { hours, minutes };
+}
+
+function nextCalendarDaySeparator(
+  from: Date,
+  separator: { hours: number; minutes: number },
+): Date {
+  const next = new Date(from);
+  next.setDate(next.getDate() + 1);
+  next.setHours(separator.hours, separator.minutes, 0, 0);
+  if (next.getTime() <= from.getTime()) {
+    next.setDate(next.getDate() + 1);
+  }
+  return next;
+}
 
 function GroupStandingsContent({
   standings,

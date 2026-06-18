@@ -1,9 +1,6 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
-import { useI18n } from '@/i18n/client';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -11,10 +8,7 @@ interface LogoProps {
   iconOnly?: boolean;
 }
 
-export function Logo({ size = 'md', iconOnly = false }: LogoProps) {
-  const [imageError, setImageError] = useState(false);
-  const { t } = useI18n();
-
+export function Logo({ size = 'md', iconOnly = false }: Readonly<LogoProps>) {
   const dim = {
     sm: { mark: 36, font: '1rem', wordmark: '1rem' },
     md: { mark: 48, font: '1.25rem', wordmark: '1.25rem' },
@@ -53,28 +47,10 @@ export function Logo({ size = 'md', iconOnly = false }: LogoProps) {
           letterSpacing: '-0.02em',
         }}
       >
-        {!imageError ? (
-          <Image
-            src="/logo.png"
-            alt={t('logo.alt')}
-            width={dim.mark}
-            height={dim.mark}
-            style={{
-              objectFit: 'contain',
-              width: '100%',
-              height: '100%',
-              position: 'relative',
-              zIndex: 1,
-            }}
-            priority
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <span style={{ position: 'relative', zIndex: 1 }}>GP</span>
-        )}
+        <span style={{ position: 'relative', zIndex: 1 }}>GP</span>
       </span>
 
-      {!iconOnly ? (
+      {iconOnly ? null : (
         <span
           style={{
             display: 'inline-flex',
@@ -99,7 +75,7 @@ export function Logo({ size = 'md', iconOnly = false }: LogoProps) {
             </span>
           ) : null}
         </span>
-      ) : null}
+      )}
     </Link>
   );
 }

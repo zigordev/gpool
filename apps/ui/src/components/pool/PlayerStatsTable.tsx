@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
@@ -119,6 +119,7 @@ interface PlayerStatsTableProps {
   isStatVisible?: (player: TournamentPlayer, stat: PlayerStatKey) => boolean;
   statsDisabled?: boolean;
   toolbar?: React.ReactNode;
+  onOpenInsights?: (player: TournamentPlayer) => void;
 }
 
 export function PlayerStatsTable({
@@ -135,6 +136,7 @@ export function PlayerStatsTable({
   isStatVisible = () => true,
   statsDisabled = false,
   toolbar,
+  onOpenInsights,
 }: Readonly<PlayerStatsTableProps>) {
   const [sortKey, setSortKey] = useState<PlayerSortKey>('totalPoints');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -316,6 +318,14 @@ export function PlayerStatsTable({
                 const totalPts = computeTotal(player);
                 const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
                 const isMVP = tournamentMvpPlayerId === player.playerId;
+                const openInsights = onOpenInsights
+                  ? () => onOpenInsights(player)
+                  : undefined;
+                const handleInsightsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+                  if (!openInsights || (event.key !== 'Enter' && event.key !== ' ')) return;
+                  event.preventDefault();
+                  openInsights();
+                };
                 return (
                   <tr
                     key={player.playerId}
@@ -332,7 +342,21 @@ export function PlayerStatsTable({
                         borderRight: '1px solid rgb(var(--border))',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div
+                        role={openInsights ? 'button' : undefined}
+                        tabIndex={openInsights ? 0 : undefined}
+                        title={openInsights ? t('poolDetail.players.insights.open') : undefined}
+                        onClick={openInsights}
+                        onKeyDown={handleInsightsKeyDown}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          cursor: openInsights ? 'pointer' : undefined,
+                          borderRadius: 'var(--radius-md)',
+                          outlineOffset: '3px',
+                        }}
+                      >
                         <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={30} />
                         {player.imageUrl ? (
                           <span
