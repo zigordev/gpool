@@ -77,16 +77,19 @@ export function RankTable({
               entry.userName === currentUserEmail;
 
             const prize = prizeForRank(entry.rank);
-            const stickyCellBackground = 'rgb(var(--bg-elevated))';
+            const rowBackground = isCurrentUser
+              ? 'rgb(var(--accent-from) / 0.08)'
+              : 'transparent';
+            const stickyCellBackground = isCurrentUser
+              ? rowBackground
+              : 'rgb(var(--bg-elevated))';
             const movement = entry.movement;
 
             return (
               <tr
                 key={`${entry.rank}-${entry.userName}`}
                 style={{
-                  background: isCurrentUser
-                    ? 'rgb(var(--accent-from) / 0.08)'
-                    : 'transparent',
+                  background: rowBackground,
                   boxShadow: isCurrentUser
                     ? 'inset 3px 0 0 rgb(var(--accent-from))'
                     : 'none',
