@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.37](https://github.com/zigordev/gpool/compare/v0.1.36...v0.1.37) (2026-06-18)
+
+
+### Features
+
+* ranking and group phase improvements ([#109](https://github.com/zigordev/gpool/issues/109)) ([d3a1ea8](https://github.com/zigordev/gpool/commit/d3a1ea86edbff453c0293ebf80192fca703a20ce))
+
 ## [0.1.36](https://github.com/zigordev/gpool/compare/v0.1.35...v0.1.36) (2026-06-16)
 
 
