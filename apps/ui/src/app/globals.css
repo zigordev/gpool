@@ -1136,6 +1136,13 @@ html.dark .players-pitch-board {
   text-align: center;
 }
 
+.rank-table-user-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .rank-table-user-initials {
   display: none;
 }

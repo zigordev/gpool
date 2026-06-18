@@ -11,6 +11,11 @@ interface RankingEntry {
   groupPhasePoints: number;
   finalPhasePoints: number;
   playerPoints: number;
+  movement?: {
+    previousRank: number;
+    delta: number;
+    matchdayPoints: number;
+  };
 }
 
 interface Props {
@@ -73,6 +78,7 @@ export function RankTable({
 
             const prize = prizeForRank(entry.rank);
             const stickyCellBackground = 'rgb(var(--bg-elevated))';
+            const movement = entry.movement;
 
             return (
               <tr
@@ -112,23 +118,32 @@ export function RankTable({
                     >
                       {entry.rank}
                     </span>
-                    <span
-                      className="rank-table-user-full"
-                      style={{
-                        display: 'block',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {entry.userName}
-                    </span>
-                    <span
-                      className="rank-table-user-initials"
-                      title={entry.userName}
-                      aria-label={entry.userName}
-                    >
-                      {getInitials(entry.userName)}
+                    <span className="rank-table-user-cell">
+                      {movement ? (
+                        <RankMovementBadge
+                          delta={movement.delta}
+                          matchdayPoints={movement.matchdayPoints}
+                          previousRank={movement.previousRank}
+                        />
+                      ) : null}
+                      <span
+                        className="rank-table-user-full"
+                        style={{
+                          display: 'block',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {entry.userName}
+                      </span>
+                      <span
+                        className="rank-table-user-initials"
+                        title={entry.userName}
+                        aria-label={entry.userName}
+                      >
+                        {getInitials(entry.userName)}
+                      </span>
                     </span>
                   </span>
                 </td>
@@ -216,6 +231,51 @@ function RankHeaderIconLabel({ icon, label }: Readonly<{ icon: React.ReactNode; 
     <span className="rank-table-header-label" title={label} aria-label={label}>
       <span className="rank-table-header-icon">{icon}</span>
       <span className="rank-table-header-text">{label}</span>
+    </span>
+  );
+}
+
+function RankMovementBadge({
+  delta,
+  matchdayPoints,
+  previousRank,
+}: Readonly<{ delta: number; matchdayPoints: number; previousRank: number }>) {
+  const { t } = useI18n();
+  const movedUp = delta > 0;
+  const movedDown = delta < 0;
+  const label = movedUp
+    ? t('poolDetail.ranking.movement.up', { positions: delta, points: matchdayPoints })
+    : movedDown
+      ? t('poolDetail.ranking.movement.down', { positions: Math.abs(delta), points: matchdayPoints })
+      : t('poolDetail.ranking.movement.same', { points: matchdayPoints });
+
+  return (
+    <span
+      title={`${label} · ${t('poolDetail.ranking.movement.previousRank', { rank: previousRank })}`}
+      aria-label={`${label}. ${t('poolDetail.ranking.movement.previousRank', { rank: previousRank })}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '1rem',
+        fontSize: '0.62rem',
+        fontWeight: 850,
+        color: movedUp
+          ? 'rgb(var(--pitch))'
+          : movedDown
+            ? 'rgb(var(--live))'
+            : 'rgb(var(--fg-subtle))',
+        background: movedUp
+          ? 'transparent'
+          : movedDown
+            ? 'transparent'
+            : 'transparent',
+        border: 0,
+        lineHeight: 1,
+        flexShrink: 0,
+      }}
+    >
+      {movedUp ? `▲${delta}` : movedDown ? `▼${Math.abs(delta)}` : '–'}
     </span>
   );
 }
