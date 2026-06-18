@@ -210,12 +210,12 @@ if [ -n "$tolgee_project_id" ]; then
 fi
 
 echo "Ensuring PostgreSQL database exists: $db_name"
-docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml up -d postgres
+docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml up -d gpool_db
 
 i=1
 while [ $i -le 60 ]; do
-  if docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
-    sh -lc "pg_isready -U \"$db_user\" -d postgres >/dev/null 2>&1"; then
+  if docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T gpool_db \
+    sh -lc "pg_isready -U \"$db_user\" -d gpool >/dev/null 2>&1"; then
     break
   fi
   sleep 2
@@ -228,24 +228,24 @@ if [ $i -gt 60 ]; then
 fi
 
 echo "Synchronizing PostgreSQL role password with OpenBao..."
-docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
+docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T gpool_db \
   psql \
     -v ON_ERROR_STOP=1 \
     -v db_password="$postgres_password" \
     -U "$db_user" \
-    -d postgres <<'SQL'
+    -d gpool <<'SQL'
 SELECT format('ALTER ROLE %I WITH PASSWORD %L', current_user, :'db_password') \gexec
 SQL
 
 db_exists="$(
-  docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
-    sh -lc "psql -U \"$db_user\" -d postgres -tAc \"SELECT 1 FROM pg_database WHERE datname = '$db_name'\""
+  docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T gpool_db \
+    sh -lc "psql -U \"$db_user\" -d gpool -tAc \"SELECT 1 FROM pg_database WHERE datname = '$db_name'\""
 )"
 db_exists="$(printf '%s' "$db_exists" | tr -d '[:space:]')"
 
 if [ "$db_exists" != "1" ]; then
-  docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T postgres \
-    sh -lc "psql -U \"$db_user\" -d postgres -c \"CREATE DATABASE \\\"$db_name\\\";\""
+  docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml exec -T gpool_db \
+    sh -lc "psql -U \"$db_user\" -d gpool -c \"CREATE DATABASE \\\"$db_name\\\";\""
 fi
 
 docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml up -d --build --force-recreate --remove-orphans
