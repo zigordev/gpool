@@ -8,7 +8,7 @@ x-logging: &default-logging
     labels: "com.docker.compose.project,com.docker.compose.service"
 
 services:
-  gpool_postgres:
+  gpool_db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
