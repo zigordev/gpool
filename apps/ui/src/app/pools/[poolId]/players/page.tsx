@@ -1098,6 +1098,15 @@ export default function PlayersPage() {
               isStatVisible={(player, stat) =>
                 isPlayerStatEnabled(playerInfoScoring, player.position, stat)
               }
+              onOpenInsights={
+                isPastPoolDeadline
+                  ? (player) =>
+                      setPlayerInsightsTarget({
+                        playerId: player.playerId,
+                        selectionType: 'position',
+                      })
+                  : undefined
+              }
               toolbar={
                 <div
                   style={{

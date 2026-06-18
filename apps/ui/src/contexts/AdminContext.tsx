@@ -19,6 +19,7 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const DEFAULT_POOL_DEADLINE = new Date('2026-06-08T00:00:00Z').getTime();
+export const DEFAULT_MATCHDAY_SEPARATOR_TIME = '14:00';
 
 export const PHASES = [
   { key: '16th-finals', labelKey: 'bracket.round.16th', matches: 16 },
@@ -334,6 +335,7 @@ export function buildConfigPayloadFrom(input: {
   playerSelectionLimits: PlayerSelectionLimits;
   awardWinners: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
   deadlineLocal: string;
+  matchdaySeparatorTime: string;
   entryFee: number;
   memberCount: number;
   prizeDistribution: PrizePayout[];
@@ -378,6 +380,7 @@ export function buildConfigPayloadFrom(input: {
     playerSelectionLimits: input.playerSelectionLimits,
     playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
     deadline: fromDateTimeLocal(input.deadlineLocal),
+    matchdaySeparatorTime: normalizeMatchdaySeparatorTime(input.matchdaySeparatorTime),
     entryFee,
     ...(prizeDistributionIsValid
       ? {
@@ -391,6 +394,18 @@ export function buildConfigPayloadFrom(input: {
         }
       : {}),
   };
+}
+
+function normalizeMatchdaySeparatorTime(value: unknown): string {
+  if (typeof value !== 'string') return DEFAULT_MATCHDAY_SEPARATOR_TIME;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return DEFAULT_MATCHDAY_SEPARATOR_TIME;
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return DEFAULT_MATCHDAY_SEPARATOR_TIME;
+  }
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlayerScoringConfig): number {
@@ -433,6 +448,8 @@ interface AdminContextValue {
   savingConfig: boolean;
   deadlineLocal: string;
   setDeadlineLocal: React.Dispatch<React.SetStateAction<string>>;
+  matchdaySeparatorTime: string;
+  setMatchdaySeparatorTime: React.Dispatch<React.SetStateAction<string>>;
   entryFee: number;
   setEntryFee: React.Dispatch<React.SetStateAction<number>>;
   prizeDistribution: PrizePayout[];
@@ -516,6 +533,7 @@ export function AdminProvider({
   const [poolName, setPoolName] = useState<string>('');
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
   const [deadlineLocal, setDeadlineLocal] = useState<string>(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
+  const [matchdaySeparatorTime, setMatchdaySeparatorTime] = useState<string>(DEFAULT_MATCHDAY_SEPARATOR_TIME);
   const [entryFee, setEntryFee] = useState<number>(0);
   const [prizeDistribution, setPrizeDistribution] = useState<PrizePayout[]>([]);
   const [playerAwardWinnersConfig, setPlayerAwardWinnersConfig] = useState<{ goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string }>({ goldenBootPlayerIds: [], tournamentMvpPlayerId: '' });
@@ -580,6 +598,7 @@ export function AdminProvider({
           const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
           setPoolMemberCount(memberCount);
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
+          setMatchdaySeparatorTime(normalizeMatchdaySeparatorTime(pool?.config?.matchdaySeparatorTime));
           setEntryFee(typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0);
           const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
           const loadedPrizePoolTotal = loadedEntryFee * memberCount;
@@ -613,12 +632,13 @@ export function AdminProvider({
           setPlayerAwardWinnersConfig(loadedAwardWinners);
 
           const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
+          const loadedMatchdaySeparatorTime = normalizeMatchdaySeparatorTime(pool?.config?.matchdaySeparatorTime);
           const loadedPrizeDistribution = normalizePrizeDistribution(
             pool?.config?.prizeDistribution,
             prizePaidPositionsLimit(memberCount),
             loadedPrizePoolTotal,
           );
-          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, entryFee: loadedEntryFee, memberCount, prizeDistribution: loadedPrizeDistribution }));
+          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, matchdaySeparatorTime: loadedMatchdaySeparatorTime, entryFee: loadedEntryFee, memberCount, prizeDistribution: loadedPrizeDistribution }));
 
           const bracketData = bracketResponse.data || {};
           setBracket(bracketData);
@@ -677,7 +697,7 @@ export function AdminProvider({
     }, 600);
     return () => { if (configSaveTimer.current) { clearTimeout(configSaveTimer.current); configSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, entryFee, prizeDistribution, poolId, loading, systemMode]);
+  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, prizeDistribution, poolId, loading, systemMode]);
 
   useEffect(() => {
     if (systemMode || loading || !poolId) return;
@@ -700,7 +720,7 @@ export function AdminProvider({
   const autoSaveConfig = async () => {
     if (!poolId) return;
     if (prizeTotalInvalid) return;
-    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, entryFee, memberCount: poolMemberCount, prizeDistribution });
+    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, memberCount: poolMemberCount, prizeDistribution });
     const snapshot = JSON.stringify(payload);
     if (snapshot === lastSavedConfig.current) return;
     try {
@@ -914,7 +934,7 @@ export function AdminProvider({
     systemMode, poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
     scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
     playerScoringConfig, setPlayerScoringConfig, playerSelectionLimits, setPlayerSelectionLimits, savingConfig,
-    deadlineLocal, setDeadlineLocal, entryFee, setEntryFee,
+    deadlineLocal, setDeadlineLocal, matchdaySeparatorTime, setMatchdaySeparatorTime, entryFee, setEntryFee,
     prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
     bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
     playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingPlayerAward, updatingTeamFairPlay, updatingMatch,
