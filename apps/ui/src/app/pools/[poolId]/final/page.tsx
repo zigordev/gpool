@@ -2,24 +2,33 @@
 
 import toast from 'react-hot-toast';
 import { useLayoutEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { FaMagic } from 'react-icons/fa';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
-import { BracketVisualization } from '@/components/BracketVisualization';
-import {
-  MatchInsightsModal,
-  type MatchInsightsTarget,
-} from '@/components/pool/MatchInsightsModal';
+import type { MatchInsightsTarget } from '@/components/pool/MatchInsightsModal';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { apiClient } from '@/lib/api';
 import { buildBracketProjection } from '@/lib/bracket-projection';
-import { WinnerInsightsModal } from '@/components/pool/WinnerInsightsModal';
 import {
   FinalScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
 import { useNavCenter } from '@/contexts/NavCenterContext';
+
+const BracketVisualization = dynamic(
+  () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
+  { ssr: false },
+);
+const MatchInsightsModal = dynamic(
+  () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),
+  { ssr: false },
+);
+const WinnerInsightsModal = dynamic(
+  () => import('@/components/pool/WinnerInsightsModal').then((mod) => mod.WinnerInsightsModal),
+  { ssr: false },
+);
 
 export default function FinalPage() {
   const { t } = useI18n();

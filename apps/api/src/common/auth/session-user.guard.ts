@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { Request } from 'express';
+import type { AuthRole, Locale } from './authenticated-user';
 
 const USER_ID_HEADER = 'x-auth-user-id';
 const USER_EMAIL_HEADER = 'x-auth-user-email';
@@ -16,9 +17,6 @@ const USER_NAME_HEADER = 'x-auth-user-name';
 const USER_LOCALE_HEADER = 'x-auth-user-locale';
 const USER_EXP_HEADER = 'x-auth-user-exp';
 const SIGNATURE_HEADER = 'x-auth-signature';
-
-type AuthRole = 'admin' | 'user';
-type Locale = 'es' | 'en';
 
 function normalizeEmail(value: string | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -91,7 +89,7 @@ export class SessionUserGuard implements CanActivate {
       throw new ForbiddenException('Invalid session signature');
     }
 
-    (request as any).user = {
+    request.user = {
       userId,
       email,
       role,

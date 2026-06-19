@@ -64,8 +64,8 @@ export function Modal({
           'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
         );
         if (focusable.length === 0) return;
-        const firstEl = focusable[0]!;
-        const lastEl = focusable[focusable.length - 1]!;
+        const firstEl = focusable[0];
+        const lastEl = focusable[focusable.length - 1];
         const active = document.activeElement;
         if (event.shiftKey && active === firstEl) {
           event.preventDefault();

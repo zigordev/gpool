@@ -49,7 +49,7 @@ const STATS: PlayerStatKey[] = [
 const AWARDS: PlayerAward[] = ['golden_boot', 'tournament_mvp'];
 const SYSTEM_POOL_ID = 'all-pools';
 
-export const DEFAULT_PLAYER_SCORING = {
+const DEFAULT_PLAYER_SCORING = {
   goal: {
     goalkeeper: 0,
     defender: 0,

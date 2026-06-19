@@ -11,6 +11,7 @@ import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import Image from 'next/image';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 type PlayerActionGroup = 'match' | 'penalty' | 'shootout';
@@ -175,8 +176,8 @@ export function PlayerStatsTable({
     const aVal = sortKey === 'totalPoints' ? computeTotal(a) : a[sortKey] || 0;
     const bVal = sortKey === 'totalPoints' ? computeTotal(b) : b[sortKey] || 0;
     return sortDir === 'asc'
-      ? (aVal as number) - (bVal as number)
-      : (bVal as number) - (aVal as number);
+      ? (aVal) - (bVal)
+      : (bVal) - (aVal);
   });
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
@@ -373,7 +374,7 @@ export function PlayerStatsTable({
                               border: '1px solid rgb(var(--border))',
                             }}
                           >
-                            <img
+                            <Image
                               src={player.imageUrl}
                               alt=""
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -433,9 +434,7 @@ export function PlayerStatsTable({
                                 : undefined,
                           }}
                         >
-                          {!statVisibleForPlayer ? (
-                            <span style={statNumberStyle}>0</span>
-                          ) : editable ? (
+                          {statVisibleForPlayer ? editable ? (
                             <span
                               style={{
                                 display: 'inline-flex',
@@ -479,6 +478,8 @@ export function PlayerStatsTable({
                             </span>
                           ) : (
                             <span style={statNumberStyle}>{value}</span>
+                          ) : (
+                            <span style={statNumberStyle}>0</span>
                           )}
                         </td>
                       );

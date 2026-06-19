@@ -1,27 +1,30 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
+import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
 import { Section } from '@/components/ui/Section';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
-import {
-  MatchInsightsModal,
-  type MatchInsightsTarget,
-} from '@/components/pool/MatchInsightsModal';
+import type { MatchInsightsTarget } from '@/components/pool/MatchInsightsModal';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';
 import {
   GroupScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
 import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
-import { compareThirdPlaceRows, computeGroupStandings, computeRealGroupStandings } from '@/lib/bracket-projection';
+import { compareRows, computeGroupStandings, computeRealGroupStandings } from '@/lib/bracket-projection';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
 import { useNavCenter } from '@/contexts/NavCenterContext';
+
+const MatchInsightsModal = dynamic(
+  () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),
+  { ssr: false },
+);
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
@@ -38,8 +41,15 @@ export default function GroupsPage() {
   } = usePoolContext();
   const [insightsTarget, setInsightsTarget] = useState<MatchInsightsTarget | null>(null);
   const [matchdayNow, setMatchdayNow] = useState(() => Date.now());
-  const groupScoringConfig = resolveGroupScoring(pool?.config?.scoring);
-  const playerScoringConfig = resolvePlayerInfoScoring(pool?.config?.playerScoring);
+  const groupScoringConfig = useMemo(
+    () => resolveGroupScoring(pool?.config?.scoring),
+    [pool?.config?.scoring],
+  );
+
+  const playerScoringConfig = useMemo(
+    () => resolvePlayerInfoScoring(pool?.config?.playerScoring),
+    [pool?.config?.playerScoring],
+  );
   const groupStandings = useMemo(
     () => computeGroupStandings(matchesByGroup, predictions, teams),
     [matchesByGroup, predictions, teams],
@@ -52,14 +62,14 @@ export default function GroupsPage() {
     () => Object.values(groupStandings)
       .map((standings) => standings[2])
       .filter(Boolean)
-      .sort(compareThirdPlaceRows),
+      .sort(compareRows),
     [groupStandings],
   );
   const realBestThirdsRanking = useMemo(
     () => Object.values(realGroupStandings)
       .map((standings) => standings[2])
       .filter(Boolean)
-      .sort(compareThirdPlaceRows),
+      .sort(compareRows),
     [realGroupStandings],
   );
   const nextMatchdayMatches = useMemo(
@@ -68,8 +78,8 @@ export default function GroupsPage() {
   );
 
   useEffect(() => {
-    const timer = window.setInterval(() => setMatchdayNow(Date.now()), 60_000);
-    return () => window.clearInterval(timer);
+    const timer = globalThis.setInterval(() => setMatchdayNow(Date.now()), 60_000);
+    return () => globalThis.clearInterval(timer);
   }, []);
 
   useLayoutEffect(() => {
@@ -94,8 +104,7 @@ export default function GroupsPage() {
     return () => setPoolActions(null);
   }, [
     bestThirdsRanking,
-    groupScoringConfig.exactResultPoints,
-    groupScoringConfig.winnerPoints,
+    groupScoringConfig,
     realBestThirdsRanking,
     setPoolActions,
     t,

@@ -8,14 +8,12 @@ import {
   Body,
   UseGuards,
   Req,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { PoolService } from './pool.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
@@ -133,30 +131,6 @@ export class PoolController {
     return this.poolService.acceptInvitation(poolId, user.userId, user.email, user.name);
   }
 
-  @Post(':poolId/leave')
-  @ApiOperation({ summary: 'Leave a pool' })
-  @ApiResponse({ status: 200, description: 'Successfully left pool' })
-  @ApiResponse({ status: 400, description: 'Not a member or cannot leave' })
-  @ApiResponse({ status: 404, description: 'Pool not found' })
-  async leavePool(@Param('poolId') poolId: string, @Req() req: Request) {
-    const user = req.user as any;
-    return this.poolService.leavePool(poolId, user.userId);
-  }
-
-  @Delete(':poolId/members/:userId')
-  @ApiOperation({ summary: 'Remove member from pool (pool membership admin only)' })
-  @ApiResponse({ status: 200, description: 'Member removed successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
-  @ApiResponse({ status: 404, description: 'Pool not found' })
-  async removeMember(
-    @Param('poolId') poolId: string,
-    @Param('userId') userId: string,
-    @Req() req: Request,
-  ) {
-    const user = req.user as any;
-    return this.poolService.removeMember(poolId, userId, user.userId, user.role);
-  }
-
   @Put(':poolId/configuration')
   @ApiOperation({ summary: 'Update pool configuration (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Configuration updated successfully' })
@@ -169,29 +143,5 @@ export class PoolController {
   ) {
     const user = req.user as any;
     return this.poolService.updatePoolConfiguration(poolId, newConfig, user.userId, user.role);
-  }
-
-  @Put(':poolId/membership/config')
-  @ApiOperation({ summary: 'Update current user membership settings for a pool' })
-  @ApiResponse({ status: 200, description: 'Membership settings updated successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Must be a member' })
-  @ApiResponse({ status: 404, description: 'Pool not found' })
-  async updateMembershipConfig(
-    @Param('poolId') poolId: string,
-    @Body() config: Record<string, any>,
-    @Req() req: Request,
-  ) {
-    const user = req.user as any;
-    return this.poolService.updateMembershipConfig(poolId, user.userId, config);
-  }
-
-  @Get(':poolId/members')
-  @ApiOperation({ summary: 'Get pool members' })
-  @ApiResponse({ status: 200, description: 'List of pool members' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Must be a member' })
-  @ApiResponse({ status: 404, description: 'Pool not found' })
-  async getPoolMembers(@Param('poolId') poolId: string, @Req() req?: Request) {
-    const user = req?.user as any;
-    return this.poolService.getPoolMembers(poolId, user?.userId, user?.role);
   }
 }

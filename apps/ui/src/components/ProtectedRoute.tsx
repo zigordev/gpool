@@ -1,20 +1,19 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { Loading } from './Loading';
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) {
   const { isAuthenticated, loading } = useAuth();
   const { t } = useI18n();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      const redirectPath = `${window.location.pathname || '/pools'}${window.location.search || ''}`;
+      const redirectPath = `${globalThis.location.pathname || '/pools'}${globalThis.location.search || ''}`;
       router.push(`/login?redirect=${encodeURIComponent(redirectPath)}`);
     }
   }, [isAuthenticated, loading, router]);

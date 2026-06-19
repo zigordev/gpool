@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -12,21 +13,24 @@ import {
 } from '@/contexts/PoolContext';
 import { RankTable } from '@/components/pool/RankTable';
 import { Modal } from '@/components/ui/Modal';
-import { BracketVisualization } from '@/components/BracketVisualization';
 import ReactCountryFlag from 'react-country-flag';
 import { countryIsoCode } from '@/lib/country-flags';
 import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
-import { GeneralPoolInfoSection } from '@/components/pool/PoolInfoSections';
-import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
+import { GeneralPoolInfoSection , resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
 import { ReadOnlyGroupMatchCard } from '@/components/pool/ReadOnlyGroupMatchCard';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+
+const BracketVisualization = dynamic(
+  () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
+  { ssr: false },
+);
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -95,7 +99,7 @@ function SpyPicksModal({
   const playerByAward = useMemo(() => {
     const map = new Map<PlayerAward, PlayerAwardSelection>();
     if (data)
-      for (const sel of data.playerAwardSelections || []) map.set(sel.award as PlayerAward, sel);
+      for (const sel of data.playerAwardSelections || []) map.set(sel.award, sel);
     return map;
   }, [data]);
 
@@ -147,7 +151,7 @@ function SpyPicksModal({
           >
             {error}
           </p>
-        ) : !data ? null : tab === 'groups' ? (
+        ) : data ? tab === 'groups' ? (
           <SpyGroupsView
             data={data}
             groups={groups}
@@ -173,7 +177,7 @@ function SpyPicksModal({
               data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0
             }
           />
-        )}
+        ) : null}
       </div>
     </Modal>
   );
@@ -277,7 +281,7 @@ function SpyFinalView({
         deadline={1}
         candidateOptions={{}}
       />
-      {!hasPredictions ? (
+      {hasPredictions ? null : (
         <p
           style={{
             color: 'rgb(var(--fg-subtle))',
@@ -288,7 +292,7 @@ function SpyFinalView({
         >
           {t('poolDetail.spy.empty.bracket')}
         </p>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -352,7 +356,7 @@ function SpyPlayersView({
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
           {PLAYER_AWARDS.map((award) => {
-            const sel = playerByAward.get(award.key as PlayerAward);
+            const sel = playerByAward.get(award.key);
             return (
               <div
                 key={award.key}

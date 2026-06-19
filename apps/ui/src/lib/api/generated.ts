@@ -7,11 +7,6 @@ export type ApiOperation = {
   operationId: 'PoolController_deletePool';
   responseCodes: ['200', '403', '404'];
 } | {
-  method: 'DELETE';
-  path: '/api/pools/{poolId}/members/{userId}';
-  operationId: 'PoolController_removeMember';
-  responseCodes: ['200', '403', '404'];
-} | {
   method: 'GET';
   path: '/api/auth/me';
   operationId: 'AuthController_getMe';
@@ -80,11 +75,6 @@ export type ApiOperation = {
   method: 'GET';
   path: '/api/pools/{poolId}/matches/teams';
   operationId: 'MatchController_getAllTeams';
-  responseCodes: ['200'];
-} | {
-  method: 'GET';
-  path: '/api/pools/{poolId}/matches/teams/group/{group}';
-  operationId: 'MatchController_getTeamsByGroup';
   responseCodes: ['200'];
 } | {
   method: 'GET';
@@ -163,11 +153,6 @@ export type ApiOperation = {
   responseCodes: ['200', '403', '404'];
 } | {
   method: 'POST';
-  path: '/api/pools/{poolId}/leave';
-  operationId: 'PoolController_leavePool';
-  responseCodes: ['200', '400', '404'];
-} | {
-  method: 'POST';
   path: '/api/pools/{poolId}/matches/{matchId}/predict';
   operationId: 'MatchController_submitPrediction';
   responseCodes: ['200', '400', '404'];
@@ -213,11 +198,6 @@ export type ApiOperation = {
   responseCodes: ['200', '400', '403', '404'];
 } | {
   method: 'PUT';
-  path: '/api/pools/{poolId}/membership/config';
-  operationId: 'PoolController_updateMembershipConfig';
-  responseCodes: ['200', '403', '404'];
-} | {
-  method: 'PUT';
   path: '/api/pools/{poolId}/players/{playerId}/stats';
   operationId: 'PlayerController_updatePlayerStats';
   responseCodes: ['200'];
@@ -238,23 +218,13 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 47 as const;
+export const API_OPERATION_COUNT = 43 as const;
 
 export const API_OPERATIONS = [
   {
     "method": "DELETE",
     "path": "/api/pools/{poolId}",
     "operationId": "PoolController_deletePool",
-    "responseCodes": [
-      "200",
-      "403",
-      "404"
-    ]
-  },
-  {
-    "method": "DELETE",
-    "path": "/api/pools/{poolId}/members/{userId}",
-    "operationId": "PoolController_removeMember",
     "responseCodes": [
       "200",
       "403",
@@ -375,14 +345,6 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/pools/{poolId}/matches/teams",
     "operationId": "MatchController_getAllTeams",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/api/pools/{poolId}/matches/teams/group/{group}",
-    "operationId": "MatchController_getTeamsByGroup",
     "responseCodes": [
       "200"
     ]
@@ -526,16 +488,6 @@ export const API_OPERATIONS = [
   },
   {
     "method": "POST",
-    "path": "/api/pools/{poolId}/leave",
-    "operationId": "PoolController_leavePool",
-    "responseCodes": [
-      "200",
-      "400",
-      "404"
-    ]
-  },
-  {
-    "method": "POST",
     "path": "/api/pools/{poolId}/matches/{matchId}/predict",
     "operationId": "MatchController_submitPrediction",
     "responseCodes": [
@@ -615,16 +567,6 @@ export const API_OPERATIONS = [
     "responseCodes": [
       "200",
       "400",
-      "403",
-      "404"
-    ]
-  },
-  {
-    "method": "PUT",
-    "path": "/api/pools/{poolId}/membership/config",
-    "operationId": "PoolController_updateMembershipConfig",
-    "responseCodes": [
-      "200",
       "403",
       "404"
     ]

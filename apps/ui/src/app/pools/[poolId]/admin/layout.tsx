@@ -34,7 +34,7 @@ function AdminBreadcrumbs() {
   return null;
 }
 
-function AdminLayoutInner({ poolId, children }: { poolId: string; children: React.ReactNode }) {
+function AdminLayoutInner({ children }: Readonly<{ poolId: string; children: React.ReactNode }>) {
   const { t } = useI18n();
   const { loading } = useAdminContext();
 
@@ -56,7 +56,7 @@ function AdminLayoutInner({ poolId, children }: { poolId: string; children: Reac
   );
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { poolId } = useParams<{ poolId: string }>();
   return (
     <AdminProvider poolId={poolId}>

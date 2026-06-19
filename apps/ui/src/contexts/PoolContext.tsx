@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -234,6 +234,22 @@ interface PoolContextValue {
 
 const PoolContext = createContext<PoolContextValue | null>(null);
 
+type LoadedSurfaces = {
+  common: boolean;
+  groups: boolean;
+  ranking: boolean;
+  final: boolean;
+  players: boolean;
+};
+
+const EMPTY_LOADED_SURFACES: LoadedSurfaces = {
+  common: false,
+  groups: false,
+  ranking: false,
+  final: false,
+  players: false,
+};
+
 export function usePoolContext(): PoolContextValue {
   const ctx = useContext(PoolContext);
   if (!ctx) throw new Error('usePoolContext must be used inside PoolProvider');
@@ -242,11 +258,11 @@ export function usePoolContext(): PoolContextValue {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function PoolProvider({ children }: { children: React.ReactNode }) {
+export function PoolProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const params = useParams();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { t } = useI18n();
-  const router = useRouter();
 
   const poolId =
     typeof params?.poolId === 'string'
@@ -277,6 +293,62 @@ const [teams, setTeams] = useState<Team[]>([]);
   const [savingPlayerSlot, setSavingPlayerSlot] = useState<string | null>(null);
   const [spy, setSpy] = useState<PoolContextValue['spy']>(null);
   const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
+  const [loadedSurfaces, setLoadedSurfaces] = useState<LoadedSurfaces>(EMPTY_LOADED_SURFACES);
+
+  const applyMatchesResponse = (matchesData: any) => {
+    setMatchesByGroup(matchesData?.matchesByGroup || {});
+    setGroups(matchesData?.groups || []);
+  };
+
+  const applyPredictionsResponse = (predictionsData: any[]) => {
+    const predictionsMap: Record<string, Prediction> = {};
+    (predictionsData || []).forEach((pred: any) => {
+      predictionsMap[pred.matchId] = {
+        matchId: pred.matchId,
+        homeScore: pred.homeScore,
+        awayScore: pred.awayScore,
+        isCorrect: pred.isCorrect,
+        isExactMatch: pred.isExactMatch,
+        points: pred.points,
+      };
+    });
+    setPredictions(predictionsMap);
+  };
+
+  const applyBracketPredictionsResponse = (predictionsData: any[]) => {
+    const bracketPredictionsMap: Record<string, any> = {};
+    (predictionsData || []).forEach((pred: any) => {
+      bracketPredictionsMap[pred.bracketMatchId] = pred;
+    });
+    setBracketPredictions(bracketPredictionsMap);
+  };
+
+  const applyPlayersResponse = (playersData: any, fallbackPool = pool) => {
+    setPlayers(playersData?.players || []);
+    setPlayerSelectionLimits(
+      resolvePlayerSelectionLimits(
+        playersData?.limits ?? fallbackPool?.config?.playerSelectionLimits,
+      ),
+    );
+
+    const selectionsMap: Record<string, PlayerSelection> = {};
+    (playersData?.selections || []).forEach((sel: any) => {
+      const key = `${sel.position}:${sel.slot}`;
+      selectionsMap[key] = sel;
+    });
+    setPlayerSelections(selectionsMap);
+
+    const awardSelectionsMap: Record<PlayerAward, PlayerAwardSelection | undefined> = {
+      golden_boot: undefined,
+      tournament_mvp: undefined,
+    };
+    (playersData?.awardSelections || []).forEach((sel: any) => {
+      if (sel.award === 'golden_boot' || sel.award === 'tournament_mvp') {
+        awardSelectionsMap[sel.award as PlayerAward] = sel;
+      }
+    });
+    setPlayerAwardSelections(awardSelectionsMap);
+  };
 
   useEffect(() => {
     if (!poolId) { setLoading(false); return; }
@@ -294,89 +366,18 @@ const [teams, setTeams] = useState<Team[]>([]);
     setPlayerSelectionLimits(DEFAULT_PLAYER_SELECTION_LIMITS);
     setPlayerAwardSelections({ golden_boot: undefined, tournament_mvp: undefined });
     setSpy(null);
+    setLoadedSurfaces(EMPTY_LOADED_SURFACES);
 
-    const fetchData = async () => {
+    const fetchPool = async () => {
       try {
         setLoading(true);
-        const [
-          poolResponse,
-          matchesResponse,
-          predictionsResponse,
-          rankingResponse,
-          bracketResponse,
-          bracketPredictionsResponse,
-          teamsResponse,
-          playersResponse,
-        ] = await Promise.all([
-          apiClient.get(`/pools/${poolId}`),
-          apiClient.get(`/pools/${poolId}/matches`),
-          apiClient.get(`/pools/${poolId}/matches/predictions`).catch(() => ({ data: [] })),
-          apiClient.get(`/pools/${poolId}/matches/ranking`).catch(() => ({ data: [] })),
-          apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
-          apiClient.get(`/pools/${poolId}/bracket/predictions`).catch(() => ({ data: [] })),
-          apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
-          apiClient.get(`/pools/${poolId}/players`).catch(() => ({ data: { players: [], selections: [] } })),
-        ]);
-
+        const poolResponse = await apiClient.get(`/pools/${poolId}`);
         setPool(poolResponse.data);
-
-        const matchesData = matchesResponse.data || {};
-        setMatchesByGroup(matchesData.matchesByGroup || {});
-        setGroups(matchesData.groups || []);
-
-        const predictionsMap: Record<string, Prediction> = {};
-        (predictionsResponse.data || []).forEach((pred: any) => {
-          predictionsMap[pred.matchId] = {
-            matchId: pred.matchId,
-            homeScore: pred.homeScore,
-            awayScore: pred.awayScore,
-            isCorrect: pred.isCorrect,
-            isExactMatch: pred.isExactMatch,
-            points: pred.points,
-          };
-        });
-        setPredictions(predictionsMap);
-
-        setRanking(rankingResponse.data || []);
-        setBracket(bracketResponse.data || {});
-
-        const bracketPredictionsMap: Record<string, any> = {};
-        (bracketPredictionsResponse.data || []).forEach((pred: any) => {
-          bracketPredictionsMap[pred.bracketMatchId] = pred;
-        });
-        setBracketPredictions(bracketPredictionsMap);
-
-        if (poolResponse.data?.config?.bracketScoring) {
-          setBracketScoringConfig(normalizeBracketScoring(poolResponse.data.config.bracketScoring));
-        }
-
-        setTeams(teamsResponse.data || []);
-
-        const playersData = playersResponse.data || {};
-        setPlayers(playersData.players || []);
+        setBracketScoringConfig(normalizeBracketScoring(poolResponse.data?.config?.bracketScoring));
         setPlayerSelectionLimits(
-          resolvePlayerSelectionLimits(
-            playersData.limits ?? poolResponse.data?.config?.playerSelectionLimits,
-          ),
+          resolvePlayerSelectionLimits(poolResponse.data?.config?.playerSelectionLimits),
         );
-
-        const selectionsMap: Record<string, PlayerSelection> = {};
-        (playersData.selections || []).forEach((sel: any) => {
-          const key = `${sel.position}:${sel.slot}`;
-          selectionsMap[key] = sel;
-        });
-        setPlayerSelections(selectionsMap);
-
-        const awardSelectionsMap: Record<PlayerAward, PlayerAwardSelection | undefined> = {
-          golden_boot: undefined,
-          tournament_mvp: undefined,
-        };
-        (playersData.awardSelections || []).forEach((sel: any) => {
-          if (sel.award === 'golden_boot' || sel.award === 'tournament_mvp') {
-            awardSelectionsMap[sel.award as PlayerAward] = sel;
-          }
-        });
-        setPlayerAwardSelections(awardSelectionsMap);
+        setLoadedSurfaces((prev) => ({ ...prev, common: true }));
       } catch (err: any) {
         toast.error(err.response?.data?.message || t('poolDetail.errors.loadData'));
       } finally {
@@ -384,9 +385,110 @@ const [teams, setTeams] = useState<Team[]>([]);
       }
     };
 
-    fetchData();
+    fetchPool();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolId]);
+
+  useEffect(() => {
+    if (!poolId || !loadedSurfaces.common) return;
+    if (pathname.includes('/admin')) return;
+
+    const needsGroups = pathname.includes('/groups') || pathname.includes('/final');
+    const needsFinal = pathname.includes('/final');
+    const needsPlayers = pathname.includes('/players');
+    const needsRanking = pathname.includes('/ranking');
+
+    if (
+      (!needsGroups || loadedSurfaces.groups) &&
+      (!needsFinal || loadedSurfaces.final) &&
+      (!needsPlayers || loadedSurfaces.players) &&
+      (!needsRanking || loadedSurfaces.ranking)
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const fetchRouteData = async () => {
+      try {
+        setLoading(true);
+        const requests: Array<Promise<void>> = [];
+
+        if (needsGroups && !loadedSurfaces.groups) {
+          requests.push(
+            Promise.all([
+              apiClient.get(`/pools/${poolId}/matches`),
+              apiClient.get(`/pools/${poolId}/matches/predictions`).catch(() => ({ data: [] })),
+              apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+            ]).then(([matchesResponse, predictionsResponse, teamsResponse]) => {
+              if (cancelled) return;
+              applyMatchesResponse(matchesResponse.data || {});
+              applyPredictionsResponse(predictionsResponse.data || []);
+              setTeams(teamsResponse.data || []);
+              setLoadedSurfaces((prev) => ({ ...prev, groups: true }));
+            }),
+          );
+        }
+
+        if (needsFinal && !loadedSurfaces.final) {
+          requests.push(
+            Promise.all([
+              apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
+              apiClient.get(`/pools/${poolId}/bracket/predictions`).catch(() => ({ data: [] })),
+              needsGroups && !loadedSurfaces.groups
+                ? Promise.resolve({ data: null })
+                : loadedSurfaces.groups
+                ? Promise.resolve({ data: teams })
+                : apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+            ]).then(([bracketResponse, bracketPredictionsResponse, teamsResponse]) => {
+              if (cancelled) return;
+              setBracket(bracketResponse.data || {});
+              applyBracketPredictionsResponse(bracketPredictionsResponse.data || []);
+              if (teamsResponse.data) setTeams(teamsResponse.data || []);
+              setLoadedSurfaces((prev) => ({ ...prev, final: true }));
+            }),
+          );
+        }
+
+        if (needsPlayers && !loadedSurfaces.players) {
+          requests.push(
+            apiClient
+              .get(`/pools/${poolId}/players`)
+              .catch(() => ({ data: { players: [], selections: [] } }))
+              .then((playersResponse) => {
+                if (cancelled) return;
+                applyPlayersResponse(playersResponse.data || {});
+                setLoadedSurfaces((prev) => ({ ...prev, players: true }));
+              }),
+          );
+        }
+
+        if (needsRanking && !loadedSurfaces.ranking) {
+          requests.push(
+            apiClient
+              .get(`/pools/${poolId}/matches/ranking`)
+              .catch(() => ({ data: [] }))
+              .then((rankingResponse) => {
+                if (cancelled) return;
+                setRanking(rankingResponse.data || []);
+                setLoadedSurfaces((prev) => ({ ...prev, ranking: true }));
+              }),
+          );
+        }
+
+        await Promise.all(requests);
+      } catch (err: any) {
+        if (!cancelled) toast.error(err.response?.data?.message || t('poolDetail.errors.loadData'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchRouteData();
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poolId, pathname, loadedSurfaces]);
 
   const poolDeadline = resolveDeadline(pool);
 
@@ -410,7 +512,7 @@ const [teams, setTeams] = useState<Team[]>([]);
   const KNOCKOUT_PHASES_FOR_COUNT = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'] as const;
 
   const bracketTeamsMissing = KNOCKOUT_PHASES_FOR_COUNT
-    .flatMap((phase) => (bracket[phase] || []) as any[])
+    .flatMap((phase) => (bracket[phase] || []))
     .reduce((count, match: any) => {
       const prediction = effectiveBracketPredictions[match.bracketMatchId];
       // Count each team slot independently so that both-empty = 2, one-empty = 1, none-empty = 0
@@ -419,7 +521,7 @@ const [teams, setTeams] = useState<Team[]>([]);
       return count;
     }, 0);
 
-  const finalsMatches = (bracket['finals'] as any[]) || [];
+  const finalsMatches = (bracket['finals']) || [];
   const winnerMissing = finalsMatches.reduce((count, match: any) => {
     const effective = effectiveBracketPredictions[match.bracketMatchId];
     const raw = bracketPredictions[match.bracketMatchId];
@@ -473,14 +575,14 @@ const [teams, setTeams] = useState<Team[]>([]);
 
   const handleScoreChange = (matchId: string, side: 'home' | 'away', value: string) => {
     if (Date.now() >= poolDeadline) return;
-    const numValue = value === '' ? '' : Math.max(0, parseInt(value, 10) || 0);
+    const numValue = value === '' ? '' : Math.max(0, Number.parseInt(value, 10) || 0);
     setPredictions((prev) => ({
       ...prev,
       [matchId]: {
         ...prev[matchId],
         matchId,
-        homeScore: side === 'home' ? (numValue as number | '') : (prev[matchId]?.homeScore ?? ''),
-        awayScore: side === 'away' ? (numValue as number | '') : (prev[matchId]?.awayScore ?? ''),
+        homeScore: side === 'home' ? (numValue) : (prev[matchId]?.homeScore ?? ''),
+        awayScore: side === 'away' ? (numValue) : (prev[matchId]?.awayScore ?? ''),
       },
     }));
 
@@ -503,7 +605,50 @@ const [teams, setTeams] = useState<Team[]>([]);
   const handleStartSpy = async (target: { userId: string; userName: string }) => {
     setSpy({ target, loading: true, error: null, data: null });
     try {
-      const response = await apiClient.get(`/pools/${poolId}/members/${target.userId}/picks`);
+      const requests: Array<Promise<void>> = [];
+
+      if (!loadedSurfaces.groups) {
+        requests.push(
+          Promise.all([
+            apiClient.get(`/pools/${poolId}/matches`),
+            apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+          ]).then(([matchesResponse, teamsResponse]) => {
+            applyMatchesResponse(matchesResponse.data || {});
+            setTeams(teamsResponse.data || []);
+            setLoadedSurfaces((prev) => ({ ...prev, groups: true }));
+          }),
+        );
+      }
+
+      if (!loadedSurfaces.final) {
+        requests.push(
+          Promise.all([
+            apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
+            apiClient.get(`/pools/${poolId}/bracket/predictions`).catch(() => ({ data: [] })),
+          ]).then(([bracketResponse, bracketPredictionsResponse]) => {
+            setBracket(bracketResponse.data || {});
+            applyBracketPredictionsResponse(bracketPredictionsResponse.data || []);
+            setLoadedSurfaces((prev) => ({ ...prev, final: true }));
+          }),
+        );
+      }
+
+      if (!loadedSurfaces.players) {
+        requests.push(
+          apiClient
+            .get(`/pools/${poolId}/players`)
+            .catch(() => ({ data: { players: [], selections: [] } }))
+            .then((playersResponse) => {
+              applyPlayersResponse(playersResponse.data || {});
+              setLoadedSurfaces((prev) => ({ ...prev, players: true }));
+            }),
+        );
+      }
+
+      const [response] = await Promise.all([
+        apiClient.get(`/pools/${poolId}/members/${target.userId}/picks`),
+        ...requests,
+      ]);
       const raw = response.data || {};
       const data: SpyPicksData = {
         user: raw.user || { userId: target.userId, userName: target.userName },
