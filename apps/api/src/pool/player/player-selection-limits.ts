@@ -5,13 +5,13 @@ export const PLAYER_SELECTION_POSITIONS = [
   'forward',
 ] as const;
 
-export type PlayerSelectionPosition = (typeof PLAYER_SELECTION_POSITIONS)[number];
-export type PlayerSelectionLimits = Record<PlayerSelectionPosition, number>;
+type PlayerSelectionPosition = (typeof PLAYER_SELECTION_POSITIONS)[number];
+type PlayerSelectionLimits = Record<PlayerSelectionPosition, number>;
 
-export const DEFAULT_PLAYER_SELECTION_LIMIT = 6;
+const DEFAULT_PLAYER_SELECTION_LIMIT = 6;
 export const MAX_PLAYER_SELECTION_LIMIT = 12;
 
-export const DEFAULT_PLAYER_SELECTION_LIMITS: PlayerSelectionLimits = {
+const DEFAULT_PLAYER_SELECTION_LIMITS: PlayerSelectionLimits = {
   goalkeeper: DEFAULT_PLAYER_SELECTION_LIMIT,
   defender: DEFAULT_PLAYER_SELECTION_LIMIT,
   midfielder: DEFAULT_PLAYER_SELECTION_LIMIT,

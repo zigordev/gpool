@@ -12,7 +12,7 @@ interface Props {
   emphasis?: 'default' | 'accent';
 }
 
-export function StatTile({ label, value, hint, icon, emphasis = 'default' }: Props) {
+export function StatTile({ label, value, hint, icon, emphasis = 'default' }: Readonly<Props>) {
   const isAccent = emphasis === 'accent';
   return (
     <div

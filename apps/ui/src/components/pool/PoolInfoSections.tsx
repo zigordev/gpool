@@ -5,7 +5,6 @@ import { FaExternalLinkAlt, FaFutbol, FaMagic, FaShieldAlt, FaClock, FaInfo, FaM
 import { FaDollarSign } from "react-icons/fa6";
 import { GiGoalKeeper, GiLeatherBoot, GiSoccerKick } from "react-icons/gi";
 import { IoMdCloseCircle } from "react-icons/io";
-import { IoWarning } from "react-icons/io5";
 import { LuRectangleVertical } from "react-icons/lu";
 import { MdOnlinePrediction } from "react-icons/md";
 import { PlayerPosition } from "@/types/playerPosition.type";

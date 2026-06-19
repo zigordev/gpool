@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import Image from 'next/image';
 
 export type PlayerInsightsTarget = {
   playerId: string;
@@ -246,7 +247,7 @@ function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
     <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', minWidth: 0 }}>
       <PlayerShirt teamName={data.player.teamName} shirtNumber={data.player.shirtNumber} size={32} />
       {data.player.imageUrl ? (
-        <img
+        <Image
           src={data.player.imageUrl}
           alt=""
           style={{

@@ -155,12 +155,12 @@ export function MatchInsightsModal({
                       <div style={{ display: 'grid', gap: '0.35rem' }}>
                         {member.playerActions.map((player) => (
                           <div key={player.playerId} style={playerRowStyle}>
-                            {player.points !== 0 ? (
+                            {player.points === 0 ? null : (
                               <PointsBadge
                                 points={player.points}
                                 label={t('poolDetail.players.points', { points: player.points })}
                               />
-                            ) : null}
+                            )}
                             <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={27} />
                             <ReactCountryFlag
                               countryCode={countryIsoCode(player.teamName)}
@@ -572,9 +572,9 @@ function PredictionRow({
       typeof prediction?.homeScore === 'number' && typeof prediction?.awayScore === 'number';
     return (
       <div style={compactPredictionCardStyle(tone.border, tone.background, tone.highlighted)}>
-        {points !== 0 ? (
+        {points === 0 ? null : (
           <PointsBadge points={points} label={t('poolDetail.match.points', { points })} />
-        ) : null}
+        )}
         <strong
           style={{ fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
         >
@@ -593,9 +593,9 @@ function PredictionRow({
         false
       )}
     >
-      {points !== 0 ? (
+      {points === 0 ? null : (
         <PointsBadge points={points} label={t('poolDetail.match.points', { points })} compact />
-      ) : null}
+      )}
       {prediction ? (
         <div style={finalTeamsStyle}>
           <FinalTeam

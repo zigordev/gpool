@@ -219,10 +219,10 @@ export function BracketVisualization({
     };
 
     requestAnimationFrame(restore);
-    window.setTimeout(restore, 0);
-    window.setTimeout(restore, 80);
-    window.setTimeout(restore, 180);
-    window.setTimeout(restore, 360);
+    globalThis.setTimeout(restore, 0);
+    globalThis.setTimeout(restore, 80);
+    globalThis.setTimeout(restore, 180);
+    globalThis.setTimeout(restore, 360);
   }, []);
 
   const handleBracketScroll = useCallback(() => {

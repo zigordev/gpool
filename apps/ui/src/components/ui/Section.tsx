@@ -42,7 +42,7 @@ export function Section({
   style,
   contentStyle,
   children,
-}: Props) {
+}: Readonly<Props>) {
   const [internal, setInternal] = useState(defaultExpanded);
   const isOpen = expanded ?? internal;
 

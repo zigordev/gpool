@@ -265,45 +265,6 @@ export class PoolService {
     return { success: true, message: 'You have successfully joined the pool' };
   }
 
-  async leavePool(poolId: string, userId: string) {
-    const pool = await this.poolRepository.getPool(poolId);
-    if (!pool) {
-      throw new NotFoundException(`Pool with ID ${poolId} not found`);
-    }
-
-    const membership = await this.poolRepository.getMembership(poolId, userId);
-    if (!membership) {
-      throw new BadRequestException('You are not a member of this pool');
-    }
-
-    if (pool.adminUserId === userId) {
-      throw new BadRequestException(
-        'Pool administrator cannot leave the pool. Transfer ownership first.',
-      );
-    }
-
-    await this.poolRepository.removeMember(poolId, userId);
-    this.logger.log(`User ${userId} left pool ${poolId}`);
-    return { success: true, message: 'Successfully left pool' };
-  }
-
-  async removeMember(poolId: string, targetUserId: string, adminUserId: string, userRole: string) {
-    const pool = await this.poolRepository.getPool(poolId);
-    if (!pool) {
-      throw new NotFoundException(`Pool with ID ${poolId} not found`);
-    }
-
-    await this.assertPoolMembershipAdmin(poolId, adminUserId);
-
-    if (pool.adminUserId === targetUserId) {
-      throw new BadRequestException('Cannot remove the pool administrator');
-    }
-
-    await this.poolRepository.removeMember(poolId, targetUserId);
-    this.logger.log(`Member ${targetUserId} removed from pool ${poolId} by ${adminUserId}`);
-    return { success: true, message: 'Member removed successfully' };
-  }
-
   async updatePoolConfiguration(
     poolId: string,
     newConfig: Record<string, any>,
@@ -354,41 +315,6 @@ export class PoolService {
 
     this.logger.log(`Pool configuration updated: ${poolId} by ${userId}`);
     return { success: true, message: 'Pool configuration updated successfully' };
-  }
-
-  async updateMembershipConfig(poolId: string, userId: string, config: Record<string, any>) {
-    const pool = await this.poolRepository.getPool(poolId);
-    if (!pool) {
-      throw new NotFoundException(`Pool with ID ${poolId} not found`);
-    }
-
-    const membership = await this.poolRepository.getMembership(poolId, userId);
-    if (!membership) {
-      throw new ForbiddenException('You must be a member of this pool to update membership settings');
-    }
-
-    const updated = await this.poolRepository.updateMembershipConfig(poolId, userId, config || {});
-    if (!updated) {
-      throw new BadRequestException('Failed to update membership settings');
-    }
-
-    return updated;
-  }
-
-  async getPoolMembers(poolId: string, userId?: string, userRole?: string) {
-    const pool = await this.poolRepository.getPool(poolId);
-    if (!pool) {
-      throw new NotFoundException(`Pool with ID ${poolId} not found`);
-    }
-
-    if (userId && !hasPermission(userRole || 'user', 'admin')) {
-      const membership = await this.poolRepository.getMembership(poolId, userId);
-      if (!membership) {
-        throw new ForbiddenException('You must be a member of this pool to view its members');
-      }
-    }
-
-    return this.poolRepository.getPoolMembers(poolId);
   }
 
   async isPoolAdmin(poolId: string, userId: string): Promise<boolean> {

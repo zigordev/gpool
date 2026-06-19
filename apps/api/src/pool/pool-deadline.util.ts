@@ -1,11 +1,6 @@
-/**
- * Default pool prediction deadline used as a fallback when a pool doesn't
- * have one configured. This is the start of the first matchday — we keep it
- * here so both group-phase and bracket predictions resolve to the same value.
- */
-export const DEFAULT_POOL_DEADLINE_MS = new Date('2026-06-08T00:00:00Z').getTime();
+const DEFAULT_POOL_DEADLINE_MS = new Date('2026-06-08T00:00:00Z').getTime();
 
-export interface PoolWithConfig {
+interface PoolWithConfig {
   config?: { deadline?: number | string | null } & Record<string, unknown>;
 }
 

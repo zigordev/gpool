@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
-import { BracketVisualization } from '@/components/BracketVisualization';
 import { Section } from '@/components/ui/Section';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
@@ -10,6 +10,11 @@ import { parseConfigNumberInput, useAdminContext, PHASES } from '@/contexts/Admi
 import { computeAdminCandidateOptions } from '@/lib/bracket-projection';
 import { FaTrophy } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
+
+const BracketVisualization = dynamic(
+  () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
+  { ssr: false },
+);
 
 export default function AdminFinalPage() {
   const { t } = useI18n();
@@ -41,7 +46,7 @@ export default function AdminFinalPage() {
     <div className="content-panel admin-content">
 
       {/* Final phase scoring */}
-      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
+      {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaTrophy style={{ color: '#D4A017', fill: '#D4A017' }} />{t('adminResults.scoring.tournamentWinner')}</span>}>
             <Input type="number" inputMode="numeric" min="0" value={bracketScoringConfig.tournamentWinnerPoints} attention={bracketScoringConfig.tournamentWinnerPoints === ''} onChange={(e) => setBracketScoringConfig((prev) => ({ ...prev, tournamentWinnerPoints: parseConfigNumberInput(e.target.value) }))} />
@@ -61,7 +66,7 @@ export default function AdminFinalPage() {
             );
           })}
         </div>
-      </Section> : null}
+      </Section>}
 
       {/* Bracket */}
       {systemMode ? <section className="admin-bracket-workspace">

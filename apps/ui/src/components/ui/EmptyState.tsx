@@ -23,7 +23,7 @@ interface Props {
  * results / no matches found". One style ⇒ a coherent feel even though the
  * empty states live in very different parts of the app.
  */
-export function EmptyState({ icon, variant = 'pitch', title, description, action }: Props) {
+export function EmptyState({ icon, variant = 'pitch', title, description, action }: Readonly<Props>) {
   return (
     <div
       className="surface gp-fade-in"

@@ -108,7 +108,7 @@ function LanguageButton() {
         // The cookie still updates the UI immediately; the server preference will retry on next change.
       }
     }
-    window.location.reload();
+    globalThis.location.reload();
   };
 
   return (
