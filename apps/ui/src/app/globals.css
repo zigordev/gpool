@@ -1115,16 +1115,16 @@ html.dark .players-pitch-board {
 }
 
 .rank-table-identity-col {
-  width: 11rem;
-  min-width: 11rem;
-  max-width: 11rem;
+  width: 12rem;
+  min-width: 12rem;
+  max-width: 12rem;
 }
 
 .rank-table-identity {
   display: grid;
-  grid-template-columns: 2.1rem minmax(0, 1fr);
+  grid-template-columns: 1.6rem 1.45rem minmax(0, 1fr);
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.3rem;
   min-width: 0;
 }
 
@@ -1136,15 +1136,11 @@ html.dark .players-pitch-board {
   text-align: center;
 }
 
-.rank-table-user-cell {
-  display: inline-flex;
+.rank-table-movement {
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
   min-width: 0;
-}
-
-.rank-table-user-initials {
-  display: none;
 }
 
 .rank-table-header-label {
@@ -1172,34 +1168,14 @@ html.dark .players-pitch-board {
   }
 
   .rank-table-identity-col {
-    min-width: 5.5rem !important;
-    width: 5.5rem !important;
-    max-width: 5.5rem;
+    min-width: 8.75rem !important;
+    width: 8.75rem !important;
+    max-width: 8.75rem;
   }
 
   .rank-table-identity {
-    grid-template-columns: 1.35rem 2rem;
-    gap: 0.3rem;
-  }
-
-  .rank-table-user-full {
-    display: none !important;
-  }
-
-  .rank-table-user-initials {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 999px;
-    background: rgb(var(--bg-subtle));
-    border: 1px solid rgb(var(--border));
-    color: rgb(var(--fg));
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: 0;
+    grid-template-columns: 1.35rem 1.25rem minmax(0, 1fr);
+    gap: 0.22rem;
   }
 
   .rank-table-header-text {

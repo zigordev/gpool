@@ -37,15 +37,18 @@ export function GeneralPoolInfoSection({
   deadlineLabel,
   entryFeeLabel,
   prizeDistribution,
+  formatCurrency,
   playerSelectionLimits,
 }: Readonly<{
   deadlineLabel: string;
   entryFeeLabel: string | number | null;
   prizeDistribution: PrizePayout[];
+  formatCurrency?: (value: number) => string;
   playerSelectionLimits: PlayerSelectionLimits;
 }>) {
     const { t } = useI18n();
     const isFreePool = entryFeeLabel !== null && Number(entryFeeLabel) === 0;
+    const hasPrizeDistribution = !isFreePool && prizeDistribution.length > 0;
 
     return (
       <PoolDetailModalButton title={t('poolDetail.rules.poolConfig.title')} icon={<FaInfo size={13} />}>
@@ -66,6 +69,54 @@ export function GeneralPoolInfoSection({
               </span>
             </p>
           </div>
+          {hasPrizeDistribution ? (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1.3rem minmax(0, 1fr)',
+                gap: '0.55rem',
+                alignItems: 'start',
+              }}
+            >
+              <FaTrophy style={{ color: 'rgb(var(--fg))' }} />
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.88rem', lineHeight: 1.45 }}>
+                  <strong>{t('poolDetail.ranking.prize')}</strong>
+                </p>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.35rem',
+                    marginTop: '0.35rem',
+                  }}
+                >
+                  {prizeDistribution.map((payout) => (
+                    <span
+                      key={`${payout.rank}-${payout.amount}`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        borderRadius: '999px',
+                        border: '1px solid rgb(var(--border))',
+                        background: 'rgb(var(--bg-elevated))',
+                        color: 'rgb(var(--fg))',
+                        fontSize: '0.78rem',
+                        fontWeight: 750,
+                        lineHeight: 1,
+                        padding: '0.32rem 0.5rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ color: 'rgb(var(--fg-muted))' }}>#{payout.rank}</span>
+                      <span>{formatCurrency ? formatCurrency(payout.amount) : `${payout.amount}€`}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
         <div
           style={{

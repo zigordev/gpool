@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   usePoolContext,
   formatEur,
-  computePrize,
   resolvePrizeDistribution,
   PLAYER_AWARDS,
   PLAYER_POSITIONS,
@@ -578,12 +577,8 @@ export function RankingContent({
   } = usePoolContext();
 
   const prizeDistribution = useMemo(() => resolvePrizeDistribution(pool), [pool]);
-  const memberCount = pool?.memberCount ?? (pool?.members ? pool.members.length : 0);
   const entryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : null;
-  const totalPrizePool = (entryFee ?? 0) * memberCount;
-  const prizeForRank = (rank: number) =>
-    totalPrizePool > 0 ? computePrize(totalPrizePool, prizeDistribution, rank) : 0;
-  const formatCurrency = (amount: number) => formatEur(amount, locale);
+  const formatCurrency = useCallback((amount: number) => formatEur(amount, locale), [locale]);
   const deadlineHint = new Date(poolDeadline).toLocaleString(locale, {
     hour: '2-digit',
     minute: '2-digit',
@@ -600,6 +595,7 @@ export function RankingContent({
           deadlineLabel={deadlineHint}
           entryFeeLabel={entryFee}
           prizeDistribution={prizeDistribution}
+          formatCurrency={formatCurrency}
           playerSelectionLimits={playerSelectionLimits}
         />
       ) : null
@@ -608,6 +604,7 @@ export function RankingContent({
   }, [
     deadlineHint,
     entryFee,
+    formatCurrency,
     playerSelectionLimits,
     prizeDistribution,
     setPoolActions,
@@ -623,9 +620,6 @@ export function RankingContent({
           ranking={ranking}
           currentUserId={user?.userId}
           currentUserEmail={user?.email}
-          prizeForRank={prizeForRank}
-          formatCurrency={formatCurrency}
-          showPrizeColumn={entryFee !== null && entryFee > 0}
           onSpy={handleStartSpy}
           spyEnabled={isPastPoolDeadline}
         />

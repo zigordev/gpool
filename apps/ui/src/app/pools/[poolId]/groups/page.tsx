@@ -254,11 +254,12 @@ function findNextMatchdayMatches(
 ): Match[] {
   const separator = parseMatchdaySeparatorTime(separatorTime);
   const now = new Date(nowMs);
-  const upcoming = Object.values(matchesByGroup)
+  const windowStart = currentMatchdaySeparator(now, separator);
+  const candidates = Object.values(matchesByGroup)
     .flat()
     .filter((match) => {
       const scheduledAt = new Date(match.scheduledAt).getTime();
-      return Number.isFinite(scheduledAt) && scheduledAt >= nowMs;
+      return Number.isFinite(scheduledAt) && scheduledAt >= windowStart.getTime();
     })
     .sort((a, b) => {
       const dateDiff = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
@@ -266,14 +267,14 @@ function findNextMatchdayMatches(
       return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
     });
 
-  if (upcoming.length === 0) return [];
+  if (candidates.length === 0) return [];
 
-  let windowStartMs = nowMs;
-  let windowEndMs = nextCalendarDaySeparator(now, separator).getTime();
-  const lastMatchMs = new Date(upcoming[upcoming.length - 1].scheduledAt).getTime();
+  let windowStartMs = windowStart.getTime();
+  let windowEndMs = windowStartMs + ONE_DAY_MS;
+  const lastMatchMs = new Date(candidates[candidates.length - 1].scheduledAt).getTime();
 
   while (windowStartMs <= lastMatchMs) {
-    const matchesInWindow = upcoming.filter((match) => {
+    const matchesInWindow = candidates.filter((match) => {
       const scheduledAt = new Date(match.scheduledAt).getTime();
       return scheduledAt >= windowStartMs && scheduledAt < windowEndMs;
     });
@@ -297,17 +298,16 @@ function parseMatchdaySeparatorTime(value: unknown): { hours: number; minutes: n
   return { hours, minutes };
 }
 
-function nextCalendarDaySeparator(
+function currentMatchdaySeparator(
   from: Date,
   separator: { hours: number; minutes: number },
 ): Date {
-  const next = new Date(from);
-  next.setDate(next.getDate() + 1);
-  next.setHours(separator.hours, separator.minutes, 0, 0);
-  if (next.getTime() <= from.getTime()) {
-    next.setDate(next.getDate() + 1);
+  const current = new Date(from);
+  current.setHours(separator.hours, separator.minutes, 0, 0);
+  if (current.getTime() > from.getTime()) {
+    current.setDate(current.getDate() - 1);
   }
-  return next;
+  return current;
 }
 
 function GroupStandingsContent({
