@@ -15,10 +15,10 @@ trap cleanup EXIT
 running_container="$(docker compose -f "$COMPOSE_FILE" ps -q api 2>/dev/null || true)"
 existing_local_stack=0
 local_api_container="$(
-  docker compose --env-file docker/.env.app.local -f docker/compose.app.local.yml ps -q api 2>/dev/null || true
+  docker compose --env-file docker/.env.app.local -f docker/compose.app.local.yml ps -q gpool_api 2>/dev/null || true
 )"
 local_web_container="$(
-  docker compose --env-file docker/.env.app.local -f docker/compose.app.local.yml ps -q web 2>/dev/null || true
+  docker compose --env-file docker/.env.app.local -f docker/compose.app.local.yml ps -q gpool_web 2>/dev/null || true
 )"
 
 if [ -n "$local_api_container" ] && [ -n "$local_web_container" ]; then

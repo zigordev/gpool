@@ -1,7 +1,5 @@
 # gpool Terraform Layout
 
-This folder mirrors the `cv` terraform structure so app and ops concerns stay separated:
-
 - `bootstrap/`: one-time AWS setup primitives (state bucket, IAM/OIDC bootstrap, etc.)
 - `aws-compose/`: app deploy-facing outputs consumed by GitHub Actions in `gpool`
 - root module files: shared provider/version baseline
