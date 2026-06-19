@@ -2,7 +2,7 @@
 
 Football pool platform monorepo.
 
-## Repository shape (aligned with `cv`)
+## Repository shape
 
 - `apps/ui`: Next.js web app
 - `apps/api`: NestJS monolithic backend (auth + pools + notifications + RUM)

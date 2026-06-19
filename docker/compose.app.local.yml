@@ -1,7 +1,14 @@
 name: gpool-app-local
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"  
+    labels: "com.docker.compose.project,com.docker.compose.service"
+    
 services:
-  postgres:
+  gpool_db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -17,16 +24,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
+    logging: *default-logging
     networks:
       gp_shared:
         aliases:
           - gpool-postgres
 
-  api:
+  gpool_api:
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
@@ -60,19 +64,16 @@ services:
     ports:
       - '3010:3000'
     depends_on:
-      postgres:
+      gpool_db:
         condition: service_healthy
     command: ['node', '/app/scripts/openbao-run.mjs', '--', 'node', 'dist/main.js']
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
+    logging: *default-logging
     networks:
       gp_shared:
         aliases:
           - gpool-api
 
-  web:
+  gpool_web:
     build:
       context: ..
       dockerfile: apps/ui/Dockerfile
@@ -93,35 +94,18 @@ services:
       OPENBAO_REQUIRED_KEYS: AUTH_SESSION_SECRET,TOLGEE_API_KEY,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: ${TOLGEE_PROJECT_ID:?TOLGEE_PROJECT_ID is required}
+      NODE_OPTIONS: --no-webstorage
     ports:
       - '3011:3001'
     depends_on:
-      - api
+      - gpool_api
     command:
       [
         'sh',
         '-lc',
         'until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
       ]
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
-    networks: [gp_shared]
-
-  alloy:
-    image: grafana/alloy:v1.12.0
-    restart: unless-stopped
-    command:
-      - run
-      - --storage.path=/var/lib/alloy/data
-      - /etc/alloy/config.alloy
-    volumes:
-      - ../docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - app-local-alloy-data:/var/lib/alloy/data
-    depends_on:
-      - api
+    logging: *default-logging
     networks: [gp_shared]
 
 networks:
@@ -131,4 +115,3 @@ networks:
 
 volumes:
   app-local-pgdata:
-  app-local-alloy-data:

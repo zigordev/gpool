@@ -1,7 +1,14 @@
 name: gpool-app-prod
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"  
+    labels: "com.docker.compose.project,com.docker.compose.service"
+
 services:
-  postgres:
+  gpool_db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -15,16 +22,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
+    logging: *default-logging
     networks:
       gp_shared:
         aliases:
           - gpool-postgres
 
-  api:
+  gpool_api:
     image: ${API_IMAGE:?API_IMAGE is required}
     restart: unless-stopped
     environment:
@@ -53,19 +57,16 @@ services:
       NOTIFICATIONS_KAFKA_BROKERS: ${NOTIFICATIONS_KAFKA_BROKERS:?NOTIFICATIONS_KAFKA_BROKERS is required}
       NOTIFICATIONS_EMAIL_TOPIC: ${NOTIFICATIONS_EMAIL_TOPIC:?NOTIFICATIONS_EMAIL_TOPIC is required}
     depends_on:
-      postgres:
+      gpool_db:
         condition: service_healthy
     command: ['node', '/app/scripts/openbao-run.mjs', '--', 'node', 'dist/main.js']
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
+    logging: *default-logging
     networks:
       gp_shared:
         aliases:
           - gpool-api
 
-  web:
+  gpool_web:
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
     restart: unless-stopped
     environment:
@@ -80,37 +81,20 @@ services:
       OPENBAO_REQUIRED_KEYS: AUTH_SESSION_SECRET,TOLGEE_API_KEY,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: ${TOLGEE_PROJECT_ID:?TOLGEE_PROJECT_ID is required}
+      NODE_OPTIONS: --no-webstorage
     depends_on:
-      - api
+      - gpool_api
     command:
       [
         'sh',
         '-lc',
         'until wget -qO- http://gpool-api:3000/api/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
       ]
-    logging:
-      driver: 'json-file'
-      options:
-        labels: 'com.docker.compose.project,com.docker.compose.service'
+    logging: *default-logging
     networks:
       gp_shared:
         aliases:
           - gpool-web
-
-  alloy:
-    image: grafana/alloy:v1.12.0
-    restart: unless-stopped
-    command:
-      - run
-      - --storage.path=/var/lib/alloy/data
-      - /etc/alloy/config.alloy
-    volumes:
-      - ../docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - app-prod-alloy-data:/var/lib/alloy/data
-    depends_on:
-      - api
-    networks: [gp_shared]
 
 networks:
   gp_shared:
@@ -119,4 +103,3 @@ networks:
 
 volumes:
   app-prod-pgdata:
-  app-prod-alloy-data:
