@@ -318,13 +318,13 @@ login_ecr_for_image "$API_IMAGE"
 login_ecr_for_image "$WEB_IMAGE"
 
 echo "[deploy] Starting gpool app stack"
-run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml up -d
+run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml up -d --remove-orphans
 
 echo "[deploy] Health checking API via app network"
-retry 30 2 run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml exec -T web sh -lc "wget -qO- http://gpool-api:3000/api/health/ready >/dev/null 2>&1 || wget -qO- http://gpool-api:3000/api/health >/dev/null"
+retry 30 2 run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml exec -T gpool_web sh -lc "wget -qO- http://gpool-api:3000/api/health/ready >/dev/null 2>&1 || wget -qO- http://gpool-api:3000/api/health >/dev/null"
 
 echo "[deploy] Health checking web container"
-retry 30 2 run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml exec -T web sh -lc "wget -qO- http://localhost:3001/ >/dev/null"
+retry 30 2 run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml exec -T gpool_web sh -lc "wget -qO- http://localhost:3001/ >/dev/null"
 
 run_compose --env-file "$APP_ENV_FILE" -f docker/compose.app.prod.yml ps
 
