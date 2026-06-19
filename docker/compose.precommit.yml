@@ -48,7 +48,7 @@ services:
       NOTIFICATIONS_KAFKA_BROKERS: platform-redpanda:9092
       NOTIFICATIONS_EMAIL_TOPIC: notification.email.requested.v1
     ports:
-      - '3010:3000'
+      - '3110:3000'
     depends_on:
       postgres:
         condition: service_healthy

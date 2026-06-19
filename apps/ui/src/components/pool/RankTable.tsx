@@ -22,22 +22,16 @@ interface Props {
   ranking: RankingEntry[];
   currentUserId?: string;
   currentUserEmail?: string;
-  prizeForRank: (rank: number) => number;
-  formatCurrency: (value: number) => string;
   onSpy: (entry: { userId: string; userName: string }) => Promise<void> | void;
   spyEnabled?: boolean;
-  showPrizeColumn?: boolean;
 }
 
 export function RankTable({
   ranking,
   currentUserId,
   currentUserEmail,
-  prizeForRank,
-  formatCurrency,
   onSpy,
   spyEnabled = false,
-  showPrizeColumn = true,
 }: Readonly<Props>) {
   const { t } = useI18n();
 
@@ -65,7 +59,6 @@ export function RankTable({
             <th style={thStyle}>
               {t('poolDetail.ranking.totalPoints')}
             </th>
-            {showPrizeColumn ? <th style={thStyle}>{t('poolDetail.ranking.prize')}</th> : null}
             {spyEnabled ? <th style={thStyle}></th> : null}
           </tr>
         </thead>
@@ -76,7 +69,6 @@ export function RankTable({
               (entry.userId && entry.userId === currentUserId) ||
               entry.userName === currentUserEmail;
 
-            const prize = prizeForRank(entry.rank);
             const rowBackground = isCurrentUser
               ? 'rgb(var(--accent-from) / 0.08)'
               : 'transparent';
@@ -121,32 +113,25 @@ export function RankTable({
                     >
                       {entry.rank}
                     </span>
-                    <span className="rank-table-user-cell">
+                    <span className="rank-table-movement">
                       {movement ? (
-                        <RankMovementBadge
+                        <RankMovementIndicator
                           delta={movement.delta}
                           matchdayPoints={movement.matchdayPoints}
                           previousRank={movement.previousRank}
                         />
                       ) : null}
-                      <span
-                        className="rank-table-user-full"
-                        style={{
-                          display: 'block',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {entry.userName}
-                      </span>
-                      <span
-                        className="rank-table-user-initials"
-                        title={entry.userName}
-                        aria-label={entry.userName}
-                      >
-                        {getInitials(entry.userName)}
-                      </span>
+                    </span>
+                    <span
+                      className="rank-table-user-full"
+                      style={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {entry.userName}
                     </span>
                   </span>
                 </td>
@@ -166,18 +151,6 @@ export function RankTable({
                 <td style={numberStyleGold}>
                   {entry.groupPhasePoints + entry.finalPhasePoints + entry.playerPoints}
                 </td>
-
-                {showPrizeColumn ? (
-                  <td
-                    style={{
-                      ...numberStyle,
-                      color: 'rgb(var(--pitch))',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {formatCurrency(prize)}
-                  </td>
-                ) : null}
 
                 {spyEnabled ? (
                   <td style={tdStyle}>
@@ -238,7 +211,7 @@ function RankHeaderIconLabel({ icon, label }: Readonly<{ icon: React.ReactNode; 
   );
 }
 
-function RankMovementBadge({
+function RankMovementIndicator({
   delta,
   matchdayPoints,
   previousRank,
@@ -281,20 +254,6 @@ function RankMovementBadge({
       {movedUp ? `▲${delta}` : movedDown ? `▼${Math.abs(delta)}` : '–'}
     </span>
   );
-}
-
-function getInitials(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return '?';
-  const displayName = trimmed.includes('@') ? trimmed.split('@')[0] : trimmed;
-  const parts = displayName
-    .split(/[\s._-]+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (parts.length === 0) return trimmed.slice(0, 1).toUpperCase();
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 const thStyle: React.CSSProperties = {
