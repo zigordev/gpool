@@ -78,11 +78,6 @@ export type ApiOperation = {
   responseCodes: ['200'];
 } | {
   method: 'GET';
-  path: '/api/pools/{poolId}/members';
-  operationId: 'PoolController_getPoolMembers';
-  responseCodes: ['200', '403', '404'];
-} | {
-  method: 'GET';
   path: '/api/pools/{poolId}/members/{userId}/picks';
   operationId: 'SpyController_getMemberPicks';
   responseCodes: ['200', '403', '404'];
@@ -218,7 +213,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 43 as const;
+export const API_OPERATION_COUNT = 42 as const;
 
 export const API_OPERATIONS = [
   {
@@ -347,16 +342,6 @@ export const API_OPERATIONS = [
     "operationId": "MatchController_getAllTeams",
     "responseCodes": [
       "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/api/pools/{poolId}/members",
-    "operationId": "PoolController_getPoolMembers",
-    "responseCodes": [
-      "200",
-      "403",
-      "404"
     ]
   },
   {
