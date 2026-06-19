@@ -1,6 +1,5 @@
 import { BracketCandidateMap } from "@/types/bracketCandidateMap.type";
 import { BracketPredictionProjection } from "@/types/bracketPredictionProjection.interface";
-import { GroupMatchProjection } from "@/types/groupMatchProjection.interface";
 import { ScorePredictionProjection } from "@/types/scorePredictionProjection.interface";
 
 const PHASE_ORDER = [
@@ -557,17 +556,7 @@ function fifaRankingValue(row: StandingRow): number {
   return Number.isFinite(row.fifaRanking) ? Number(row.fifaRanking) : Number.MAX_SAFE_INTEGER;
 }
 
-function compareRows(a: StandingRow, b: StandingRow): number {
-  return (
-    b.points - a.points ||
-    b.goalDifference - a.goalDifference ||
-    b.goalsFor - a.goalsFor ||
-    b.fairPlay - a.fairPlay ||
-    fifaRankingValue(a) - fifaRankingValue(b)
-  );
-}
-
-export function compareThirdPlaceRows(a: StandingRow, b: StandingRow): number {
+export function compareRows(a: StandingRow, b: StandingRow): number {
   return (
     b.points - a.points ||
     b.goalDifference - a.goalDifference ||

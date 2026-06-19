@@ -32,8 +32,8 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private configService: ConfigService,
-    private authRepository: AuthRepository,
+    private readonly configService: ConfigService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   private signTransferPayload(encodedPayload: string): string {
@@ -99,7 +99,14 @@ export class AuthService {
 
     let dbUser = await this.authRepository.getUserByEmail(email);
 
-    if (!dbUser) {
+    if (dbUser) {
+      const updates: Record<string, unknown> = {};
+      if (dbUser.name !== fullName) updates.name = fullName;
+      if (dbUser.picture !== picture) updates.picture = picture;
+      if (Object.keys(updates).length > 0) {
+        dbUser = await this.authRepository.updateUser(dbUser.userId, updates);
+      }
+    } else {
       const userId = uuidv4();
       dbUser = await this.authRepository.createUser({
         userId,
@@ -110,13 +117,6 @@ export class AuthService {
         locale: resolvedLocale,
       });
       this.logger.log(`New user created from Google login: ${userId}`);
-    } else {
-      const updates: Record<string, unknown> = {};
-      if (dbUser.name !== fullName) updates.name = fullName;
-      if (dbUser.picture !== picture) updates.picture = picture;
-      if (Object.keys(updates).length > 0) {
-        dbUser = await this.authRepository.updateUser(dbUser.userId, updates);
-      }
     }
 
     return this.buildTransferPayload({

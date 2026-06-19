@@ -40,13 +40,6 @@ export class MatchController {
     return this.matchService.getAllTeams();
   }
 
-  @Get('teams/group/:group')
-  @ApiOperation({ summary: 'Get teams by group' })
-  @ApiResponse({ status: 200, description: 'List of teams in the group' })
-  async getTeamsByGroup(@Param('group') group: string) {
-    return this.matchService.getTeamsByGroup(group);
-  }
-
   @Put('teams/:teamId/fair-play')
   @ApiOperation({ summary: 'Update team fair-play points (Admin only)' })
   @ApiResponse({ status: 200, description: 'Team fair-play points updated successfully' })
@@ -132,9 +125,7 @@ export class MatchController {
     if (user.role !== 'admin') {
       throw new ForbiddenException('Only administrators can update match results');
     }
-    const scoringConfig = body.winnerPoints !== undefined || body.exactResultPoints !== undefined
-      ? { winnerPoints: body.winnerPoints ?? 0, exactResultPoints: body.exactResultPoints ?? 0 }
-      : undefined;
+
     return this.matchService.updateMatchResults(matchId, body.homeResult, body.awayResult);
   }
 

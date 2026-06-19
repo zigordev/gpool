@@ -1,31 +1,40 @@
 'use client';
 
 import { useLayoutEffect, useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import Select from 'react-select';
 import ReactCountryFlag from 'react-country-flag';
 import { usePoolContext, PLAYER_POSITIONS, PLAYER_AWARDS } from '@/contexts/PoolContext';
 import { Input } from '@/components/ui/Input';
 import { Section } from '@/components/ui/Section';
-import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import { selectStyles } from '@/lib/select-styles';
-import { PlayerPosition } from '@/types/playerPosition.type';
+import Image from 'next/image';
 import { TournamentPlayer } from '@/types/tournamentPlayer.interface';
 import {
   PlayerScoringInfoSection,
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
-import { PlayerSelectionStatistics } from '@/components/pool/PlayerSelectionStatistics';
-import {
-  PlayerInsightsModal,
-  type PlayerInsightsTarget,
-} from '@/components/pool/PlayerInsightsModal';
+import type { PlayerInsightsTarget } from '@/components/pool/PlayerInsightsModal';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+
+const PlayerInsightsModal = dynamic(
+  () => import('@/components/pool/PlayerInsightsModal').then((mod) => mod.PlayerInsightsModal),
+  { ssr: false },
+);
+const PlayerSelectionStatistics = dynamic(
+  () => import('@/components/pool/PlayerSelectionStatistics').then((mod) => mod.PlayerSelectionStatistics),
+  { ssr: false },
+);
+const PlayerStatsTable = dynamic(
+  () => import('@/components/pool/PlayerStatsTable').then((mod) => mod.PlayerStatsTable),
+  { ssr: false },
+);
 
 type PlayerOption = {
   value: string;
@@ -328,7 +337,7 @@ export default function PlayersPage() {
                           }}
                         >
                           {selected?.imageUrl ? (
-                            <img
+                            <Image
                               src={selected.imageUrl}
                               alt=""
                               style={{
@@ -412,7 +421,7 @@ export default function PlayersPage() {
                                 );
                               }}
                               menuPortalTarget={
-                                typeof document !== 'undefined' ? document.body : undefined
+                                typeof document === 'undefined' ? undefined : document.body
                               }
                               styles={selectStyles({
                                 control: (base, state) => ({
@@ -586,7 +595,7 @@ export default function PlayersPage() {
                                     border: '1px solid rgb(var(--pitch) / 0.50)',
                                   }}
                                 >
-                                  <img
+                                  <Image
                                     src={selected.imageUrl}
                                     alt=""
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -640,7 +649,7 @@ export default function PlayersPage() {
                                       );
                                     }}
                                     menuPortalTarget={
-                                      typeof document !== 'undefined' ? document.body : undefined
+                                      typeof document === 'undefined' ? undefined : document.body
                                     }
                                     styles={selectStyles({
                                       control: (base, state) => ({
@@ -764,7 +773,7 @@ export default function PlayersPage() {
                           }}
                         >
                           {selected?.imageUrl ? (
-                            <img
+                            <Image
                               src={selected.imageUrl}
                               alt=""
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -843,7 +852,7 @@ export default function PlayersPage() {
                                 );
                               }}
                               menuPortalTarget={
-                                typeof document !== 'undefined' ? document.body : undefined
+                                typeof document === 'undefined' ? undefined : document.body
                               }
                               styles={selectStyles({
                                 control: (base, state) => ({
@@ -964,7 +973,7 @@ export default function PlayersPage() {
                                 border: '1px solid rgb(var(--pitch) / 0.50)',
                               }}
                             >
-                              <img
+                              <Image
                                 src={selected.imageUrl}
                                 alt=""
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -1014,7 +1023,7 @@ export default function PlayersPage() {
                                   );
                                 }}
                                 menuPortalTarget={
-                                  typeof document !== 'undefined' ? document.body : undefined
+                                  typeof document === 'undefined' ? undefined : document.body
                                 }
                                 styles={selectStyles({
                                   control: (base, state) => ({
@@ -1129,7 +1138,7 @@ export default function PlayersPage() {
                     value={positionOptions.find((o) => o.value === playerPositionFilter) ?? null}
                     options={positionOptions}
                     onChange={(option) => setPlayerPositionFilter(option?.value ?? '')}
-                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPortalTarget={typeof document === 'undefined' ? undefined : document.body}
                     styles={selectStyles()}
                   />
                   <Select<
@@ -1155,7 +1164,7 @@ export default function PlayersPage() {
                         option.data.searchLabel.toLowerCase().includes(search)
                       );
                     }}
-                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    menuPortalTarget={typeof document === 'undefined' ? undefined : document.body}
                     styles={selectStyles()}
                   />
                 </div>

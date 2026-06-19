@@ -9,7 +9,7 @@ import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
 import { resolvePoolDeadline } from '../pool-deadline.util';
 
-export type BracketPhase =
+type BracketPhase =
   | '16th-finals'
   | '8th-finals'
   | 'quarter-finals'
@@ -92,7 +92,7 @@ export class BracketService {
     }
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
-      if (!membership || membership.status !== 'active') {
+      if (membership?.status !== 'active') {
         throw new ForbiddenException('You must be an active member of this pool');
       }
     }
@@ -266,7 +266,7 @@ export class BracketService {
     const pools = await this.poolRepository.listPools();
     const poolById = new Map(pools.map((pool: any) => [pool.poolId, pool]));
 
-    for (const prediction of relevantPredictions) {
+    const predictionUpdates = relevantPredictions.map((prediction: any) => {
       const predictionPool: any = poolById.get(prediction.poolId);
       const {
         exactPositionPoints: exactPosPoints,
@@ -313,16 +313,18 @@ export class BracketService {
         points += tournamentWinnerPoints;
       }
 
-      await this.poolRepository.updateBracketPredictionPoints(
-        prediction.bracketPredictionId,
+      return {
+        bracketPredictionId: prediction.bracketPredictionId,
         points,
         homeTeamExactPosition,
         awayTeamExactPosition,
         homeTeamCorrectButWrongPosition,
         awayTeamCorrectButWrongPosition,
         tournamentWinnerCorrect,
-      );
-    }
+      };
+    });
+
+    await this.poolRepository.bulkUpdateBracketPredictionPoints(predictionUpdates);
   }
 
   async updateBracketMatchResult(

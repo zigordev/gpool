@@ -10,7 +10,7 @@ import { selectStyles } from '@/lib/select-styles';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { isPlayerStatEnabled } from '@/lib/player-stat-visibility';
 import ReactCountryFlag from 'react-country-flag';
-import { computePlayerPoints, parseConfigNumberInput, useAdminContext, type ConfigNumber } from '@/contexts/AdminContext';
+import { computePlayerPoints, parseConfigNumberInput, useAdminContext, type ConfigNumber , PlayerMatchReference } from '@/contexts/AdminContext';
 import { FaFutbol, FaMagic, FaShieldAlt, FaStar } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
 import { IoMdCloseCircle } from 'react-icons/io';
@@ -19,7 +19,6 @@ import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
 import { MAX_PLAYER_SELECTION_LIMIT } from '@/lib/player-selection-limits';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { useState } from 'react';
-import type { PlayerMatchReference } from '@/contexts/AdminContext';
 
 export default function AdminPlayersPage() {
   const { t, locale } = useI18n();
@@ -153,8 +152,7 @@ export default function AdminPlayersPage() {
 
   return (
     <div className="content-panel admin-content">
-
-      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
+      {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.players.selectionLimits.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
           {([
             ['goalkeeper', 'adminResults.players.positions.goalkeeper'],
@@ -174,10 +172,10 @@ export default function AdminPlayersPage() {
             </FormField>
           ))}
         </div>
-      </Section> : null}
+      </Section>}
 
       {/* Player scoring configuration */}
-      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
+      {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[
@@ -270,7 +268,7 @@ export default function AdminPlayersPage() {
             </div>
           </div>
         </div>
-      </Section> : null}
+      </Section>}
 
       {/* Player stats table */}
       {systemMode ? <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '0.35rem' }}>

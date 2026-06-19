@@ -19,8 +19,6 @@ const PLAYER_STAT_COLUMNS = {
 
 @Injectable()
 export class PoolRepository {
-  private readonly logger = new Logger(PoolRepository.name);
-
   constructor(private readonly postgres: PostgresService) {}
 
   async createPool(poolData: {
@@ -251,58 +249,6 @@ export class PoolRepository {
     return result.rows;
   }
 
-  async removeMember(poolId: string, userId: string) {
-    await this.postgres.query(
-      `DELETE FROM pool_memberships WHERE pool_id = $1 AND user_id = $2`,
-      [poolId, userId],
-    );
-    return { success: true };
-  }
-
-  async updateMemberRole(poolId: string, userId: string, role: string) {
-    const result = await this.postgres.query(
-      `
-        UPDATE pool_memberships
-        SET role = $3
-        WHERE pool_id = $1 AND user_id = $2
-        RETURNING
-          pool_id AS "poolId",
-          user_id AS "userId",
-          role,
-          status,
-          joined_at::text AS "joinedAt",
-          user_email AS "userEmail",
-          user_name AS "userName",
-          config
-      `,
-      [poolId, userId, role],
-    );
-
-    return result.rows[0] || null;
-  }
-
-  async updateMembershipConfig(poolId: string, userId: string, config: Record<string, any>) {
-    const result = await this.postgres.query(
-      `
-        UPDATE pool_memberships
-        SET config = COALESCE(config, '{}'::jsonb) || $3::jsonb
-        WHERE pool_id = $1 AND user_id = $2
-        RETURNING
-          pool_id AS "poolId",
-          user_id AS "userId",
-          role,
-          status,
-          joined_at::text AS "joinedAt",
-          user_email AS "userEmail",
-          user_name AS "userName",
-          config
-      `,
-      [poolId, userId, JSON.stringify(config || {})],
-    );
-
-    return result.rows[0] || null;
-  }
-
   async getUser(userId: string) {
     const result = await this.postgres.query(
       `
@@ -341,26 +287,6 @@ export class PoolRepository {
     );
 
     return result.rows[0] || null;
-  }
-
-  async getTeamsByGroup(group: string) {
-    const result = await this.postgres.query(
-      `
-        SELECT
-          team_id AS "teamId",
-          name,
-          group_id AS "group",
-          code,
-          fair_play_points::int AS "fairPlay",
-          fifa_ranking::int AS "fifaRanking"
-        FROM teams
-        WHERE group_id = $1
-        ORDER BY name ASC
-      `,
-      [group],
-    );
-
-    return result.rows;
   }
 
   async getAllTeams() {
@@ -747,15 +673,7 @@ export class PoolRepository {
     const client = await this.postgres.getClient();
     try {
       await client.query('BEGIN');
-      if (!selected) {
-        await client.query(
-          `
-            DELETE FROM tournament_player_awards
-            WHERE award = $1 AND player_id = $2
-          `,
-          [award, playerId],
-        );
-      } else {
+      if (selected) {
         if (award === 'tournament_mvp') {
           await client.query(
             `
@@ -772,6 +690,14 @@ export class PoolRepository {
             DO UPDATE SET updated_at = EXCLUDED.updated_at
           `,
           [award, playerId, Math.floor(Date.now() / 1000)],
+        );
+      } else {
+        await client.query(
+          `
+            DELETE FROM tournament_player_awards
+            WHERE award = $1 AND player_id = $2
+          `,
+          [award, playerId],
         );
       }
       await client.query('COMMIT');
@@ -1418,6 +1344,40 @@ export class PoolRepository {
     );
   }
 
+  async bulkUpdatePredictionStatuses(
+    updates: Array<{
+      predictionId: string;
+      isCorrect: boolean;
+      points: number;
+      isExactMatch: boolean;
+    }>,
+  ) {
+    if (updates.length === 0) return;
+
+    await this.postgres.query(
+      `
+        WITH updates AS (
+          SELECT *
+          FROM jsonb_to_recordset($1::jsonb) AS update_data(
+            "predictionId" uuid,
+            "isCorrect" boolean,
+            points integer,
+            "isExactMatch" boolean
+          )
+        )
+        UPDATE group_phase_predictions p
+        SET
+          is_correct = updates."isCorrect",
+          points = updates.points,
+          is_exact_match = updates."isExactMatch",
+          evaluated_at = $2
+        FROM updates
+        WHERE p.prediction_id = updates."predictionId"
+      `,
+      [JSON.stringify(updates), Math.floor(Date.now() / 1000)],
+    );
+  }
+
   async getAllPredictionsForPool(poolId: string) {
     const result = await this.postgres.query(
       `
@@ -1754,6 +1714,50 @@ export class PoolRepository {
         tournamentWinnerCorrect,
         Math.floor(Date.now() / 1000),
       ],
+    );
+  }
+
+  async bulkUpdateBracketPredictionPoints(
+    updates: Array<{
+      bracketPredictionId: string;
+      points: number;
+      homeTeamExactPosition: boolean;
+      awayTeamExactPosition: boolean;
+      homeTeamCorrectButWrongPosition: boolean;
+      awayTeamCorrectButWrongPosition: boolean;
+      tournamentWinnerCorrect: boolean | null;
+    }>,
+  ) {
+    if (updates.length === 0) return;
+
+    await this.postgres.query(
+      `
+        WITH updates AS (
+          SELECT *
+          FROM jsonb_to_recordset($1::jsonb) AS update_data(
+            "bracketPredictionId" uuid,
+            points integer,
+            "homeTeamExactPosition" boolean,
+            "awayTeamExactPosition" boolean,
+            "homeTeamCorrectButWrongPosition" boolean,
+            "awayTeamCorrectButWrongPosition" boolean,
+            "tournamentWinnerCorrect" boolean
+          )
+        )
+        UPDATE final_phase_predictions p
+        SET
+          points = updates.points,
+          is_evaluated = TRUE,
+          home_team_exact_position = updates."homeTeamExactPosition",
+          away_team_exact_position = updates."awayTeamExactPosition",
+          home_team_correct_but_wrong_position = updates."homeTeamCorrectButWrongPosition",
+          away_team_correct_but_wrong_position = updates."awayTeamCorrectButWrongPosition",
+          tournament_winner_correct = updates."tournamentWinnerCorrect",
+          evaluated_at = $2
+        FROM updates
+        WHERE p.bracket_prediction_id = updates."bracketPredictionId"
+      `,
+      [JSON.stringify(updates), Math.floor(Date.now() / 1000)],
     );
   }
 

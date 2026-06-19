@@ -1,17 +1,27 @@
 'use client';
 
 import { useState, type ComponentType } from 'react';
+import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { useAdminContext } from '@/contexts/AdminContext';
-import AdminRankingPage from '@/app/pools/[poolId]/admin/ranking/page';
-import AdminGroupsPage from '@/app/pools/[poolId]/admin/groups/page';
-import AdminFinalPage from '@/app/pools/[poolId]/admin/final/page';
-import AdminPlayersPage from '@/app/pools/[poolId]/admin/players/page';
 import { Badge } from '@/components/ui/Badge';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
 import { FaLayerGroup } from 'react-icons/fa6';
 import { GiSoccerKick } from 'react-icons/gi';
 import { IoSettings } from 'react-icons/io5';
+
+const AdminRankingPage = dynamic(() => import('@/app/pools/[poolId]/admin/ranking/page'), {
+  ssr: false,
+});
+const AdminGroupsPage = dynamic(() => import('@/app/pools/[poolId]/admin/groups/page'), {
+  ssr: false,
+});
+const AdminFinalPage = dynamic(() => import('@/app/pools/[poolId]/admin/final/page'), {
+  ssr: false,
+});
+const AdminPlayersPage = dynamic(() => import('@/app/pools/[poolId]/admin/players/page'), {
+  ssr: false,
+});
 
 type ConfigurationTab = 'general' | 'groups' | 'final' | 'players';
 

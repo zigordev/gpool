@@ -16,10 +16,8 @@ function getCache(): Map<string, CacheEntry> {
   const globalAny = globalThis as typeof globalThis & {
     [cacheKey]?: Map<string, CacheEntry>;
   };
-  if (!globalAny[cacheKey]) {
-    globalAny[cacheKey] = new Map<string, CacheEntry>();
-  }
-  return globalAny[cacheKey]!;
+  globalAny[cacheKey] ??= new Map<string, CacheEntry>();
+  return globalAny[cacheKey];
 }
 
 async function parseZip(buffer: ArrayBuffer): Promise<Messages | null> {

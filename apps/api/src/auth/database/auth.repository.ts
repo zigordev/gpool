@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PostgresService } from '../../database/postgres.service';
 
-export interface AuthUserRow {
+interface AuthUserRow {
   userId: string;
   email: string;
   name: string;

@@ -18,24 +18,24 @@ interface RUMEvent {
 
 class RUMService {
   private events: RUMEvent[] = [];
-  private batchSize = 10;
-  private flushInterval = 30000; // 30 seconds
-  private flushTimer?: NodeJS.Timeout;
+  private readonly batchSize = 10;
+  private readonly flushInterval = 30000; // 30 seconds
   private userId?: string;
-  private sessionId: string;
-  private navigationPath: string[] = [];
+  private readonly sessionId: string;
+  private readonly navigationPath: string[] = [];
   private clickTimestamps: number[] = [];
   private lastClickTime = 0;
-  private deadClickThreshold = 500; // ms - click with no response
-  private rageClickThreshold = 3; // clicks within 1 second
+  private flushTimer?: ReturnType<typeof setInterval>;
+  private readonly deadClickThreshold = 500; // ms - click with no response
+  private readonly rageClickThreshold = 3; // clicks within 1 second
 
   constructor() {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') {
+      this.sessionId = '';
+    } else {
       // Generate session ID
       this.sessionId = this.generateSessionId();
       this.init();
-    } else {
-      this.sessionId = '';
     }
   }
 
@@ -81,7 +81,7 @@ class RUMService {
       try {
         const lcpObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1] as any;
+          const lastEntry = entries.at(-1) as any;
           this.recordEvent({
             type: 'performance',
             name: 'LCP',
@@ -171,7 +171,7 @@ class RUMService {
 
   private trackErrors() {
     // Track JavaScript errors
-    window.addEventListener('error', (event) => {
+    globalThis.addEventListener('error', (event) => {
       this.recordEvent({
         type: 'error',
         name: 'JavaScript Error',
@@ -186,7 +186,7 @@ class RUMService {
     });
 
       // Track unhandled promise rejections
-      window.addEventListener('unhandledrejection', (event) => {
+      globalThis.addEventListener('unhandledrejection', (event) => {
         this.recordEvent({
           type: 'error',
           name: 'Unhandled Promise Rejection',
@@ -198,7 +198,7 @@ class RUMService {
       });
 
       // Track slow page loads as frustration
-      window.addEventListener('load', () => {
+      globalThis.addEventListener('load', () => {
         const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
         if (loadTime > 3000) { // More than 3 seconds
           this.recordEvent({
@@ -215,24 +215,24 @@ class RUMService {
 
   private trackNavigation() {
     // Track initial page view
-    this.navigationPath.push(window.location.pathname);
+    this.navigationPath.push(globalThis.location.pathname);
     this.recordEvent({
       type: 'navigation',
       name: 'Page View',
       metadata: {
-        path: window.location.pathname,
+        path: globalThis.location.pathname,
         referrer: document.referrer,
         sessionStart: this.navigationPath.length === 1,
       },
     });
 
     // Track route changes (for Next.js)
-    if (typeof window !== 'undefined') {
-      let lastPath = window.location.pathname;
+    if (typeof globalThis !== 'undefined') {
+      let lastPath = globalThis.location.pathname;
       const checkPath = () => {
-        if (window.location.pathname !== lastPath) {
+        if (globalThis.location.pathname !== lastPath) {
           // Add to navigation path
-          this.navigationPath.push(window.location.pathname);
+          this.navigationPath.push(globalThis.location.pathname);
           // Keep only last 20 pages to avoid memory issues
           if (this.navigationPath.length > 20) {
             this.navigationPath.shift();
@@ -243,12 +243,12 @@ class RUMService {
             name: 'Route Change',
             metadata: {
               from: lastPath,
-              to: window.location.pathname,
+              to: globalThis.location.pathname,
               navigationDepth: this.navigationPath.length,
               timeOnPage: Date.now() - (this.lastClickTime || Date.now()),
             },
           });
-          lastPath = window.location.pathname;
+          lastPath = globalThis.location.pathname;
         }
       };
       // Check periodically (Next.js doesn't expose router events in App Router)
@@ -302,7 +302,7 @@ class RUMService {
           if (Date.now() - this.lastClickTime >= this.deadClickThreshold) {
             // Check if page actually changed or element was removed
             const stillExists = document.contains(button);
-            if (stillExists && window.location.pathname === this.navigationPath[this.navigationPath.length - 1]) {
+            if (stillExists && globalThis.location.pathname === this.navigationPath.at(-1)) {
               this.recordEvent({
                 type: 'frustration',
                 name: 'Dead Click',
@@ -334,7 +334,6 @@ class RUMService {
 
     // Track excessive scrolling (frustration indicator)
     let scrollCount = 0;
-    let lastScrollTop = window.scrollY;
     let scrollTimer: NodeJS.Timeout;
     
     window.addEventListener('scroll', () => {
@@ -380,7 +379,7 @@ class RUMService {
     const rumEvent: RUMEvent = {
       ...event,
       timestamp: Date.now(),
-      url: window.location.href,
+      url: globalThis.location.href,
       userAgent: navigator.userAgent,
       userId: this.userId,
       sessionId: this.sessionId,
@@ -471,7 +470,7 @@ class RUMService {
 }
 
 // Singleton instance
-export const rum = typeof window !== 'undefined' ? new RUMService() : null;
+export const rum = typeof window === 'undefined' ? null : new RUMService();
 
 // Make rum available on window for lazy access
 if (typeof window !== 'undefined') {

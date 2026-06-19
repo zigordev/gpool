@@ -21,7 +21,7 @@ const NavCenterContext = createContext<NavCenterContextValue>({
   setPoolActions: () => {},
 });
 
-export function NavCenterProvider({ children }: { children: ReactNode }) {
+export function NavCenterProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [center, setCenter] = useState<ReactNode>(null);
   const [subBar, setSubBar] = useState<ReactNode>(null);
   const [poolActions, setPoolActions] = useState<ReactNode>(null);

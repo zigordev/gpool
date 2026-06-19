@@ -21,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -59,9 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [checkAuth]);
 
     const login = (redirectPath?: string) => {
-        const currentPath = `${window.location.pathname || '/pools'}${window.location.search || ''}`;
+        const currentPath = `${globalThis.location.pathname || '/pools'}${globalThis.location.search || ''}`;
         const targetPath = redirectPath || currentPath;
-        window.location.href = `/api/auth/google/start?redirect=${encodeURIComponent(targetPath)}`;
+        globalThis.location.href = `/api/auth/google/start?redirect=${encodeURIComponent(targetPath)}`;
     };
 
     const logout = async () => {
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Logout error:', error);
         } finally {
             setUser(null);
-            window.location.href = '/login';
+            globalThis.location.href = '/login';
         }
     };
 

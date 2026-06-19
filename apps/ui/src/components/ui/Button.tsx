@@ -26,7 +26,7 @@ export function Button({
   disabled,
   children,
   ...rest
-}: Props) {
+}: Readonly<Props>) {
   const variantClass = {
     primary: 'btn-primary',
     solid: 'btn-solid',

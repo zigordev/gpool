@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from 'axios';
 const API_URL = '/api/proxy';
 
 class ApiClient {
-    private client: AxiosInstance;
+    private readonly client: AxiosInstance;
 
     constructor() {
         this.client = axios.create({
@@ -16,7 +16,7 @@ class ApiClient {
         // Add request interceptor to track start time for RUM.
         this.client.interceptors.request.use(
             (config) => {
-                if (typeof window !== 'undefined') {
+                if (typeof globalThis !== 'undefined') {
                     (config as any).metadata = { startTime: Date.now() };
                 }
                 return config;
@@ -30,10 +30,10 @@ class ApiClient {
         this.client.interceptors.response.use(
             (response) => {
                 // Track API performance
-                if (typeof window !== 'undefined') {
+                if (typeof globalThis !== 'undefined') {
                     try {
                         // Lazy import to avoid SSR issues
-                        const rum = (window as any).__rum;
+                        const rum = (globalThis as any).__rum;
                         if (rum) {
                             const duration = Date.now() - ((response.config as any).metadata?.startTime || Date.now());
                             rum.trackPerformance('API Request', duration, {

@@ -25,10 +25,6 @@ export class MatchService {
 
   constructor(private readonly poolRepository: PoolRepository) {}
 
-  async getTeamsByGroup(group: string) {
-    return this.poolRepository.getTeamsByGroup(group);
-  }
-
   async getAllTeams() {
     return this.poolRepository.getAllTeams();
   }
@@ -61,7 +57,7 @@ export class MatchService {
     return {
       matches: allMatches,
       matchesByGroup,
-      groups: Object.keys(matchesByGroup).sort(),
+      groups: Object.keys(matchesByGroup).sort((a, b) => a.localeCompare(b)),
       poolId,
     };
   }
@@ -149,7 +145,7 @@ export class MatchService {
     }
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
-      if (!membership || membership.status !== 'active') {
+      if (membership?.status !== 'active') {
         throw new ForbiddenException('You must be an active member of this pool');
       }
     }
@@ -235,8 +231,6 @@ export class MatchService {
     matchId: string,
     homeResult: number | null,
     awayResult: number | null,
-    poolId?: string,
-    scoringConfig?: { winnerPoints: number; exactResultPoints: number },
   ) {
     const match = await this.poolRepository.getMatch(matchId);
     if (!match) {
@@ -296,7 +290,7 @@ export class MatchService {
       return 'draw';
     };
 
-    for (const prediction of allPredictions) {
+    const predictionUpdates = allPredictions.map((prediction: any) => {
       const scoring = scoringByPool.get(prediction.poolId) || {
         winnerPoints: 0,
         exactResultPoints: 0,
@@ -313,13 +307,15 @@ export class MatchService {
         points = scoring.winnerPoints;
       }
 
-      await this.poolRepository.updatePredictionStatus(
-        prediction.predictionId,
-        exactMatch || winnerMatch,
+      return {
+        predictionId: prediction.predictionId,
+        isCorrect: exactMatch || winnerMatch,
         points,
-        exactMatch,
-      );
-    }
+        isExactMatch: exactMatch,
+      };
+    });
+
+    await this.poolRepository.bulkUpdatePredictionStatuses(predictionUpdates);
 
     this.logger.log(
       `Match results updated and ${allPredictions.length} predictions evaluated for match ${matchId}`,

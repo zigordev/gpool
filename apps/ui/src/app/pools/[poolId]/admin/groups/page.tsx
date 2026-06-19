@@ -279,7 +279,7 @@ function FairPlayTable({
       nextPositions.set(team.teamId, nextPosition);
       const previousPosition = previousRowPositions.current.get(team.teamId);
       const deltaY = previousPosition ? previousPosition.top - nextPosition.top : 0;
-      if (deltaY && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (deltaY && !globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         row.animate(
           [
             { transform: `translateY(${deltaY}px)` },
@@ -419,7 +419,7 @@ export default function AdminGroupsPage() {
     <div className="content-panel admin-content">
 
       {/* Group phase scoring */}
-      {!systemMode ? <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
+      {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
         <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
           <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
@@ -428,7 +428,7 @@ export default function AdminGroupsPage() {
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} attention={scoringConfig.exactResultPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, exactResultPoints: parseConfigNumberInput(e.target.value) }))} />
           </FormField>
         </div>
-      </Section> : null}
+      </Section>}
 
       {/* Match results */}
       {systemMode && groups.length > 0 ? (

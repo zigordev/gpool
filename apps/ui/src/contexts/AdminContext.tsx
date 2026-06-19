@@ -108,7 +108,7 @@ export function parseConfigNumberInput(value: string, options: { allowNegative?:
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return '';
   const minBound = options.allowNegative ? parsed : Math.max(0, parsed);
-  return options.max !== undefined ? Math.min(options.max, minBound) : minBound;
+  return options.max === undefined ? minBound : Math.min(options.max, minBound);
 }
 
 function readConfigNumber(value: unknown, options: { allowNegative?: boolean; max?: number } = {}): ConfigNumber {
@@ -116,7 +116,7 @@ function readConfigNumber(value: unknown, options: { allowNegative?: boolean; ma
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return '';
   const minBound = options.allowNegative ? parsed : Math.max(0, parsed);
-  return options.max !== undefined ? Math.min(options.max, minBound) : minBound;
+  return options.max === undefined ? minBound : Math.min(options.max, minBound);
 }
 
 function pointsValue(value: ConfigNumber): number {
@@ -503,11 +503,11 @@ export function AdminProvider({
   poolId,
   children,
   systemMode = false,
-}: {
+}: Readonly<{
   poolId: string;
   children: React.ReactNode;
   systemMode?: boolean;
-}) {
+}>) {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useI18n();
@@ -666,7 +666,7 @@ export function AdminProvider({
             setBracket(updatedData);
             const updatedResultsMap: Record<string, { homeResult: number | ''; awayResult: number | '' }> = {};
             Object.values(updatedData || {}).flat().forEach((match: any) => {
-              if (match.bracketMatchId) updatedResultsMap[match.bracketMatchId] = { homeResult: match.homeResult !== undefined ? match.homeResult : '', awayResult: match.awayResult !== undefined ? match.awayResult : '' };
+              if (match.bracketMatchId) updatedResultsMap[match.bracketMatchId] = { homeResult: match.homeResult === undefined ? '' : match.homeResult, awayResult: match.awayResult === undefined ? '' : match.awayResult };
             });
             setBracketResults(updatedResultsMap);
           }
@@ -736,7 +736,7 @@ export function AdminProvider({
 
   const handleResultChange = (matchId: string, side: 'home' | 'away', value: string) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
-    const numValue = value === '' ? '' : Math.max(0, parseInt(value, 10) || 0);
+    const numValue = value === '' ? '' : Math.max(0, Number.parseInt(value, 10) || 0);
     setResults((prev) => ({ ...prev, [matchId]: { ...prev[matchId], [side === 'home' ? 'homeResult' : 'awayResult']: numValue, [side === 'home' ? 'awayResult' : 'homeResult']: prev[matchId]?.[side === 'home' ? 'awayResult' : 'homeResult'] ?? '' } }));
     const existing = resultSaveTimers.current[matchId];
     if (existing) clearTimeout(existing);
@@ -745,8 +745,8 @@ export function AdminProvider({
       setResults((current) => {
         const r = current[matchId];
         if (r && r.homeResult !== '' && r.awayResult !== '') {
-          void autoSaveResults(matchId, r.homeResult as number, r.awayResult as number);
-        } else if (r && r.homeResult === '' && r.awayResult === '') {
+          void autoSaveResults(matchId, r.homeResult, r.awayResult);
+        } else if (r?.homeResult === '' && r.awayResult === '') {
           void autoSaveResults(matchId, null, null);
         }
         return current;

@@ -11,7 +11,7 @@ interface Props {
   required?: boolean;
 }
 
-export function FormField({ label, htmlFor, hint, error, required, children }: Props) {
+export function FormField({ label, htmlFor, hint, error, required, children }: Readonly<Props>) {
   return (
     <div style={{ marginBottom: '0.25rem' }}>
       <label htmlFor={htmlFor} className="field-label">

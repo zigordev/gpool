@@ -19,7 +19,7 @@ const STATUS_TONE: Record<Status, { iconBg: string; iconFg: string }> = {
   error: { iconBg: 'rgb(var(--live) / 0.10)', iconFg: 'rgb(var(--live))' },
 };
 
-function StatusIcon({ status }: { status: Status }) {
+function StatusIcon({ status }: Readonly<{ status: Status }>) {
   const tone = STATUS_TONE[status];
   return (
     <div
@@ -160,14 +160,14 @@ function AcceptAccessRequestContent() {
         <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.95rem', lineHeight: 1.55, marginBottom: '1.5rem' }}>
           {message}
         </p>
-        {status !== 'pending' ? (
+        {status === 'pending' ? null : (
           <Button
             variant={status === 'error' ? 'outline' : 'primary'}
             onClick={() => router.push(`/pools/${poolId}`)}
           >
             {t('acceptRequest.actions.goToPools')}
           </Button>
-        ) : null}
+        )}
       </section>
     </main>
   );

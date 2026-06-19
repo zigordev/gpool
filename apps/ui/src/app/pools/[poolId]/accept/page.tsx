@@ -44,13 +44,13 @@ function AcceptInvitationContent() {
           email: user.email,
         });
 
-        window.location.href = `/pools/${poolId}`;
+        globalThis.location.href = `/pools/${poolId}`;
       } catch (error: any) {
         const errorMessage =
           error?.response?.data?.message || error?.message || t('acceptInvitation.errors.acceptFailed');
         toast.error(errorMessage);
         rum?.trackCustomEvent('Invitation Accept Failed', { poolId, reason: errorMessage });
-        window.location.href = '/pools';
+        globalThis.location.href = '/pools';
       }
     };
 

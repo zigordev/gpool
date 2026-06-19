@@ -241,17 +241,13 @@ function RankMovementIndicator({
           : movedDown
             ? 'rgb(var(--live))'
             : 'rgb(var(--fg-subtle))',
-        background: movedUp
-          ? 'transparent'
-          : movedDown
-            ? 'transparent'
-            : 'transparent',
+        background: 'transparent',
         border: 0,
         lineHeight: 1,
         flexShrink: 0,
       }}
     >
-      {movedUp ? `▲${delta}` : movedDown ? `▼${Math.abs(delta)}` : '–'}
+      {movedUp ? `▲${delta}` : movedDown ? `▼${Math.abs(delta)}` : ' '}
     </span>
   );
 }
