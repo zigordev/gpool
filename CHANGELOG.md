@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.42](https://github.com/zigordev/gpool/compare/v0.1.41...v0.1.42) (2026-06-19)
+
+
+### Features
+
+* code optimization ([#119](https://github.com/zigordev/gpool/issues/119)) ([5bfff69](https://github.com/zigordev/gpool/commit/5bfff695c76bd70c3c9495a8c7e793d91da41dab))
+
 ## [0.1.41](https://github.com/zigordev/gpool/compare/v0.1.40...v0.1.41) (2026-06-19)
 
 
