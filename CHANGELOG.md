@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.40](https://github.com/zigordev/gpool/compare/v0.1.39...v0.1.40) (2026-06-19)
+
+
+### Bug Fixes
+
+* pre commit config ([#115](https://github.com/zigordev/gpool/issues/115)) ([0369f5c](https://github.com/zigordev/gpool/commit/0369f5cfa7f58a1e3b7d66dcea3a89967d12d351))
+
 ## [0.1.39](https://github.com/zigordev/gpool/compare/v0.1.38...v0.1.39) (2026-06-19)
 
 
