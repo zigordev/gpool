@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.38](https://github.com/zigordev/gpool/compare/v0.1.37...v0.1.38) (2026-06-19)
+
+
+### Features
+
+* centralized logs generation ([#111](https://github.com/zigordev/gpool/issues/111)) ([574d5a2](https://github.com/zigordev/gpool/commit/574d5a24ecbf4901e176e2981e50b29b52637e18))
+
 ## [0.1.37](https://github.com/zigordev/gpool/compare/v0.1.36...v0.1.37) (2026-06-18)
 
 
