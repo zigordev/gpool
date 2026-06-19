@@ -30,11 +30,13 @@ if [ -z "$running_container" ] && [ "$existing_local_stack" -eq 0 ]; then
   STARTED_BY_HOOK=1
 fi
 
-API_HEALTH_URL="http://localhost:3010/api/health"
-METRICS_URL="http://localhost:3010/metrics"
+API_HEALTH_URL="http://localhost:3110/api/health"
+METRICS_URL="http://localhost:3110/metrics"
 WEB_HEALTH_URL="http://localhost:3101"
 
 if [ "$existing_local_stack" -eq 1 ]; then
+  API_HEALTH_URL="http://localhost:3010/api/health"
+  METRICS_URL="http://localhost:3010/metrics"
   WEB_HEALTH_URL="http://localhost:3011"
 fi
 
