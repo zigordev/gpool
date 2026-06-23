@@ -81,16 +81,16 @@ const STAT_COLUMNS: Array<{
     labelKey: 'poolDetail.players.actions.penaltiesSaved',
   },
   {
-    key: 'forcedPenaltyMisses',
-    group: 'penalty',
-    icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size={13} />,
-    labelKey: 'poolDetail.players.actions.forcedPenaltyMisses',
-  },
-  {
     key: 'missedPenalties',
     group: 'penalty',
     icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size={13} />,
     labelKey: 'poolDetail.players.actions.missedPenalties',
+  },
+  {
+    key: 'forcedPenaltyMisses',
+    group: 'penalty',
+    icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size={13} />,
+    labelKey: 'poolDetail.players.actions.forcedPenaltyMisses',
   },
   {
     key: 'shootoutGoals',

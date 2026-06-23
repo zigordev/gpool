@@ -300,18 +300,18 @@ export function PlayerScoringInfoSection({
         icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />,
       },
       {
-        key: 'forcedPenaltyMiss',
-        group: 'penalty',
-        label: t('poolDetail.rules.points.forcedPenaltyMiss'),
-        value: playerScoring.forcedPenaltyMiss,
-        icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} />,
-      },
-      {
         key: 'missedPenalty',
         group: 'penalty',
         label: t('poolDetail.rules.points.missedPenalty'),
         value: playerScoring.missedPenalty,
         icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} />,
+      },
+      {
+        key: 'forcedPenaltyMiss',
+        group: 'penalty',
+        label: t('poolDetail.rules.points.forcedPenaltyMiss'),
+        value: playerScoring.forcedPenaltyMiss,
+        icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} />,
       },
       {
         key: 'shootoutGoal',
