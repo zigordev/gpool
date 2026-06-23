@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.43](https://github.com/zigordev/gpool/compare/v0.1.42...v0.1.43) (2026-06-23)
+
+
+### Features
+
+* penalty miss force player action ([#121](https://github.com/zigordev/gpool/issues/121)) ([3143fdc](https://github.com/zigordev/gpool/commit/3143fdc31daedf237b98254389d5a73758d656de))
+
 ## [0.1.42](https://github.com/zigordev/gpool/compare/v0.1.41...v0.1.42) (2026-06-19)
 
 
