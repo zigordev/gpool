@@ -20,9 +20,11 @@ export type PlayerStatKey =
   | 'missedPenalties'
   | 'mvps'
   | 'penaltiesSaved'
+  | 'forcedPenaltyMisses'
   | 'shootoutPenaltiesSaved'
   | 'shootoutGoals'
   | 'shootoutMissedPenalties'
+  | 'shootoutForcedPenaltyMisses'
   | 'cleanSheets'
   | 'assists'
   | 'yellowCards'
@@ -38,9 +40,11 @@ const STATS: PlayerStatKey[] = [
   'missedPenalties',
   'mvps',
   'penaltiesSaved',
+  'forcedPenaltyMisses',
   'shootoutPenaltiesSaved',
   'shootoutGoals',
   'shootoutMissedPenalties',
+  'shootoutForcedPenaltyMisses',
   'cleanSheets',
   'assists',
   'yellowCards',
@@ -65,9 +69,11 @@ const DEFAULT_PLAYER_SCORING = {
   missedPenalty: 0,
   mvp: 0,
   penaltySaved: 0,
+  forcedPenaltyMiss: 0,
   shootoutPenaltySaved: 0,
   shootoutGoal: 0,
   shootoutMissedPenalty: 0,
+  shootoutForcedPenaltyMiss: 0,
   cleanSheet: {
     goalkeeper: 0,
     defender: 0,
@@ -147,6 +153,9 @@ export function resolvePlayerScoring(pool: any) {
     penaltySaved: Number.isFinite(Number(configured.penaltySaved))
       ? Number(configured.penaltySaved)
       : DEFAULT_PLAYER_SCORING.penaltySaved,
+    forcedPenaltyMiss: Number.isFinite(Number(configured.forcedPenaltyMiss))
+      ? Number(configured.forcedPenaltyMiss)
+      : DEFAULT_PLAYER_SCORING.forcedPenaltyMiss,
     shootoutPenaltySaved: Number.isFinite(Number(configured.shootoutPenaltySaved))
       ? Math.max(0, Number(configured.shootoutPenaltySaved))
       : DEFAULT_PLAYER_SCORING.shootoutPenaltySaved,
@@ -156,6 +165,9 @@ export function resolvePlayerScoring(pool: any) {
     shootoutMissedPenalty: Number.isFinite(Number(configured.shootoutMissedPenalty))
       ? Number(configured.shootoutMissedPenalty)
       : DEFAULT_PLAYER_SCORING.shootoutMissedPenalty,
+    shootoutForcedPenaltyMiss: Number.isFinite(Number(configured.shootoutForcedPenaltyMiss))
+      ? Number(configured.shootoutForcedPenaltyMiss)
+      : DEFAULT_PLAYER_SCORING.shootoutForcedPenaltyMiss,
     cleanSheet: {
       goalkeeper: Number.isFinite(Number(cleanSheet.goalkeeper))
         ? Math.max(0, Number(cleanSheet.goalkeeper))
@@ -215,9 +227,11 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
+    (player.forcedPenaltyMisses || 0) * scoring.forcedPenaltyMiss +
     (player.shootoutPenaltiesSaved || 0) * scoring.shootoutPenaltySaved +
     (player.shootoutGoals || 0) * scoring.shootoutGoal +
     (player.shootoutMissedPenalties || 0) * scoring.shootoutMissedPenalty +
+    (player.shootoutForcedPenaltyMisses || 0) * scoring.shootoutForcedPenaltyMiss +
     cleanSheetPoints +
     assistPoints +
     cardPoints

@@ -180,22 +180,22 @@ export default function AdminPlayersPage() {
           <p style={actionGroupTitleStyle}>{t('poolDetail.players.actionGroups.match')}</p>
           {[
             { labelKey: 'adminResults.config.players.subgroups.goalsByPosition', icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} />, fields: [
-              { label: t('adminResults.players.scoring.goalGoalkeeper'), value: playerScoringConfig.goal.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, goalkeeper: v } })) },
-              { label: t('adminResults.players.scoring.goalDefender'), value: playerScoringConfig.goal.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, defender: v } })) },
-              { label: t('adminResults.players.scoring.goalMidfielder'), value: playerScoringConfig.goal.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, midfielder: v } })) },
-              { label: t('adminResults.players.scoring.goalForward'), value: playerScoringConfig.goal.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, forward: v } })) },
+              { label: t('adminResults.players.positions.goalkeeper'), value: playerScoringConfig.goal.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, goalkeeper: v } })) },
+              { label: t('adminResults.players.positions.defender'), value: playerScoringConfig.goal.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, defender: v } })) },
+              { label: t('adminResults.players.positions.midfielder'), value: playerScoringConfig.goal.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, midfielder: v } })) },
+              { label: t('adminResults.players.positions.forward'), value: playerScoringConfig.goal.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, goal: { ...p.goal, forward: v } })) },
             ]},
             { labelKey: 'adminResults.config.players.subgroups.assistsByPosition', icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} />, fields: [
-              { label: t('adminResults.players.scoring.assistGoalkeeper'), value: playerScoringConfig.assist.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, goalkeeper: v } })) },
-              { label: t('adminResults.players.scoring.assistDefender'), value: playerScoringConfig.assist.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, defender: v } })) },
-              { label: t('adminResults.players.scoring.assistMidfielder'), value: playerScoringConfig.assist.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, midfielder: v } })) },
-              { label: t('adminResults.players.scoring.assistForward'), value: playerScoringConfig.assist.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, forward: v } })) },
+              { label: t('adminResults.players.positions.goalkeeper'), value: playerScoringConfig.assist.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, goalkeeper: v } })) },
+              { label: t('adminResults.players.positions.defender'), value: playerScoringConfig.assist.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, defender: v } })) },
+              { label: t('adminResults.players.positions.midfielder'), value: playerScoringConfig.assist.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, midfielder: v } })) },
+              { label: t('adminResults.players.positions.forward'), value: playerScoringConfig.assist.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, assist: { ...p.assist, forward: v } })) },
             ]},
             { labelKey: 'adminResults.config.players.subgroups.cleanSheetsByPosition', icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} />, fields: [
-              { label: t('adminResults.players.scoring.cleanSheetGoalkeeper'), value: playerScoringConfig.cleanSheet.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, goalkeeper: v } })) },
-              { label: t('adminResults.players.scoring.cleanSheetDefender'), value: playerScoringConfig.cleanSheet.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, defender: v } })) },
-              { label: t('adminResults.players.scoring.cleanSheetMidfielder'), value: playerScoringConfig.cleanSheet.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, midfielder: v } })) },
-              { label: t('adminResults.players.scoring.cleanSheetForward'), value: playerScoringConfig.cleanSheet.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, forward: v } })) },
+              { label: t('adminResults.players.positions.goalkeeper'), value: playerScoringConfig.cleanSheet.goalkeeper, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, goalkeeper: v } })) },
+              { label: t('adminResults.players.positions.defender'), value: playerScoringConfig.cleanSheet.defender, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, defender: v } })) },
+              { label: t('adminResults.players.positions.midfielder'), value: playerScoringConfig.cleanSheet.midfielder, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, midfielder: v } })) },
+              { label: t('adminResults.players.positions.forward'), value: playerScoringConfig.cleanSheet.forward, onChange: (v: ConfigNumber) => setPlayerScoringConfig((p) => ({ ...p, cleanSheet: { ...p.cleanSheet, forward: v } })) },
             ]},
           ].map(({ labelKey, icon, fields }) => (
             <div key={labelKey}>
@@ -223,10 +223,10 @@ export default function AdminPlayersPage() {
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
                 {[
-                  { position: 'goalkeeper' as const, label: t('adminResults.players.scoring.penaltyGoalGoalkeeper') },
-                  { position: 'defender' as const, label: t('adminResults.players.scoring.penaltyGoalDefender') },
-                  { position: 'midfielder' as const, label: t('adminResults.players.scoring.penaltyGoalMidfielder') },
-                  { position: 'forward' as const, label: t('adminResults.players.scoring.penaltyGoalForward') },
+                  { position: 'goalkeeper' as const, label: t('adminResults.players.positions.goalkeeper') },
+                  { position: 'defender' as const, label: t('adminResults.players.positions.defender') },
+                  { position: 'midfielder' as const, label: t('adminResults.players.positions.midfielder') },
+                  { position: 'forward' as const, label: t('adminResults.players.positions.forward') },
                 ].map(({ position, label }) => (
                   <FormField key={position} label={label}>
                     <Input
@@ -250,6 +250,7 @@ export default function AdminPlayersPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.5rem' }}>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.penaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.penaltySaved} attention={playerScoringConfig.penaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, penaltySaved: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} />{t('adminResults.players.scoring.missedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.missedPenalty} attention={playerScoringConfig.missedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, missedPenalty: parseSigned(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.forcedPenaltyMiss')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.forcedPenaltyMiss} attention={playerScoringConfig.forcedPenaltyMiss === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, forcedPenaltyMiss: parsePositive(e.target.value) }))} /></FormField>
             </div>
           </div>
           <div style={actionGroupStyle}>
@@ -258,6 +259,7 @@ export default function AdminPlayersPage() {
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaFutbol style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutGoal')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutGoal} attention={playerScoringConfig.shootoutGoal === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutGoal: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutPenaltySaved')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutPenaltySaved} attention={playerScoringConfig.shootoutPenaltySaved === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutPenaltySaved: parsePositive(e.target.value) }))} /></FormField>
               <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} />{t('adminResults.players.scoring.shootoutMissedPenalty')}</span>}><Input type="number" inputMode="numeric" value={playerScoringConfig.shootoutMissedPenalty} attention={playerScoringConfig.shootoutMissedPenalty === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutMissedPenalty: parseSigned(e.target.value) }))} /></FormField>
+              <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.players.scoring.shootoutForcedPenaltyMiss')}</span>}><Input type="number" inputMode="numeric" min="0" value={playerScoringConfig.shootoutForcedPenaltyMiss} attention={playerScoringConfig.shootoutForcedPenaltyMiss === ''} onChange={(e) => setPlayerScoringConfig((p) => ({ ...p, shootoutForcedPenaltyMiss: parsePositive(e.target.value) }))} /></FormField>
             </div>
           </div>
           <div style={actionGroupStyle}>

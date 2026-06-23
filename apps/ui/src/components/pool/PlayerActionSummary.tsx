@@ -15,8 +15,8 @@ import { useI18n } from '@/i18n/client';
 type ActionGroup = 'match' | 'penalty' | 'shootout';
 
 export function PlayerActionSummary({ player, labels, position, scoring, compact = false }: Readonly<{
-  player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
-  labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
+  player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'forcedPenaltyMisses' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'shootoutForcedPenaltyMisses' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
+  labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; forcedPenaltyMisses: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; shootoutForcedPenaltyMisses: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
   position: PlayerPosition;
   scoring: ReturnType<typeof resolvePlayerInfoScoring>;
   compact?: boolean;
@@ -32,9 +32,11 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
     { key: 'penaltyGoals', group: 'penalty', value: player.penaltyGoals || 0, label: labels.penaltyGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'penaltiesSaved', group: 'penalty', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
     { key: 'missedPenalties', group: 'penalty', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
+    { key: 'forcedPenaltyMisses', group: 'penalty', value: player.forcedPenaltyMisses || 0, label: labels.forcedPenaltyMisses, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'shootoutGoals', group: 'shootout', value: player.shootoutGoals || 0, label: labels.shootoutGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'shootoutPenaltiesSaved', group: 'shootout', value: player.shootoutPenaltiesSaved || 0, label: labels.shootoutPenaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
     { key: 'shootoutMissedPenalties', group: 'shootout', value: player.shootoutMissedPenalties || 0, label: labels.shootoutMissedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
+    { key: 'shootoutForcedPenaltyMisses', group: 'shootout', value: player.shootoutForcedPenaltyMisses || 0, label: labels.shootoutForcedPenaltyMisses, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" /> },
   ];
   const visibleActions = actions.filter((item) => isPlayerStatEnabled(scoring, position, item.key));
   if (visibleActions.length === 0) return null;
