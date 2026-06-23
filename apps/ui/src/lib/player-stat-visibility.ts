@@ -9,9 +9,11 @@ type PlayerScoringLike = {
   missedPenalty?: ConfigNumberLike;
   mvp?: ConfigNumberLike;
   penaltySaved?: ConfigNumberLike;
+  forcedPenaltyMiss?: ConfigNumberLike;
   shootoutPenaltySaved?: ConfigNumberLike;
   shootoutGoal?: ConfigNumberLike;
   shootoutMissedPenalty?: ConfigNumberLike;
+  shootoutForcedPenaltyMiss?: ConfigNumberLike;
   cleanSheet?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   assist?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   yellowCard?: ConfigNumberLike;
@@ -48,12 +50,16 @@ export function playerStatScoringValue(
       return configuredNumber(scoring.mvp);
     case 'penaltiesSaved':
       return configuredNumber(scoring.penaltySaved);
+    case 'forcedPenaltyMisses':
+      return configuredNumber(scoring.forcedPenaltyMiss);
     case 'shootoutPenaltiesSaved':
       return configuredNumber(scoring.shootoutPenaltySaved);
     case 'shootoutGoals':
       return configuredNumber(scoring.shootoutGoal);
     case 'shootoutMissedPenalties':
       return configuredNumber(scoring.shootoutMissedPenalty);
+    case 'shootoutForcedPenaltyMisses':
+      return configuredNumber(scoring.shootoutForcedPenaltyMiss);
     case 'yellowCards':
       return configuredNumber(scoring.yellowCard);
     case 'redCards':

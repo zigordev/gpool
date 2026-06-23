@@ -674,9 +674,11 @@ export default function PlayersPage() {
                                       missedPenalties: 0,
                                       mvps: 0,
                                       penaltiesSaved: 0,
+                                      forcedPenaltyMisses: 0,
                                       shootoutPenaltiesSaved: 0,
                                       shootoutGoals: 0,
                                       shootoutMissedPenalties: 0,
+                                      shootoutForcedPenaltyMisses: 0,
                                       cleanSheets: 0,
                                       assists: 0,
                                       yellowCards: 0,
@@ -691,12 +693,18 @@ export default function PlayersPage() {
                                     ),
                                     mvps: t('poolDetail.players.actions.mvps'),
                                     penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+                                    forcedPenaltyMisses: t(
+                                      'poolDetail.players.actions.forcedPenaltyMisses'
+                                    ),
                                     shootoutPenaltiesSaved: t(
                                       'poolDetail.players.actions.shootoutPenaltiesSaved'
                                     ),
                                     shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
                                     shootoutMissedPenalties: t(
                                       'poolDetail.players.actions.shootoutMissedPenalties'
+                                    ),
+                                    shootoutForcedPenaltyMisses: t(
+                                      'poolDetail.players.actions.shootoutForcedPenaltyMisses'
                                     ),
                                     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                     assists: t('poolDetail.players.actions.assists'),
@@ -1048,9 +1056,11 @@ export default function PlayersPage() {
                                   missedPenalties: 0,
                                   mvps: 0,
                                   penaltiesSaved: 0,
+                                  forcedPenaltyMisses: 0,
                                   shootoutPenaltiesSaved: 0,
                                   shootoutGoals: 0,
                                   shootoutMissedPenalties: 0,
+                                  shootoutForcedPenaltyMisses: 0,
                                   cleanSheets: 0,
                                   assists: 0,
                                   yellowCards: 0,
@@ -1063,12 +1073,18 @@ export default function PlayersPage() {
                                 missedPenalties: t('poolDetail.players.actions.missedPenalties'),
                                 mvps: t('poolDetail.players.actions.mvps'),
                                 penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+                                forcedPenaltyMisses: t(
+                                  'poolDetail.players.actions.forcedPenaltyMisses'
+                                ),
                                 shootoutPenaltiesSaved: t(
                                   'poolDetail.players.actions.shootoutPenaltiesSaved'
                                 ),
                                 shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
                                 shootoutMissedPenalties: t(
                                   'poolDetail.players.actions.shootoutMissedPenalties'
+                                ),
+                                shootoutForcedPenaltyMisses: t(
+                                  'poolDetail.players.actions.shootoutForcedPenaltyMisses'
                                 ),
                                 cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                 assists: t('poolDetail.players.actions.assists'),

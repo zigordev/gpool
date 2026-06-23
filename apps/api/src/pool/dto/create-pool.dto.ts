@@ -177,6 +177,10 @@ class PlayerScoringDto {
     @IsNumber()
     penaltySaved: number;
 
+    @ApiProperty({ description: 'Points for forcing a penalty miss', example: 5 })
+    @IsNumber()
+    forcedPenaltyMiss: number;
+
     @ApiProperty({ description: 'Points for a penalty saved during a penalty shootout', example: 5 })
     @IsNumber()
     @Min(0)
@@ -190,6 +194,10 @@ class PlayerScoringDto {
     @ApiProperty({ description: 'Points for a missed penalty during a penalty shootout', example: -1 })
     @IsNumber()
     shootoutMissedPenalty: number;
+
+    @ApiProperty({ description: 'Points for forcing a penalty miss during a penalty shootout', example: 5 })
+    @IsNumber()
+    shootoutForcedPenaltyMiss: number;
 
     @ApiProperty({ type: PlayerGoalScoringDto, description: 'Clean-sheet points by player position' })
     @IsObject()
