@@ -15,6 +15,7 @@ export interface TournamentPlayer {
   missedPenalties?: number;
   mvps?: number;
   penaltiesSaved?: number;
+  forcedPenaltyMisses?: number;
   shootoutPenaltiesSaved?: number;
   shootoutGoals?: number;
   shootoutMissedPenalties?: number;

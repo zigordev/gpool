@@ -4,6 +4,7 @@ export type PlayerStatKey =
   | 'missedPenalties'
   | 'mvps'
   | 'penaltiesSaved'
+  | 'forcedPenaltyMisses'
   | 'shootoutPenaltiesSaved'
   | 'shootoutGoals'
   | 'shootoutMissedPenalties'

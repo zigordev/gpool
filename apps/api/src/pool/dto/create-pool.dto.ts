@@ -177,6 +177,10 @@ class PlayerScoringDto {
     @IsNumber()
     penaltySaved: number;
 
+    @ApiProperty({ description: 'Points for forcing a penalty miss', example: 5 })
+    @IsNumber()
+    forcedPenaltyMiss: number;
+
     @ApiProperty({ description: 'Points for a penalty saved during a penalty shootout', example: 5 })
     @IsNumber()
     @Min(0)

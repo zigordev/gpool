@@ -117,6 +117,7 @@
       "actions": {
         "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
+        "forcedPenaltyMisses": "Penaltis fallados forzados",
         "goals": "Goles",
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
@@ -170,6 +171,7 @@
         "cleanSheetForward": "Porteria a cero de delantero",
         "cleanSheetGoalkeeper": "Porteria a cero de portero",
         "cleanSheetMidfielder": "Porteria a cero de mediocampista",
+        "forcedPenaltyMiss": "Penalti fallado forzado",
         "goalDefender": "Gol de defensa",
         "goalForward": "Gol de delantero",
         "goalGoalkeeper": "Gol de portero",
@@ -486,6 +488,7 @@
       "actions": {
         "assists": "Asistencias",
         "cleanSheets": "Porterias a cero",
+        "forcedPenaltyMisses": "Penaltis fallados forzados",
         "goals": "Goles",
         "missedPenalties": "Penaltis fallados",
         "mvps": "MVP",
@@ -589,6 +592,7 @@
         "exactResult": "Resultado exacto",
         "fifaRegulationsLink": "Consultar criterio oficial de la FIFA para la clasificación",
         "finalPhaseDescription": "En esta fase puedes conseguir puntos acertando qué equipos llegan a cada posición del cuadro.",
+        "forcedPenaltyMiss": "Penalti fallado forzado",
         "goals": "Goles",
         "goldenBoot": "Bota de oro",
         "groupPhaseDescription": "Puedes conseguir puntos si aciertas el resultado 1X2 o el resultado exacto.",

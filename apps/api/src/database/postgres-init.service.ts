@@ -131,6 +131,7 @@ export class PostgresInitService implements OnModuleInit {
         missed_penalties INTEGER NOT NULL DEFAULT 0,
         mvps INTEGER NOT NULL DEFAULT 0,
         penalties_saved INTEGER NOT NULL DEFAULT 0,
+        forced_penalty_misses INTEGER NOT NULL DEFAULT 0,
         shootout_penalties_saved INTEGER NOT NULL DEFAULT 0,
         shootout_goals INTEGER NOT NULL DEFAULT 0,
         shootout_missed_penalties INTEGER NOT NULL DEFAULT 0,
@@ -142,6 +143,7 @@ export class PostgresInitService implements OnModuleInit {
         updated_at BIGINT NOT NULL
       );
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS penalty_goals INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS forced_penalty_misses INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_penalties_saved INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_goals INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS shootout_missed_penalties INTEGER NOT NULL DEFAULT 0;
@@ -159,6 +161,7 @@ export class PostgresInitService implements OnModuleInit {
         missed_penalties INTEGER NOT NULL DEFAULT 0,
         mvps INTEGER NOT NULL DEFAULT 0,
         penalties_saved INTEGER NOT NULL DEFAULT 0,
+        forced_penalty_misses INTEGER NOT NULL DEFAULT 0,
         shootout_penalties_saved INTEGER NOT NULL DEFAULT 0,
         shootout_goals INTEGER NOT NULL DEFAULT 0,
         shootout_missed_penalties INTEGER NOT NULL DEFAULT 0,
@@ -170,6 +173,7 @@ export class PostgresInitService implements OnModuleInit {
         updated_at BIGINT NOT NULL,
         PRIMARY KEY (match_type, match_id, player_id)
       );
+      ALTER TABLE tournament_player_match_stats ADD COLUMN IF NOT EXISTS forced_penalty_misses INTEGER NOT NULL DEFAULT 0;
       CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_player
         ON tournament_player_match_stats(player_id);
       CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_match

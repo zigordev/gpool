@@ -9,6 +9,7 @@ type PlayerScoringLike = {
   missedPenalty?: ConfigNumberLike;
   mvp?: ConfigNumberLike;
   penaltySaved?: ConfigNumberLike;
+  forcedPenaltyMiss?: ConfigNumberLike;
   shootoutPenaltySaved?: ConfigNumberLike;
   shootoutGoal?: ConfigNumberLike;
   shootoutMissedPenalty?: ConfigNumberLike;
@@ -48,6 +49,8 @@ export function playerStatScoringValue(
       return configuredNumber(scoring.mvp);
     case 'penaltiesSaved':
       return configuredNumber(scoring.penaltySaved);
+    case 'forcedPenaltyMisses':
+      return configuredNumber(scoring.forcedPenaltyMiss);
     case 'shootoutPenaltiesSaved':
       return configuredNumber(scoring.shootoutPenaltySaved);
     case 'shootoutGoals':

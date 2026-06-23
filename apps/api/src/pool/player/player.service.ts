@@ -20,6 +20,7 @@ export type PlayerStatKey =
   | 'missedPenalties'
   | 'mvps'
   | 'penaltiesSaved'
+  | 'forcedPenaltyMisses'
   | 'shootoutPenaltiesSaved'
   | 'shootoutGoals'
   | 'shootoutMissedPenalties'
@@ -38,6 +39,7 @@ const STATS: PlayerStatKey[] = [
   'missedPenalties',
   'mvps',
   'penaltiesSaved',
+  'forcedPenaltyMisses',
   'shootoutPenaltiesSaved',
   'shootoutGoals',
   'shootoutMissedPenalties',
@@ -65,6 +67,7 @@ const DEFAULT_PLAYER_SCORING = {
   missedPenalty: 0,
   mvp: 0,
   penaltySaved: 0,
+  forcedPenaltyMiss: 0,
   shootoutPenaltySaved: 0,
   shootoutGoal: 0,
   shootoutMissedPenalty: 0,
@@ -147,6 +150,9 @@ export function resolvePlayerScoring(pool: any) {
     penaltySaved: Number.isFinite(Number(configured.penaltySaved))
       ? Number(configured.penaltySaved)
       : DEFAULT_PLAYER_SCORING.penaltySaved,
+    forcedPenaltyMiss: Number.isFinite(Number(configured.forcedPenaltyMiss))
+      ? Number(configured.forcedPenaltyMiss)
+      : DEFAULT_PLAYER_SCORING.forcedPenaltyMiss,
     shootoutPenaltySaved: Number.isFinite(Number(configured.shootoutPenaltySaved))
       ? Math.max(0, Number(configured.shootoutPenaltySaved))
       : DEFAULT_PLAYER_SCORING.shootoutPenaltySaved,
@@ -215,6 +221,7 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
     (player.missedPenalties || 0) * scoring.missedPenalty +
     (player.mvps || 0) * scoring.mvp +
     (player.penaltiesSaved || 0) * scoring.penaltySaved +
+    (player.forcedPenaltyMisses || 0) * scoring.forcedPenaltyMiss +
     (player.shootoutPenaltiesSaved || 0) * scoring.shootoutPenaltySaved +
     (player.shootoutGoals || 0) * scoring.shootoutGoal +
     (player.shootoutMissedPenalties || 0) * scoring.shootoutMissedPenalty +

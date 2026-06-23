@@ -319,6 +319,7 @@ function SpyPlayersView({
     missedPenalties: t('poolDetail.players.actions.missedPenalties'),
     mvps: t('poolDetail.players.actions.mvps'),
     penaltiesSaved: t('poolDetail.players.actions.penaltiesSaved'),
+    forcedPenaltyMisses: t('poolDetail.players.actions.forcedPenaltyMisses'),
     shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'),
     shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
     shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'),
