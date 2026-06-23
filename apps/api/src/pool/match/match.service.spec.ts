@@ -65,6 +65,7 @@ describe('MatchService match insights', () => {
       shootoutPenaltiesSaved: 0,
       shootoutGoals: 0,
       shootoutMissedPenalties: 0,
+      shootoutForcedPenaltyMisses: 0,
       cleanSheets: 0,
       assists: 0,
       yellowCards: 0,

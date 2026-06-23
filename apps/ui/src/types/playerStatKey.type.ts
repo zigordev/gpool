@@ -8,6 +8,7 @@ export type PlayerStatKey =
   | 'shootoutPenaltiesSaved'
   | 'shootoutGoals'
   | 'shootoutMissedPenalties'
+  | 'shootoutForcedPenaltyMisses'
   | 'cleanSheets'
   | 'assists'
   | 'yellowCards'

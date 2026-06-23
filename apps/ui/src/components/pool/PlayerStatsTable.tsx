@@ -110,6 +110,12 @@ const STAT_COLUMNS: Array<{
     icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size={13} />,
     labelKey: 'poolDetail.players.actions.shootoutMissedPenalties',
   },
+  {
+    key: 'shootoutForcedPenaltyMisses',
+    group: 'shootout',
+    icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size={13} />,
+    labelKey: 'poolDetail.players.actions.shootoutForcedPenaltyMisses',
+  },
 ];
 
 interface PlayerStatsTableProps {

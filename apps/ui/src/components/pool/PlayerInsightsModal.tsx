@@ -37,6 +37,7 @@ type PlayerInsightMatch = {
   shootoutPenaltiesSaved?: number;
   shootoutGoals?: number;
   shootoutMissedPenalties?: number;
+  shootoutForcedPenaltyMisses?: number;
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;
@@ -117,6 +118,7 @@ export function PlayerInsightsModal({
     shootoutPenaltiesSaved: t('poolDetail.players.actions.shootoutPenaltiesSaved'),
     shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
     shootoutMissedPenalties: t('poolDetail.players.actions.shootoutMissedPenalties'),
+    shootoutForcedPenaltyMisses: t('poolDetail.players.actions.shootoutForcedPenaltyMisses'),
     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
     assists: t('poolDetail.players.actions.assists'),
     yellowCards: t('poolDetail.players.actions.yellowCards'),

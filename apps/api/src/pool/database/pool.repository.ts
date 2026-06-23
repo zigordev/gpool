@@ -12,6 +12,7 @@ const PLAYER_STAT_COLUMNS = {
   shootoutPenaltiesSaved: 'shootout_penalties_saved',
   shootoutGoals: 'shootout_goals',
   shootoutMissedPenalties: 'shootout_missed_penalties',
+  shootoutForcedPenaltyMisses: 'shootout_forced_penalty_misses',
   cleanSheets: 'clean_sheets',
   assists: 'assists',
   yellowCards: 'yellow_cards',
@@ -354,6 +355,7 @@ export class PoolRepository {
           COALESCE(s.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(s.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(s.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(s.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
@@ -391,6 +393,7 @@ export class PoolRepository {
           COALESCE(s.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(s.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(s.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(s.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
@@ -431,6 +434,7 @@ export class PoolRepository {
             ms.shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
             ms.shootout_goals::int AS "shootoutGoals",
             ms.shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            ms.shootout_forced_penalty_misses::int AS "shootoutForcedPenaltyMisses",
             ms.clean_sheets::int AS "cleanSheets",
             ms.assists::int AS assists,
             ms.yellow_cards::int AS "yellowCards",
@@ -465,6 +469,7 @@ export class PoolRepository {
             ms.shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
             ms.shootout_goals::int AS "shootoutGoals",
             ms.shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            ms.shootout_forced_penalty_misses::int AS "shootoutForcedPenaltyMisses",
             ms.clean_sheets::int AS "cleanSheets",
             ms.assists::int AS assists,
             ms.yellow_cards::int AS "yellowCards",
@@ -486,6 +491,7 @@ export class PoolRepository {
           OR "shootoutPenaltiesSaved" > 0
           OR "shootoutGoals" > 0
           OR "shootoutMissedPenalties" > 0
+          OR "shootoutForcedPenaltyMisses" > 0
           OR "cleanSheets" > 0
           OR assists > 0
           OR "yellowCards" > 0
@@ -590,6 +596,7 @@ export class PoolRepository {
             shootout_penalties_saved::int AS "shootoutPenaltiesSaved",
             shootout_goals::int AS "shootoutGoals",
             shootout_missed_penalties::int AS "shootoutMissedPenalties",
+            shootout_forced_penalty_misses::int AS "shootoutForcedPenaltyMisses",
             clean_sheets::int AS "cleanSheets",
             assists::int AS assists,
             yellow_cards::int AS "yellowCards",
@@ -657,6 +664,7 @@ export class PoolRepository {
           COALESCE(ms.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(ms.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(ms.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ms.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(ms.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ms.assists, 0)::int AS assists,
           COALESCE(ms.yellow_cards, 0)::int AS "yellowCards",
@@ -744,6 +752,7 @@ export class PoolRepository {
           COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ps.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -786,6 +795,7 @@ export class PoolRepository {
           COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ps.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -843,6 +853,7 @@ export class PoolRepository {
           COALESCE(SUM(ms.shootout_penalties_saved), 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(SUM(ms.shootout_goals), 0)::int AS "shootoutGoals",
           COALESCE(SUM(ms.shootout_missed_penalties), 0)::int AS "shootoutMissedPenalties",
+          COALESCE(SUM(ms.shootout_forced_penalty_misses), 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(SUM(ms.clean_sheets), 0)::int AS "cleanSheets",
           COALESCE(SUM(ms.assists), 0)::int AS assists,
           COALESCE(SUM(ms.yellow_cards), 0)::int AS "yellowCards",
@@ -896,6 +907,7 @@ export class PoolRepository {
           COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ps.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
@@ -938,6 +950,7 @@ export class PoolRepository {
           COALESCE(ps.shootout_penalties_saved, 0)::int AS "shootoutPenaltiesSaved",
           COALESCE(ps.shootout_goals, 0)::int AS "shootoutGoals",
           COALESCE(ps.shootout_missed_penalties, 0)::int AS "shootoutMissedPenalties",
+          COALESCE(ps.shootout_forced_penalty_misses, 0)::int AS "shootoutForcedPenaltyMisses",
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",

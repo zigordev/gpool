@@ -195,6 +195,10 @@ class PlayerScoringDto {
     @IsNumber()
     shootoutMissedPenalty: number;
 
+    @ApiProperty({ description: 'Points for forcing a penalty miss during a penalty shootout', example: 5 })
+    @IsNumber()
+    shootoutForcedPenaltyMiss: number;
+
     @ApiProperty({ type: PlayerGoalScoringDto, description: 'Clean-sheet points by player position' })
     @IsObject()
     @ValidateNested()

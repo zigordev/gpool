@@ -678,6 +678,7 @@ export default function PlayersPage() {
                                       shootoutPenaltiesSaved: 0,
                                       shootoutGoals: 0,
                                       shootoutMissedPenalties: 0,
+                                      shootoutForcedPenaltyMisses: 0,
                                       cleanSheets: 0,
                                       assists: 0,
                                       yellowCards: 0,
@@ -701,6 +702,9 @@ export default function PlayersPage() {
                                     shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
                                     shootoutMissedPenalties: t(
                                       'poolDetail.players.actions.shootoutMissedPenalties'
+                                    ),
+                                    shootoutForcedPenaltyMisses: t(
+                                      'poolDetail.players.actions.shootoutForcedPenaltyMisses'
                                     ),
                                     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                     assists: t('poolDetail.players.actions.assists'),
@@ -1056,6 +1060,7 @@ export default function PlayersPage() {
                                   shootoutPenaltiesSaved: 0,
                                   shootoutGoals: 0,
                                   shootoutMissedPenalties: 0,
+                                  shootoutForcedPenaltyMisses: 0,
                                   cleanSheets: 0,
                                   assists: 0,
                                   yellowCards: 0,
@@ -1077,6 +1082,9 @@ export default function PlayersPage() {
                                 shootoutGoals: t('poolDetail.players.actions.shootoutGoals'),
                                 shootoutMissedPenalties: t(
                                   'poolDetail.players.actions.shootoutMissedPenalties'
+                                ),
+                                shootoutForcedPenaltyMisses: t(
+                                  'poolDetail.players.actions.shootoutForcedPenaltyMisses'
                                 ),
                                 cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                 assists: t('poolDetail.players.actions.assists'),
