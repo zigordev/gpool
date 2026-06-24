@@ -31,7 +31,7 @@ const NAV_ICON_STYLE: React.CSSProperties = {
   flexShrink: 0,
 };
 
-function ThemeButton() {
+export function ThemeButton() {
   const { t } = useI18n();
   const [dark, setDark] = useState(false);
 
@@ -66,7 +66,7 @@ function ThemeButton() {
   );
 }
 
-function LanguageButton() {
+export function LanguageButton() {
   const { locale, t } = useI18n();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
