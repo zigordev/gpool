@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.44](https://github.com/zigordev/gpool/compare/v0.1.43...v0.1.44) (2026-06-24)
+
+
+### Features
+
+* add theme and language switch buttons to the main sign in page ([#123](https://github.com/zigordev/gpool/issues/123)) ([8801396](https://github.com/zigordev/gpool/commit/880139649277eb04ba6ec8f8b81380836ade6359))
+
 ## [0.1.43](https://github.com/zigordev/gpool/compare/v0.1.42...v0.1.43) (2026-06-23)
 
 
