@@ -2,6 +2,7 @@
 
 import { Loading } from '@/components/Loading';
 import { Logo } from '@/components/Logo';
+import { LanguageButton, ThemeButton } from '@/components/NavigationBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -64,6 +65,21 @@ function LoginPageContent() {
           pointerEvents: 'none',
         }}
       />
+
+      <div
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1rem',
+          zIndex: 2,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.35rem',
+        }}
+      >
+        <ThemeButton />
+        <LanguageButton />
+      </div>
 
       <div
         className="glass-strong"
