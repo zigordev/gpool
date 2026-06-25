@@ -117,6 +117,7 @@
       "actions": {
         "assists": "Assists",
         "cleanSheets": "Clean sheets",
+        "doubleYellowCards": "Double yellow cards",
         "forcedPenaltyMisses": "Forced penalty misses",
         "goals": "Goals",
         "missedPenalties": "Missed penalties",
@@ -172,6 +173,7 @@
         "cleanSheetForward": "Forward clean sheet",
         "cleanSheetGoalkeeper": "Goalkeeper clean sheet",
         "cleanSheetMidfielder": "Midfielder clean sheet",
+        "doubleYellowCard": "Double yellow card",
         "forcedPenaltyMiss": "Forced miss",
         "goalDefender": "Defender goal",
         "goalForward": "Forward goal",
@@ -490,6 +492,7 @@
       "actions": {
         "assists": "Assists",
         "cleanSheets": "Clean sheets",
+        "doubleYellowCards": "Double yellow cards",
         "forcedPenaltyMisses": "Forced penalty misses",
         "goals": "Goals",
         "missedPenalties": "Missed penalties",
@@ -513,6 +516,7 @@
       "cancel": "Cancel",
       "clearSelection": "Clear selection",
       "editTitle": "Edit player",
+      "eliminated": "Eliminated",
       "empty": "There are no tournament players available yet.",
       "emptySlot": "No player",
       "insights": {
@@ -592,6 +596,7 @@
         "cleanSheets": "Clean sheet",
         "correctBracketPosition": "Correct position",
         "correctWinner": "1X2",
+        "doubleYellowCard": "Double yellow card",
         "exactResult": "Exact result",
         "fifaRegulationsLink": "View the official FIFA criteria for the standings",
         "finalPhaseDescription": "In this phase, you can earn points by predicting which teams reach each position in the bracket.",

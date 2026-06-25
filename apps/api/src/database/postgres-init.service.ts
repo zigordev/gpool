@@ -78,10 +78,12 @@ export class PostgresInitService implements OnModuleInit {
         group_id TEXT NOT NULL,
         code TEXT,
         fair_play_points INTEGER NOT NULL DEFAULT 0,
-        fifa_ranking INTEGER NOT NULL DEFAULT 999
+        fifa_ranking INTEGER NOT NULL DEFAULT 999,
+        eliminated BOOLEAN NOT NULL DEFAULT FALSE
       );
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS fair_play_points INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_ranking INTEGER NOT NULL DEFAULT 999;
+      ALTER TABLE teams ADD COLUMN IF NOT EXISTS eliminated BOOLEAN NOT NULL DEFAULT FALSE;
       ALTER TABLE teams DROP COLUMN IF EXISTS fifa_ranking_points;
       DO $$
       BEGIN
@@ -139,6 +141,7 @@ export class PostgresInitService implements OnModuleInit {
         clean_sheets INTEGER NOT NULL DEFAULT 0,
         assists INTEGER NOT NULL DEFAULT 0,
         yellow_cards INTEGER NOT NULL DEFAULT 0,
+        double_yellow_cards INTEGER NOT NULL DEFAULT 0,
         red_cards INTEGER NOT NULL DEFAULT 0,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL
@@ -152,6 +155,7 @@ export class PostgresInitService implements OnModuleInit {
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS clean_sheets INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS assists INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS yellow_cards INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS double_yellow_cards INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_stats ADD COLUMN IF NOT EXISTS red_cards INTEGER NOT NULL DEFAULT 0;
 
       CREATE TABLE IF NOT EXISTS tournament_player_match_stats (
@@ -171,6 +175,7 @@ export class PostgresInitService implements OnModuleInit {
         clean_sheets INTEGER NOT NULL DEFAULT 0,
         assists INTEGER NOT NULL DEFAULT 0,
         yellow_cards INTEGER NOT NULL DEFAULT 0,
+        double_yellow_cards INTEGER NOT NULL DEFAULT 0,
         red_cards INTEGER NOT NULL DEFAULT 0,
         created_at BIGINT NOT NULL,
         updated_at BIGINT NOT NULL,
@@ -178,6 +183,7 @@ export class PostgresInitService implements OnModuleInit {
       );
       ALTER TABLE tournament_player_match_stats ADD COLUMN IF NOT EXISTS forced_penalty_misses INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE tournament_player_match_stats ADD COLUMN IF NOT EXISTS shootout_forced_penalty_misses INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE tournament_player_match_stats ADD COLUMN IF NOT EXISTS double_yellow_cards INTEGER NOT NULL DEFAULT 0;
       CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_player
         ON tournament_player_match_stats(player_id);
       CREATE INDEX IF NOT EXISTS idx_tournament_player_match_stats_match

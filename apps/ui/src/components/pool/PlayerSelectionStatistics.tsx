@@ -10,11 +10,13 @@ import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
 type PopularPlayer = {
   playerId: string;
   name: string;
   teamName: string;
+  teamEliminated?: boolean;
   position: PlayerPosition;
   shirtNumber?: number | null;
   count: number;
@@ -196,9 +198,15 @@ function StatisticsGroup({
                   color: 'rgb(var(--fg))',
                   fontSize: '0.76rem',
                   fontWeight: 750,
+                  opacity: player.teamEliminated ? 0.68 : 1,
+                  filter: player.teamEliminated ? 'grayscale(0.55)' : undefined,
                 }}
               >
-                <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={25} />
+                <PlayerShirt
+                  teamName={player.teamName}
+                  shirtNumber={player.shirtNumber}
+                  size={25}
+                />
                 <ReactCountryFlag
                   countryCode={countryIsoCode(player.teamName)}
                   svg
@@ -209,6 +217,7 @@ function StatisticsGroup({
                 >
                   {player.name}
                 </span>
+                {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
               </span>
               <strong
                 style={{
