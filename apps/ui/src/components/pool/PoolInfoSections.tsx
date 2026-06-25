@@ -286,6 +286,20 @@ export function PlayerScoringInfoSection({
         icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} />,
       },
       {
+        key: 'doubleYellowCard',
+        group: 'match',
+        label: t('poolDetail.rules.points.doubleYellowCard'),
+        value: playerScoring.doubleYellowCard,
+        icon: (
+          <span style={{ display: 'inline-flex', gap: '0.04rem' }}>
+            <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} />
+            <LuRectangleVertical
+              style={{ color: '#D4A017', fill: '#D4A017' }}
+            />
+          </span>
+        ),
+      },
+      {
         key: 'redCard',
         group: 'match',
         label: t('poolDetail.rules.points.redCard'),
@@ -466,6 +480,7 @@ export function resolvePlayerInfoScoring(value: any) {
     cleanSheet: resolvePositionScoring(value?.cleanSheet, DEFAULT_PLAYER_RULE_SCORING.cleanSheet),
     assist: resolvePositionScoring(value?.assist, DEFAULT_PLAYER_RULE_SCORING.assist),
     yellowCard: Number.isFinite(Number(value?.yellowCard)) ? Number(value.yellowCard) : DEFAULT_PLAYER_RULE_SCORING.yellowCard,
+    doubleYellowCard: Number.isFinite(Number(value?.doubleYellowCard)) ? Number(value.doubleYellowCard) : DEFAULT_PLAYER_RULE_SCORING.doubleYellowCard,
     redCard: Number.isFinite(Number(value?.redCard)) ? Number(value.redCard) : DEFAULT_PLAYER_RULE_SCORING.redCard,
     award: {
       goldenBoot: Number.isFinite(Number(value?.award?.goldenBoot)) ? Math.max(0, Number(value.award.goldenBoot)) : DEFAULT_PLAYER_RULE_SCORING.award.goldenBoot,
@@ -518,6 +533,7 @@ const DEFAULT_PLAYER_RULE_SCORING = {
   cleanSheet: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
   assist: { goalkeeper: 0, defender: 0, midfielder: 0, forward: 0 },
   yellowCard: 0,
+  doubleYellowCard: 0,
   redCard: 0,
   award: { goldenBoot: 0, tournamentMvp: 0 },
 };

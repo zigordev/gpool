@@ -4,6 +4,7 @@ export interface TournamentPlayer {
   playerId: string;
   teamId: string;
   teamName: string;
+  teamEliminated?: boolean;
   name: string;
   position: PlayerPosition;
   imageUrl?: string;
@@ -23,6 +24,7 @@ export interface TournamentPlayer {
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;
+  doubleYellowCards?: number;
   redCards?: number;
   totalPoints?: number;
 }

@@ -28,6 +28,7 @@ export type PlayerStatKey =
   | 'cleanSheets'
   | 'assists'
   | 'yellowCards'
+  | 'doubleYellowCards'
   | 'redCards';
 export type PlayerAward = 'golden_boot' | 'tournament_mvp';
 export type PlayerMatchType = 'group' | 'final';
@@ -48,6 +49,7 @@ const STATS: PlayerStatKey[] = [
   'cleanSheets',
   'assists',
   'yellowCards',
+  'doubleYellowCards',
   'redCards',
 ];
 const AWARDS: PlayerAward[] = ['golden_boot', 'tournament_mvp'];
@@ -87,6 +89,7 @@ const DEFAULT_PLAYER_SCORING = {
     forward: 0,
   },
   yellowCard: 0,
+  doubleYellowCard: 0,
   redCard: 0,
   award: {
     goldenBoot: 0,
@@ -201,6 +204,9 @@ export function resolvePlayerScoring(pool: any) {
     yellowCard: Number.isFinite(Number(configured.yellowCard))
       ? Number(configured.yellowCard)
       : DEFAULT_PLAYER_SCORING.yellowCard,
+    doubleYellowCard: Number.isFinite(Number(configured.doubleYellowCard))
+      ? Number(configured.doubleYellowCard)
+      : DEFAULT_PLAYER_SCORING.doubleYellowCard,
     redCard: Number.isFinite(Number(configured.redCard))
       ? Number(configured.redCard)
       : DEFAULT_PLAYER_SCORING.redCard,
@@ -220,7 +226,9 @@ export function computePlayerPoints(player: any, scoring: ReturnType<typeof reso
   const cleanSheetPoints = (player.cleanSheets || 0) * scoring.cleanSheet[position];
   const assistPoints = (player.assists || 0) * scoring.assist[position];
   const cardPoints =
-    (player.yellowCards || 0) * scoring.yellowCard + (player.redCards || 0) * scoring.redCard;
+    (player.yellowCards || 0) * scoring.yellowCard +
+    (player.doubleYellowCards || 0) * scoring.doubleYellowCard +
+    (player.redCards || 0) * scoring.redCard;
   return (
     (player.goals || 0) * scoring.goal[position] +
     (player.penaltyGoals || 0) * scoring.penaltyGoal[position] +
@@ -443,6 +451,7 @@ export class PlayerService {
             name: item.name,
             teamId: item.teamId,
             teamName: item.teamName,
+            teamEliminated: item.teamEliminated,
             position: item.position,
             imageUrl: item.imageUrl,
             shirtNumber: item.shirtNumber,

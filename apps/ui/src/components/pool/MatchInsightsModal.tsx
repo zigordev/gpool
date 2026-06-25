@@ -11,6 +11,7 @@ import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
 export type MatchInsightsTarget = {
   matchId: string;
@@ -21,6 +22,7 @@ type PlayerAction = {
   playerId: string;
   name: string;
   teamName: string;
+  teamEliminated?: boolean;
   position: PlayerPosition;
   shirtNumber?: number | null;
   points: number;
@@ -37,6 +39,7 @@ type PlayerAction = {
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;
+  doubleYellowCards?: number;
   redCards?: number;
 };
 
@@ -119,6 +122,7 @@ export function MatchInsightsModal({
     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
     assists: t('poolDetail.players.actions.assists'),
     yellowCards: t('poolDetail.players.actions.yellowCards'),
+    doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
     redCards: t('poolDetail.players.actions.redCards'),
   };
 
@@ -165,7 +169,11 @@ export function MatchInsightsModal({
                                 label={t('poolDetail.players.points', { points: player.points })}
                               />
                             )}
-                            <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={27} />
+                            <PlayerShirt
+                              teamName={player.teamName}
+                              shirtNumber={player.shirtNumber}
+                              size={27}
+                            />
                             <ReactCountryFlag
                               countryCode={countryIsoCode(player.teamName)}
                               svg
@@ -180,6 +188,7 @@ export function MatchInsightsModal({
                                     fontSize: '0.82rem',
                                     fontWeight: 750,
                                     color: 'rgb(var(--fg))',
+                                    opacity: player.teamEliminated ? 0.68 : 1,
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
@@ -187,6 +196,7 @@ export function MatchInsightsModal({
                                 >
                                   {player.name}
                                 </span>
+                                {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                                 <span
                                   style={{
                                     marginLeft: 'auto',

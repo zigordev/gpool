@@ -19,17 +19,21 @@ import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerAwardSelection } from '@/types/playerAwardSelection.interface';
-import { GeneralPoolInfoSection , resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
+import {
+  GeneralPoolInfoSection,
+  resolvePlayerInfoScoring,
+} from '@/components/pool/PoolInfoSections';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
 import { ReadOnlyGroupMatchCard } from '@/components/pool/ReadOnlyGroupMatchCard';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
 const BracketVisualization = dynamic(
   () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
-  { ssr: false },
+  { ssr: false }
 );
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
@@ -98,8 +102,7 @@ function SpyPicksModal({
 
   const playerByAward = useMemo(() => {
     const map = new Map<PlayerAward, PlayerAwardSelection>();
-    if (data)
-      for (const sel of data.playerAwardSelections || []) map.set(sel.award, sel);
+    if (data) for (const sel of data.playerAwardSelections || []) map.set(sel.award, sel);
     return map;
   }, [data]);
 
@@ -151,32 +154,34 @@ function SpyPicksModal({
           >
             {error}
           </p>
-        ) : data ? tab === 'groups' ? (
-          <SpyGroupsView
-            data={data}
-            groups={groups}
-            matchesByGroup={matchesByGroup}
-            predictionByMatch={predictionByMatch}
-            locale={locale}
-          />
-        ) : tab === 'final' ? (
-          <SpyFinalView
-            bracket={bracketStructure}
-            teams={teams}
-            poolId={poolId}
-            bracketPredictions={spyBracketPredictions}
-            hasPredictions={data.bracketPredictions.length > 0}
-          />
-        ) : (
-          <SpyPlayersView
-            playerByPositionSlot={playerByPositionSlot}
-            playerByAward={playerByAward}
-            playerSelectionLimits={playerSelectionLimits}
-            playerScoring={playerScoring}
-            hasPredictions={
-              data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0
-            }
-          />
+        ) : data ? (
+          tab === 'groups' ? (
+            <SpyGroupsView
+              data={data}
+              groups={groups}
+              matchesByGroup={matchesByGroup}
+              predictionByMatch={predictionByMatch}
+              locale={locale}
+            />
+          ) : tab === 'final' ? (
+            <SpyFinalView
+              bracket={bracketStructure}
+              teams={teams}
+              poolId={poolId}
+              bracketPredictions={spyBracketPredictions}
+              hasPredictions={data.bracketPredictions.length > 0}
+            />
+          ) : (
+            <SpyPlayersView
+              playerByPositionSlot={playerByPositionSlot}
+              playerByAward={playerByAward}
+              playerSelectionLimits={playerSelectionLimits}
+              playerScoring={playerScoring}
+              hasPredictions={
+                data.playerSelections.length > 0 || (data.playerAwardSelections?.length ?? 0) > 0
+              }
+            />
+          )
         ) : null}
       </div>
     </Modal>
@@ -327,6 +332,7 @@ function SpyPlayersView({
     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
     assists: t('poolDetail.players.actions.assists'),
     yellowCards: t('poolDetail.players.actions.yellowCards'),
+    doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
     redCards: t('poolDetail.players.actions.redCards'),
   };
 
@@ -410,6 +416,7 @@ function SpyPlayersView({
                         fontSize: '0.82rem',
                         fontWeight: 600,
                         color: 'rgb(var(--fg))',
+                        opacity: sel.teamEliminated ? 0.68 : 1,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -417,6 +424,7 @@ function SpyPlayersView({
                     >
                       {sel.name}
                     </span>
+                    {sel.teamEliminated ? <PlayerEliminatedBadge /> : null}
                     <span
                       style={{
                         marginLeft: 'auto',
@@ -481,7 +489,11 @@ function SpyPlayersView({
                   ) : null}
                   {sel ? (
                     <>
-                      <PlayerShirt teamName={sel.teamName} shirtNumber={sel.shirtNumber} size={25} />
+                      <PlayerShirt
+                        teamName={sel.teamName}
+                        shirtNumber={sel.shirtNumber}
+                        size={25}
+                      />
                       <ReactCountryFlag
                         countryCode={countryIsoCode(sel.teamName)}
                         svg
@@ -501,6 +513,7 @@ function SpyPlayersView({
                               fontSize: '0.82rem',
                               fontWeight: 600,
                               color: 'rgb(var(--fg))',
+                              opacity: sel.teamEliminated ? 0.68 : 1,
                               flex: 1,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -509,6 +522,7 @@ function SpyPlayersView({
                           >
                             {sel.name}
                           </span>
+                          {sel.teamEliminated ? <PlayerEliminatedBadge /> : null}
                           <span
                             style={{
                               fontSize: '0.72rem',
@@ -618,9 +632,7 @@ export function RankingContent({
   ]);
 
   return (
-    <div
-      className="content-panel main-view-stack"
-    >
+    <div className="content-panel main-view-stack">
       {ranking.length > 0 ? (
         <RankTable
           ranking={ranking}

@@ -15,8 +15,8 @@ import { useI18n } from '@/i18n/client';
 type ActionGroup = 'match' | 'penalty' | 'shootout';
 
 export function PlayerActionSummary({ player, labels, position, scoring, compact = false }: Readonly<{
-  player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'forcedPenaltyMisses' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'shootoutForcedPenaltyMisses' | 'cleanSheets' | 'assists' | 'yellowCards' | 'redCards'>;
-  labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; forcedPenaltyMisses: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; shootoutForcedPenaltyMisses: string; cleanSheets: string; assists: string; yellowCards: string; redCards: string };
+  player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'forcedPenaltyMisses' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'shootoutForcedPenaltyMisses' | 'cleanSheets' | 'assists' | 'yellowCards' | 'doubleYellowCards' | 'redCards'>;
+  labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; forcedPenaltyMisses: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; shootoutForcedPenaltyMisses: string; cleanSheets: string; assists: string; yellowCards: string; doubleYellowCards: string; redCards: string };
   position: PlayerPosition;
   scoring: ReturnType<typeof resolvePlayerInfoScoring>;
   compact?: boolean;
@@ -28,6 +28,7 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
     { key: 'mvps', group: 'match', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'cleanSheets', group: 'match', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'yellowCards', group: 'match', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /> },
+    { key: 'doubleYellowCards', group: 'match', value: player.doubleYellowCards || 0, label: labels.doubleYellowCards, icon: <span style={{ display: 'inline-flex', gap: '0.04rem' }}><LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /><LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /></span> },
     { key: 'redCards', group: 'match', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'rgb(var(--live))', fill: 'rgb(var(--live))' }} size="17" /> },
     { key: 'penaltyGoals', group: 'penalty', value: player.penaltyGoals || 0, label: labels.penaltyGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
     { key: 'penaltiesSaved', group: 'penalty', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },

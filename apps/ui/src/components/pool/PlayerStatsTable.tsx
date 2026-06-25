@@ -11,6 +11,7 @@ import { PlayerAward } from '@/types/playerAward.type';
 import { PlayerStatKey } from '@/types/playerStatKey.type';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
@@ -49,13 +50,19 @@ const STAT_COLUMNS: Array<{
   {
     key: 'yellowCards',
     group: 'match',
-    icon: (
-      <LuRectangleVertical
-        style={{ color: '#D4A017', fill: '#D4A017' }}
-        size={13}
-      />
-    ),
+    icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />,
     labelKey: 'poolDetail.players.actions.yellowCards',
+  },
+  {
+    key: 'doubleYellowCards',
+    group: 'match',
+    icon: (
+      <span style={{ display: 'inline-flex', gap: '0.04rem' }}>
+        <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />
+        <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />
+      </span>
+    ),
+    labelKey: 'poolDetail.players.actions.doubleYellowCards',
   },
   {
     key: 'redCards',
@@ -187,9 +194,7 @@ export function PlayerStatsTable({
   const sorted = [...players].sort((a, b) => {
     const aVal = sortKey === 'totalPoints' ? computeTotal(a) : a[sortKey] || 0;
     const bVal = sortKey === 'totalPoints' ? computeTotal(b) : b[sortKey] || 0;
-    return sortDir === 'asc'
-      ? (aVal) - (bVal)
-      : (bVal) - (aVal);
+    return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
   });
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
@@ -331,9 +336,10 @@ export function PlayerStatsTable({
                 const totalPts = computeTotal(player);
                 const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
                 const isMVP = tournamentMvpPlayerId === player.playerId;
-                const openInsights = onOpenInsights
-                  ? () => onOpenInsights(player)
+                const dimmedPlayerStyle = player.teamEliminated
+                  ? { opacity: 0.68, filter: 'grayscale(0.55)' }
                   : undefined;
+                const openInsights = onOpenInsights ? () => onOpenInsights(player) : undefined;
                 const handleInsightsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
                   if (!openInsights || (event.key !== 'Enter' && event.key !== ' ')) return;
                   event.preventDefault();
@@ -368,9 +374,14 @@ export function PlayerStatsTable({
                           cursor: openInsights ? 'pointer' : undefined,
                           borderRadius: 'var(--radius-md)',
                           outlineOffset: '3px',
+                          ...dimmedPlayerStyle,
                         }}
                       >
-                        <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={30} />
+                        <PlayerShirt
+                          teamName={player.teamName}
+                          shirtNumber={player.shirtNumber}
+                          size={30}
+                        />
                         {player.imageUrl ? (
                           <span
                             aria-hidden
@@ -407,6 +418,7 @@ export function PlayerStatsTable({
                           >
                             {player.name}
                           </p>
+                          {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                           <p
                             style={{
                               margin: 0,
@@ -446,50 +458,52 @@ export function PlayerStatsTable({
                                 : undefined,
                           }}
                         >
-                          {statVisibleForPlayer ? editable ? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.12rem',
-                              }}
-                            >
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon"
-                                disabled={statsDisabled || isUpdating || value <= 0}
-                                title={t('adminResults.players.decrease')}
-                                aria-label={t('adminResults.players.decrease')}
-                                onClick={() => onStatChange?.(player, col.key, -1)}
+                          {statVisibleForPlayer ? (
+                            editable ? (
+                              <span
                                 style={{
-                                  width: '1.35rem',
-                                  height: '1.35rem',
-                                  fontSize: '0.8rem',
-                                  flexShrink: 0,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.12rem',
                                 }}
                               >
-                                −
-                              </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-ghost btn-icon"
+                                  disabled={statsDisabled || isUpdating || value <= 0}
+                                  title={t('adminResults.players.decrease')}
+                                  aria-label={t('adminResults.players.decrease')}
+                                  onClick={() => onStatChange?.(player, col.key, -1)}
+                                  style={{
+                                    width: '1.35rem',
+                                    height: '1.35rem',
+                                    fontSize: '0.8rem',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  −
+                                </button>
+                                <span style={statNumberStyle}>{value}</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-ghost btn-icon"
+                                  disabled={statsDisabled || isUpdating}
+                                  title={t('adminResults.players.increase')}
+                                  aria-label={t('adminResults.players.increase')}
+                                  onClick={() => onStatChange?.(player, col.key, 1)}
+                                  style={{
+                                    width: '1.35rem',
+                                    height: '1.35rem',
+                                    fontSize: '0.8rem',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </span>
+                            ) : (
                               <span style={statNumberStyle}>{value}</span>
-                              <button
-                                type="button"
-                                className="btn btn-ghost btn-icon"
-                                disabled={statsDisabled || isUpdating}
-                                title={t('adminResults.players.increase')}
-                                aria-label={t('adminResults.players.increase')}
-                                onClick={() => onStatChange?.(player, col.key, 1)}
-                                style={{
-                                  width: '1.35rem',
-                                  height: '1.35rem',
-                                  fontSize: '0.8rem',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                +
-                              </button>
-                            </span>
-                          ) : (
-                            <span style={statNumberStyle}>{value}</span>
+                            )
                           ) : (
                             <span style={statNumberStyle}>0</span>
                           )}

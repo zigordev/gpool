@@ -216,6 +216,11 @@ class PlayerScoringDto {
     @Max(0)
     yellowCard: number;
 
+    @ApiProperty({ description: 'Points deducted for a double yellow card', example: -3 })
+    @IsNumber()
+    @Max(0)
+    doubleYellowCard: number;
+
     @ApiProperty({ description: 'Points deducted for a red card', example: -3 })
     @IsNumber()
     @Max(0)

@@ -9,12 +9,7 @@ import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
 import { resolvePoolDeadline } from '../pool-deadline.util';
 
-type BracketPhase =
-  | '16th-finals'
-  | '8th-finals'
-  | 'quarter-finals'
-  | 'semi-finals'
-  | 'finals';
+type BracketPhase = '16th-finals' | '8th-finals' | 'quarter-finals' | 'semi-finals' | 'finals';
 
 const BRACKET_POOL_ID = 'all-pools';
 const BRACKET_PHASES: Array<{ phase: BracketPhase; matches: number }> = [
@@ -31,6 +26,9 @@ const FIFA_BRACKET_MATCH_NUMBERS: Record<BracketPhase, number[]> = {
   'semi-finals': [101, 102],
   finals: [104],
 };
+const BRACKET_PHASE_MATCH_COUNT = new Map(
+  BRACKET_PHASES.map(({ phase, matches }) => [phase, matches])
+);
 
 type BracketRoundScoring = {
   exactPositionPoints?: number;
@@ -41,7 +39,7 @@ type BracketRoundScoring = {
 function resolveRoundScoring(
   bracketScoring: any,
   phase: string,
-  override?: BracketRoundScoring,
+  override?: BracketRoundScoring
 ): Required<BracketRoundScoring> {
   const roundScoring = bracketScoring?.rounds?.[phase] || {};
   return {
@@ -56,9 +54,7 @@ function resolveRoundScoring(
       bracketScoring?.correctTeamWrongPositionPoints ??
       0,
     tournamentWinnerPoints:
-      override?.tournamentWinnerPoints ??
-      bracketScoring?.tournamentWinnerPoints ??
-      0,
+      override?.tournamentWinnerPoints ?? bracketScoring?.tournamentWinnerPoints ?? 0,
   };
 }
 
@@ -78,17 +74,15 @@ export class BracketService {
     return this.poolRepository.getBracketMatches(poolId, phase);
   }
 
-  async getWinnerInsights(
-    poolId: string,
-    requesterUserId: string,
-    requesterRole: string,
-  ) {
+  async getWinnerInsights(poolId: string, requesterUserId: string, requesterRole: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
     if (Date.now() < resolvePoolDeadline(pool)) {
-      throw new ForbiddenException('Winner insights are only available after the prediction deadline');
+      throw new ForbiddenException(
+        'Winner insights are only available after the prediction deadline'
+      );
     }
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
@@ -106,13 +100,13 @@ export class BracketService {
     const activeUserIds = new Set(
       members
         .filter((member: any) => member.status === 'active')
-        .map((member: any) => member.userId),
+        .map((member: any) => member.userId)
     );
     const memberCount = activeUserIds.size;
     const finalPredictions = predictions.filter(
       (prediction: any) =>
         prediction.bracketMatchId === finalMatch?.bracketMatchId &&
-        activeUserIds.has(prediction.userId),
+        activeUserIds.has(prediction.userId)
     );
     const byTeam = new Map<string, any>();
     finalPredictions.forEach((prediction: any) => {
@@ -144,14 +138,8 @@ export class BracketService {
       selections: [...byTeam.values()]
         .map((selection) => ({
           ...selection,
-          percentage:
-            memberCount > 0
-              ? Math.round((selection.count / memberCount) * 1000) / 10
-              : 0,
-          correct:
-            actualWinnerTeamId === null
-              ? null
-              : selection.teamId === actualWinnerTeamId,
+          percentage: memberCount > 0 ? Math.round((selection.count / memberCount) * 1000) / 10 : 0,
+          correct: actualWinnerTeamId === null ? null : selection.teamId === actualWinnerTeamId,
         }))
         .sort((a, b) => b.count - a.count || a.teamName.localeCompare(b.teamName)),
     };
@@ -183,7 +171,7 @@ export class BracketService {
     poolId: string,
     phase: BracketPhase,
     numberOfMatches: number,
-    forceRecreate: boolean = false,
+    forceRecreate: boolean = false
   ) {
     const existingMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, phase);
     if (existingMatches.length > 0) {
@@ -209,9 +197,8 @@ export class BracketService {
       matches.push(match);
     }
 
-    this.logger.log(
-      `Created ${numberOfMatches} matches for phase ${phase} in pool ${poolId}`,
-    );
+    this.logger.log(`Created ${numberOfMatches} matches for phase ${phase} in pool ${poolId}`);
+    await this.syncTeamEliminationState();
     return matches;
   }
 
@@ -220,7 +207,7 @@ export class BracketService {
     poolId: string,
     side: 'home' | 'away',
     teamId: string,
-    teamName: string,
+    teamName: string
   ) {
     const matches = await this.poolRepository.getBracketMatches(poolId);
     const foundMatch = matches.find((match: any) => match.bracketMatchId === bracketMatchId);
@@ -246,18 +233,57 @@ export class BracketService {
       await this.evaluateBracketPredictions(
         bracketMatchId,
         fullMatch,
-        poolId === BRACKET_POOL_ID ? undefined : poolId,
+        poolId === BRACKET_POOL_ID ? undefined : poolId
       );
     }
+    await this.syncTeamEliminationState();
 
     return fullMatch || updatedMatch;
+  }
+
+  private async syncTeamEliminationState() {
+    const matches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID);
+    const matchesByPhase = new Map<BracketPhase, any[]>();
+    for (const match of matches) {
+      if (BRACKET_PHASE_MATCH_COUNT.has(match.phase)) {
+        const phase = match.phase as BracketPhase;
+        matchesByPhase.set(phase, [...(matchesByPhase.get(phase) || []), match]);
+      }
+    }
+
+    let deepestCompletePhase: BracketPhase | null = null;
+    for (const { phase, matches: expectedMatches } of BRACKET_PHASES) {
+      const phaseMatches = matchesByPhase.get(phase) || [];
+      const complete =
+        phaseMatches.length === expectedMatches &&
+        phaseMatches.every((match) => match.homeTeamId && match.awayTeamId);
+      if (complete) {
+        deepestCompletePhase = phase;
+      }
+    }
+
+    if (!deepestCompletePhase) {
+      await this.poolRepository.updateTeamEliminationState([]);
+      return;
+    }
+
+    const survivingTeamIds = new Set<string>();
+    for (const match of matchesByPhase.get(deepestCompletePhase) || []) {
+      if (match.homeTeamId) survivingTeamIds.add(match.homeTeamId);
+      if (match.awayTeamId) survivingTeamIds.add(match.awayTeamId);
+    }
+
+    await this.poolRepository.updateTeamEliminationState([...survivingTeamIds]);
+    this.logger.log(
+      `Synchronized team elimination from complete bracket phase ${deepestCompletePhase}`
+    );
   }
 
   private async evaluateBracketPredictions(
     bracketMatchId: string,
     match: any,
     poolId?: string,
-    scoringOverride?: BracketRoundScoring,
+    scoringOverride?: BracketRoundScoring
   ) {
     const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
     const relevantPredictions = poolId
@@ -272,11 +298,7 @@ export class BracketService {
         exactPositionPoints: exactPosPoints,
         correctTeamWrongPositionPoints: wrongPosPoints,
         tournamentWinnerPoints,
-      } = resolveRoundScoring(
-        predictionPool?.config?.bracketScoring,
-        match.phase,
-        scoringOverride,
-      );
+      } = resolveRoundScoring(predictionPool?.config?.bracketScoring, match.phase, scoringOverride);
       let points = 0;
 
       const homeTeamExactPosition = prediction.homeTeamId === match.homeTeamId;
@@ -333,7 +355,7 @@ export class BracketService {
     homeResult: number,
     awayResult: number,
     exactPositionPoints?: number,
-    correctTeamWrongPositionPoints?: number,
+    correctTeamWrongPositionPoints?: number
   ) {
     const matches = await this.poolRepository.getBracketMatches(poolId);
     const foundMatch = matches.find((match: any) => match.bracketMatchId === bracketMatchId);
@@ -386,12 +408,14 @@ export class BracketService {
     awayTeamId: string,
     awayTeamName: string,
     predictedWinnerTeamId?: string,
-    predictedWinnerTeamName?: string,
+    predictedWinnerTeamName?: string
   ) {
     const pool = await this.poolRepository.getPool(poolId);
     const deadline = resolvePoolDeadline(pool);
     if (Date.now() >= deadline) {
-      throw new BadRequestException('Deadline has passed. Bracket predictions can no longer be edited.');
+      throw new BadRequestException(
+        'Deadline has passed. Bracket predictions can no longer be edited.'
+      );
     }
 
     const matches = await this.poolRepository.getBracketMatches(poolId);
@@ -410,7 +434,7 @@ export class BracketService {
       awayTeamId,
       awayTeamName,
       validWinner ? predictedWinnerTeamId : '',
-      validWinner ? predictedWinnerTeamName : '',
+      validWinner ? predictedWinnerTeamName : ''
     );
 
     // If the match already has both teams assigned (admin set them before or during predictions),
@@ -432,15 +456,18 @@ export class BracketService {
 
   async reEvaluateAllBracketMatches(poolId: string) {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
-    const matchesToEvaluate = allMatches.filter((match: any) => match.homeTeamId && match.awayTeamId);
+    const matchesToEvaluate = allMatches.filter(
+      (match: any) => match.homeTeamId && match.awayTeamId
+    );
 
     for (const match of matchesToEvaluate) {
       await this.evaluateBracketPredictions(
         match.bracketMatchId,
         match,
-        poolId === BRACKET_POOL_ID ? undefined : poolId,
+        poolId === BRACKET_POOL_ID ? undefined : poolId
       );
     }
+    await this.syncTeamEliminationState();
 
     return { matchesEvaluated: matchesToEvaluate.length };
   }

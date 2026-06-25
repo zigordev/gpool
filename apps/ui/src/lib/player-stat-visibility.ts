@@ -17,6 +17,7 @@ type PlayerScoringLike = {
   cleanSheet?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   assist?: Partial<Record<PlayerPosition, ConfigNumberLike>>;
   yellowCard?: ConfigNumberLike;
+  doubleYellowCard?: ConfigNumberLike;
   redCard?: ConfigNumberLike;
 };
 
@@ -62,6 +63,8 @@ export function playerStatScoringValue(
       return configuredNumber(scoring.shootoutForcedPenaltyMiss);
     case 'yellowCards':
       return configuredNumber(scoring.yellowCard);
+    case 'doubleYellowCards':
+      return configuredNumber(scoring.doubleYellowCard);
     case 'redCards':
       return configuredNumber(scoring.redCard);
   }

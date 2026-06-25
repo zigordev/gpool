@@ -12,4 +12,5 @@ export type PlayerStatKey =
   | 'cleanSheets'
   | 'assists'
   | 'yellowCards'
+  | 'doubleYellowCards'
   | 'redCards';
