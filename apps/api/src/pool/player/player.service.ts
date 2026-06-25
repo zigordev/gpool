@@ -443,6 +443,7 @@ export class PlayerService {
             name: item.name,
             teamId: item.teamId,
             teamName: item.teamName,
+            teamEliminated: item.teamEliminated,
             position: item.position,
             imageUrl: item.imageUrl,
             shirtNumber: item.shirtNumber,

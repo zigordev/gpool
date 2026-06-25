@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
 
 export type PlayerInsightsTarget = {
@@ -50,6 +51,7 @@ type PlayerInsightsData = {
     playerId: string;
     name: string;
     teamName: string;
+    teamEliminated?: boolean;
     position: PlayerPosition;
     imageUrl?: string;
     shirtNumber?: number | null;
@@ -248,8 +250,21 @@ export function PlayerInsightsModal({
 
 function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', minWidth: 0 }}>
-      <PlayerShirt teamName={data.player.teamName} shirtNumber={data.player.shirtNumber} size={32} />
+    <span
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.55rem',
+        minWidth: 0,
+        opacity: data.player.teamEliminated ? 0.68 : 1,
+        filter: data.player.teamEliminated ? 'grayscale(0.55)' : undefined,
+      }}
+    >
+      <PlayerShirt
+        teamName={data.player.teamName}
+        shirtNumber={data.player.shirtNumber}
+        size={32}
+      />
       {data.player.imageUrl ? (
         <Image
           src={data.player.imageUrl}
@@ -283,6 +298,7 @@ function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
         >
           {data.player.name}
         </span>
+        {data.player.teamEliminated ? <PlayerEliminatedBadge /> : null}
         <span
           style={{
             display: 'block',

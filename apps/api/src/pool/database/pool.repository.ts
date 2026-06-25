@@ -69,7 +69,7 @@ export class PoolRepository {
         JSON.stringify(poolData.config || {}),
         poolData.createdAt || Math.floor(Date.now() / 1000),
         poolData.updatedAt || null,
-      ],
+      ]
     );
 
     return result.rows[0];
@@ -91,7 +91,7 @@ export class PoolRepository {
         FROM pools
         WHERE pool_id = $1
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows[0] || null;
@@ -128,7 +128,7 @@ export class PoolRepository {
         updates.name ?? current.name,
         updates.description ?? current.description,
         JSON.stringify(updates.config ?? current.config ?? {}),
-      ],
+      ]
     );
 
     return result.rows[0];
@@ -154,12 +154,18 @@ export class PoolRepository {
           updated_at::text AS "updatedAt"
         FROM pools
         ORDER BY created_at DESC
-      `,
+      `
     );
     return result.rows;
   }
 
-  async addMember(poolId: string, userId: string, role: string = 'member', userEmail?: string, userName?: string) {
+  async addMember(
+    poolId: string,
+    userId: string,
+    role: string = 'member',
+    userEmail?: string,
+    userName?: string
+  ) {
     const result = await this.postgres.query(
       `
         INSERT INTO pool_memberships (pool_id, user_id, role, status, joined_at, user_email, user_name, config)
@@ -180,7 +186,7 @@ export class PoolRepository {
           user_name AS "userName",
           config
       `,
-      [poolId, userId, role, userEmail || '', userName || ''],
+      [poolId, userId, role, userEmail || '', userName || '']
     );
 
     return result.rows[0];
@@ -201,7 +207,7 @@ export class PoolRepository {
         FROM pool_memberships
         WHERE pool_id = $1 AND user_id = $2
       `,
-      [poolId, userId],
+      [poolId, userId]
     );
 
     return result.rows[0] || null;
@@ -223,7 +229,7 @@ export class PoolRepository {
         WHERE pool_id = $1
         ORDER BY joined_at ASC
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows;
@@ -245,7 +251,7 @@ export class PoolRepository {
         WHERE user_id = $1
         ORDER BY joined_at DESC
       `,
-      [userId],
+      [userId]
     );
 
     return result.rows;
@@ -266,7 +272,7 @@ export class PoolRepository {
         FROM users
         WHERE user_id = $1
       `,
-      [userId],
+      [userId]
     );
 
     return result.rows[0] || null;
@@ -281,11 +287,12 @@ export class PoolRepository {
           group_id AS "group",
           code,
           fair_play_points::int AS "fairPlay",
-          fifa_ranking::int AS "fifaRanking"
+          fifa_ranking::int AS "fifaRanking",
+          eliminated AS "eliminated"
         FROM teams
         WHERE team_id = $1
       `,
-      [teamId],
+      [teamId]
     );
 
     return result.rows[0] || null;
@@ -300,10 +307,11 @@ export class PoolRepository {
           group_id AS "group",
           code,
           fair_play_points::int AS "fairPlay",
-          fifa_ranking::int AS "fifaRanking"
+          fifa_ranking::int AS "fifaRanking",
+          eliminated AS "eliminated"
         FROM teams
         ORDER BY group_id ASC, name ASC
-      `,
+      `
     );
 
     return result.rows;
@@ -321,12 +329,32 @@ export class PoolRepository {
           group_id AS "group",
           code,
           fair_play_points::int AS "fairPlay",
-          fifa_ranking::int AS "fifaRanking"
+          fifa_ranking::int AS "fifaRanking",
+          eliminated AS "eliminated"
       `,
-      [teamId, fairPlay],
+      [teamId, fairPlay]
     );
 
     return result.rows[0] || null;
+  }
+
+  async updateTeamEliminationState(survivingTeamIds: string[]) {
+    const result = await this.postgres.query(
+      `
+        UPDATE teams
+        SET eliminated = CASE
+          WHEN array_length($1::text[], 1) IS NULL THEN FALSE
+          ELSE NOT (team_id = ANY($1::text[]))
+        END
+        RETURNING
+          team_id AS "teamId",
+          name,
+          eliminated AS "eliminated"
+      `,
+      [survivingTeamIds]
+    );
+
+    return result.rows;
   }
 
   async getTournamentPlayers(position?: string) {
@@ -345,6 +373,7 @@ export class PoolRepository {
           tournament_players.image_url AS "imageUrl",
           tournament_players.country_code AS "countryCode",
           tournament_players.flag_emoji AS "flagEmoji",
+          COALESCE(teams.eliminated, FALSE) AS "teamEliminated",
           tournament_players.shirt_number::int AS "shirtNumber",
           COALESCE(s.goals, 0)::int AS goals,
           COALESCE(s.penalty_goals, 0)::int AS "penaltyGoals",
@@ -361,11 +390,12 @@ export class PoolRepository {
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
           COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
+        LEFT JOIN teams ON teams.team_id = tournament_players.team_id
         LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
         ${where}
         ORDER BY tournament_players.position ASC, tournament_players.team_name ASC, tournament_players.name ASC
       `,
-      params,
+      params
     );
 
     return result.rows;
@@ -383,6 +413,7 @@ export class PoolRepository {
           tournament_players.image_url AS "imageUrl",
           tournament_players.country_code AS "countryCode",
           tournament_players.flag_emoji AS "flagEmoji",
+          COALESCE(teams.eliminated, FALSE) AS "teamEliminated",
           tournament_players.shirt_number::int AS "shirtNumber",
           COALESCE(s.goals, 0)::int AS goals,
           COALESCE(s.penalty_goals, 0)::int AS "penaltyGoals",
@@ -399,10 +430,11 @@ export class PoolRepository {
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
           COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
+        LEFT JOIN teams ON teams.team_id = tournament_players.team_id
         LEFT JOIN tournament_player_stats s ON s.player_id = tournament_players.player_id
         WHERE tournament_players.player_id = $1
       `,
-      [playerId],
+      [playerId]
     );
 
     return result.rows[0] || null;
@@ -498,7 +530,7 @@ export class PoolRepository {
           OR "redCards" > 0
         ORDER BY "scheduledAt" ASC NULLS LAST, "matchNumber" ASC
       `,
-      [playerId],
+      [playerId]
     );
 
     return result.rows;
@@ -516,7 +548,7 @@ export class PoolRepository {
         FROM ${table}
         WHERE pool_id = 'all-pools' AND ${idColumn} = $1
       `,
-      [matchId],
+      [matchId]
     );
 
     return result.rows[0] || null;
@@ -527,7 +559,7 @@ export class PoolRepository {
     matchType: 'group' | 'final',
     matchId: string,
     stat: keyof typeof PLAYER_STAT_COLUMNS,
-    delta: number,
+    delta: number
   ) {
     const column = PLAYER_STAT_COLUMNS[stat];
     const now = Math.floor(Date.now() / 1000);
@@ -547,7 +579,7 @@ export class PoolRepository {
           VALUES ($1, $2, $3, $4, $4)
           ON CONFLICT (match_type, match_id, player_id) DO NOTHING
         `,
-        [matchType, matchId, playerId, now],
+        [matchType, matchId, playerId, now]
       );
 
       const currentResult = await client.query(
@@ -557,7 +589,7 @@ export class PoolRepository {
           WHERE match_type = $1 AND match_id = $2 AND player_id = $3
           FOR UPDATE
         `,
-        [matchType, matchId, playerId],
+        [matchType, matchId, playerId]
       );
       const current = Number(currentResult.rows[0]?.value || 0);
       const next = Math.max(0, current + delta);
@@ -569,7 +601,7 @@ export class PoolRepository {
           SET ${column} = $4, updated_at = $5
           WHERE match_type = $1 AND match_id = $2 AND player_id = $3
         `,
-        [matchType, matchId, playerId, next, now],
+        [matchType, matchId, playerId, next, now]
       );
 
       await client.query(
@@ -578,7 +610,7 @@ export class PoolRepository {
           VALUES ($1, $2, $2)
           ON CONFLICT (player_id) DO NOTHING
         `,
-        [playerId, now],
+        [playerId, now]
       );
       const totalsResult = await client.query(
         `
@@ -603,7 +635,7 @@ export class PoolRepository {
             red_cards::int AS "redCards",
             updated_at::int AS "updatedAt"
         `,
-        [playerId, appliedDelta, now],
+        [playerId, appliedDelta, now]
       );
 
       await client.query('COMMIT');
@@ -628,7 +660,7 @@ export class PoolRepository {
           updated_at::int AS "updatedAt"
         FROM tournament_player_awards
         ORDER BY award ASC, player_id ASC
-      `,
+      `
     );
 
     return result.rows;
@@ -638,7 +670,7 @@ export class PoolRepository {
     poolId: string,
     matchType: 'group' | 'final',
     matchId: string,
-    teamIds: string[],
+    teamIds: string[]
   ) {
     const result = await this.postgres.query(
       `
@@ -654,6 +686,7 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           p.shirt_number::int AS "shirtNumber",
           COALESCE(ms.goals, 0)::int AS goals,
           COALESCE(ms.penalty_goals, 0)::int AS "penaltyGoals",
@@ -671,6 +704,7 @@ export class PoolRepository {
           COALESCE(ms.red_cards, 0)::int AS "redCards"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         LEFT JOIN tournament_player_match_stats ms
           ON ms.player_id = s.player_id
           AND ms.match_type = $2
@@ -679,7 +713,7 @@ export class PoolRepository {
           AND p.team_id = ANY($4::text[])
         ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
       `,
-      [poolId, matchType, matchId, teamIds],
+      [poolId, matchType, matchId, teamIds]
     );
 
     return result.rows;
@@ -695,7 +729,7 @@ export class PoolRepository {
             `
               DELETE FROM tournament_player_awards
               WHERE award = 'tournament_mvp'
-            `,
+            `
           );
         }
         await client.query(
@@ -705,7 +739,7 @@ export class PoolRepository {
             ON CONFLICT (award, player_id)
             DO UPDATE SET updated_at = EXCLUDED.updated_at
           `,
-          [award, playerId, Math.floor(Date.now() / 1000)],
+          [award, playerId, Math.floor(Date.now() / 1000)]
         );
       } else {
         await client.query(
@@ -713,7 +747,7 @@ export class PoolRepository {
             DELETE FROM tournament_player_awards
             WHERE award = $1 AND player_id = $2
           `,
-          [award, playerId],
+          [award, playerId]
         );
       }
       await client.query('COMMIT');
@@ -742,6 +776,7 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           p.shirt_number::int AS "shirtNumber",
           COALESCE(ps.goals, 0)::int AS goals,
           COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
@@ -760,11 +795,12 @@ export class PoolRepository {
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
         WHERE s.pool_id = $1 AND s.user_id = $2
         ORDER BY s.position ASC, s.slot ASC
       `,
-      [poolId, userId],
+      [poolId, userId]
     );
 
     return result.rows;
@@ -785,6 +821,7 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           p.shirt_number::int AS "shirtNumber",
           COALESCE(ps.goals, 0)::int AS goals,
           COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
@@ -803,11 +840,12 @@ export class PoolRepository {
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
         WHERE s.pool_id = $1
         ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows;
@@ -816,7 +854,7 @@ export class PoolRepository {
   async getPlayerSelectionsWithMatchStatsForWindow(
     poolId: string,
     windowStart: Date,
-    windowEnd: Date,
+    windowEnd: Date
   ) {
     const result = await this.postgres.query(
       `
@@ -844,6 +882,7 @@ export class PoolRepository {
           p.team_id AS "teamId",
           p.team_name AS "teamName",
           p.name,
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           COALESCE(SUM(ms.goals), 0)::int AS goals,
           COALESCE(SUM(ms.penalty_goals), 0)::int AS "penaltyGoals",
           COALESCE(SUM(ms.missed_penalties), 0)::int AS "missedPenalties",
@@ -860,6 +899,7 @@ export class PoolRepository {
           COALESCE(SUM(ms.red_cards), 0)::int AS "redCards"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         INNER JOIN tournament_player_match_stats ms ON ms.player_id = s.player_id
         INNER JOIN match_window mw
           ON mw.match_type = ms.match_type
@@ -873,10 +913,11 @@ export class PoolRepository {
           s.player_id,
           p.team_id,
           p.team_name,
-          p.name
+          p.name,
+          t.eliminated
         ORDER BY s.user_id ASC, s.position ASC, s.slot ASC
       `,
-      [poolId, windowStart.toISOString(), windowEnd.toISOString()],
+      [poolId, windowStart.toISOString(), windowEnd.toISOString()]
     );
 
     return result.rows;
@@ -897,6 +938,7 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           p.shirt_number::int AS "shirtNumber",
           COALESCE(ps.goals, 0)::int AS goals,
           COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
@@ -915,11 +957,12 @@ export class PoolRepository {
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a
         INNER JOIN tournament_players p ON p.player_id = a.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
         WHERE a.pool_id = $1 AND a.user_id = $2
         ORDER BY a.award ASC
       `,
-      [poolId, userId],
+      [poolId, userId]
     );
 
     return result.rows;
@@ -940,6 +983,7 @@ export class PoolRepository {
           p.image_url AS "imageUrl",
           p.country_code AS "countryCode",
           p.flag_emoji AS "flagEmoji",
+          COALESCE(t.eliminated, FALSE) AS "teamEliminated",
           p.shirt_number::int AS "shirtNumber",
           COALESCE(ps.goals, 0)::int AS goals,
           COALESCE(ps.penalty_goals, 0)::int AS "penaltyGoals",
@@ -958,17 +1002,24 @@ export class PoolRepository {
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a
         INNER JOIN tournament_players p ON p.player_id = a.player_id
+        LEFT JOIN teams t ON t.team_id = p.team_id
         LEFT JOIN tournament_player_stats ps ON ps.player_id = p.player_id
         WHERE a.pool_id = $1
         ORDER BY a.user_id ASC, a.award ASC
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows;
   }
 
-  async upsertPlayerSelection(poolId: string, userId: string, position: string, slot: number, playerId: string) {
+  async upsertPlayerSelection(
+    poolId: string,
+    userId: string,
+    position: string,
+    slot: number,
+    playerId: string
+  ) {
     const now = Math.floor(Date.now() / 1000);
     await this.postgres.query(
       `
@@ -978,7 +1029,7 @@ export class PoolRepository {
           AND player_id = $3
           AND NOT (position = $4 AND slot = $5)
       `,
-      [poolId, userId, playerId, position, slot],
+      [poolId, userId, playerId, position, slot]
     );
 
     const result = await this.postgres.query(
@@ -1005,7 +1056,7 @@ export class PoolRepository {
           player_id AS "playerId",
           updated_at::int AS "updatedAt"
       `,
-      [poolId, userId, position, slot, playerId, now],
+      [poolId, userId, position, slot, playerId, now]
     );
 
     return result.rows[0];
@@ -1017,7 +1068,7 @@ export class PoolRepository {
         DELETE FROM pool_player_selections
         WHERE pool_id = $1 AND user_id = $2 AND position = $3 AND slot = $4
       `,
-      [poolId, userId, position, slot],
+      [poolId, userId, position, slot]
     );
 
     return { success: true };
@@ -1025,7 +1076,7 @@ export class PoolRepository {
 
   async deletePlayerSelectionsAboveLimits(
     poolId: string,
-    limits: { goalkeeper: number; defender: number; midfielder: number; forward: number },
+    limits: { goalkeeper: number; defender: number; midfielder: number; forward: number }
   ) {
     await this.postgres.query(
       `
@@ -1038,13 +1089,18 @@ export class PoolRepository {
             OR (position = 'forward' AND slot > $5)
           )
       `,
-      [poolId, limits.goalkeeper, limits.defender, limits.midfielder, limits.forward],
+      [poolId, limits.goalkeeper, limits.defender, limits.midfielder, limits.forward]
     );
 
     return { success: true };
   }
 
-  async upsertPlayerAwardSelection(poolId: string, userId: string, award: string, playerId: string) {
+  async upsertPlayerAwardSelection(
+    poolId: string,
+    userId: string,
+    award: string,
+    playerId: string
+  ) {
     const now = Math.floor(Date.now() / 1000);
     const result = await this.postgres.query(
       `
@@ -1068,7 +1124,7 @@ export class PoolRepository {
           player_id AS "playerId",
           updated_at::int AS "updatedAt"
       `,
-      [poolId, userId, award, playerId, now],
+      [poolId, userId, award, playerId, now]
     );
 
     return result.rows[0];
@@ -1080,7 +1136,7 @@ export class PoolRepository {
         DELETE FROM pool_player_award_selections
         WHERE pool_id = $1 AND user_id = $2 AND award = $3
       `,
-      [poolId, userId, award],
+      [poolId, userId, award]
     );
 
     return { success: true };
@@ -1107,7 +1163,7 @@ export class PoolRepository {
         FROM group_phase_matches
         WHERE match_id = $1
       `,
-      [matchId],
+      [matchId]
     );
 
     return result.rows[0] || null;
@@ -1135,7 +1191,7 @@ export class PoolRepository {
         WHERE pool_id = $1
         ORDER BY group_id ASC, match_number ASC NULLS LAST, match_id ASC
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows;
@@ -1163,13 +1219,19 @@ export class PoolRepository {
         WHERE pool_id = $1 AND group_id = $2
         ORDER BY match_number ASC NULLS LAST, match_id ASC
       `,
-      [poolId, groupId],
+      [poolId, groupId]
     );
 
     return result.rows;
   }
 
-  async createPrediction(poolId: string, matchId: string, userId: string, homeScore: number, awayScore: number) {
+  async createPrediction(
+    poolId: string,
+    matchId: string,
+    userId: string,
+    homeScore: number,
+    awayScore: number
+  ) {
     const predictionId = randomUUID();
     const now = Math.floor(Date.now() / 1000);
 
@@ -1209,7 +1271,7 @@ export class PoolRepository {
           updated_at::int AS "updatedAt",
           evaluated_at::int AS "evaluatedAt"
       `,
-      [predictionId, poolId, matchId, userId, homeScore, awayScore, now],
+      [predictionId, poolId, matchId, userId, homeScore, awayScore, now]
     );
 
     return result.rows[0];
@@ -1222,10 +1284,16 @@ export class PoolRepository {
         WHERE pool_id = $1 AND match_id = $2 AND user_id = $3
         RETURNING prediction_id AS "predictionId"
       `,
-      [poolId, matchId, userId],
+      [poolId, matchId, userId]
     );
 
-    return { predictionId: result.rows[0]?.predictionId || null, poolId, matchId, userId, cleared: true };
+    return {
+      predictionId: result.rows[0]?.predictionId || null,
+      poolId,
+      matchId,
+      userId,
+      cleared: true,
+    };
   }
 
   async getPrediction(poolId: string, matchId: string, userId: string) {
@@ -1247,7 +1315,7 @@ export class PoolRepository {
         FROM group_phase_predictions
         WHERE pool_id = $1 AND match_id = $2 AND user_id = $3
       `,
-      [poolId, matchId, userId],
+      [poolId, matchId, userId]
     );
 
     return result.rows[0] || null;
@@ -1273,7 +1341,7 @@ export class PoolRepository {
         WHERE user_id = $1 AND pool_id = $2
         ORDER BY match_id ASC
       `,
-      [userId, poolId],
+      [userId, poolId]
     );
 
     return result.rows;
@@ -1307,7 +1375,7 @@ export class PoolRepository {
           away_result AS "awayResult",
           created_at::int AS "createdAt"
       `,
-      [matchId, homeResult, awayResult],
+      [matchId, homeResult, awayResult]
     );
 
     return result.rows[0] || null;
@@ -1325,7 +1393,7 @@ export class PoolRepository {
         WHERE match_id = $1
           AND ($2::uuid IS NULL OR pool_id = $2)
       `,
-      [matchId, poolId ?? null],
+      [matchId, poolId ?? null]
     );
   }
 
@@ -1349,13 +1417,18 @@ export class PoolRepository {
         WHERE match_id = $1
           AND ($2::uuid IS NULL OR pool_id = $2)
       `,
-      [matchId, poolId ?? null],
+      [matchId, poolId ?? null]
     );
 
     return result.rows;
   }
 
-  async updatePredictionStatus(predictionId: string, isCorrect: boolean, points?: number, isExactMatch?: boolean) {
+  async updatePredictionStatus(
+    predictionId: string,
+    isCorrect: boolean,
+    points?: number,
+    isExactMatch?: boolean
+  ) {
     await this.postgres.query(
       `
         UPDATE group_phase_predictions
@@ -1366,7 +1439,7 @@ export class PoolRepository {
           evaluated_at = $5
         WHERE prediction_id = $1
       `,
-      [predictionId, isCorrect, points ?? null, isExactMatch ?? null, Math.floor(Date.now() / 1000)],
+      [predictionId, isCorrect, points ?? null, isExactMatch ?? null, Math.floor(Date.now() / 1000)]
     );
   }
 
@@ -1376,7 +1449,7 @@ export class PoolRepository {
       isCorrect: boolean;
       points: number;
       isExactMatch: boolean;
-    }>,
+    }>
   ) {
     if (updates.length === 0) return;
 
@@ -1400,7 +1473,7 @@ export class PoolRepository {
         FROM updates
         WHERE p.prediction_id = updates."predictionId"
       `,
-      [JSON.stringify(updates), Math.floor(Date.now() / 1000)],
+      [JSON.stringify(updates), Math.floor(Date.now() / 1000)]
     );
   }
 
@@ -1423,7 +1496,7 @@ export class PoolRepository {
         FROM group_phase_predictions
         WHERE pool_id = $1
       `,
-      [poolId],
+      [poolId]
     );
 
     return result.rows;
@@ -1515,7 +1588,7 @@ export class PoolRepository {
         bracketMatchData.scheduledAt || null,
         bracketMatchData.status || 'scheduled',
         Math.floor(Date.now() / 1000),
-      ],
+      ]
     );
 
     return result.rows[0];
@@ -1546,7 +1619,7 @@ export class PoolRepository {
           WHERE pool_id = 'all-pools' AND phase = $1
           ORDER BY match_number ASC
         `,
-        [phase],
+        [phase]
       );
       return result.rows;
     }
@@ -1573,7 +1646,7 @@ export class PoolRepository {
         FROM final_phase_matches
         WHERE pool_id = 'all-pools'
         ORDER BY match_number ASC
-      `,
+      `
     );
     return result.rows;
   }
@@ -1588,7 +1661,7 @@ export class PoolRepository {
       homeResult?: number;
       awayResult?: number;
       status?: string;
-    },
+    }
   ) {
     const currentResult = await this.postgres.query(
       `
@@ -1612,7 +1685,7 @@ export class PoolRepository {
         FROM final_phase_matches
         WHERE bracket_match_id = $1
       `,
-      [bracketMatchId],
+      [bracketMatchId]
     );
 
     const current = currentResult.rows[0];
@@ -1661,17 +1734,16 @@ export class PoolRepository {
         updates.awayResult ?? current.awayResult ?? null,
         updates.status ?? current.status,
         Math.floor(Date.now() / 1000),
-      ],
+      ]
     );
 
     return result.rows[0];
   }
 
   async deleteBracketMatch(bracketMatchId: string) {
-    await this.postgres.query(
-      `DELETE FROM final_phase_matches WHERE bracket_match_id = $1`,
-      [bracketMatchId],
-    );
+    await this.postgres.query(`DELETE FROM final_phase_matches WHERE bracket_match_id = $1`, [
+      bracketMatchId,
+    ]);
     return { success: true };
   }
 
@@ -1702,7 +1774,7 @@ export class PoolRepository {
         FROM final_phase_predictions
         WHERE pool_id = $1
       `,
-      [poolId],
+      [poolId]
     );
     return result.rows;
   }
@@ -1714,7 +1786,7 @@ export class PoolRepository {
     awayTeamExactPosition: boolean,
     homeTeamCorrectButWrongPosition: boolean = false,
     awayTeamCorrectButWrongPosition: boolean = false,
-    tournamentWinnerCorrect: boolean | null = null,
+    tournamentWinnerCorrect: boolean | null = null
   ) {
     await this.postgres.query(
       `
@@ -1739,7 +1811,7 @@ export class PoolRepository {
         awayTeamCorrectButWrongPosition,
         tournamentWinnerCorrect,
         Math.floor(Date.now() / 1000),
-      ],
+      ]
     );
   }
 
@@ -1752,7 +1824,7 @@ export class PoolRepository {
       homeTeamCorrectButWrongPosition: boolean;
       awayTeamCorrectButWrongPosition: boolean;
       tournamentWinnerCorrect: boolean | null;
-    }>,
+    }>
   ) {
     if (updates.length === 0) return;
 
@@ -1783,7 +1855,7 @@ export class PoolRepository {
         FROM updates
         WHERE p.bracket_prediction_id = updates."bracketPredictionId"
       `,
-      [JSON.stringify(updates), Math.floor(Date.now() / 1000)],
+      [JSON.stringify(updates), Math.floor(Date.now() / 1000)]
     );
   }
 
@@ -1796,7 +1868,7 @@ export class PoolRepository {
     awayTeamId: string,
     awayTeamName: string,
     predictedWinnerTeamId?: string,
-    predictedWinnerTeamName?: string,
+    predictedWinnerTeamName?: string
   ) {
     const bracketPredictionId = randomUUID();
     const now = Math.floor(Date.now() / 1000);
@@ -1863,7 +1935,7 @@ export class PoolRepository {
         predictedWinnerTeamId || null,
         predictedWinnerTeamName || null,
         now,
-      ],
+      ]
     );
 
     return result.rows[0];
@@ -1896,7 +1968,7 @@ export class PoolRepository {
         FROM final_phase_predictions
         WHERE pool_id = $1 AND user_id = $2
       `,
-      [poolId, userId],
+      [poolId, userId]
     );
     return result.rows;
   }
@@ -1928,7 +2000,7 @@ export class PoolRepository {
         FROM final_phase_predictions
         WHERE pool_id = $1 AND bracket_match_id = $2 AND user_id = $3
       `,
-      [poolId, bracketMatchId, userId],
+      [poolId, bracketMatchId, userId]
     );
     return result.rows[0] || null;
   }
@@ -1960,7 +2032,7 @@ export class PoolRepository {
         FROM final_phase_predictions
         WHERE bracket_match_id = $1
       `,
-      [bracketMatchId],
+      [bracketMatchId]
     );
 
     return result.rows;

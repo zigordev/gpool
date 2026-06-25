@@ -5,4 +5,5 @@ interface Team {
   code?: string;
   fairPlay?: number;
   fifaRanking?: number;
+  eliminated?: boolean;
 }

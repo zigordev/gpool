@@ -513,6 +513,7 @@
       "cancel": "Cancelar",
       "clearSelection": "Quitar seleccion",
       "editTitle": "Editar jugador",
+      "eliminated": "Eliminado",
       "empty": "Aun no hay jugadores del torneo disponibles.",
       "emptySlot": "Sin jugador",
       "insights": {

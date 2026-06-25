@@ -4,6 +4,7 @@ export interface TournamentPlayer {
   playerId: string;
   teamId: string;
   teamName: string;
+  teamEliminated?: boolean;
   name: string;
   position: PlayerPosition;
   imageUrl?: string;

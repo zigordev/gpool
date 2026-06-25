@@ -22,18 +22,22 @@ import {
 import type { PlayerInsightsTarget } from '@/components/pool/PlayerInsightsModal';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
+import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
 const PlayerInsightsModal = dynamic(
   () => import('@/components/pool/PlayerInsightsModal').then((mod) => mod.PlayerInsightsModal),
-  { ssr: false },
+  { ssr: false }
 );
 const PlayerSelectionStatistics = dynamic(
-  () => import('@/components/pool/PlayerSelectionStatistics').then((mod) => mod.PlayerSelectionStatistics),
-  { ssr: false },
+  () =>
+    import('@/components/pool/PlayerSelectionStatistics').then(
+      (mod) => mod.PlayerSelectionStatistics
+    ),
+  { ssr: false }
 );
 const PlayerStatsTable = dynamic(
   () => import('@/components/pool/PlayerStatsTable').then((mod) => mod.PlayerStatsTable),
-  { ssr: false },
+  { ssr: false }
 );
 
 type PlayerOption = {
@@ -42,6 +46,7 @@ type PlayerOption = {
   teamName: string;
   teamId: string;
   shirtNumber?: number | null;
+  teamEliminated?: boolean;
   isDisabled: boolean;
 };
 
@@ -103,7 +108,16 @@ export default function PlayersPage() {
 
   const lockedPlayerIdentity = (player: TournamentPlayer | null | undefined) =>
     player ? (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          minWidth: 0,
+          opacity: player.teamEliminated ? 0.68 : 1,
+          filter: player.teamEliminated ? 'grayscale(0.55)' : undefined,
+        }}
+      >
         <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={29} />
         <div style={{ display: 'grid', gap: '0.18rem', minWidth: 0 }}>
           <strong
@@ -117,6 +131,7 @@ export default function PlayersPage() {
           >
             {player.name}
           </strong>
+          {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
           <span
             style={{
               display: 'flex',
@@ -144,6 +159,30 @@ export default function PlayersPage() {
         {t('poolDetail.players.emptySlot')}
       </span>
     );
+
+  const formatPlayerOptionLabel = (option: PlayerOption) => (
+    <span
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.4rem',
+        minWidth: 0,
+        opacity: option.teamEliminated ? 0.68 : 1,
+        filter: option.teamEliminated ? 'grayscale(0.55)' : undefined,
+      }}
+    >
+      <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
+      <ReactCountryFlag
+        countryCode={countryIsoCode(option.teamName)}
+        svg
+        style={{ width: '1.4em', height: '1.4em', flexShrink: 0 }}
+      />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {option.label}
+      </span>
+      {option.teamEliminated ? <PlayerEliminatedBadge /> : null}
+    </span>
+  );
 
   const countries = Array.from(
     players
@@ -194,9 +233,7 @@ export default function PlayersPage() {
 
   if (players.length === 0) {
     return (
-      <div
-        className="content-panel main-view-stack"
-      >
+      <div className="content-panel main-view-stack">
         <p
           style={{
             color: 'rgb(var(--fg-muted))',
@@ -213,9 +250,7 @@ export default function PlayersPage() {
   }
 
   return (
-    <div
-      className="content-panel main-view-stack"
-    >
+    <div className="content-panel main-view-stack">
       <div className="players-toolbar players-toolbar--tabs-only">
         <div className="players-tab-bar" role="tablist">
           <button
@@ -379,6 +414,7 @@ export default function PlayersPage() {
                                   teamName: player.teamName,
                                   teamId: player.teamId,
                                   shirtNumber: player.shirtNumber,
+                                  teamEliminated: player.teamEliminated,
                                   isDisabled: false,
                                 }))}
                               value={
@@ -389,6 +425,7 @@ export default function PlayersPage() {
                                       teamName: selected.teamName,
                                       teamId: selected.teamId,
                                       shirtNumber: selected.shirtNumber,
+                                      teamEliminated: selected.teamEliminated,
                                       isDisabled: false,
                                     }
                                   : null
@@ -400,19 +437,7 @@ export default function PlayersPage() {
                               isDisabled={savingPlayerSlot !== null}
                               isLoading={isSaving}
                               placeholder={t(award.descriptionKey)}
-                              formatOptionLabel={(option) => (
-                                <span
-                                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                                >
-                                  <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
-                                  <ReactCountryFlag
-                                    countryCode={countryIsoCode(option.teamName)}
-                                    svg
-                                    style={{ width: '1.4em', height: '1.4em' }}
-                                  />
-                                  <span>{option.label}</span>
-                                </span>
-                              )}
+                              formatOptionLabel={formatPlayerOptionLabel}
                               filterOption={(option, inputValue) => {
                                 const search = inputValue.toLowerCase();
                                 return (
@@ -538,6 +563,7 @@ export default function PlayersPage() {
                               teamName: player.teamName,
                               teamId: player.teamId,
                               shirtNumber: player.shirtNumber,
+                              teamEliminated: player.teamEliminated,
                               isDisabled: takenTeamIds.has(player.teamId),
                             }));
                           const selectedOption = selected
@@ -547,6 +573,7 @@ export default function PlayersPage() {
                                 teamName: selected.teamName,
                                 teamId: selected.teamId,
                                 shirtNumber: selected.shirtNumber,
+                                teamEliminated: selected.teamEliminated,
                                 isDisabled: false,
                               })
                             : null;
@@ -624,23 +651,7 @@ export default function PlayersPage() {
                                     isDisabled={savingPlayerSlot !== null}
                                     isLoading={isSaving}
                                     placeholder={t('poolDetail.players.slotLabel', { slot })}
-                                    formatOptionLabel={(option) => (
-                                      <span
-                                        style={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '0.4rem',
-                                        }}
-                                      >
-                                        <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
-                                        <ReactCountryFlag
-                                          countryCode={countryIsoCode(option.teamName)}
-                                          svg
-                                          style={{ width: '1.4em', height: '1.4em' }}
-                                        />
-                                        <span>{option.label}</span>
-                                      </span>
-                                    )}
+                                    formatOptionLabel={formatPlayerOptionLabel}
                                     filterOption={(option, inputValue) => {
                                       const search = inputValue.toLowerCase();
                                       return (
@@ -818,6 +829,7 @@ export default function PlayersPage() {
                                   teamName: player.teamName,
                                   teamId: player.teamId,
                                   shirtNumber: player.shirtNumber,
+                                  teamEliminated: player.teamEliminated,
                                   isDisabled: false,
                                 }))}
                               value={
@@ -828,6 +840,7 @@ export default function PlayersPage() {
                                       teamName: selected.teamName,
                                       teamId: selected.teamId,
                                       shirtNumber: selected.shirtNumber,
+                                      teamEliminated: selected.teamEliminated,
                                       isDisabled: false,
                                     }
                                   : null
@@ -839,19 +852,7 @@ export default function PlayersPage() {
                               isDisabled={savingPlayerSlot !== null}
                               isLoading={isSaving}
                               placeholder={t(award.descriptionKey)}
-                              formatOptionLabel={(option) => (
-                                <span
-                                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                                >
-                                  <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
-                                  <ReactCountryFlag
-                                    countryCode={countryIsoCode(option.teamName)}
-                                    svg
-                                    style={{ width: '1.4em', height: '1.4em' }}
-                                  />
-                                  <span>{option.label}</span>
-                                </span>
-                              )}
+                              formatOptionLabel={formatPlayerOptionLabel}
                               filterOption={(option, inputValue) => {
                                 const search = inputValue.toLowerCase();
                                 return (
@@ -926,6 +927,7 @@ export default function PlayersPage() {
                           teamName: player.teamName,
                           teamId: player.teamId,
                           shirtNumber: player.shirtNumber,
+                          teamEliminated: player.teamEliminated,
                           isDisabled: takenTeamIds.has(player.teamId),
                         }));
                       const selectedOption = selected
@@ -935,6 +937,7 @@ export default function PlayersPage() {
                             teamName: selected.teamName,
                             teamId: selected.teamId,
                             shirtNumber: selected.shirtNumber,
+                            teamEliminated: selected.teamEliminated,
                             isDisabled: false,
                           })
                         : null;
@@ -1010,19 +1013,7 @@ export default function PlayersPage() {
                                 isDisabled={savingPlayerSlot !== null}
                                 isLoading={isSaving}
                                 placeholder={t('poolDetail.players.slotLabel', { slot })}
-                                formatOptionLabel={(option) => (
-                                  <span
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                                  >
-                                    <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
-                                    <ReactCountryFlag
-                                      countryCode={countryIsoCode(option.teamName)}
-                                      svg
-                                      style={{ width: '1.4em', height: '1.4em' }}
-                                    />
-                                    <span>{option.label}</span>
-                                  </span>
-                                )}
+                                formatOptionLabel={formatPlayerOptionLabel}
                                 filterOption={(option, inputValue) => {
                                   const search = inputValue.toLowerCase();
                                   return (

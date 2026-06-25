@@ -78,10 +78,12 @@ export class PostgresInitService implements OnModuleInit {
         group_id TEXT NOT NULL,
         code TEXT,
         fair_play_points INTEGER NOT NULL DEFAULT 0,
-        fifa_ranking INTEGER NOT NULL DEFAULT 999
+        fifa_ranking INTEGER NOT NULL DEFAULT 999,
+        eliminated BOOLEAN NOT NULL DEFAULT FALSE
       );
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS fair_play_points INTEGER NOT NULL DEFAULT 0;
       ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_ranking INTEGER NOT NULL DEFAULT 999;
+      ALTER TABLE teams ADD COLUMN IF NOT EXISTS eliminated BOOLEAN NOT NULL DEFAULT FALSE;
       ALTER TABLE teams DROP COLUMN IF EXISTS fifa_ranking_points;
       DO $$
       BEGIN
