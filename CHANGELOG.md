@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.45](https://github.com/zigordev/gpool/compare/v0.1.44...v0.1.45) (2026-06-25)
+
+
+### Features
+
+* eliminated teams and players ([#125](https://github.com/zigordev/gpool/issues/125)) ([a3c45a6](https://github.com/zigordev/gpool/commit/a3c45a6150b018a430885660a03cc1e68dfcd290))
+
 ## [0.1.44](https://github.com/zigordev/gpool/compare/v0.1.43...v0.1.44) (2026-06-24)
 
 
