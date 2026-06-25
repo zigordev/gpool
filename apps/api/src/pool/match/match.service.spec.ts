@@ -69,6 +69,7 @@ describe('MatchService match insights', () => {
       cleanSheets: 0,
       assists: 0,
       yellowCards: 0,
+      doubleYellowCards: 0,
       redCards: 0,
     };
     const repository = {

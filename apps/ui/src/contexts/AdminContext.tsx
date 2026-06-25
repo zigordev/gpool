@@ -66,6 +66,7 @@ export type AdminPlayerScoringConfig = {
   cleanSheet: PositionScoring;
   assist: PositionScoring;
   yellowCard: ConfigNumber;
+  doubleYellowCard: ConfigNumber;
   redCard: ConfigNumber;
   award: { goldenBoot: ConfigNumber; tournamentMvp: ConfigNumber };
 };
@@ -101,6 +102,7 @@ export const DEFAULT_PLAYER_SCORING: AdminPlayerScoringConfig = {
   cleanSheet: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
   assist: { goalkeeper: '', defender: '', midfielder: '', forward: '' },
   yellowCard: '',
+  doubleYellowCard: '',
   redCard: '',
   award: { goldenBoot: '', tournamentMvp: '' },
 };
@@ -291,6 +293,7 @@ export function normalizePlayerScoring(value: any): AdminPlayerScoringConfig {
       forward: readConfigNumber(assist.forward),
     },
     yellowCard: readConfigNumber(value?.yellowCard, { allowNegative: true, max: 0 }),
+    doubleYellowCard: readConfigNumber(value?.doubleYellowCard, { allowNegative: true, max: 0 }),
     redCard: readConfigNumber(value?.redCard, { allowNegative: true, max: 0 }),
     award: {
       goldenBoot: readConfigNumber(value?.award?.goldenBoot),
@@ -330,6 +333,7 @@ export function playerScoringMissingCount(scoring: AdminPlayerScoringConfig): nu
     scoring.shootoutMissedPenalty,
     scoring.shootoutForcedPenaltyMiss,
     scoring.yellowCard,
+    scoring.doubleYellowCard,
     scoring.redCard,
     scoring.award.goldenBoot,
     scoring.award.tournamentMvp,
@@ -419,7 +423,10 @@ function normalizeMatchdaySeparatorTime(value: unknown): string {
 export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlayerScoringConfig): number {
   const cleanSheetPoints = (player.cleanSheets || 0) * pointsValue(scoring.cleanSheet[player.position]);
   const assistPoints = (player.assists || 0) * pointsValue(scoring.assist[player.position]);
-  const cardPoints = (player.yellowCards || 0) * pointsValue(scoring.yellowCard) + (player.redCards || 0) * pointsValue(scoring.redCard);
+  const cardPoints =
+    (player.yellowCards || 0) * pointsValue(scoring.yellowCard) +
+    (player.doubleYellowCards || 0) * pointsValue(scoring.doubleYellowCard) +
+    (player.redCards || 0) * pointsValue(scoring.redCard);
   return (player.goals || 0) * pointsValue(scoring.goal[player.position]) +
     (player.penaltyGoals || 0) * pointsValue(scoring.penaltyGoal[player.position]) +
     (player.missedPenalties || 0) * pointsValue(scoring.missedPenalty) +
@@ -858,7 +865,7 @@ export function AdminProvider({
         stat,
         delta,
       });
-      setPlayers((prev) => prev.map((item) => item.playerId === player.playerId ? (() => { const nextPlayer = { ...item, goals: updated.data?.goals ?? item.goals, penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals, missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties, mvps: updated.data?.mvps ?? item.mvps, penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved, forcedPenaltyMisses: updated.data?.forcedPenaltyMisses ?? item.forcedPenaltyMisses, shootoutPenaltiesSaved: updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved, shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals, shootoutMissedPenalties: updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties, shootoutForcedPenaltyMisses: updated.data?.shootoutForcedPenaltyMisses ?? item.shootoutForcedPenaltyMisses, cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets, assists: updated.data?.assists ?? item.assists, yellowCards: updated.data?.yellowCards ?? item.yellowCards, redCards: updated.data?.redCards ?? item.redCards }; return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) }; })() : item));
+      setPlayers((prev) => prev.map((item) => item.playerId === player.playerId ? (() => { const nextPlayer = { ...item, goals: updated.data?.goals ?? item.goals, penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals, missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties, mvps: updated.data?.mvps ?? item.mvps, penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved, forcedPenaltyMisses: updated.data?.forcedPenaltyMisses ?? item.forcedPenaltyMisses, shootoutPenaltiesSaved: updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved, shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals, shootoutMissedPenalties: updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties, shootoutForcedPenaltyMisses: updated.data?.shootoutForcedPenaltyMisses ?? item.shootoutForcedPenaltyMisses, cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets, assists: updated.data?.assists ?? item.assists, yellowCards: updated.data?.yellowCards ?? item.yellowCards, doubleYellowCards: updated.data?.doubleYellowCards ?? item.doubleYellowCards, redCards: updated.data?.redCards ?? item.redCards }; return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) }; })() : item));
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('adminResults.errors.updatePlayerStats'));
     } finally {

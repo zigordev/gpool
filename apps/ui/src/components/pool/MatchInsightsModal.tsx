@@ -39,6 +39,7 @@ type PlayerAction = {
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;
+  doubleYellowCards?: number;
   redCards?: number;
 };
 
@@ -121,6 +122,7 @@ export function MatchInsightsModal({
     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
     assists: t('poolDetail.players.actions.assists'),
     yellowCards: t('poolDetail.players.actions.yellowCards'),
+    doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
     redCards: t('poolDetail.players.actions.redCards'),
   };
 

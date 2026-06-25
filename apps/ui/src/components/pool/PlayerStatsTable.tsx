@@ -54,6 +54,17 @@ const STAT_COLUMNS: Array<{
     labelKey: 'poolDetail.players.actions.yellowCards',
   },
   {
+    key: 'doubleYellowCards',
+    group: 'match',
+    icon: (
+      <span style={{ display: 'inline-flex', gap: '0.04rem' }}>
+        <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />
+        <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size={13} />
+      </span>
+    ),
+    labelKey: 'poolDetail.players.actions.doubleYellowCards',
+  },
+  {
     key: 'redCards',
     group: 'match',
     icon: (

@@ -16,6 +16,7 @@ const PLAYER_STAT_COLUMNS = {
   cleanSheets: 'clean_sheets',
   assists: 'assists',
   yellowCards: 'yellow_cards',
+  doubleYellowCards: 'double_yellow_cards',
   redCards: 'red_cards',
 } as const;
 
@@ -388,6 +389,7 @@ export class PoolRepository {
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(s.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
         LEFT JOIN teams ON teams.team_id = tournament_players.team_id
@@ -428,6 +430,7 @@ export class PoolRepository {
           COALESCE(s.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(s.assists, 0)::int AS assists,
           COALESCE(s.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(s.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(s.red_cards, 0)::int AS "redCards"
         FROM tournament_players
         LEFT JOIN teams ON teams.team_id = tournament_players.team_id
@@ -470,6 +473,7 @@ export class PoolRepository {
             ms.clean_sheets::int AS "cleanSheets",
             ms.assists::int AS assists,
             ms.yellow_cards::int AS "yellowCards",
+            ms.double_yellow_cards::int AS "doubleYellowCards",
             ms.red_cards::int AS "redCards"
           FROM tournament_player_match_stats ms
           INNER JOIN group_phase_matches g
@@ -505,6 +509,7 @@ export class PoolRepository {
             ms.clean_sheets::int AS "cleanSheets",
             ms.assists::int AS assists,
             ms.yellow_cards::int AS "yellowCards",
+            ms.double_yellow_cards::int AS "doubleYellowCards",
             ms.red_cards::int AS "redCards"
           FROM tournament_player_match_stats ms
           INNER JOIN final_phase_matches f
@@ -527,6 +532,7 @@ export class PoolRepository {
           OR "cleanSheets" > 0
           OR assists > 0
           OR "yellowCards" > 0
+          OR "doubleYellowCards" > 0
           OR "redCards" > 0
         ORDER BY "scheduledAt" ASC NULLS LAST, "matchNumber" ASC
       `,
@@ -632,6 +638,7 @@ export class PoolRepository {
             clean_sheets::int AS "cleanSheets",
             assists::int AS assists,
             yellow_cards::int AS "yellowCards",
+            double_yellow_cards::int AS "doubleYellowCards",
             red_cards::int AS "redCards",
             updated_at::int AS "updatedAt"
         `,
@@ -701,6 +708,7 @@ export class PoolRepository {
           COALESCE(ms.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ms.assists, 0)::int AS assists,
           COALESCE(ms.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ms.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(ms.red_cards, 0)::int AS "redCards"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
@@ -791,6 +799,7 @@ export class PoolRepository {
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(ps.red_cards, 0)::int AS "redCards",
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
@@ -836,6 +845,7 @@ export class PoolRepository {
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(ps.red_cards, 0)::int AS "redCards",
           s.updated_at::int AS "updatedAt"
         FROM pool_player_selections s
@@ -896,6 +906,7 @@ export class PoolRepository {
           COALESCE(SUM(ms.clean_sheets), 0)::int AS "cleanSheets",
           COALESCE(SUM(ms.assists), 0)::int AS assists,
           COALESCE(SUM(ms.yellow_cards), 0)::int AS "yellowCards",
+          COALESCE(SUM(ms.double_yellow_cards), 0)::int AS "doubleYellowCards",
           COALESCE(SUM(ms.red_cards), 0)::int AS "redCards"
         FROM pool_player_selections s
         INNER JOIN tournament_players p ON p.player_id = s.player_id
@@ -953,6 +964,7 @@ export class PoolRepository {
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(ps.red_cards, 0)::int AS "redCards",
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a
@@ -998,6 +1010,7 @@ export class PoolRepository {
           COALESCE(ps.clean_sheets, 0)::int AS "cleanSheets",
           COALESCE(ps.assists, 0)::int AS assists,
           COALESCE(ps.yellow_cards, 0)::int AS "yellowCards",
+          COALESCE(ps.double_yellow_cards, 0)::int AS "doubleYellowCards",
           COALESCE(ps.red_cards, 0)::int AS "redCards",
           a.updated_at::int AS "updatedAt"
         FROM pool_player_award_selections a

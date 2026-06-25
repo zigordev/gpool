@@ -693,6 +693,7 @@ export default function PlayersPage() {
                                       cleanSheets: 0,
                                       assists: 0,
                                       yellowCards: 0,
+                                      doubleYellowCards: 0,
                                       redCards: 0,
                                     }
                                   }
@@ -720,6 +721,7 @@ export default function PlayersPage() {
                                     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                     assists: t('poolDetail.players.actions.assists'),
                                     yellowCards: t('poolDetail.players.actions.yellowCards'),
+                                    doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
                                     redCards: t('poolDetail.players.actions.redCards'),
                                   }}
                                   position={position}
@@ -1055,6 +1057,7 @@ export default function PlayersPage() {
                                   cleanSheets: 0,
                                   assists: 0,
                                   yellowCards: 0,
+                                  doubleYellowCards: 0,
                                   redCards: 0,
                                 }
                               }
@@ -1080,6 +1083,7 @@ export default function PlayersPage() {
                                 cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                 assists: t('poolDetail.players.actions.assists'),
                                 yellowCards: t('poolDetail.players.actions.yellowCards'),
+                                doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
                                 redCards: t('poolDetail.players.actions.redCards'),
                               }}
                               position={position}

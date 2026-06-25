@@ -24,6 +24,7 @@ export interface TournamentPlayer {
   cleanSheets?: number;
   assists?: number;
   yellowCards?: number;
+  doubleYellowCards?: number;
   redCards?: number;
   totalPoints?: number;
 }
