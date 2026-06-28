@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { hasPermission } from '../../common/guards/roles.guard';
 import { PoolRepository } from '../database/pool.repository';
@@ -65,10 +66,17 @@ function bracketLayoutIndex(match: any): number {
 }
 
 @Injectable()
-export class BracketService {
+export class BracketService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BracketService.name);
 
   constructor(private readonly poolRepository: PoolRepository) {}
+
+  async onApplicationBootstrap() {
+    const result = await this.reEvaluateAllBracketMatches(BRACKET_POOL_ID);
+    this.logger.log(
+      `Recalculated final phase scoring at startup for ${result.matchesEvaluated} matches`
+    );
+  }
 
   async getBracketMatches(poolId: string, phase?: BracketPhase) {
     return this.poolRepository.getBracketMatches(poolId, phase);

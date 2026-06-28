@@ -14,6 +14,21 @@ const roundOf16 = Array.from({ length: 8 }, (_, index) => ({
   awayTeamId: `team-${index * 2 + 2}`,
 }));
 
+describe('BracketService startup recalculation', () => {
+  it('re-evaluates all final phase matches on application bootstrap', async () => {
+    const repository = {
+      getBracketMatches: jest.fn().mockResolvedValue([]),
+      updateTeamEliminationState: jest.fn().mockResolvedValue([]),
+    };
+    const service = new BracketService(repository as any);
+
+    await service.onApplicationBootstrap();
+
+    expect(repository.getBracketMatches).toHaveBeenCalledWith('all-pools');
+    expect(repository.updateTeamEliminationState).toHaveBeenCalledWith([]);
+  });
+});
+
 describe('BracketService team elimination sync', () => {
   it('marks every team outside the deepest complete phase as eliminated', async () => {
     const repository = {
