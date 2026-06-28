@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.46](https://github.com/zigordev/gpool/compare/v0.1.45...v0.1.46) (2026-06-28)
+
+
+### Bug Fixes
+
+* final phase wrong box points ([#127](https://github.com/zigordev/gpool/issues/127)) ([358dfef](https://github.com/zigordev/gpool/commit/358dfef58d9be0a6fa2d7aaf29049d42c6d28d62))
+
 ## [0.1.45](https://github.com/zigordev/gpool/compare/v0.1.44...v0.1.45) (2026-06-25)
 
 
