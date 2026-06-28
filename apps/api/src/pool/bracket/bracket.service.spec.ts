@@ -49,3 +49,114 @@ describe('BracketService team elimination sync', () => {
     expect(repository.updateTeamEliminationState).toHaveBeenCalledWith([]);
   });
 });
+
+describe('BracketService final phase scoring', () => {
+  const scoring = {
+    bracketScoring: {
+      exactPositionPoints: 10,
+      correctTeamWrongPositionPoints: 3,
+      tournamentWinnerPoints: 25,
+    },
+  };
+
+  const evaluatedMatch = {
+    bracketMatchId: 'all-pools-quarter-finals-1',
+    phase: 'quarter-finals',
+    homeTeamId: 'team-a',
+    awayTeamId: 'team-b',
+  };
+
+  const phaseMatches = [
+    evaluatedMatch,
+    {
+      bracketMatchId: 'all-pools-quarter-finals-2',
+      phase: 'quarter-finals',
+      homeTeamId: 'team-c',
+      awayTeamId: 'team-d',
+    },
+  ];
+
+  it('awards wrong-position points when a team is in another match box in the same round', async () => {
+    const repository = {
+      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([
+        {
+          bracketPredictionId: 'prediction-1',
+          poolId: 'pool-1',
+          homeTeamId: 'team-a',
+          awayTeamId: 'team-b',
+        },
+        {
+          bracketPredictionId: 'prediction-2',
+          poolId: 'pool-1',
+          homeTeamId: 'team-b',
+          awayTeamId: 'team-a',
+        },
+        {
+          bracketPredictionId: 'prediction-3',
+          poolId: 'pool-1',
+          homeTeamId: 'team-c',
+          awayTeamId: 'team-d',
+        },
+        {
+          bracketPredictionId: 'prediction-4',
+          poolId: 'pool-1',
+          homeTeamId: 'team-z',
+          awayTeamId: '',
+        },
+      ]),
+      getBracketMatches: jest.fn().mockResolvedValue(phaseMatches),
+      listPools: jest.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
+      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new BracketService(repository as any);
+
+    await (service as any).evaluateBracketPredictions(
+      evaluatedMatch.bracketMatchId,
+      evaluatedMatch,
+      'pool-1'
+    );
+
+    expect(repository.getBracketMatches).toHaveBeenCalledWith(
+      'all-pools',
+      'quarter-finals'
+    );
+    expect(repository.bulkUpdateBracketPredictionPoints).toHaveBeenCalledWith([
+      {
+        bracketPredictionId: 'prediction-1',
+        points: 20,
+        homeTeamExactPosition: true,
+        awayTeamExactPosition: true,
+        homeTeamCorrectButWrongPosition: false,
+        awayTeamCorrectButWrongPosition: false,
+        tournamentWinnerCorrect: null,
+      },
+      {
+        bracketPredictionId: 'prediction-2',
+        points: 6,
+        homeTeamExactPosition: false,
+        awayTeamExactPosition: false,
+        homeTeamCorrectButWrongPosition: true,
+        awayTeamCorrectButWrongPosition: true,
+        tournamentWinnerCorrect: null,
+      },
+      {
+        bracketPredictionId: 'prediction-3',
+        points: 6,
+        homeTeamExactPosition: false,
+        awayTeamExactPosition: false,
+        homeTeamCorrectButWrongPosition: true,
+        awayTeamCorrectButWrongPosition: true,
+        tournamentWinnerCorrect: null,
+      },
+      {
+        bracketPredictionId: 'prediction-4',
+        points: 0,
+        homeTeamExactPosition: false,
+        awayTeamExactPosition: false,
+        homeTeamCorrectButWrongPosition: false,
+        awayTeamCorrectButWrongPosition: false,
+        tournamentWinnerCorrect: null,
+      },
+    ]);
+  });
+});

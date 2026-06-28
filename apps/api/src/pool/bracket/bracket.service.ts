@@ -291,6 +291,12 @@ export class BracketService {
       : predictions;
     const pools = await this.poolRepository.listPools();
     const poolById = new Map(pools.map((pool: any) => [pool.poolId, pool]));
+    const phaseMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, match.phase);
+    const actualPhaseTeamIds = new Set<string>();
+    phaseMatches.forEach((phaseMatch: any) => {
+      if (phaseMatch.homeTeamId) actualPhaseTeamIds.add(phaseMatch.homeTeamId);
+      if (phaseMatch.awayTeamId) actualPhaseTeamIds.add(phaseMatch.awayTeamId);
+    });
 
     const predictionUpdates = relevantPredictions.map((prediction: any) => {
       const predictionPool: any = poolById.get(prediction.poolId);
@@ -302,9 +308,15 @@ export class BracketService {
       let points = 0;
 
       const homeTeamExactPosition = prediction.homeTeamId === match.homeTeamId;
-      const homeTeamCorrectButWrongPosition = prediction.homeTeamId === match.awayTeamId;
+      const homeTeamCorrectButWrongPosition =
+        !homeTeamExactPosition &&
+        Boolean(prediction.homeTeamId) &&
+        actualPhaseTeamIds.has(prediction.homeTeamId);
       const awayTeamExactPosition = prediction.awayTeamId === match.awayTeamId;
-      const awayTeamCorrectButWrongPosition = prediction.awayTeamId === match.homeTeamId;
+      const awayTeamCorrectButWrongPosition =
+        !awayTeamExactPosition &&
+        Boolean(prediction.awayTeamId) &&
+        actualPhaseTeamIds.has(prediction.awayTeamId);
       const actualWinnerTeamId =
         match.phase === 'finals' &&
         typeof match.homeResult === 'number' &&
