@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.47](https://github.com/zigordev/gpool/compare/v0.1.46...v0.1.47) (2026-06-29)
+
+
+### Bug Fixes
+
+* materialize final phase matches on startup ([#129](https://github.com/zigordev/gpool/issues/129)) ([f8d33ca](https://github.com/zigordev/gpool/commit/f8d33cab2b23abbd4aaefa070af865fe1d23e78a))
+
 ## [0.1.46](https://github.com/zigordev/gpool/compare/v0.1.45...v0.1.46) (2026-06-28)
 
 
