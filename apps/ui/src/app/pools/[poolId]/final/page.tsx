@@ -215,10 +215,7 @@ export default function FinalPage() {
         >
           {matchDate}
         </span>
-        <div style={{ display: 'grid', gap: '0.3rem' }}>
-          <UpcomingFinalTeamRow teamName={homeName} t={t} />
-          <UpcomingFinalTeamRow teamName={awayName} t={t} />
-        </div>
+        <UpcomingFinalTeamsLine homeTeamName={homeName} awayTeamName={awayName} t={t} />
       </article>
     );
   };
@@ -479,38 +476,36 @@ function getAdvancedTeamId(
   return matchIndex % 2 === 0 ? nextMatch.homeTeamId || '' : nextMatch.awayTeamId || '';
 }
 
-function UpcomingFinalTeamRow({
-  teamName,
+function UpcomingFinalTeamsLine({
+  homeTeamName,
+  awayTeamName,
   t,
 }: Readonly<{
-  teamName: string;
+  homeTeamName: string;
+  awayTeamName: string;
   t: TranslationFn;
 }>) {
-  const hasTeam = Boolean(teamName);
-  const displayName = hasTeam ? countryDisplayName(teamName, t) : '';
+  const homeDisplayName = countryDisplayName(homeTeamName, t);
+  const awayDisplayName = countryDisplayName(awayTeamName, t);
 
   return (
     <div
       style={{
         alignItems: 'center',
-        display: 'grid',
-        gap: '0.45rem',
-        gridTemplateColumns: '1.5rem minmax(0, 1fr)',
+        display: 'flex',
+        gap: '0.4rem',
         minWidth: 0,
       }}
     >
-      {hasTeam ? (
+      {homeTeamName ? (
         <ReactCountryFlag
-          countryCode={countryIsoCode(teamName)}
+          countryCode={countryIsoCode(homeTeamName)}
           svg
-          style={{ height: '1.5em', width: '1.5em' }}
+          style={{ flexShrink: 0, height: '1.35em', width: '1.35em' }}
         />
-      ) : (
-        <span aria-hidden />
-      )}
+      ) : null}
       <span
         style={{
-          color: hasTeam ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
           fontSize: '0.85rem',
           fontWeight: 700,
           minWidth: 0,
@@ -519,7 +514,32 @@ function UpcomingFinalTeamRow({
           whiteSpace: 'nowrap',
         }}
       >
-        {displayName}
+        {homeDisplayName}
+      </span>
+      <span
+        aria-hidden
+        style={{ color: 'rgb(var(--fg-muted))', flexShrink: 0, fontWeight: 700 }}
+      >
+        -
+      </span>
+      {awayTeamName ? (
+        <ReactCountryFlag
+          countryCode={countryIsoCode(awayTeamName)}
+          svg
+          style={{ flexShrink: 0, height: '1.35em', width: '1.35em' }}
+        />
+      ) : null}
+      <span
+        style={{
+          fontSize: '0.85rem',
+          fontWeight: 700,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {awayDisplayName}
       </span>
     </div>
   );

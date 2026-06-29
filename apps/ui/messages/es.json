@@ -399,6 +399,7 @@
       "bracketUnavailable": "El cuadro aun no esta disponible.",
       "deadlinePassed": "La fecha limite ha pasado. Ya no se pueden editar predicciones.",
       "defaultsReset": "Fase final reiniciada con los valores por defecto",
+      "nextMatchdayTitle": "Próximos partidos",
       "predictionSaved": "Prediccion guardada",
       "resetDefaults": "Reiniciar fase final",
       "resettingDefaults": "Reiniciando...",
