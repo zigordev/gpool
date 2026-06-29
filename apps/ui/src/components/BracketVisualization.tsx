@@ -195,7 +195,7 @@ export function BracketVisualization({
   onMatchClick,
   onWinnerClick,
 }: Readonly<BracketVisualizationProps>) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
   const bracketScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollLockRef = useRef<{ left: number; until: number } | null>(null);
@@ -382,6 +382,8 @@ export function BracketVisualization({
             prediction.awayTeamExactPosition === false &&
             prediction.awayTeamCorrectButWrongPosition === false;
           const points = isDeadlinePassed ? (prediction.points || 0) : 0;
+          const advancedTeamId = getAdvancedTeamId(bracket, phaseKey, idx);
+          const isFinished = isFinishedBracketMatch(match, advancedTeamId);
 
           return (
             <div
@@ -417,6 +419,8 @@ export function BracketVisualization({
                 awayTeamIncorrect={awayTeamIncorrect}
                 points={points}
                 onMatchClick={onMatchClick}
+                locale={locale}
+                isFinished={isFinished}
               />
             </div>
           );
@@ -461,6 +465,7 @@ export function BracketVisualization({
       prediction.awayTeamExactPosition === false &&
       prediction.awayTeamCorrectButWrongPosition === false;
     const points = isDeadlinePassed ? (prediction.points || 0) : 0;
+    const isFinished = isFinishedBracketMatch(match);
 
     return (
       <div
@@ -524,6 +529,8 @@ export function BracketVisualization({
           awayTeamIncorrect={awayTeamIncorrect}
           points={points}
           onMatchClick={onMatchClick}
+          locale={locale}
+          isFinished={isFinished}
         />
       </div>
     );
@@ -919,6 +926,8 @@ interface BracketMatchBoxProps {
   points?: number;
   onSelectInteractionStart?: () => void;
   onMatchClick?: (match: BracketMatch) => void;
+  locale: string;
+  isFinished?: boolean;
 }
 
 function BracketMatchBox({
@@ -944,10 +953,13 @@ function BracketMatchBox({
   points,
   onSelectInteractionStart,
   onMatchClick,
+  locale,
+  isFinished = false,
 }: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
   const { t } = useI18n();
   const isAdmin = mode === 'admin';
+  const formattedSchedule = formatBracketSchedule(match.scheduledAt, locale);
   const isDisabled = isAdmin
     ? updatingMatch === match.bracketMatchId
     : Boolean(isDeadlinePassed);
@@ -1000,19 +1012,23 @@ function BracketMatchBox({
         }
       }}
       style={{
-        background: 'rgb(var(--match-neutral-bg))',
-        border: '1px solid rgb(var(--control-border))',
-        borderLeft: `3px solid rgb(var(--control-border))`,
-        boxShadow: 'var(--shadow-sm)',
+        background: isFinished ? 'rgb(var(--fg) / 0.035)' : 'rgb(var(--match-neutral-bg))',
+        border: isFinished
+          ? '1px solid rgb(var(--border) / 0.55)'
+          : '1px solid rgb(var(--control-border))',
+        borderLeft: `3px solid ${isFinished ? 'rgb(var(--fg-muted) / 0.55)' : 'rgb(var(--control-border))'}`,
+        boxShadow: isFinished ? 'none' : 'var(--shadow-sm)',
         padding: '0.42rem 0.48rem',
         borderRadius: 'var(--radius-md)',
         minWidth: `${MATCH_BOX_WIDTH - 8}px`,
-        minHeight: 102,
+        minHeight: 112,
         display: 'flex',
         flexDirection: 'column',
         gap: '0.25rem',
         position: 'relative',
         cursor: onMatchClick ? 'pointer' : undefined,
+        filter: isFinished ? 'grayscale(0.35)' : undefined,
+        opacity: isFinished ? 0.72 : 1,
       }}
     >
       {onMatchClick ? (
@@ -1047,11 +1063,27 @@ function BracketMatchBox({
             fontWeight: 700,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: phaseTone.label,
+            color: isFinished ? 'rgb(var(--fg-muted))' : phaseTone.label,
           }}
         >
           {isFinal ? `${t('bracket.round.final')} · P${match.matchNumber}` : `P${match.matchNumber}`}
         </span>
+        {formattedSchedule ? (
+          <span
+            style={{
+              color: 'rgb(var(--fg-muted))',
+              fontSize: '0.58rem',
+              fontWeight: 650,
+              minWidth: 0,
+              overflow: 'hidden',
+              textAlign: 'right',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {formattedSchedule}
+          </span>
+        ) : null}
       </div>
 
       <BracketSlot
@@ -1080,6 +1112,51 @@ function BracketMatchBox({
 
     </article>
   );
+}
+
+function isCompletedBracketMatch(match: BracketMatch): boolean {
+  const hasDecidedResult =
+    typeof match.homeResult === 'number' &&
+    typeof match.awayResult === 'number' &&
+    match.homeResult !== match.awayResult;
+
+  return match.status === 'completed' || hasDecidedResult;
+}
+
+function isFinishedBracketMatch(match: BracketMatch, advancedTeamId = ''): boolean {
+  const hasAdvancedTeam =
+    Boolean(advancedTeamId) &&
+    (advancedTeamId === match.homeTeamId || advancedTeamId === match.awayTeamId);
+
+  return isCompletedBracketMatch(match) || hasAdvancedTeam;
+}
+
+function getAdvancedTeamId(
+  bracket: Record<string, BracketMatch[]>,
+  phaseKey: string,
+  matchIndex: number,
+): string {
+  const phaseIndex = BRACKET_PHASES.findIndex((phase) => phase === phaseKey);
+  const nextPhase = phaseIndex >= 0 ? BRACKET_PHASES[phaseIndex + 1] : undefined;
+  if (!nextPhase) return '';
+
+  const nextMatch = bracket[nextPhase]?.[Math.floor(matchIndex / 2)];
+  if (!nextMatch) return '';
+
+  return matchIndex % 2 === 0 ? nextMatch.homeTeamId || '' : nextMatch.awayTeamId || '';
+}
+
+function formatBracketSchedule(scheduledAt: string | undefined, locale: string): string | null {
+  if (!scheduledAt) return null;
+  const timestamp = new Date(scheduledAt).getTime();
+  if (!Number.isFinite(timestamp)) return null;
+
+  return new Date(timestamp).toLocaleString(locale, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 interface BracketSlotProps {
