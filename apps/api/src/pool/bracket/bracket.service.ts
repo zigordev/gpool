@@ -65,6 +65,20 @@ function bracketLayoutIndex(match: any): number {
   return Number.isFinite(suffix) ? suffix : Number(match?.matchNumber || 0);
 }
 
+function bracketMatchIdentity(bracketMatchId: string) {
+  const match = bracketMatchId.match(/^all-pools-(16th-finals|8th-finals|quarter-finals|semi-finals|finals)-(\d+)$/);
+  if (!match) {
+    return null;
+  }
+  const phase = match[1] as BracketPhase;
+  const index = Number(match[2]) - 1;
+  const matchNumber = FIFA_BRACKET_MATCH_NUMBERS[phase]?.[index];
+  if (!Number.isInteger(index) || index < 0 || !matchNumber) {
+    return null;
+  }
+  return { phase, matchNumber };
+}
+
 @Injectable()
 export class BracketService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BracketService.name);
@@ -72,6 +86,7 @@ export class BracketService implements OnApplicationBootstrap {
   constructor(private readonly poolRepository: PoolRepository) {}
 
   async onApplicationBootstrap() {
+    await this.ensureGlobalBracketPhases();
     const result = await this.reEvaluateAllBracketMatches(BRACKET_POOL_ID);
     this.logger.log(
       `Recalculated final phase scoring at startup for ${result.matchesEvaluated} matches`
@@ -155,22 +170,23 @@ export class BracketService implements OnApplicationBootstrap {
 
   private async ensureGlobalBracketPhases() {
     const allMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID);
-    const counts = new Map<string, number>();
-    allMatches.forEach((match: any) => {
-      counts.set(match.phase, (counts.get(match.phase) || 0) + 1);
-    });
+    const existingMatchIds = new Set(
+      allMatches.map((match: any) => match.bracketMatchId).filter(Boolean)
+    );
 
     for (const { phase, matches } of BRACKET_PHASES) {
-      if ((counts.get(phase) || 0) === 0) {
-        for (let index = 0; index < matches; index++) {
-          await this.poolRepository.createBracketMatch({
-            bracketMatchId: `${BRACKET_POOL_ID}-${phase}-${index + 1}`,
-            poolId: BRACKET_POOL_ID,
-            phase,
-            matchNumber: FIFA_BRACKET_MATCH_NUMBERS[phase][index],
-            status: 'scheduled',
-          });
+      for (let index = 0; index < matches; index++) {
+        const bracketMatchId = `${BRACKET_POOL_ID}-${phase}-${index + 1}`;
+        if (existingMatchIds.has(bracketMatchId)) {
+          continue;
         }
+        await this.poolRepository.createBracketMatch({
+          bracketMatchId,
+          poolId: BRACKET_POOL_ID,
+          phase,
+          matchNumber: FIFA_BRACKET_MATCH_NUMBERS[phase][index],
+          status: 'scheduled',
+        });
       }
     }
   }
@@ -221,7 +237,23 @@ export class BracketService implements OnApplicationBootstrap {
     const foundMatch = matches.find((match: any) => match.bracketMatchId === bracketMatchId);
 
     if (!foundMatch) {
-      throw new NotFoundException(`Bracket match ${bracketMatchId} not found`);
+      const identity = bracketMatchIdentity(bracketMatchId);
+      if (!identity) {
+        throw new NotFoundException(`Bracket match ${bracketMatchId} not found`);
+      }
+      const createdMatch = await this.poolRepository.createBracketMatch({
+        bracketMatchId,
+        poolId: BRACKET_POOL_ID,
+        phase: identity.phase,
+        matchNumber: identity.matchNumber,
+        homeTeamId: side === 'home' ? teamId : undefined,
+        homeTeamName: side === 'home' ? teamName : undefined,
+        awayTeamId: side === 'away' ? teamId : undefined,
+        awayTeamName: side === 'away' ? teamName : undefined,
+        status: 'scheduled',
+      });
+      await this.syncTeamEliminationState();
+      return createdMatch;
     }
 
     const updates: any = {};

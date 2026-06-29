@@ -15,9 +15,10 @@ const roundOf16 = Array.from({ length: 8 }, (_, index) => ({
 }));
 
 describe('BracketService startup recalculation', () => {
-  it('re-evaluates all final phase matches on application bootstrap', async () => {
+  it('creates missing final phase matches before re-evaluating on bootstrap', async () => {
     const repository = {
       getBracketMatches: jest.fn().mockResolvedValue([]),
+      createBracketMatch: jest.fn().mockImplementation((match) => Promise.resolve(match)),
       updateTeamEliminationState: jest.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
@@ -25,7 +26,84 @@ describe('BracketService startup recalculation', () => {
     await service.onApplicationBootstrap();
 
     expect(repository.getBracketMatches).toHaveBeenCalledWith('all-pools');
+    expect(repository.createBracketMatch).toHaveBeenCalledTimes(31);
+    expect(repository.createBracketMatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bracketMatchId: 'all-pools-16th-finals-1',
+        poolId: 'all-pools',
+        phase: '16th-finals',
+        matchNumber: 74,
+        status: 'scheduled',
+      })
+    );
+    expect(repository.createBracketMatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bracketMatchId: 'all-pools-finals-1',
+        poolId: 'all-pools',
+        phase: 'finals',
+        matchNumber: 104,
+        status: 'scheduled',
+      })
+    );
     expect(repository.updateTeamEliminationState).toHaveBeenCalledWith([]);
+  });
+
+  it('fills missing matches in partially-created final phases without replacing existing rows', async () => {
+    const existingMatches = [
+      {
+        bracketMatchId: 'all-pools-16th-finals-1',
+        poolId: 'all-pools',
+        phase: '16th-finals',
+        matchNumber: 74,
+        homeTeamId: 'team-a',
+        awayTeamId: 'team-b',
+      },
+      {
+        bracketMatchId: 'all-pools-quarter-finals-3',
+        poolId: 'all-pools',
+        phase: 'quarter-finals',
+        matchNumber: 99,
+        homeTeamId: 'team-c',
+        awayTeamId: 'team-d',
+      },
+    ];
+    const repository = {
+      getBracketMatches: jest.fn().mockResolvedValue(existingMatches),
+      createBracketMatch: jest.fn().mockImplementation((match) => Promise.resolve(match)),
+      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([]),
+      listPools: jest.fn().mockResolvedValue([]),
+      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+      updateTeamEliminationState: jest.fn().mockResolvedValue([]),
+    };
+    const service = new BracketService(repository as any);
+
+    await service.onApplicationBootstrap();
+
+    expect(repository.createBracketMatch).toHaveBeenCalledTimes(29);
+    expect(repository.createBracketMatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ bracketMatchId: 'all-pools-16th-finals-1' })
+    );
+    expect(repository.createBracketMatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ bracketMatchId: 'all-pools-quarter-finals-3' })
+    );
+    expect(repository.createBracketMatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bracketMatchId: 'all-pools-16th-finals-2',
+        poolId: 'all-pools',
+        phase: '16th-finals',
+        matchNumber: 77,
+        status: 'scheduled',
+      })
+    );
+    expect(repository.createBracketMatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bracketMatchId: 'all-pools-finals-1',
+        poolId: 'all-pools',
+        phase: 'finals',
+        matchNumber: 104,
+        status: 'scheduled',
+      })
+    );
   });
 });
 
@@ -62,6 +140,47 @@ describe('BracketService team elimination sync', () => {
     await (service as any).syncTeamEliminationState();
 
     expect(repository.updateTeamEliminationState).toHaveBeenCalledWith([]);
+  });
+});
+
+describe('BracketService final phase match materialization', () => {
+  it('creates a missing bracket match when assigning the first real team', async () => {
+    const createdMatch = {
+      bracketMatchId: 'all-pools-quarter-finals-3',
+      poolId: 'all-pools',
+      phase: 'quarter-finals',
+      matchNumber: 99,
+      homeTeamId: 'team-a',
+      homeTeamName: 'Team A',
+    };
+    const repository = {
+      getBracketMatches: jest.fn().mockResolvedValue([]),
+      createBracketMatch: jest.fn().mockResolvedValue(createdMatch),
+      updateTeamEliminationState: jest.fn().mockResolvedValue([]),
+    };
+    const service = new BracketService(repository as any);
+
+    const result = await service.updateBracketMatchTeam(
+      'all-pools-quarter-finals-3',
+      'all-pools',
+      'home',
+      'team-a',
+      'Team A'
+    );
+
+    expect(repository.createBracketMatch).toHaveBeenCalledWith({
+      bracketMatchId: 'all-pools-quarter-finals-3',
+      poolId: 'all-pools',
+      phase: 'quarter-finals',
+      matchNumber: 99,
+      homeTeamId: 'team-a',
+      homeTeamName: 'Team A',
+      awayTeamId: undefined,
+      awayTeamName: undefined,
+      status: 'scheduled',
+    });
+    expect(repository.updateTeamEliminationState).toHaveBeenCalledWith([]);
+    expect(result).toBe(createdMatch);
   });
 });
 
