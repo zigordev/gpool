@@ -399,6 +399,7 @@
       "bracketUnavailable": "The bracket is not available yet.",
       "deadlinePassed": "The deadline has passed. Predictions can no longer be edited.",
       "defaultsReset": "Final phase reset to default values",
+      "nextMatchdayTitle": "Upcoming matches",
       "predictionSaved": "Prediction saved",
       "resetDefaults": "Reset final phase",
       "resettingDefaults": "Resetting...",
