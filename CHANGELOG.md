@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.49](https://github.com/zigordev/gpool/compare/v0.1.48...v0.1.49) (2026-06-29)
+
+
+### Bug Fixes
+
+* final phase upcoming match display ([759d2de](https://github.com/zigordev/gpool/commit/759d2de31e72365b7ae0ec07823f9d4b57438972))
+
 ## [0.1.48](https://github.com/zigordev/gpool/compare/v0.1.47...v0.1.48) (2026-06-29)
 
 
