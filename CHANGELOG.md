@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.48](https://github.com/zigordev/gpool/compare/v0.1.47...v0.1.48) (2026-06-29)
+
+
+### Features
+
+* add next matches to the final phase view ([fa09850](https://github.com/zigordev/gpool/commit/fa09850bac957196b51bbc4508f76d917f475cf8))
+
 ## [0.1.47](https://github.com/zigordev/gpool/compare/v0.1.46...v0.1.47) (2026-06-29)
 
 
