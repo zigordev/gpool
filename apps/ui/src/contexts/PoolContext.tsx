@@ -133,24 +133,31 @@ export function computePrize(_total: number, distribution: PrizePayout[], rank: 
 }
 
 function normalizeBracketScoring(value: any): BracketScoringConfig {
-  const baseExact = Number.isFinite(value?.exactPositionPoints)
-    ? Math.max(0, Number(value.exactPositionPoints))
-    : DEFAULT_BRACKET_EXACT_POSITION_POINTS;
-  const baseWrong = Number.isFinite(value?.correctTeamWrongPositionPoints)
-    ? Math.max(0, Number(value.correctTeamWrongPositionPoints))
-    : DEFAULT_BRACKET_WRONG_POSITION_POINTS;
-  const tournamentWinnerPoints = Number.isFinite(value?.tournamentWinnerPoints)
-    ? Math.max(0, Number(value.tournamentWinnerPoints))
-    : DEFAULT_TOURNAMENT_WINNER_POINTS;
+  const readScoringNumber = (raw: unknown, fallback: number) => {
+    if (raw === '' || raw === null || raw === undefined) return fallback;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback;
+  };
+  const baseExact = readScoringNumber(
+    value?.exactPositionPoints,
+    DEFAULT_BRACKET_EXACT_POSITION_POINTS,
+  );
+  const baseWrong = readScoringNumber(
+    value?.correctTeamWrongPositionPoints,
+    DEFAULT_BRACKET_WRONG_POSITION_POINTS,
+  );
+  const tournamentWinnerPoints = readScoringNumber(
+    value?.tournamentWinnerPoints,
+    DEFAULT_TOURNAMENT_WINNER_POINTS,
+  );
   const rounds = BRACKET_PHASES.reduce<Record<string, any>>((acc, phase) => {
     const round = value?.rounds?.[phase.key] || {};
     acc[phase.key] = {
-      exactPositionPoints: Number.isFinite(round.exactPositionPoints)
-        ? Math.max(0, Number(round.exactPositionPoints))
-        : baseExact,
-      correctTeamWrongPositionPoints: Number.isFinite(round.correctTeamWrongPositionPoints)
-        ? Math.max(0, Number(round.correctTeamWrongPositionPoints))
-        : baseWrong,
+      exactPositionPoints: readScoringNumber(round.exactPositionPoints, baseExact),
+      correctTeamWrongPositionPoints: readScoringNumber(
+        round.correctTeamWrongPositionPoints,
+        baseWrong,
+      ),
     };
     return acc;
   }, {});
