@@ -13,8 +13,9 @@ import {
 } from '@/contexts/PoolContext';
 import { RankTable } from '@/components/pool/RankTable';
 import { Modal } from '@/components/ui/Modal';
+import { Section } from '@/components/ui/Section';
 import ReactCountryFlag from 'react-country-flag';
-import { countryIsoCode } from '@/lib/country-flags';
+import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { SpyPicksData } from '@/types/spyPicksData.interface';
 import { PlayerSelection } from '@/types/playerSelection.interface';
 import { PlayerAward } from '@/types/playerAward.type';
@@ -35,6 +36,28 @@ const BracketVisualization = dynamic(
   () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
   { ssr: false }
 );
+
+const eliminatedSpyCardStyle = {
+  border: '1px solid rgb(var(--live) / 0.58)',
+  borderLeft: '4px solid rgb(var(--live))',
+  background: 'rgb(var(--live) / 0.12)',
+  boxShadow: '0 0 0 1px rgb(var(--live) / 0.12)',
+};
+
+function EliminatedCornerBadge({ visible }: Readonly<{ visible?: boolean }>) {
+  return visible ? (
+    <span
+      style={{
+        position: 'absolute',
+        top: '0.42rem',
+        right: '0.48rem',
+        zIndex: 3,
+      }}
+    >
+      <PlayerEliminatedBadge />
+    </span>
+  ) : null;
+}
 
 // ─── SpyPicksModal ─────────────────────────────────────────────────────────────
 
@@ -133,8 +156,10 @@ function SpyPicksModal({
       <div
         style={{
           maxHeight: 'min(68vh, 580px)',
+          padding: '0.5rem 0.95rem 0.25rem 0.05rem',
           overflowY: 'auto',
           overflowX: 'clip',
+          scrollbarGutter: 'stable',
         }}
       >
         {loading ? (
@@ -212,28 +237,39 @@ function SpyGroupsView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
-        padding: '0.6rem 0.9rem 0.25rem 0.1rem',
+        gap: '0.55rem',
+        padding: '0.05rem',
         boxSizing: 'border-box',
       }}
     >
       {groups.map((group) => {
         const matches = matchesByGroup[group] || [];
         return (
-          <section key={group} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <header
-              style={{
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: 'rgb(var(--fg-subtle))',
-              }}
-            >
-              {t('poolDetail.spy.groupLabel', { group })}
-            </header>
+          <Section
+            key={group}
+            title={
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span
+                  aria-hidden
+                  style={{
+                    width: 3,
+                    height: '1rem',
+                    borderRadius: '999px',
+                    background: 'rgb(var(--pitch))',
+                  }}
+                />
+                {t('poolDetail.spy.groupLabel', { group })}
+              </span>
+            }
+            collapsible
+            defaultExpanded
+            density="compact"
+            tone="plain"
+            className="main-section-plain"
+            contentStyle={{ marginTop: '0.35rem', paddingTop: '0.45rem' }}
+          >
             <ul
-              style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.3rem' }}
+              style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.35rem' }}
             >
               {matches.map((match) => {
                 const pick = predictionByMatch.get(match.matchId);
@@ -248,7 +284,7 @@ function SpyGroupsView({
                 );
               })}
             </ul>
-          </section>
+          </Section>
         );
       })}
     </div>
@@ -343,42 +379,49 @@ function SpyPlayersView({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.85rem',
-        padding: '0.6rem 0.9rem 0.25rem 0.1rem',
+        gap: '0.55rem',
+        padding: '0.05rem',
         boxSizing: 'border-box',
       }}
     >
       {/* Awards */}
-      <div>
-        <p
-          style={{
-            fontSize: '0.62rem',
-            fontWeight: 700,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'rgb(var(--fg-subtle))',
-            marginBottom: '0.3rem',
-          }}
-        >
-          {t('poolDetail.spy.tabs.players')}
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+      <Section
+        title={t('poolDetail.players.awards.individual')}
+        collapsible
+        defaultExpanded
+        density="compact"
+        tone="plain"
+        className="main-section-plain"
+        contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {PLAYER_AWARDS.map((award) => {
             const sel = playerByAward.get(award.key);
             return (
-              <div
+              <article
                 key={award.key}
+                className={`player-selection-card player-selection-card--award${sel?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                 style={{
                   position: 'relative',
+                  minWidth: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.55rem',
-                  padding: '0.35rem 0.5rem',
-                  borderRadius: 'var(--radius-sm)',
-                  background: sel ? 'rgb(var(--bg-elevated))' : 'rgb(var(--bg-subtle))',
-                  border: '1px solid rgb(var(--border))',
+                  gap: '0.5rem',
+                  padding: sel?.teamEliminated ? '0.55rem 5.8rem 0.55rem 0.55rem' : '0.55rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: sel?.teamEliminated
+                    ? eliminatedSpyCardStyle.border
+                    : '1px solid rgb(var(--border) / 0.82)',
+                  borderLeft: sel?.teamEliminated
+                    ? eliminatedSpyCardStyle.borderLeft
+                    : '3px solid rgb(var(--gold))',
+                  background: sel?.teamEliminated
+                    ? eliminatedSpyCardStyle.background
+                    : 'rgb(var(--bg-elevated) / 0.82)',
+                  boxShadow: sel?.teamEliminated ? eliminatedSpyCardStyle.boxShadow : undefined,
                 }}
               >
+                <EliminatedCornerBadge visible={sel?.teamEliminated} />
                 {sel && (sel.awardPoints ?? 0) > 0 ? (
                   <PointsBadge
                     points={sel.awardPoints ?? 0}
@@ -406,81 +449,107 @@ function SpyPlayersView({
                 {sel ? (
                   <>
                     <PlayerShirt teamName={sel.teamName} shirtNumber={sel.shirtNumber} size={25} />
-                    <ReactCountryFlag
-                      countryCode={countryIsoCode(sel.teamName)}
-                      svg
-                      style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }}
-                    />
-                    <span
+                    <div
                       style={{
-                        fontSize: '0.82rem',
-                        fontWeight: 600,
-                        color: 'rgb(var(--fg))',
-                        opacity: sel.teamEliminated ? 0.68 : 1,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        display: 'grid',
+                        gap: '0.18rem',
+                        minWidth: 0,
+                        flex: '1 1 9rem',
+                        opacity: sel.teamEliminated ? 0.5 : 1,
+                        filter: sel.teamEliminated ? 'grayscale(0.9)' : undefined,
                       }}
                     >
-                      {sel.name}
-                    </span>
-                    {sel.teamEliminated ? <PlayerEliminatedBadge /> : null}
-                    <span
-                      style={{
-                        marginLeft: 'auto',
-                        fontSize: '0.72rem',
-                        color: 'rgb(var(--fg-muted))',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {sel.teamName}
-                    </span>
+                      <span
+                        style={{
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          color: 'rgb(var(--fg))',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {sel.name}
+                      </span>
+                      <span
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.32rem',
+                          minWidth: 0,
+                          fontSize: '0.72rem',
+                          color: 'rgb(var(--fg-muted))',
+                          fontWeight: 650,
+                        }}
+                      >
+                        <ReactCountryFlag
+                          countryCode={countryIsoCode(sel.teamName)}
+                          svg
+                          style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }}
+                        />
+                        <span
+                          style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {countryDisplayName(sel.teamName, t)}
+                        </span>
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <span style={{ fontSize: '0.78rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
                 )}
-              </div>
+              </article>
             );
           })}
         </div>
-      </div>
+      </Section>
 
       {/* By position */}
       {PLAYER_POSITIONS.map(({ key: position, labelKey }) => (
-        <div key={position}>
-          <p
-            style={{
-              fontSize: '0.62rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'rgb(var(--fg-subtle))',
-              marginBottom: '0.3rem',
-            }}
-          >
-            {t(labelKey)}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+        <Section
+          key={position}
+          title={t(labelKey)}
+          collapsible
+          defaultExpanded
+          density="compact"
+          tone="plain"
+          className="main-section-plain"
+          contentStyle={{ marginTop: '0.35rem', paddingTop: '0.35rem' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {Array.from({ length: playerSelectionLimits[position] }, (_, idx) => {
               const slot = idx + 1;
               const sel = playerByPositionSlot.get(`${position}:${slot}`);
               return (
-                <div
+                <article
                   key={slot}
+                  className={`player-selection-card${sel?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                   style={{
                     position: 'relative',
+                    minWidth: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.55rem',
-                    padding: '0.45rem 0.5rem',
-                    borderRadius: 'var(--radius-sm)',
-                    background: sel ? 'rgb(var(--bg-elevated))' : 'transparent',
-                    border: sel
-                      ? '1px solid rgb(var(--border))'
-                      : '1px solid rgb(var(--border) / 0.4)',
+                    gap: '0.5rem',
+                    padding: sel?.teamEliminated ? '0.55rem 5.8rem 0.55rem 0.55rem' : '0.55rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: sel?.teamEliminated
+                      ? eliminatedSpyCardStyle.border
+                      : '1px solid rgb(var(--border) / 0.82)',
+                    borderLeft: sel?.teamEliminated
+                      ? eliminatedSpyCardStyle.borderLeft
+                      : '3px solid rgb(var(--pitch))',
+                    background: sel?.teamEliminated
+                      ? eliminatedSpyCardStyle.background
+                      : 'rgb(var(--bg-elevated) / 0.82)',
+                    boxShadow: sel?.teamEliminated ? eliminatedSpyCardStyle.boxShadow : undefined,
                     flexWrap: 'wrap',
                   }}
                 >
+                  <EliminatedCornerBadge visible={sel?.teamEliminated} />
                   {sel && (sel.totalPoints ?? 0) > 0 ? (
                     <PointsBadge
                       points={sel.totalPoints ?? 0}
@@ -494,18 +563,14 @@ function SpyPlayersView({
                         shirtNumber={sel.shirtNumber}
                         size={25}
                       />
-                      <ReactCountryFlag
-                        countryCode={countryIsoCode(sel.teamName)}
-                        svg
-                        style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }}
-                      />
                       <div style={{ minWidth: 0, flex: '1 1 9rem' }}>
-                        <div
+                        <span
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
+                            display: 'grid',
+                            gap: '0.18rem',
                             minWidth: 0,
+                            opacity: sel.teamEliminated ? 0.5 : 1,
+                            filter: sel.teamEliminated ? 'grayscale(0.9)' : undefined,
                           }}
                         >
                           <span
@@ -513,8 +578,6 @@ function SpyPlayersView({
                               fontSize: '0.82rem',
                               fontWeight: 600,
                               color: 'rgb(var(--fg))',
-                              opacity: sel.teamEliminated ? 0.68 : 1,
-                              flex: 1,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
@@ -522,17 +585,33 @@ function SpyPlayersView({
                           >
                             {sel.name}
                           </span>
-                          {sel.teamEliminated ? <PlayerEliminatedBadge /> : null}
                           <span
                             style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.32rem',
+                              minWidth: 0,
                               fontSize: '0.72rem',
                               color: 'rgb(var(--fg-muted))',
-                              flexShrink: 0,
+                              fontWeight: 650,
                             }}
                           >
-                            {sel.teamName}
+                            <ReactCountryFlag
+                              countryCode={countryIsoCode(sel.teamName)}
+                              svg
+                              style={{ width: '1.25em', height: '1.25em', flexShrink: 0 }}
+                            />
+                            <span
+                              style={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {countryDisplayName(sel.teamName, t)}
+                            </span>
                           </span>
-                        </div>
+                        </span>
                       </div>
                       <PlayerActionSummary
                         player={sel}
@@ -542,14 +621,14 @@ function SpyPlayersView({
                         compact
                       />
                     </>
-                  ) : (
-                    <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
-                  )}
-                </div>
+                ) : (
+                  <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
+                )}
+                </article>
               );
             })}
           </div>
-        </div>
+        </Section>
       ))}
     </div>
   );

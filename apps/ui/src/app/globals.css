@@ -7,13 +7,13 @@
   color-scheme: light;
 
   /* Surfaces */
-  --bg: 230 238 232;            /* sage green +40% lighter */
-  --bg-elevated: 241 247 243;
-  --bg-subtle: 221 231 225;
-  --surface-strong: 245 251 246;
+  --bg: 239 245 241;            /* soft neutral with a light pitch tint */
+  --bg-elevated: 248 251 249;
+  --bg-subtle: 231 238 234;
+  --surface-strong: 251 253 251;
   --input-bg: 255 255 255;      /* white */
   --disabled-bg: 205 214 209;
-  --match-neutral-bg: 249 252 250;
+  --match-neutral-bg: 255 255 255;
   --panel-muted-bg: rgb(var(--fg) / 0.08);
   --panel-muted-bg-solid: 213 221 216;
 
@@ -23,9 +23,9 @@
   --fg-subtle: 92 108 117;
 
   /* Borders */
-  --border: 164 187 170;
-  --border-subtle: 190 208 195;
-  --control-border: 130 151 136;
+  --border: 191 204 195;
+  --border-subtle: 213 222 216;
+  --control-border: 145 160 150;
   --disabled-border: 105 119 111;
 
   /* Accent — pitch emerald → sunset amber */
@@ -1067,6 +1067,12 @@ input:focus {
 .player-selection-card[role="button"]:hover {
   border-color: rgb(var(--pitch) / 0.72) !important;
   box-shadow: var(--shadow-md) !important;
+}
+
+.player-selection-card--eliminated:focus-within,
+.player-selection-card--eliminated[role="button"]:hover {
+  border-color: rgb(var(--live) / 0.72) !important;
+  box-shadow: 0 0 0 3px rgb(var(--live) / 0.14), var(--shadow-md) !important;
 }
 
 html.dark .players-pitch-board {

@@ -429,7 +429,8 @@ export function PlayerScoringInfoSection({
                             alignItems: 'baseline',
                             padding: '0.08rem 0.35rem',
                             borderRadius: 'var(--radius-sm)',
-                            background: 'rgb(var(--bg-subtle))',
+                            background: 'rgb(var(--input-bg))',
+                            border: '1px solid rgb(var(--border-subtle))',
                           }}
                         >
                           {t(`poolDetail.players.positions.${position.key}`)}

@@ -258,8 +258,8 @@ function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
         alignItems: 'center',
         gap: '0.55rem',
         minWidth: 0,
-        opacity: data.player.teamEliminated ? 0.68 : 1,
-        filter: data.player.teamEliminated ? 'grayscale(0.55)' : undefined,
+        opacity: data.player.teamEliminated ? 0.5 : 1,
+        filter: data.player.teamEliminated ? 'grayscale(0.9)' : undefined,
       }}
     >
       <PlayerShirt
@@ -300,7 +300,6 @@ function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
         >
           {data.player.name}
         </span>
-        {data.player.teamEliminated ? <PlayerEliminatedBadge /> : null}
         <span
           style={{
             display: 'block',
@@ -311,6 +310,7 @@ function PlayerSummary({ data }: Readonly<{ data: PlayerInsightsData }>) {
         >
           {data.player.teamName}
         </span>
+        {data.player.teamEliminated ? <PlayerEliminatedBadge /> : null}
       </span>
     </span>
   );
@@ -342,7 +342,7 @@ const percentageCardStyle: CSSProperties = {
 const memberBadgeStyle: CSSProperties = {
   padding: '0.28rem 0.5rem',
   borderRadius: 'var(--radius-full)',
-  background: 'rgb(var(--bg-subtle))',
+  background: 'rgb(var(--input-bg))',
   border: '1px solid rgb(var(--border))',
   color: 'rgb(var(--fg))',
   fontSize: '0.72rem',

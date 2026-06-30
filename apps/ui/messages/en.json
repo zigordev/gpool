@@ -271,6 +271,7 @@
     "exactPositionPoints": "Exact position (+{points} pts)",
     "final": "FINAL",
     "match": "Match {number}",
+    "realTeam": "Real",
     "round": {
       "16th": "Round of 32",
       "8th": "Round of 16",
