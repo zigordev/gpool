@@ -32,6 +32,7 @@ interface BracketVisualizationProps {
   ) => void;
   exactPositionPoints?: number;
   correctTeamWrongPositionPoints?: number;
+  tournamentWinnerPoints?: number;
   roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
   onMatchClick?: (match: BracketMatch) => void;
   onWinnerClick?: () => void;
@@ -39,6 +40,8 @@ interface BracketVisualizationProps {
 
 const MATCH_HEIGHT = 152;
 const MATCH_GAP = 14;
+const FIRST_ROUND_PAIR_GAP = 8;
+const FIRST_ROUND_GROUP_GAP = 20;
 const ROUND_GAP = 24;
 const MATCH_BOX_WIDTH = 280;
 
@@ -147,14 +150,13 @@ function renderConnectorPath(
 
 function slotState(
   isAdmin: boolean,
-  hasBothTeams: boolean,
   selected: boolean,
   exactPosition: boolean,
   correctButWrongPosition: boolean,
   incorrect: boolean,
 ): SlotState {
   if (!selected) return 'empty';
-  if (isAdmin || !hasBothTeams) return 'selected';
+  if (isAdmin) return 'selected';
   if (exactPosition) return 'exact';
   if (correctButWrongPosition) return 'correct-wrong-position';
   if (incorrect) return 'incorrect';
@@ -164,15 +166,39 @@ function slotState(
 function slotBorderColor(state: SlotState): string {
   switch (state) {
     case 'exact':
-      return 'rgb(var(--pitch))';
+      return 'rgb(var(--pitch) / 0.68)';
     case 'correct-wrong-position':
-      return 'rgb(var(--info))';
+      return 'rgb(var(--info) / 0.68)';
     case 'incorrect':
-      return 'rgb(var(--live))';
+      return 'rgb(var(--live) / 0.68)';
     case 'empty':
     default:
       return 'rgb(var(--border))';
   }
+}
+
+function resolveBracketRoundPoints(
+  phaseKey: string,
+  exactPositionPoints: number,
+  correctTeamWrongPositionPoints: number,
+  roundScoring: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>,
+) {
+  const scoring = roundScoring[phaseKey] || {};
+  return {
+    exactPositionPoints: scoring.exactPositionPoints ?? exactPositionPoints,
+    correctTeamWrongPositionPoints:
+      scoring.correctTeamWrongPositionPoints ?? correctTeamWrongPositionPoints,
+  };
+}
+
+function slotPoints(
+  exactPosition: boolean,
+  correctButWrongPosition: boolean,
+  roundPoints: { exactPositionPoints: number; correctTeamWrongPositionPoints: number },
+): number {
+  if (exactPosition) return roundPoints.exactPositionPoints;
+  if (correctButWrongPosition) return roundPoints.correctTeamWrongPositionPoints;
+  return 0;
 }
 
 export function BracketVisualization({
@@ -191,6 +217,7 @@ export function BracketVisualization({
   onPredictionChange,
   exactPositionPoints = 5,
   correctTeamWrongPositionPoints = 3,
+  tournamentWinnerPoints = 0,
   roundScoring = {},
   onMatchClick,
   onWinnerClick,
@@ -266,7 +293,12 @@ export function BracketVisualization({
     allPhases: Record<string, BracketMatch[]>,
   ): number => {
     if (phaseKey === '16th-finals') {
-      return matchIndex * (MATCH_HEIGHT + MATCH_GAP);
+      const pairIndex = Math.floor(matchIndex / 2);
+      const indexInsidePair = matchIndex % 2;
+      return (
+        pairIndex * (MATCH_HEIGHT * 2 + FIRST_ROUND_PAIR_GAP + FIRST_ROUND_GROUP_GAP) +
+        indexInsidePair * (MATCH_HEIGHT + FIRST_ROUND_PAIR_GAP)
+      );
     }
 
     const parentPhaseKey = getParentPhase(phaseKey);
@@ -362,25 +394,35 @@ export function BracketVisualization({
             home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
             away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
           };
-          const hasBothTeams = mode === 'user'
-            ? Boolean(prediction.homeTeamId && prediction.awayTeamId)
-            : Boolean(match.homeTeamId && match.awayTeamId);
-          const homeTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.homeTeamExactPosition === true;
-          const awayTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.awayTeamExactPosition === true;
+          const actualMatchComplete = Boolean(match.homeTeamId && match.awayTeamId);
+          const roundPoints = resolveBracketRoundPoints(
+            phaseKey,
+            exactPositionPoints,
+            correctTeamWrongPositionPoints,
+            roundScoring,
+          );
+          const homeTeamExactPosition =
+            isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
+          const awayTeamExactPosition =
+            isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
           const homeTeamCorrectButWrongPosition =
-            isDeadlinePassed && hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
+            isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
           const awayTeamCorrectButWrongPosition =
-            isDeadlinePassed && hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
+            isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
           const homeTeamIncorrect =
             isDeadlinePassed &&
-            hasBothTeams &&
+            actualMatchComplete &&
+            Boolean(prediction.homeTeamId) &&
             prediction.homeTeamExactPosition === false &&
             prediction.homeTeamCorrectButWrongPosition === false;
           const awayTeamIncorrect =
             isDeadlinePassed &&
-            hasBothTeams &&
+            actualMatchComplete &&
+            Boolean(prediction.awayTeamId) &&
             prediction.awayTeamExactPosition === false &&
             prediction.awayTeamCorrectButWrongPosition === false;
+          const homeTeamPoints = slotPoints(homeTeamExactPosition, homeTeamCorrectButWrongPosition, roundPoints);
+          const awayTeamPoints = slotPoints(awayTeamExactPosition, awayTeamCorrectButWrongPosition, roundPoints);
           const points = isDeadlinePassed ? (prediction.points || 0) : 0;
           const advancedTeamId = getAdvancedTeamId(bracket, phaseKey, idx);
           const isFinished = isFinishedBracketMatch(match, advancedTeamId);
@@ -394,6 +436,10 @@ export function BracketVisualization({
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: '100%',
+                height: `${MATCH_HEIGHT}px`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <BracketMatchBox
@@ -417,6 +463,8 @@ export function BracketVisualization({
                 awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
                 homeTeamIncorrect={homeTeamIncorrect}
                 awayTeamIncorrect={awayTeamIncorrect}
+                homeTeamPoints={homeTeamPoints}
+                awayTeamPoints={awayTeamPoints}
                 points={points}
                 onMatchClick={onMatchClick}
                 locale={locale}
@@ -445,26 +493,42 @@ export function BracketVisualization({
       home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
       away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
     };
-    const hasBothTeams = mode === 'user'
-      ? Boolean(prediction.homeTeamId && prediction.awayTeamId)
-      : Boolean(match.homeTeamId && match.awayTeamId);
-    const homeTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.homeTeamExactPosition === true;
-    const awayTeamExactPosition = isDeadlinePassed && hasBothTeams && prediction.awayTeamExactPosition === true;
+    const actualMatchComplete = Boolean(match.homeTeamId && match.awayTeamId);
+    const roundPoints = resolveBracketRoundPoints(
+      phaseKey,
+      exactPositionPoints,
+      correctTeamWrongPositionPoints,
+      roundScoring,
+    );
+    const homeTeamExactPosition =
+      isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
+    const awayTeamExactPosition =
+      isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
     const homeTeamCorrectButWrongPosition =
-      isDeadlinePassed && hasBothTeams && prediction.homeTeamCorrectButWrongPosition === true;
+      isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
     const awayTeamCorrectButWrongPosition =
-      isDeadlinePassed && hasBothTeams && prediction.awayTeamCorrectButWrongPosition === true;
+      isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
     const homeTeamIncorrect =
       isDeadlinePassed &&
-      hasBothTeams &&
+      actualMatchComplete &&
+      Boolean(prediction.homeTeamId) &&
       prediction.homeTeamExactPosition === false &&
       prediction.homeTeamCorrectButWrongPosition === false;
     const awayTeamIncorrect =
       isDeadlinePassed &&
-      hasBothTeams &&
+      actualMatchComplete &&
+      Boolean(prediction.awayTeamId) &&
       prediction.awayTeamExactPosition === false &&
       prediction.awayTeamCorrectButWrongPosition === false;
-    const points = isDeadlinePassed ? (prediction.points || 0) : 0;
+    const homeTeamPoints = slotPoints(homeTeamExactPosition, homeTeamCorrectButWrongPosition, roundPoints);
+    const awayTeamPoints = slotPoints(awayTeamExactPosition, awayTeamCorrectButWrongPosition, roundPoints);
+    const winnerAwardPoints =
+      isFinal && isDeadlinePassed && prediction.tournamentWinnerCorrect === true
+        ? tournamentWinnerPoints
+        : 0;
+    const points = isDeadlinePassed
+      ? Math.max(0, (prediction.points || 0) - winnerAwardPoints)
+      : 0;
     const isFinished = isFinishedBracketMatch(match);
 
     return (
@@ -506,32 +570,43 @@ export function BracketVisualization({
             {label}
           </span>
         </div>
-        <BracketMatchBox
-          match={match}
-          teams={teams}
-          poolId={poolId}
-          mode={mode}
-          updatingMatch={updatingMatch}
-          onUpdateTeam={onUpdateTeam}
-          prediction={prediction}
-          candidateTeams={matchCandidates}
-          unavailableTeamIds={unavailableTeamIds}
-          isDeadlinePassed={isDeadlinePassed}
-          onPredictionChange={onPredictionChange}
-          isFinal={isFinal}
-          phaseKey={phaseKey}
-          onSelectInteractionStart={preserveBracketScrollPosition}
-          homeTeamExactPosition={homeTeamExactPosition}
-          awayTeamExactPosition={awayTeamExactPosition}
-          homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
-          awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
-          homeTeamIncorrect={homeTeamIncorrect}
-          awayTeamIncorrect={awayTeamIncorrect}
-          points={points}
-          onMatchClick={onMatchClick}
-          locale={locale}
+        <div
+          style={{
+            height: `${MATCH_HEIGHT}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <BracketMatchBox
+            match={match}
+            teams={teams}
+            poolId={poolId}
+            mode={mode}
+            updatingMatch={updatingMatch}
+            onUpdateTeam={onUpdateTeam}
+            prediction={prediction}
+            candidateTeams={matchCandidates}
+            unavailableTeamIds={unavailableTeamIds}
+            isDeadlinePassed={isDeadlinePassed}
+            onPredictionChange={onPredictionChange}
+            isFinal={isFinal}
+            phaseKey={phaseKey}
+            onSelectInteractionStart={preserveBracketScrollPosition}
+            homeTeamExactPosition={homeTeamExactPosition}
+            awayTeamExactPosition={awayTeamExactPosition}
+            homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
+            awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
+            homeTeamIncorrect={homeTeamIncorrect}
+            awayTeamIncorrect={awayTeamIncorrect}
+            homeTeamPoints={homeTeamPoints}
+            awayTeamPoints={awayTeamPoints}
+            points={points}
+            onMatchClick={onMatchClick}
+            locale={locale}
           isFinished={isFinished}
         />
+        </div>
       </div>
     );
   };
@@ -632,6 +707,10 @@ export function BracketVisualization({
     ];
 
     const selectedOption = options.find((option) => option.value === selectedWinnerTeamId) ?? null;
+    const winnerAwardPoints =
+      isDeadlinePassed && prediction.tournamentWinnerCorrect === true
+        ? tournamentWinnerPoints
+        : 0;
 
     return (
       <div
@@ -685,7 +764,7 @@ export function BracketVisualization({
             display: 'flex',
             flexDirection: 'column',
             gap: '0.35rem',
-            overflow: 'hidden',
+            overflow: 'visible',
             position: 'relative',
             cursor: onWinnerClick ? 'pointer' : undefined,
           }}
@@ -700,6 +779,12 @@ export function BracketVisualization({
                 borderRadius: 'inherit',
                 cursor: 'pointer',
               }}
+            />
+          ) : null}
+          {!isAdmin && winnerAwardPoints > 0 ? (
+            <PointsBadge
+              points={winnerAwardPoints}
+              label={t('poolDetail.players.points', { points: winnerAwardPoints })}
             />
           ) : null}
           <span
@@ -923,6 +1008,8 @@ interface BracketMatchBoxProps {
   awayTeamCorrectButWrongPosition?: boolean;
   homeTeamIncorrect?: boolean;
   awayTeamIncorrect?: boolean;
+  homeTeamPoints?: number;
+  awayTeamPoints?: number;
   points?: number;
   onSelectInteractionStart?: () => void;
   onMatchClick?: (match: BracketMatch) => void;
@@ -950,6 +1037,8 @@ function BracketMatchBox({
   awayTeamCorrectButWrongPosition = false,
   homeTeamIncorrect = false,
   awayTeamIncorrect = false,
+  homeTeamPoints = 0,
+  awayTeamPoints = 0,
   points,
   onSelectInteractionStart,
   onMatchClick,
@@ -960,15 +1049,20 @@ function BracketMatchBox({
   const { t } = useI18n();
   const isAdmin = mode === 'admin';
   const formattedSchedule = formatBracketSchedule(match.scheduledAt, locale);
+  const isReadOnlyUser = !isAdmin && Boolean(isDeadlinePassed);
   const isDisabled = isAdmin
     ? updatingMatch === match.bracketMatchId
     : Boolean(isDeadlinePassed);
 
   const homeTeamId = isAdmin ? match.homeTeamId : prediction?.homeTeamId || '';
   const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';
-  const hasBothTeams = isAdmin
-    ? Boolean(match.homeTeamId && match.awayTeamId)
-    : Boolean(homeTeamId && awayTeamId);
+  const sourceMatchupLabel =
+    phaseKey === '16th-finals' && match.homeSourceLabel && match.awaySourceLabel
+      ? `${match.homeSourceLabel} ${t('bracket.vs')} ${match.awaySourceLabel}`
+      : '';
+  const showSlotSourceLabels = phaseKey === '16th-finals' && !sourceMatchupLabel;
+  const homeSlotSourceLabel = showSlotSourceLabels ? match.homeSourceLabel : undefined;
+  const awaySlotSourceLabel = showSlotSourceLabels ? match.awaySourceLabel : undefined;
   // Use candidates from the source match. If candidates exist (even empty array), respect them —
   // an empty array means the feeding match hasn't been filled yet (cascade not satisfied).
   // Fall back to all teams only when no candidate data was computed at all (undefined).
@@ -977,7 +1071,6 @@ function BracketMatchBox({
 
   const homeState: SlotState = slotState(
     isAdmin,
-    hasBothTeams,
     Boolean(homeTeamId),
     homeTeamExactPosition,
     homeTeamCorrectButWrongPosition,
@@ -985,7 +1078,6 @@ function BracketMatchBox({
   );
   const awayState: SlotState = slotState(
     isAdmin,
-    hasBothTeams,
     Boolean(awayTeamId),
     awayTeamExactPosition,
     awayTeamCorrectButWrongPosition,
@@ -1012,11 +1104,11 @@ function BracketMatchBox({
         }
       }}
       style={{
-        background: isFinished ? 'rgb(var(--fg) / 0.035)' : 'rgb(var(--match-neutral-bg))',
+        background: isFinished ? 'rgb(235 238 236)' : 'rgb(var(--input-bg))',
         border: isFinished
-          ? '1px solid rgb(var(--border) / 0.55)'
+          ? '1px solid rgb(177 184 180)'
           : '1px solid rgb(var(--control-border))',
-        borderLeft: `3px solid ${isFinished ? 'rgb(var(--fg-muted) / 0.55)' : 'rgb(var(--control-border))'}`,
+        borderLeft: `3px solid ${isFinished ? 'rgb(135 143 139)' : 'rgb(var(--control-border))'}`,
         boxShadow: isFinished ? 'none' : 'var(--shadow-sm)',
         padding: '0.42rem 0.48rem',
         borderRadius: 'var(--radius-md)',
@@ -1027,8 +1119,8 @@ function BracketMatchBox({
         gap: '0.25rem',
         position: 'relative',
         cursor: onMatchClick ? 'pointer' : undefined,
-        filter: isFinished ? 'grayscale(0.35)' : undefined,
-        opacity: isFinished ? 0.72 : 1,
+        filter: isFinished ? 'grayscale(0.2)' : undefined,
+        opacity: 1,
       }}
     >
       {onMatchClick ? (
@@ -1067,6 +1159,19 @@ function BracketMatchBox({
           }}
         >
           {isFinal ? `${t('bracket.round.final')} · P${match.matchNumber}` : `P${match.matchNumber}`}
+          {sourceMatchupLabel ? (
+            <span
+              style={{
+                color: 'rgb(var(--fg-muted))',
+                fontSize: '0.55rem',
+                fontWeight: 750,
+                letterSpacing: '0.08em',
+                marginLeft: '0.32rem',
+              }}
+            >
+              {sourceMatchupLabel}
+            </span>
+          ) : null}
         </span>
         {formattedSchedule ? (
           <span
@@ -1090,10 +1195,14 @@ function BracketMatchBox({
         teamId={homeTeamId || ''}
         teams={homeOptions}
         disabled={isDisabled}
+        readOnly={isReadOnlyUser}
         state={homeState}
         onChange={(teamId, teamName) => handleTeamChange('home', teamId, teamName)}
         ariaLabel={t('bracket.selectTeam')}
-        sourceLabel={match.homeSourceLabel}
+        sourceLabel={homeSlotSourceLabel}
+        actualTeamId={match.homeTeamId}
+        actualTeamName={match.homeTeamName}
+        awardedPoints={homeTeamPoints}
         unavailableTeamIds={unavailableTeamIds?.home}
         onSelectInteractionStart={onSelectInteractionStart}
       />
@@ -1102,10 +1211,14 @@ function BracketMatchBox({
         teamId={awayTeamId || ''}
         teams={awayOptions}
         disabled={isDisabled}
+        readOnly={isReadOnlyUser}
         state={awayState}
         onChange={(teamId, teamName) => handleTeamChange('away', teamId, teamName)}
         ariaLabel={t('bracket.selectTeam')}
-        sourceLabel={match.awaySourceLabel}
+        sourceLabel={awaySlotSourceLabel}
+        actualTeamId={match.awayTeamId}
+        actualTeamName={match.awayTeamName}
+        awardedPoints={awayTeamPoints}
         unavailableTeamIds={unavailableTeamIds?.away}
         onSelectInteractionStart={onSelectInteractionStart}
       />
@@ -1159,14 +1272,42 @@ function formatBracketSchedule(scheduledAt: string | undefined, locale: string):
   });
 }
 
+function SlotPointsBadge({ points }: Readonly<{ points: number }>) {
+  return (
+    <span
+      style={{
+        alignItems: 'center',
+        background: 'rgb(var(--gold) / 0.16)',
+        border: '1px solid rgb(var(--gold) / 0.38)',
+        borderRadius: '999px',
+        color: 'rgb(var(--fg))',
+        display: 'inline-flex',
+        flexShrink: 0,
+        fontSize: '0.62rem',
+        fontWeight: 850,
+        justifyContent: 'center',
+        lineHeight: 1,
+        minWidth: '1.45rem',
+        padding: '0.18rem 0.34rem',
+      }}
+    >
+      +{points}
+    </span>
+  );
+}
+
 interface BracketSlotProps {
   teamId: string;
   teams: Team[];
   disabled: boolean;
+  readOnly?: boolean;
   state: SlotState;
   onChange: (teamId: string, teamName: string) => void;
   ariaLabel: string;
   sourceLabel?: string;
+  actualTeamId?: string;
+  actualTeamName?: string;
+  awardedPoints?: number;
   unavailableTeamIds?: Set<string>;
   onSelectInteractionStart?: () => void;
 }
@@ -1175,10 +1316,14 @@ function BracketSlot({
   teamId,
   teams,
   disabled,
+  readOnly = false,
   state,
   onChange,
   ariaLabel,
   sourceLabel,
+  actualTeamId,
+  actualTeamName,
+  awardedPoints = 0,
   unavailableTeamIds,
   onSelectInteractionStart,
 }: Readonly<BracketSlotProps>) {
@@ -1192,11 +1337,11 @@ function BracketSlot({
 
   let tintBg = 'rgb(var(--input-bg))';
     if (isExact) {
-      tintBg = 'rgb(var(--pitch) / 0.06)';
+      tintBg = 'rgb(var(--pitch) / 0.07)';
     } else if (isCorrect) {
-      tintBg = 'rgb(var(--info) / 0.06)';
+      tintBg = 'rgb(var(--info) / 0.07)';
     } else if (isIncorrect) {
-      tintBg = 'rgb(var(--live) / 0.06)';
+      tintBg = 'rgb(var(--live) / 0.07)';
     } else if (disabled) {
       tintBg = 'rgb(var(--disabled-bg))';
     }
@@ -1228,6 +1373,89 @@ function BracketSlot({
   });
 
   const selectedOption = options.find((option) => option.value === teamId) ?? null;
+  const selectedTeam = teams.find((team) => team.teamId === teamId);
+  const selectedDisplayName = selectedTeam ? countryDisplayName(selectedTeam.name, t) : '';
+  const actualDisplayName = actualTeamName ? countryDisplayName(actualTeamName, t) : '';
+
+  if (readOnly) {
+    return (
+      <div>
+        <div
+          aria-label={ariaLabel}
+          style={{
+            alignItems: 'center',
+            background: tintBg,
+            border: `${hasStatusBorder ? 2 : 1}px solid ${borderColor}`,
+            borderRadius: 'var(--radius-sm)',
+            color: teamId ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
+            display: 'grid',
+            gridTemplateColumns: awardedPoints > 0 ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr)',
+            gap: '0.4rem',
+            minHeight: 36,
+            padding: '0.34rem 0.48rem',
+          }}
+        >
+          <span
+            style={{
+              alignItems: 'center',
+              display: 'inline-flex',
+              gap: '0.38rem',
+              minWidth: 0,
+            }}
+          >
+            {selectedTeam ? (
+              <ReactCountryFlag
+                countryCode={countryIsoCode(selectedTeam.name)}
+                svg
+                style={{ width: '1.55em', height: '1.55em', flexShrink: 0 }}
+              />
+            ) : null}
+            <span
+              style={{
+                alignItems: 'baseline',
+                display: 'inline-flex',
+                fontSize: '0.74rem',
+                fontWeight: teamId ? 700 : 600,
+                gap: '0.22rem',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {selectedDisplayName || sourceLabel || t('bracket.selectTeam')}
+              </span>
+              {actualDisplayName ? (
+                <span
+                  style={{
+                    alignItems: 'center',
+                    color: actualTeamId && actualTeamId === teamId ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))',
+                    display: 'inline-flex',
+                    flexShrink: 1,
+                    fontSize: '0.6rem',
+                    fontWeight: 650,
+                    gap: '0.16rem',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  (
+                  <ReactCountryFlag
+                    countryCode={countryIsoCode(actualTeamName || '')}
+                    svg
+                    style={{ width: '1em', height: '1em', flexShrink: 0 }}
+                  />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{actualDisplayName}</span>
+                  )
+                </span>
+              ) : null}
+            </span>
+          </span>
+          {awardedPoints > 0 ? <SlotPointsBadge points={awardedPoints} /> : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -1258,7 +1486,7 @@ function BracketSlot({
           control: (base) => ({
             ...base,
             backgroundColor: tintBg,
-            border: `${hasStatusBorder ? 3 : 1}px solid ${
+            border: `${hasStatusBorder ? 2 : 1}px solid ${
               disabled && !hasStatusBorder ? 'rgb(var(--disabled-border))' : borderColor
             }`,
             cursor: disabled ? 'not-allowed' : 'pointer',

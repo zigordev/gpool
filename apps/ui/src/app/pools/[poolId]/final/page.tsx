@@ -253,6 +253,7 @@ export default function FinalPage() {
               deadline={poolDeadline}
               exactPositionPoints={bracketScoringConfig.exactPositionPoints}
               correctTeamWrongPositionPoints={bracketScoringConfig.correctTeamWrongPositionPoints}
+              tournamentWinnerPoints={bracketScoringConfig.tournamentWinnerPoints}
               roundScoring={bracketScoringConfig.rounds}
               onMatchClick={
                 isPastPoolDeadline
