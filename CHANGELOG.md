@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.52](https://github.com/zigordev/gpool/compare/v0.1.51...v0.1.52) (2026-06-30)
+
+
+### Bug Fixes
+
+* use round-specific bracket partial points ([7050ad1](https://github.com/zigordev/gpool/commit/7050ad1785a88608866ab4fdb0be806ce6e260b6))
+
 ## [0.1.51](https://github.com/zigordev/gpool/compare/v0.1.50...v0.1.51) (2026-06-30)
 
 
