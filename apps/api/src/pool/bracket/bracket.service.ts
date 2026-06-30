@@ -37,6 +37,19 @@ type BracketRoundScoring = {
   tournamentWinnerPoints?: number;
 };
 
+function firstConfiguredNumber(...values: unknown[]): number {
+  for (const value of values) {
+    if (value === '' || value === null || value === undefined) {
+      continue;
+    }
+    const numberValue = Number(value);
+    if (Number.isFinite(numberValue)) {
+      return Math.max(0, numberValue);
+    }
+  }
+  return 0;
+}
+
 function resolveRoundScoring(
   bracketScoring: any,
   phase: string,
@@ -44,18 +57,23 @@ function resolveRoundScoring(
 ): Required<BracketRoundScoring> {
   const roundScoring = bracketScoring?.rounds?.[phase] || {};
   return {
-    exactPositionPoints:
-      override?.exactPositionPoints ??
-      roundScoring.exactPositionPoints ??
-      bracketScoring?.exactPositionPoints ??
-      0,
-    correctTeamWrongPositionPoints:
-      override?.correctTeamWrongPositionPoints ??
-      roundScoring.correctTeamWrongPositionPoints ??
-      bracketScoring?.correctTeamWrongPositionPoints ??
-      0,
-    tournamentWinnerPoints:
-      override?.tournamentWinnerPoints ?? bracketScoring?.tournamentWinnerPoints ?? 0,
+    exactPositionPoints: firstConfiguredNumber(
+      roundScoring.exactPositionPoints,
+      override?.exactPositionPoints,
+      bracketScoring?.exactPositionPoints,
+      0
+    ),
+    correctTeamWrongPositionPoints: firstConfiguredNumber(
+      roundScoring.correctTeamWrongPositionPoints,
+      override?.correctTeamWrongPositionPoints,
+      bracketScoring?.correctTeamWrongPositionPoints,
+      0
+    ),
+    tournamentWinnerPoints: firstConfiguredNumber(
+      override?.tournamentWinnerPoints,
+      bracketScoring?.tournamentWinnerPoints,
+      0
+    ),
   };
 }
 
