@@ -185,10 +185,25 @@ function resolveBracketRoundPoints(
 ) {
   const scoring = roundScoring[phaseKey] || {};
   return {
-    exactPositionPoints: scoring.exactPositionPoints ?? exactPositionPoints,
-    correctTeamWrongPositionPoints:
-      scoring.correctTeamWrongPositionPoints ?? correctTeamWrongPositionPoints,
+    exactPositionPoints: firstConfiguredPoint(scoring.exactPositionPoints, exactPositionPoints),
+    correctTeamWrongPositionPoints: firstConfiguredPoint(
+      scoring.correctTeamWrongPositionPoints,
+      correctTeamWrongPositionPoints,
+    ),
   };
+}
+
+function firstConfiguredPoint(...values: unknown[]): number {
+  for (const value of values) {
+    if (value === '' || value === null || value === undefined) {
+      continue;
+    }
+    const numberValue = Number(value);
+    if (Number.isFinite(numberValue)) {
+      return Math.max(0, numberValue);
+    }
+  }
+  return 0;
 }
 
 function slotPoints(

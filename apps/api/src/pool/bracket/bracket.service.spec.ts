@@ -331,6 +331,90 @@ describe('BracketService final phase scoring', () => {
     ]);
   });
 
+  it.each([
+    ['8th-finals', 8],
+    ['quarter-finals', 12],
+    ['semi-finals', 16],
+    ['finals', 20],
+  ])('uses the %s wrong-position points for partial success', async (phase, expectedPoints) => {
+    const match = {
+      bracketMatchId: `all-pools-${phase}-1`,
+      phase,
+      homeTeamId: '',
+      awayTeamId: '',
+    };
+    const phaseMatches = [
+      match,
+      {
+        bracketMatchId: `all-pools-${phase}-2`,
+        phase,
+        homeTeamId: 'team-a',
+        awayTeamId: '',
+      },
+    ];
+    const repository = {
+      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([
+        {
+          bracketPredictionId: 'prediction-1',
+          poolId: 'pool-1',
+          homeTeamId: 'team-a',
+          awayTeamId: '',
+        },
+      ]),
+      getBracketMatches: jest.fn().mockResolvedValue(phaseMatches),
+      listPools: jest.fn().mockResolvedValue([
+        {
+          poolId: 'pool-1',
+          config: {
+            bracketScoring: {
+              exactPositionPoints: 10,
+              correctTeamWrongPositionPoints: 3,
+              tournamentWinnerPoints: 25,
+              rounds: {
+                '16th-finals': {
+                  exactPositionPoints: 10,
+                  correctTeamWrongPositionPoints: 3,
+                },
+                '8th-finals': {
+                  exactPositionPoints: 20,
+                  correctTeamWrongPositionPoints: 8,
+                },
+                'quarter-finals': {
+                  exactPositionPoints: 30,
+                  correctTeamWrongPositionPoints: 12,
+                },
+                'semi-finals': {
+                  exactPositionPoints: 40,
+                  correctTeamWrongPositionPoints: 16,
+                },
+                finals: {
+                  exactPositionPoints: 50,
+                  correctTeamWrongPositionPoints: 20,
+                },
+              },
+            },
+          },
+        },
+      ]),
+      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new BracketService(repository as any);
+
+    await (service as any).evaluateBracketPredictions(match.bracketMatchId, match, 'pool-1');
+
+    expect(repository.bulkUpdateBracketPredictionPoints).toHaveBeenCalledWith([
+      {
+        bracketPredictionId: 'prediction-1',
+        points: expectedPoints,
+        homeTeamExactPosition: false,
+        awayTeamExactPosition: false,
+        homeTeamCorrectButWrongPosition: true,
+        awayTeamCorrectButWrongPosition: false,
+        tournamentWinnerCorrect: null,
+      },
+    ]);
+  });
+
   it('awards points for a known team even when the other real team is missing', async () => {
     const partialMatch = {
       bracketMatchId: 'all-pools-quarter-finals-1',
