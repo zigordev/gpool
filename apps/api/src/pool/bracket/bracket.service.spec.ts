@@ -190,6 +190,9 @@ describe('BracketService final phase match materialization', () => {
     const repository = {
       getBracketMatches: jest.fn().mockResolvedValue([]),
       createBracketMatch: jest.fn().mockResolvedValue(createdMatch),
+      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([]),
+      listPools: jest.fn().mockResolvedValue([]),
+      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
       updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
@@ -378,6 +381,62 @@ describe('BracketService final phase scoring', () => {
         homeTeamExactPosition: false,
         awayTeamExactPosition: false,
         homeTeamCorrectButWrongPosition: false,
+        awayTeamCorrectButWrongPosition: false,
+        tournamentWinnerCorrect: null,
+      },
+    ]);
+  });
+
+  it('re-evaluates empty boxes in a round when another box has a known team', async () => {
+    const emptyPredictionBox = {
+      bracketMatchId: 'all-pools-quarter-finals-1',
+      phase: 'quarter-finals',
+      homeTeamId: '',
+      awayTeamId: '',
+    };
+    const knownTeamBox = {
+      bracketMatchId: 'all-pools-quarter-finals-2',
+      phase: 'quarter-finals',
+      homeTeamId: 'team-a',
+      awayTeamId: '',
+    };
+    const phaseMatches = [emptyPredictionBox, knownTeamBox];
+    const repository = {
+      getBracketMatches: jest.fn().mockImplementation((_poolId, phase) =>
+        Promise.resolve(phase ? phaseMatches.filter((match) => match.phase === phase) : phaseMatches)
+      ),
+      getAllBracketPredictionsForMatch: jest.fn().mockImplementation((bracketMatchId) =>
+        Promise.resolve(
+          bracketMatchId === emptyPredictionBox.bracketMatchId
+            ? [
+                {
+                  bracketPredictionId: 'prediction-1',
+                  poolId: 'pool-1',
+                  homeTeamId: 'team-a',
+                  awayTeamId: '',
+                },
+              ]
+            : []
+        )
+      ),
+      listPools: jest.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
+      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+    };
+    const service = new BracketService(repository as any);
+
+    await service.reEvaluateAllBracketMatches('all-pools');
+
+    expect(repository.getAllBracketPredictionsForMatch).toHaveBeenCalledWith(
+      emptyPredictionBox.bracketMatchId
+    );
+    expect(repository.bulkUpdateBracketPredictionPoints).toHaveBeenCalledWith([
+      {
+        bracketPredictionId: 'prediction-1',
+        points: 3,
+        homeTeamExactPosition: false,
+        awayTeamExactPosition: false,
+        homeTeamCorrectButWrongPosition: true,
         awayTeamCorrectButWrongPosition: false,
         tournamentWinnerCorrect: null,
       },
