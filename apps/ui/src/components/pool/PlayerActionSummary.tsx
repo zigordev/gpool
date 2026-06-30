@@ -70,7 +70,7 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                     key={item.key}
                     title={`${item.label}: ${item.value}`}
                     aria-label={`${item.label}: ${item.value}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.58rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--input-bg))', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.58rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
                   >
                     {item.icon}
                     <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1 }}>{item.value}</span>
@@ -111,7 +111,7 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                   key={item.key}
                   title={`${item.label}: ${item.value}`}
                   aria-label={`${item.label}: ${item.value}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--bg-subtle) / 0.92)', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border-subtle))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--input-bg))', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
                 >
                   {item.icon}
                   <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1, }}>

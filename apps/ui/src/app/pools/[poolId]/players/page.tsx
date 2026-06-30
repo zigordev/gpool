@@ -50,6 +50,18 @@ type PlayerOption = {
   isDisabled: boolean;
 };
 
+const eliminatedPlayerFadeStyle = {
+  opacity: 0.5,
+  filter: 'grayscale(0.9)',
+};
+
+const eliminatedSelectionCardStyle = {
+  border: '1px solid rgb(var(--live) / 0.58)',
+  borderLeft: '4px solid rgb(var(--live))',
+  background: 'rgb(var(--live) / 0.12)',
+  boxShadow: '0 0 0 1px rgb(var(--live) / 0.12), 0 2px 8px rgb(15 23 42 / 0.07)',
+};
+
 export default function PlayersPage() {
   const { t, locale } = useI18n();
   const { setPoolActions } = useNavCenter();
@@ -114,8 +126,7 @@ export default function PlayersPage() {
           alignItems: 'center',
           gap: '0.4rem',
           minWidth: 0,
-          opacity: player.teamEliminated ? 0.68 : 1,
-          filter: player.teamEliminated ? 'grayscale(0.55)' : undefined,
+          ...(player.teamEliminated ? eliminatedPlayerFadeStyle : {}),
         }}
       >
         <PlayerShirt teamName={player.teamName} shirtNumber={player.shirtNumber} size={29} />
@@ -131,7 +142,6 @@ export default function PlayersPage() {
           >
             {player.name}
           </strong>
-          {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
           <span
             style={{
               display: 'flex',
@@ -160,6 +170,20 @@ export default function PlayersPage() {
       </span>
     );
 
+  const eliminatedCornerBadge = (visible: boolean | undefined) =>
+    visible ? (
+      <span
+        style={{
+          position: 'absolute',
+          top: '0.42rem',
+          right: '0.48rem',
+          zIndex: 3,
+        }}
+      >
+        <PlayerEliminatedBadge />
+      </span>
+    ) : null;
+
   const formatPlayerOptionLabel = (option: PlayerOption) => (
     <span
       style={{
@@ -167,8 +191,7 @@ export default function PlayersPage() {
         alignItems: 'center',
         gap: '0.4rem',
         minWidth: 0,
-        opacity: option.teamEliminated ? 0.68 : 1,
-        filter: option.teamEliminated ? 'grayscale(0.55)' : undefined,
+        ...(option.teamEliminated ? eliminatedPlayerFadeStyle : {}),
       }}
     >
       <PlayerShirt teamName={option.teamName} shirtNumber={option.shirtNumber} size={25} />
@@ -330,7 +353,7 @@ export default function PlayersPage() {
                     const isSaving = savingPlayerSlot === `award:${award.key}`;
                     return (
                       <article
-                        className="player-selection-card player-selection-card--award"
+                        className={`player-selection-card player-selection-card--award${selected?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                         key={award.key}
                         {...insightCardProps(
                           selected
@@ -347,18 +370,29 @@ export default function PlayersPage() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.45rem',
-                          padding: '0.45rem 0.5rem',
+                          padding: selected?.teamEliminated
+                            ? '0.45rem 5.8rem 0.45rem 0.5rem'
+                            : '0.45rem 0.5rem',
                           borderRadius: 'var(--radius-md)',
-                          border: '1px solid rgb(var(--border) / 0.88)',
-                          borderLeft: '3px solid rgb(var(--gold))',
-                          background: 'rgb(var(--bg-elevated) / 0.94)',
-                          boxShadow: '0 2px 8px rgb(15 23 42 / 0.07)',
+                          border: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.border
+                            : '1px solid rgb(var(--border) / 0.88)',
+                          borderLeft: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.borderLeft
+                            : '3px solid rgb(var(--gold))',
+                          background: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.background
+                            : 'rgb(var(--bg-elevated) / 0.94)',
+                          boxShadow: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.boxShadow
+                            : '0 2px 8px rgb(15 23 42 / 0.07)',
                           opacity: isSaving ? 0.7 : 1,
                           transition: 'opacity 0.15s ease, background 0.15s ease',
                           marginBottom: '0.95rem',
                           cursor: selected && isPastPoolDeadline ? 'pointer' : undefined,
                         }}
                       >
+                        {eliminatedCornerBadge(selected?.teamEliminated)}
                         <span
                           aria-hidden
                           style={{
@@ -579,7 +613,7 @@ export default function PlayersPage() {
                             : null;
                           return (
                             <article
-                              className="player-selection-card"
+                              className={`player-selection-card${selected?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                               key={selectionKey}
                               {...insightCardProps(
                                 selected
@@ -592,12 +626,22 @@ export default function PlayersPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.45rem',
-                                padding: '0.45rem 0.5rem',
+                                padding: selected?.teamEliminated
+                                  ? '0.45rem 5.8rem 0.45rem 0.5rem'
+                                  : '0.45rem 0.5rem',
                                 borderRadius: 'var(--radius-md)',
-                                border: '1px solid rgb(var(--border) / 0.88)',
-                                borderLeft: '3px solid rgb(var(--pitch))',
-                                background: 'rgb(var(--bg-elevated) / 0.94)',
-                                boxShadow: '0 2px 8px rgb(15 23 42 / 0.07)',
+                                border: selected?.teamEliminated
+                                  ? eliminatedSelectionCardStyle.border
+                                  : '1px solid rgb(var(--border) / 0.88)',
+                                borderLeft: selected?.teamEliminated
+                                  ? eliminatedSelectionCardStyle.borderLeft
+                                  : '3px solid rgb(var(--pitch))',
+                                background: selected?.teamEliminated
+                                  ? eliminatedSelectionCardStyle.background
+                                  : 'rgb(var(--bg-elevated) / 0.94)',
+                                boxShadow: selected?.teamEliminated
+                                  ? eliminatedSelectionCardStyle.boxShadow
+                                  : '0 2px 8px rgb(15 23 42 / 0.07)',
                                 opacity: isSaving ? 0.7 : 1,
                                 transition: 'opacity 0.15s ease, background 0.15s ease',
                                 cursor: selected && isPastPoolDeadline ? 'pointer' : undefined,
@@ -611,6 +655,7 @@ export default function PlayersPage() {
                                   })}
                                 />
                               ) : null}
+                              {eliminatedCornerBadge(selected?.teamEliminated)}
                               {selected?.imageUrl ? (
                                 <div
                                   style={{
@@ -753,7 +798,7 @@ export default function PlayersPage() {
                     const isSaving = savingPlayerSlot === `award:${award.key}`;
                     return (
                       <article
-                        className="player-selection-card player-selection-card--award"
+                        className={`player-selection-card player-selection-card--award${selected?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                         key={award.key}
                         {...insightCardProps(
                           selected
@@ -770,15 +815,25 @@ export default function PlayersPage() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          padding: '0.55rem',
+                          padding: selected?.teamEliminated ? '0.55rem 5.8rem 0.55rem 0.55rem' : '0.55rem',
                           borderRadius: 'var(--radius-md)',
-                          border: '1px solid rgb(var(--border) / 0.82)',
-                          borderLeft: '3px solid rgb(var(--gold))',
-                          background: 'rgb(var(--bg-elevated) / 0.82)',
+                          border: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.border
+                            : '1px solid rgb(var(--border) / 0.82)',
+                          borderLeft: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.borderLeft
+                            : '3px solid rgb(var(--gold))',
+                          background: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.background
+                            : 'rgb(var(--bg-elevated) / 0.82)',
+                          boxShadow: selected?.teamEliminated
+                            ? eliminatedSelectionCardStyle.boxShadow
+                            : undefined,
                           opacity: isSaving ? 0.7 : 1,
                           cursor: selected && isPastPoolDeadline ? 'pointer' : undefined,
                         }}
                       >
+                        {eliminatedCornerBadge(selected?.teamEliminated)}
                         <span
                           aria-hidden
                           style={{
@@ -945,7 +1000,7 @@ export default function PlayersPage() {
                         : null;
                       return (
                         <article
-                          className="player-selection-card"
+                          className={`player-selection-card${selected?.teamEliminated ? ' player-selection-card--eliminated' : ''}`}
                           key={selectionKey}
                           {...insightCardProps(
                             selected
@@ -958,11 +1013,22 @@ export default function PlayersPage() {
                             display: 'flex',
                             alignItems: 'flex-start',
                             gap: '0.5rem',
-                            padding: '0.55rem',
+                            padding: selected?.teamEliminated
+                              ? '0.55rem 5.8rem 0.55rem 0.55rem'
+                              : '0.55rem',
                             borderRadius: 'var(--radius-md)',
-                            border: '1px solid rgb(var(--border) / 0.82)',
-                            borderLeft: '3px solid rgb(var(--pitch))',
-                            background: 'rgb(var(--bg-elevated) / 0.82)',
+                            border: selected?.teamEliminated
+                              ? eliminatedSelectionCardStyle.border
+                              : '1px solid rgb(var(--border) / 0.82)',
+                            borderLeft: selected?.teamEliminated
+                              ? eliminatedSelectionCardStyle.borderLeft
+                              : '3px solid rgb(var(--pitch))',
+                            background: selected?.teamEliminated
+                              ? eliminatedSelectionCardStyle.background
+                              : 'rgb(var(--bg-elevated) / 0.82)',
+                            boxShadow: selected?.teamEliminated
+                              ? eliminatedSelectionCardStyle.boxShadow
+                              : undefined,
                             opacity: isSaving ? 0.7 : 1,
                             cursor: selected && isPastPoolDeadline ? 'pointer' : undefined,
                           }}
@@ -975,6 +1041,7 @@ export default function PlayersPage() {
                               })}
                             />
                           ) : null}
+                          {eliminatedCornerBadge(selected?.teamEliminated)}
                           {selected?.imageUrl ? (
                             <div
                               style={{

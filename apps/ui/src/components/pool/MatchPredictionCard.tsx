@@ -31,11 +31,11 @@ const STATE_TONES: Record<
   { border: string; tint: string; statusBadge: 'pitch' | 'sunset' | 'live' | 'info' | 'neutral' | 'gold' | null }
 > = {
   open:           { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: null },
-  incomplete:     { border: 'rgb(var(--gold) / 0.55)',     tint: 'rgb(var(--gold) / 0.08)',                   statusBadge: 'gold' },
+  incomplete:     { border: 'rgb(var(--gold) / 0.68)',     tint: 'rgb(var(--gold) / 0.07)',                   statusBadge: 'gold' },
   locked:         { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
-  exact:          { border: 'rgb(var(--pitch) / 0.55)',    tint: 'rgb(var(--pitch) / 0.08)',                  statusBadge: 'pitch' },
-  'correct-winner':{ border: 'rgb(var(--info) / 0.55)',   tint: 'rgb(var(--info) / 0.08)',                   statusBadge: 'info' },
-  incorrect:      { border: 'rgb(var(--live) / 0.45)',     tint: 'rgb(var(--live) / 0.07)',                   statusBadge: 'live' },
+  exact:          { border: 'rgb(var(--pitch) / 0.68)',    tint: 'rgb(var(--pitch) / 0.07)',                  statusBadge: 'pitch' },
+  'correct-winner':{ border: 'rgb(var(--info) / 0.68)',   tint: 'rgb(var(--info) / 0.07)',                   statusBadge: 'info' },
+  incorrect:      { border: 'rgb(var(--live) / 0.68)',     tint: 'rgb(var(--live) / 0.07)',                   statusBadge: 'live' },
   pending:        { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
 };
 
@@ -93,7 +93,7 @@ export function MatchPredictionCard({
         padding: '0.38rem 0.5rem',
         borderRadius: 'var(--radius-sm)',
         background: tone.tint,
-        border: `${hasStatusBorder ? 3 : 1}px solid ${tone.border}`,
+        border: `${hasStatusBorder ? 2 : 1}px solid ${tone.border}`,
         boxShadow: 'var(--shadow-sm)',
         cursor: onOpenInsights ? 'pointer' : undefined,
       }}
