@@ -83,6 +83,10 @@ function hasAnyBracketTeam(match: any): boolean {
   return Boolean(match?.homeTeamId || match?.awayTeamId);
 }
 
+function phaseHasAnyBracketTeam(matches: any[]): boolean {
+  return matches.some(hasAnyBracketTeam);
+}
+
 function resultWinnerTeamId(match: any): string {
   if (
     typeof match?.homeResult !== 'number' ||
@@ -283,6 +287,10 @@ export class BracketService implements OnApplicationBootstrap {
         awayTeamName: side === 'away' ? teamName : undefined,
         status: 'scheduled',
       });
+      await this.evaluateBracketPhasePredictions(
+        createdMatch.phase,
+        poolId === BRACKET_POOL_ID ? undefined : poolId
+      );
       await this.syncTeamEliminationState();
       return createdMatch;
     }
@@ -300,10 +308,9 @@ export class BracketService implements OnApplicationBootstrap {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
     const fullMatch = allMatches.find((match: any) => match.bracketMatchId === bracketMatchId);
 
-    if (hasAnyBracketTeam(fullMatch)) {
-      await this.evaluateBracketPredictions(
-        bracketMatchId,
-        fullMatch,
+    if (fullMatch) {
+      await this.evaluateBracketPhasePredictions(
+        fullMatch.phase,
         poolId === BRACKET_POOL_ID ? undefined : poolId
       );
     }
@@ -462,6 +469,28 @@ export class BracketService implements OnApplicationBootstrap {
     await this.poolRepository.bulkUpdateBracketPredictionPoints(predictionUpdates);
   }
 
+  private async evaluateBracketPhasePredictions(
+    phase: BracketPhase,
+    poolId?: string,
+    scoringOverride?: BracketRoundScoring
+  ) {
+    const phaseMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, phase);
+    if (!phaseHasAnyBracketTeam(phaseMatches)) {
+      return 0;
+    }
+
+    for (const phaseMatch of phaseMatches) {
+      await this.evaluateBracketPredictions(
+        phaseMatch.bracketMatchId,
+        phaseMatch,
+        poolId,
+        scoringOverride
+      );
+    }
+
+    return phaseMatches.length;
+  }
+
   async updateBracketMatchResult(
     bracketMatchId: string,
     poolId: string,
@@ -482,12 +511,10 @@ export class BracketService implements OnApplicationBootstrap {
       status: 'completed',
     });
 
-    if (hasAnyBracketTeam(updatedMatch)) {
-      await this.evaluateBracketPredictions(bracketMatchId, updatedMatch, undefined, {
-        exactPositionPoints,
-        correctTeamWrongPositionPoints,
-      });
-    }
+    await this.evaluateBracketPhasePredictions(updatedMatch.phase, undefined, {
+      exactPositionPoints,
+      correctTeamWrongPositionPoints,
+    });
     await this.syncTeamEliminationState();
 
     const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
@@ -551,9 +578,13 @@ export class BracketService implements OnApplicationBootstrap {
       validWinner ? predictedWinnerTeamName : ''
     );
 
-    // If the match already has any real team assigned (admin set it before or during predictions),
-    // immediately evaluate so the user sees their score without waiting for admin re-evaluation.
-    if (hasAnyBracketTeam(match)) {
+    const phaseMatches = match?.phase
+      ? await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, match.phase)
+      : [];
+    // If this phase already has any real team assigned, immediately evaluate this prediction even
+    // when this specific match box is still empty. This awards wrong-box points as soon as a team
+    // advances anywhere in the round.
+    if (phaseHasAnyBracketTeam(phaseMatches)) {
       await this.evaluateBracketPredictions(bracketMatchId, match, poolId);
     }
 
@@ -570,7 +601,12 @@ export class BracketService implements OnApplicationBootstrap {
 
   async reEvaluateAllBracketMatches(poolId: string) {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
-    const matchesToEvaluate = allMatches.filter(hasAnyBracketTeam);
+    const phasesWithTeams = new Set(
+      allMatches
+        .filter(hasAnyBracketTeam)
+        .map((match: any) => match.phase)
+    );
+    const matchesToEvaluate = allMatches.filter((match: any) => phasesWithTeams.has(match.phase));
 
     for (const match of matchesToEvaluate) {
       await this.evaluateBracketPredictions(
