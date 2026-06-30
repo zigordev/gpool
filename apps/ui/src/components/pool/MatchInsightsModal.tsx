@@ -188,7 +188,8 @@ export function MatchInsightsModal({
                                     fontSize: '0.82rem',
                                     fontWeight: 750,
                                     color: 'rgb(var(--fg))',
-                                    opacity: player.teamEliminated ? 0.68 : 1,
+                                    opacity: player.teamEliminated ? 0.5 : 1,
+                                    filter: player.teamEliminated ? 'grayscale(0.9)' : undefined,
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
@@ -196,7 +197,6 @@ export function MatchInsightsModal({
                                 >
                                   {player.name}
                                 </span>
-                                {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                                 <span
                                   style={{
                                     marginLeft: 'auto',
@@ -207,6 +207,7 @@ export function MatchInsightsModal({
                                 >
                                   {player.teamName}
                                 </span>
+                                {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                               </div>
                             </div>
                             <PlayerActionSummary
@@ -603,7 +604,7 @@ function PredictionRow({
     <div
       style={compactPredictionCardStyle(
         'rgb(var(--border-subtle))',
-        'rgb(var(--bg-subtle) / 0.5)',
+        'rgb(var(--input-bg))',
         false
       )}
     >
@@ -638,28 +639,28 @@ function PredictionRow({
 function groupPredictionTone(prediction: any) {
   if (prediction?.isExactMatch === true) {
     return {
-      border: 'rgb(var(--pitch) / 0.55)',
-      background: 'rgb(var(--pitch) / 0.05)',
+      border: 'rgb(var(--pitch) / 0.68)',
+      background: 'rgb(var(--pitch) / 0.07)',
       highlighted: true,
     };
   }
   if (prediction?.isCorrect === true) {
     return {
-      border: 'rgb(var(--info) / 0.55)',
-      background: 'rgb(var(--info) / 0.05)',
+      border: 'rgb(var(--info) / 0.68)',
+      background: 'rgb(var(--info) / 0.07)',
       highlighted: true,
     };
   }
   if (prediction?.isCorrect === false) {
     return {
-      border: 'rgb(var(--live) / 0.45)',
-      background: 'rgb(var(--live) / 0.05)',
+      border: 'rgb(var(--live) / 0.68)',
+      background: 'rgb(var(--live) / 0.07)',
       highlighted: true,
     };
   }
   return {
     border: 'rgb(var(--border-subtle))',
-    background: 'rgb(var(--bg-subtle) / 0.5)',
+    background: 'rgb(var(--input-bg))',
     highlighted: false,
   };
 }
@@ -727,28 +728,28 @@ function finalTeamTone(exact?: boolean | null, wrongSide?: boolean | null, evalu
   if (exact === true) {
     return {
       highlighted: true,
-      border: 'rgb(var(--pitch) / 0.65)',
-      background: 'rgb(var(--pitch) / 0.08)',
+      border: 'rgb(var(--pitch) / 0.68)',
+      background: 'rgb(var(--pitch) / 0.07)',
     };
   }
   if (wrongSide === true) {
     return {
       highlighted: true,
-      border: 'rgb(var(--info) / 0.65)',
-      background: 'rgb(var(--info) / 0.08)',
+      border: 'rgb(var(--info) / 0.68)',
+      background: 'rgb(var(--info) / 0.07)',
     };
   }
   if (evaluated) {
     return {
       highlighted: true,
-      border: 'rgb(var(--live) / 0.55)',
+      border: 'rgb(var(--live) / 0.68)',
       background: 'rgb(var(--live) / 0.07)',
     };
   }
   return {
     highlighted: false,
     border: 'rgb(var(--border-subtle))',
-    background: 'rgb(var(--bg-subtle) / 0.5)',
+    background: 'rgb(var(--input-bg))',
   };
 }
 
@@ -858,5 +859,5 @@ const playerRowStyle: CSSProperties = {
   padding: '0.38rem',
   borderRadius: 'var(--radius-sm)',
   border: '1px solid rgb(var(--border-subtle))',
-  background: 'rgb(var(--bg-subtle) / 0.5)',
+  background: 'rgb(var(--input-bg))',
 };

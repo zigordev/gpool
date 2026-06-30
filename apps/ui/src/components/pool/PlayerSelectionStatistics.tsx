@@ -198,8 +198,8 @@ function StatisticsGroup({
                   color: 'rgb(var(--fg))',
                   fontSize: '0.76rem',
                   fontWeight: 750,
-                  opacity: player.teamEliminated ? 0.68 : 1,
-                  filter: player.teamEliminated ? 'grayscale(0.55)' : undefined,
+                  opacity: player.teamEliminated ? 0.5 : 1,
+                  filter: player.teamEliminated ? 'grayscale(0.9)' : undefined,
                 }}
               >
                 <PlayerShirt

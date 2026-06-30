@@ -337,7 +337,7 @@ export function PlayerStatsTable({
                 const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
                 const isMVP = tournamentMvpPlayerId === player.playerId;
                 const dimmedPlayerStyle = player.teamEliminated
-                  ? { opacity: 0.68, filter: 'grayscale(0.55)' }
+                  ? { opacity: 0.5, filter: 'grayscale(0.9)' }
                   : undefined;
                 const openInsights = onOpenInsights ? () => onOpenInsights(player) : undefined;
                 const handleInsightsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -348,7 +348,12 @@ export function PlayerStatsTable({
                 return (
                   <tr
                     key={player.playerId}
-                    style={{ borderBottom: '1px solid rgb(var(--border) / 0.65)' }}
+                    style={{
+                      borderBottom: '1px solid rgb(var(--border) / 0.65)',
+                      background: player.teamEliminated
+                        ? 'rgb(var(--live) / 0.055)'
+                        : undefined,
+                    }}
                   >
                     <td
                       style={{
@@ -357,7 +362,9 @@ export function PlayerStatsTable({
                         position: 'sticky',
                         left: 0,
                         zIndex: 1,
-                        background: 'rgb(var(--bg-elevated))',
+                        background: player.teamEliminated
+                          ? 'rgb(var(--live) / 0.08)'
+                          : 'rgb(var(--bg-elevated))',
                         borderRight: '1px solid rgb(var(--border))',
                       }}
                     >
@@ -418,7 +425,6 @@ export function PlayerStatsTable({
                           >
                             {player.name}
                           </p>
-                          {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                           <p
                             style={{
                               margin: 0,
@@ -437,6 +443,7 @@ export function PlayerStatsTable({
                             />
                             {player.teamName}
                           </p>
+                          {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
                         </div>
                       </div>
                     </td>
