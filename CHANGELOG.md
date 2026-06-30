@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.53](https://github.com/zigordev/gpool/compare/v0.1.52...v0.1.53) (2026-06-30)
+
+
+### Bug Fixes
+
+* parse bracket scoring values in UI ([d92b52c](https://github.com/zigordev/gpool/commit/d92b52c445e235ec36589cec373b8503bc993771))
+
 ## [0.1.52](https://github.com/zigordev/gpool/compare/v0.1.51...v0.1.52) (2026-06-30)
 
 
