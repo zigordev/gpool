@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.51](https://github.com/zigordev/gpool/compare/v0.1.50...v0.1.51) (2026-06-30)
+
+
+### Bug Fixes
+
+* **api:** evaluate bracket scoring across active phases ([#135](https://github.com/zigordev/gpool/issues/135)) ([4974a37](https://github.com/zigordev/gpool/commit/4974a377f2230d87bceab98424b1514b34e59075))
+
 ## [0.1.50](https://github.com/zigordev/gpool/compare/v0.1.49...v0.1.50) (2026-06-30)
 
 
