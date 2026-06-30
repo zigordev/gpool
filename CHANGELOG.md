@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.50](https://github.com/zigordev/gpool/compare/v0.1.49...v0.1.50) (2026-06-30)
+
+
+### Bug Fixes
+
+* final phase spy UI polish ([#133](https://github.com/zigordev/gpool/issues/133)) ([a1f23aa](https://github.com/zigordev/gpool/commit/a1f23aa5c9a508585d9031dce00ba68fd59847f6))
+
 ## [0.1.49](https://github.com/zigordev/gpool/compare/v0.1.48...v0.1.49) (2026-06-29)
 
 
