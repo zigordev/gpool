@@ -358,6 +358,22 @@ export class PoolRepository {
     return result.rows;
   }
 
+  async updateTeamEliminatedState(eliminatedTeamIds: string[]) {
+    const result = await this.postgres.query(
+      `
+        UPDATE teams
+        SET eliminated = team_id = ANY($1::text[])
+        RETURNING
+          team_id AS "teamId",
+          name,
+          eliminated AS "eliminated"
+      `,
+      [eliminatedTeamIds]
+    );
+
+    return result.rows;
+  }
+
   async getTournamentPlayers(position?: string) {
     const params: any[] = [];
     const where = position ? `WHERE tournament_players.position = $1` : '';

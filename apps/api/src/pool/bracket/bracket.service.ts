@@ -79,6 +79,37 @@ function bracketMatchIdentity(bracketMatchId: string) {
   return { phase, matchNumber };
 }
 
+function hasAnyBracketTeam(match: any): boolean {
+  return Boolean(match?.homeTeamId || match?.awayTeamId);
+}
+
+function resultWinnerTeamId(match: any): string {
+  if (
+    typeof match?.homeResult !== 'number' ||
+    typeof match?.awayResult !== 'number' ||
+    match.homeResult === match.awayResult
+  ) {
+    return '';
+  }
+
+  return match.homeResult > match.awayResult ? match.homeTeamId || '' : match.awayTeamId || '';
+}
+
+function advancedTeamIdFromNextRound(
+  matchesByPhase: Map<BracketPhase, any[]>,
+  phase: BracketPhase,
+  matchIndex: number
+): string {
+  const phaseIndex = BRACKET_PHASES.findIndex((candidate) => candidate.phase === phase);
+  const nextPhase = phaseIndex >= 0 ? BRACKET_PHASES[phaseIndex + 1]?.phase : undefined;
+  if (!nextPhase) return '';
+
+  const nextMatch = matchesByPhase.get(nextPhase)?.[Math.floor(matchIndex / 2)];
+  if (!nextMatch) return '';
+
+  return matchIndex % 2 === 0 ? nextMatch.homeTeamId || '' : nextMatch.awayTeamId || '';
+}
+
 @Injectable()
 export class BracketService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BracketService.name);
@@ -269,7 +300,7 @@ export class BracketService implements OnApplicationBootstrap {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
     const fullMatch = allMatches.find((match: any) => match.bracketMatchId === bracketMatchId);
 
-    if (fullMatch?.homeTeamId && fullMatch?.awayTeamId) {
+    if (hasAnyBracketTeam(fullMatch)) {
       await this.evaluateBracketPredictions(
         bracketMatchId,
         fullMatch,
@@ -291,31 +322,55 @@ export class BracketService implements OnApplicationBootstrap {
       }
     }
 
-    let deepestCompletePhase: BracketPhase | null = null;
-    for (const { phase, matches: expectedMatches } of BRACKET_PHASES) {
+    for (const { phase } of BRACKET_PHASES) {
+      const sortedMatches = [...(matchesByPhase.get(phase) || [])].sort(
+        (a, b) => bracketLayoutIndex(a) - bracketLayoutIndex(b)
+      );
+      matchesByPhase.set(phase, sortedMatches);
+    }
+
+    const eliminatedTeamIds = new Set<string>();
+    const firstPhaseMatches = matchesByPhase.get('16th-finals') || [];
+    const firstPhaseComplete =
+      firstPhaseMatches.length === BRACKET_PHASE_MATCH_COUNT.get('16th-finals') &&
+      firstPhaseMatches.every((match) => match.homeTeamId && match.awayTeamId);
+
+    if (firstPhaseComplete) {
+      const qualifiedTeamIds = new Set<string>();
+      firstPhaseMatches.forEach((match) => {
+        if (match.homeTeamId) qualifiedTeamIds.add(match.homeTeamId);
+        if (match.awayTeamId) qualifiedTeamIds.add(match.awayTeamId);
+      });
+      const allTeams = await this.poolRepository.getAllTeams();
+      allTeams.forEach((team: any) => {
+        if (!qualifiedTeamIds.has(team.teamId)) {
+          eliminatedTeamIds.add(team.teamId);
+        }
+      });
+    }
+
+    for (const { phase } of BRACKET_PHASES) {
       const phaseMatches = matchesByPhase.get(phase) || [];
-      const complete =
-        phaseMatches.length === expectedMatches &&
-        phaseMatches.every((match) => match.homeTeamId && match.awayTeamId);
-      if (complete) {
-        deepestCompletePhase = phase;
-      }
+      phaseMatches.forEach((match, matchIndex) => {
+        const matchTeamIds = [match.homeTeamId, match.awayTeamId].filter(Boolean);
+        if (matchTeamIds.length < 2) return;
+
+        const winnerTeamId =
+          resultWinnerTeamId(match) ||
+          advancedTeamIdFromNextRound(matchesByPhase, phase, matchIndex);
+        if (!winnerTeamId || !matchTeamIds.includes(winnerTeamId)) return;
+
+        matchTeamIds.forEach((teamId) => {
+          if (teamId !== winnerTeamId) {
+            eliminatedTeamIds.add(teamId);
+          }
+        });
+      });
     }
 
-    if (!deepestCompletePhase) {
-      await this.poolRepository.updateTeamEliminationState([]);
-      return;
-    }
-
-    const survivingTeamIds = new Set<string>();
-    for (const match of matchesByPhase.get(deepestCompletePhase) || []) {
-      if (match.homeTeamId) survivingTeamIds.add(match.homeTeamId);
-      if (match.awayTeamId) survivingTeamIds.add(match.awayTeamId);
-    }
-
-    await this.poolRepository.updateTeamEliminationState([...survivingTeamIds]);
+    await this.poolRepository.updateTeamEliminatedState([...eliminatedTeamIds]);
     this.logger.log(
-      `Synchronized team elimination from complete bracket phase ${deepestCompletePhase}`
+      `Synchronized ${eliminatedTeamIds.size} eliminated teams from bracket progression`
     );
   }
 
@@ -347,12 +402,18 @@ export class BracketService implements OnApplicationBootstrap {
       } = resolveRoundScoring(predictionPool?.config?.bracketScoring, match.phase, scoringOverride);
       let points = 0;
 
-      const homeTeamExactPosition = prediction.homeTeamId === match.homeTeamId;
+      const homeTeamExactPosition =
+        Boolean(match.homeTeamId) &&
+        Boolean(prediction.homeTeamId) &&
+        prediction.homeTeamId === match.homeTeamId;
       const homeTeamCorrectButWrongPosition =
         !homeTeamExactPosition &&
         Boolean(prediction.homeTeamId) &&
         actualPhaseTeamIds.has(prediction.homeTeamId);
-      const awayTeamExactPosition = prediction.awayTeamId === match.awayTeamId;
+      const awayTeamExactPosition =
+        Boolean(match.awayTeamId) &&
+        Boolean(prediction.awayTeamId) &&
+        prediction.awayTeamId === match.awayTeamId;
       const awayTeamCorrectButWrongPosition =
         !awayTeamExactPosition &&
         Boolean(prediction.awayTeamId) &&
@@ -421,12 +482,13 @@ export class BracketService implements OnApplicationBootstrap {
       status: 'completed',
     });
 
-    if (updatedMatch?.homeTeamId && updatedMatch?.awayTeamId) {
+    if (hasAnyBracketTeam(updatedMatch)) {
       await this.evaluateBracketPredictions(bracketMatchId, updatedMatch, undefined, {
         exactPositionPoints,
         correctTeamWrongPositionPoints,
       });
     }
+    await this.syncTeamEliminationState();
 
     const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
     return {
@@ -489,9 +551,9 @@ export class BracketService implements OnApplicationBootstrap {
       validWinner ? predictedWinnerTeamName : ''
     );
 
-    // If the match already has both teams assigned (admin set them before or during predictions),
+    // If the match already has any real team assigned (admin set it before or during predictions),
     // immediately evaluate so the user sees their score without waiting for admin re-evaluation.
-    if (match?.homeTeamId && match?.awayTeamId) {
+    if (hasAnyBracketTeam(match)) {
       await this.evaluateBracketPredictions(bracketMatchId, match, poolId);
     }
 
@@ -508,9 +570,7 @@ export class BracketService implements OnApplicationBootstrap {
 
   async reEvaluateAllBracketMatches(poolId: string) {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
-    const matchesToEvaluate = allMatches.filter(
-      (match: any) => match.homeTeamId && match.awayTeamId
-    );
+    const matchesToEvaluate = allMatches.filter(hasAnyBracketTeam);
 
     for (const match of matchesToEvaluate) {
       await this.evaluateBracketPredictions(
