@@ -611,9 +611,11 @@ const [teams, setTeams] = useState<Team[]>([]);
         requests.push(
           Promise.all([
             apiClient.get(`/pools/${poolId}/matches`),
+            apiClient.get(`/pools/${poolId}/matches/predictions`).catch(() => ({ data: [] })),
             apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
-          ]).then(([matchesResponse, teamsResponse]) => {
+          ]).then(([matchesResponse, predictionsResponse, teamsResponse]) => {
             applyMatchesResponse(matchesResponse.data || {});
+            applyPredictionsResponse(predictionsResponse.data || []);
             setTeams(teamsResponse.data || []);
             setLoadedSurfaces((prev) => ({ ...prev, groups: true }));
           }),
