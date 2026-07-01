@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.54](https://github.com/zigordev/gpool/compare/v0.1.53...v0.1.54) (2026-07-01)
+
+
+### Bug Fixes
+
+* pass bracket scoring into spy final view ([95da5c7](https://github.com/zigordev/gpool/commit/95da5c758a76da3ccc83fde21762534863ab8704))
+
 ## [0.1.53](https://github.com/zigordev/gpool/compare/v0.1.52...v0.1.53) (2026-06-30)
 
 
