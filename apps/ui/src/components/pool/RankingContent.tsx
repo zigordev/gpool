@@ -72,6 +72,7 @@ function SpyPicksModal({
   tournamentPlayers,
   playerSelectionLimits,
   playerScoring,
+  bracketScoring,
   locale,
 }: Readonly<{
   spy: {
@@ -89,6 +90,7 @@ function SpyPicksModal({
   tournamentPlayers: any[];
   playerSelectionLimits: PlayerSelectionLimits;
   playerScoring: ReturnType<typeof resolvePlayerInfoScoring>;
+  bracketScoring: ReturnType<typeof usePoolContext>['bracketScoringConfig'];
   locale: string;
 }>) {
   const { t } = useI18n();
@@ -195,6 +197,7 @@ function SpyPicksModal({
               poolId={poolId}
               bracketPredictions={spyBracketPredictions}
               hasPredictions={data.bracketPredictions.length > 0}
+              bracketScoring={bracketScoring}
             />
           ) : (
             <SpyPlayersView
@@ -299,12 +302,14 @@ function SpyFinalView({
   poolId,
   bracketPredictions,
   hasPredictions,
+  bracketScoring,
 }: Readonly<{
   bracket: Record<string, any[]>;
   teams: Array<{ teamId: string; name: string; group?: string; code?: string }>;
   poolId: string;
   bracketPredictions: Record<string, any>;
   hasPredictions: boolean;
+  bracketScoring: ReturnType<typeof usePoolContext>['bracketScoringConfig'];
 }>) {
   const { t } = useI18n();
   const hasStructure = Object.values(bracket).some((arr) => arr.length > 0);
@@ -321,6 +326,10 @@ function SpyFinalView({
         bracketPredictions={bracketPredictions}
         deadline={1}
         candidateOptions={{}}
+        exactPositionPoints={bracketScoring.exactPositionPoints}
+        correctTeamWrongPositionPoints={bracketScoring.correctTeamWrongPositionPoints}
+        tournamentWinnerPoints={bracketScoring.tournamentWinnerPoints}
+        roundScoring={bracketScoring.rounds}
       />
       {hasPredictions ? null : (
         <p
@@ -673,6 +682,7 @@ export function RankingContent({
     poolId,
     teams,
     playerSelectionLimits,
+    bracketScoringConfig,
   } = usePoolContext();
 
   const prizeDistribution = useMemo(() => resolvePrizeDistribution(pool), [pool]);
@@ -745,6 +755,7 @@ export function RankingContent({
         tournamentPlayers={players}
         playerSelectionLimits={playerSelectionLimits}
         playerScoring={resolvePlayerInfoScoring(pool?.config?.playerScoring)}
+        bracketScoring={bracketScoringConfig}
         locale={locale}
       />
     </div>
