@@ -127,7 +127,7 @@ export default function AdminPlayersPage() {
           matchId: match.bracketMatchId,
           matchType: 'final' as const,
           scheduledAt: match.scheduledAt,
-          label: `${t('adminResults.players.matchFinal')} · ${match.homeTeamName || match.homeSourceLabel || ''} - ${match.awayTeamName || match.awaySourceLabel || ''}${match.scheduledAt ? ` · ${matchDateFormatter.format(new Date(match.scheduledAt))}` : ''}`,
+          label: `${match.phase === 'third-place' ? t('bracket.round.thirdPlace') : t('adminResults.players.matchFinal')} · P${match.matchNumber} · ${match.homeTeamName || match.homeSourceLabel || ''} - ${match.awayTeamName || match.awaySourceLabel || ''}${match.scheduledAt ? ` · ${matchDateFormatter.format(new Date(match.scheduledAt))}` : ''}`,
         })),
     ),
   ].sort((a, b) => {

@@ -277,10 +277,13 @@
       "8th": "Round of 16",
       "final": "Final",
       "quarter": "Quarter-finals",
-      "semi": "Semi-finals"
+      "semi": "Semi-finals",
+      "thirdPlace": "Third-place play-off"
     },
     "selectTeam": "Select team",
+    "selectThirdPlaceWinner": "Select third-place winner",
     "selectTournamentWinner": "Select tournament winner",
+    "thirdPlaceWinner": "Third place",
     "totalPoints": "Total: +{points} pts",
     "vs": "vs",
     "winner": "Winner"

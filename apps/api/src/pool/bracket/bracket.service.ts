@@ -11,6 +11,7 @@ import { PoolRepository } from '../database/pool.repository';
 import { resolvePoolDeadline } from '../pool-deadline.util';
 
 type BracketPhase = '16th-finals' | '8th-finals' | 'quarter-finals' | 'semi-finals' | 'finals';
+type TournamentPhase = BracketPhase | 'third-place';
 
 const BRACKET_POOL_ID = 'all-pools';
 const BRACKET_PHASES: Array<{ phase: BracketPhase; matches: number }> = [
@@ -20,16 +21,36 @@ const BRACKET_PHASES: Array<{ phase: BracketPhase; matches: number }> = [
   { phase: 'semi-finals', matches: 2 },
   { phase: 'finals', matches: 1 },
 ];
-const FIFA_BRACKET_MATCH_NUMBERS: Record<BracketPhase, number[]> = {
+const TOURNAMENT_PHASES: Array<{ phase: TournamentPhase; matches: number }> = [
+  ...BRACKET_PHASES,
+  { phase: 'third-place', matches: 1 },
+];
+const FIFA_BRACKET_MATCH_NUMBERS: Record<TournamentPhase, number[]> = {
   '16th-finals': [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
   '8th-finals': [89, 90, 93, 94, 91, 92, 95, 96],
   'quarter-finals': [97, 98, 99, 100],
   'semi-finals': [101, 102],
   finals: [104],
+  'third-place': [103],
 };
+const THIRD_PLACE_SCHEDULE = '2026-07-18T21:00:00.000Z';
 const BRACKET_PHASE_MATCH_COUNT = new Map(
   BRACKET_PHASES.map(({ phase, matches }) => [phase, matches])
 );
+
+function isBracketPhase(phase: unknown): phase is BracketPhase {
+  return BRACKET_PHASE_MATCH_COUNT.has(phase as BracketPhase);
+}
+
+function auxiliaryMatchDefaults(phase: TournamentPhase) {
+  return phase === 'third-place'
+    ? {
+        homeSourceLabel: 'L101',
+        awaySourceLabel: 'L102',
+        scheduledAt: THIRD_PLACE_SCHEDULE,
+      }
+    : {};
+}
 
 type BracketRoundScoring = {
   exactPositionPoints?: number;
@@ -84,11 +105,13 @@ function bracketLayoutIndex(match: any): number {
 }
 
 function bracketMatchIdentity(bracketMatchId: string) {
-  const match = bracketMatchId.match(/^all-pools-(16th-finals|8th-finals|quarter-finals|semi-finals|finals)-(\d+)$/);
+  const match = bracketMatchId.match(
+    /^all-pools-(16th-finals|8th-finals|quarter-finals|semi-finals|finals|third-place)-(\d+)$/
+  );
   if (!match) {
     return null;
   }
-  const phase = match[1] as BracketPhase;
+  const phase = match[1] as TournamentPhase;
   const index = Number(match[2]) - 1;
   const matchNumber = FIFA_BRACKET_MATCH_NUMBERS[phase]?.[index];
   if (!Number.isInteger(index) || index < 0 || !matchNumber) {
@@ -227,7 +250,7 @@ export class BracketService implements OnApplicationBootstrap {
       allMatches.map((match: any) => match.bracketMatchId).filter(Boolean)
     );
 
-    for (const { phase, matches } of BRACKET_PHASES) {
+    for (const { phase, matches } of TOURNAMENT_PHASES) {
       for (let index = 0; index < matches; index++) {
         const bracketMatchId = `${BRACKET_POOL_ID}-${phase}-${index + 1}`;
         if (existingMatchIds.has(bracketMatchId)) {
@@ -238,6 +261,7 @@ export class BracketService implements OnApplicationBootstrap {
           poolId: BRACKET_POOL_ID,
           phase,
           matchNumber: FIFA_BRACKET_MATCH_NUMBERS[phase][index],
+          ...auxiliaryMatchDefaults(phase),
           status: 'scheduled',
         });
       }
@@ -299,16 +323,19 @@ export class BracketService implements OnApplicationBootstrap {
         poolId: BRACKET_POOL_ID,
         phase: identity.phase,
         matchNumber: identity.matchNumber,
+        ...auxiliaryMatchDefaults(identity.phase),
         homeTeamId: side === 'home' ? teamId : undefined,
         homeTeamName: side === 'home' ? teamName : undefined,
         awayTeamId: side === 'away' ? teamId : undefined,
         awayTeamName: side === 'away' ? teamName : undefined,
         status: 'scheduled',
       });
-      await this.evaluateBracketPhasePredictions(
-        createdMatch.phase,
-        poolId === BRACKET_POOL_ID ? undefined : poolId
-      );
+      if (isBracketPhase(createdMatch.phase)) {
+        await this.evaluateBracketPhasePredictions(
+          createdMatch.phase,
+          poolId === BRACKET_POOL_ID ? undefined : poolId
+        );
+      }
       await this.syncTeamEliminationState();
       return createdMatch;
     }
@@ -326,7 +353,7 @@ export class BracketService implements OnApplicationBootstrap {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
     const fullMatch = allMatches.find((match: any) => match.bracketMatchId === bracketMatchId);
 
-    if (fullMatch) {
+    if (fullMatch && isBracketPhase(fullMatch.phase)) {
       await this.evaluateBracketPhasePredictions(
         fullMatch.phase,
         poolId === BRACKET_POOL_ID ? undefined : poolId
@@ -529,18 +556,24 @@ export class BracketService implements OnApplicationBootstrap {
       status: 'completed',
     });
 
-    await this.evaluateBracketPhasePredictions(updatedMatch.phase, undefined, {
-      exactPositionPoints,
-      correctTeamWrongPositionPoints,
-    });
+    let predictionsEvaluated = 0;
+    if (isBracketPhase(updatedMatch.phase)) {
+      await this.evaluateBracketPhasePredictions(updatedMatch.phase, undefined, {
+        exactPositionPoints,
+        correctTeamWrongPositionPoints,
+      });
+      const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(
+        bracketMatchId
+      );
+      predictionsEvaluated = predictions.length;
+    }
     await this.syncTeamEliminationState();
 
-    const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
     return {
       bracketMatchId,
       homeResult,
       awayResult,
-      predictionsEvaluated: predictions.length,
+      predictionsEvaluated,
     };
   }
 
@@ -549,7 +582,7 @@ export class BracketService implements OnApplicationBootstrap {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
 
     const structure: Record<string, any[]> = {};
-    for (const { phase } of BRACKET_PHASES) {
+    for (const { phase } of TOURNAMENT_PHASES) {
       structure[phase] = allMatches
         .filter((match: any) => match.phase === phase)
         .sort((a: any, b: any) => bracketLayoutIndex(a) - bracketLayoutIndex(b));
@@ -579,6 +612,9 @@ export class BracketService implements OnApplicationBootstrap {
 
     const matches = await this.poolRepository.getBracketMatches(poolId);
     const match = matches.find((candidate: any) => candidate.bracketMatchId === bracketMatchId);
+    if (!match || !isBracketPhase(match.phase)) {
+      throw new BadRequestException('This tournament match does not accept bracket predictions');
+    }
     const validWinner =
       match?.phase === 'finals' &&
       predictedWinnerTeamId &&
@@ -596,9 +632,10 @@ export class BracketService implements OnApplicationBootstrap {
       validWinner ? predictedWinnerTeamName : ''
     );
 
-    const phaseMatches = match?.phase
-      ? await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, match.phase)
-      : [];
+    const phaseMatches = await this.poolRepository.getBracketMatches(
+      BRACKET_POOL_ID,
+      match.phase
+    );
     // If this phase already has any real team assigned, immediately evaluate this prediction even
     // when this specific match box is still empty. This awards wrong-box points as soon as a team
     // advances anywhere in the round.
@@ -624,7 +661,9 @@ export class BracketService implements OnApplicationBootstrap {
         .filter(hasAnyBracketTeam)
         .map((match: any) => match.phase)
     );
-    const matchesToEvaluate = allMatches.filter((match: any) => phasesWithTeams.has(match.phase));
+    const matchesToEvaluate = allMatches.filter(
+      (match: any) => isBracketPhase(match.phase) && phasesWithTeams.has(match.phase)
+    );
 
     for (const match of matchesToEvaluate) {
       await this.evaluateBracketPredictions(
