@@ -854,7 +854,7 @@ function matchByNumber(bracket: Record<string, BracketMatch[]>, matchNumber: num
 }
 
 function sourceMatchNumber(sourceLabel: string | undefined): number | null {
-  const match = sourceLabel?.match(/^W(\d+)$/);
+  const match = sourceLabel?.match(/^[WL](\d+)$/);
   return match ? Number(match[1]) : null;
 }
 
@@ -1065,7 +1065,8 @@ function adminSourceCandidates(
     return filtered.length > 0 ? filtered : teams;
   }
 
-  // Winner slot (W{matchNumber}) — limit to the two teams playing in that match.
+  // Winner/loser slot (W{matchNumber}/L{matchNumber}) — limit to the two teams
+  // playing in that match. The admin selects the correct participant once known.
   // Return an empty array when the source match hasn't been filled yet so downstream
   // slots show no options until their feeding match is resolved (cascade enforcement).
   const winnerMatchNumber = sourceMatchNumber(sourceLabel);

@@ -26,7 +26,7 @@ describe('BracketService startup recalculation', () => {
     await service.onApplicationBootstrap();
 
     expect(repository.getBracketMatches).toHaveBeenCalledWith('all-pools');
-    expect(repository.createBracketMatch).toHaveBeenCalledTimes(31);
+    expect(repository.createBracketMatch).toHaveBeenCalledTimes(32);
     expect(repository.createBracketMatch).toHaveBeenCalledWith(
       expect.objectContaining({
         bracketMatchId: 'all-pools-16th-finals-1',
@@ -42,6 +42,18 @@ describe('BracketService startup recalculation', () => {
         poolId: 'all-pools',
         phase: 'finals',
         matchNumber: 104,
+        status: 'scheduled',
+      })
+    );
+    expect(repository.createBracketMatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bracketMatchId: 'all-pools-third-place-1',
+        poolId: 'all-pools',
+        phase: 'third-place',
+        matchNumber: 103,
+        homeSourceLabel: 'L101',
+        awaySourceLabel: 'L102',
+        scheduledAt: '2026-07-18T21:00:00.000Z',
         status: 'scheduled',
       })
     );
@@ -79,7 +91,7 @@ describe('BracketService startup recalculation', () => {
 
     await service.onApplicationBootstrap();
 
-    expect(repository.createBracketMatch).toHaveBeenCalledTimes(29);
+    expect(repository.createBracketMatch).toHaveBeenCalledTimes(30);
     expect(repository.createBracketMatch).not.toHaveBeenCalledWith(
       expect.objectContaining({ bracketMatchId: 'all-pools-16th-finals-1' })
     );
@@ -218,6 +230,109 @@ describe('BracketService final phase match materialization', () => {
     });
     expect(repository.updateTeamEliminatedState).toHaveBeenCalledWith([]);
     expect(result).toBe(createdMatch);
+  });
+
+  it('updates a third-place team without evaluating bracket predictions', async () => {
+    const thirdPlaceMatch = {
+      bracketMatchId: 'all-pools-third-place-1',
+      poolId: 'all-pools',
+      phase: 'third-place',
+      matchNumber: 103,
+      homeTeamId: 'team-a',
+      homeTeamName: 'Team A',
+      awayTeamId: 'team-b',
+      awayTeamName: 'Team B',
+    };
+    const repository = {
+      getBracketMatches: jest.fn().mockResolvedValue([thirdPlaceMatch]),
+      updateBracketMatch: jest.fn().mockResolvedValue(thirdPlaceMatch),
+      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+    };
+    const service = new BracketService(repository as any);
+
+    const result = await service.updateBracketMatchTeam(
+      thirdPlaceMatch.bracketMatchId,
+      'all-pools',
+      'home',
+      'team-a',
+      'Team A'
+    );
+
+    expect(repository.updateBracketMatch).toHaveBeenCalledWith(
+      thirdPlaceMatch.bracketMatchId,
+      { homeTeamId: 'team-a', homeTeamName: 'Team A' }
+    );
+    expect(repository.updateTeamEliminatedState).toHaveBeenCalledWith([]);
+    expect(result).toEqual(thirdPlaceMatch);
+  });
+
+  it('records the third-place winner without evaluating bracket predictions', async () => {
+    const thirdPlaceMatch = {
+      bracketMatchId: 'all-pools-third-place-1',
+      poolId: 'all-pools',
+      phase: 'third-place',
+      matchNumber: 103,
+      homeTeamId: 'team-a',
+      awayTeamId: 'team-b',
+    };
+    const completedMatch = {
+      ...thirdPlaceMatch,
+      homeResult: 1,
+      awayResult: 0,
+      status: 'completed',
+    };
+    const repository = {
+      getBracketMatches: jest.fn().mockResolvedValue([thirdPlaceMatch]),
+      updateBracketMatch: jest.fn().mockResolvedValue(completedMatch),
+      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      getAllBracketPredictionsForMatch: jest.fn(),
+    };
+    const service = new BracketService(repository as any);
+
+    const result = await service.updateBracketMatchResult(
+      thirdPlaceMatch.bracketMatchId,
+      'all-pools',
+      1,
+      0
+    );
+
+    expect(repository.getAllBracketPredictionsForMatch).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      bracketMatchId: thirdPlaceMatch.bracketMatchId,
+      homeResult: 1,
+      awayResult: 0,
+      predictionsEvaluated: 0,
+    });
+  });
+
+  it('rejects bracket predictions for the third-place match', async () => {
+    const repository = {
+      getPool: jest.fn().mockResolvedValue({
+        config: { deadline: Date.now() + 60_000 },
+      }),
+      getBracketMatches: jest.fn().mockResolvedValue([
+        {
+          bracketMatchId: 'all-pools-third-place-1',
+          phase: 'third-place',
+          matchNumber: 103,
+        },
+      ]),
+      createBracketPrediction: jest.fn(),
+    };
+    const service = new BracketService(repository as any);
+
+    await expect(
+      service.createBracketPrediction(
+        'pool-1',
+        'all-pools-third-place-1',
+        'user-1',
+        'team-a',
+        'Team A',
+        'team-b',
+        'Team B'
+      )
+    ).rejects.toThrow('This tournament match does not accept bracket predictions');
+    expect(repository.createBracketPrediction).not.toHaveBeenCalled();
   });
 });
 
@@ -484,7 +599,13 @@ describe('BracketService final phase scoring', () => {
       homeTeamId: 'team-a',
       awayTeamId: '',
     };
-    const phaseMatches = [emptyPredictionBox, knownTeamBox];
+    const thirdPlaceMatch = {
+      bracketMatchId: 'all-pools-third-place-1',
+      phase: 'third-place',
+      homeTeamId: 'team-c',
+      awayTeamId: 'team-d',
+    };
+    const phaseMatches = [emptyPredictionBox, knownTeamBox, thirdPlaceMatch];
     const repository = {
       getBracketMatches: jest.fn().mockImplementation((_poolId, phase) =>
         Promise.resolve(phase ? phaseMatches.filter((match) => match.phase === phase) : phaseMatches)
@@ -513,6 +634,9 @@ describe('BracketService final phase scoring', () => {
 
     expect(repository.getAllBracketPredictionsForMatch).toHaveBeenCalledWith(
       emptyPredictionBox.bracketMatchId
+    );
+    expect(repository.getAllBracketPredictionsForMatch).not.toHaveBeenCalledWith(
+      thirdPlaceMatch.bracketMatchId
     );
     expect(repository.bulkUpdateBracketPredictionPoints).toHaveBeenCalledWith([
       {

@@ -89,6 +89,14 @@ const PHASE_TONE: Record<
     ring: 'rgb(var(--border) / 0.35)',
     bg: 'rgb(var(--fg) / 0.020)',
   },
+  'third-place': {
+    token: 'neutral',
+    label: 'rgb(180 113 54)',
+    tint: 'rgb(180 113 54 / 0.10)',
+    border: 'rgb(180 113 54 / 0.45)',
+    ring: 'rgb(180 113 54 / 0.20)',
+    bg: 'rgb(180 113 54 / 0.04)',
+  },
 };
 
 const WINNER_TONE = {
@@ -498,11 +506,20 @@ export function BracketVisualization({
     label: string,
     match: BracketMatch | undefined,
     isFinal: boolean = false,
+    isAuxiliaryMatch: boolean = false,
   ) => {
     if (!match) return null;
 
     const tone = toneFor(phaseKey);
-    const prediction = bracketPredictions[match.bracketMatchId] || {};
+    const storedPrediction = bracketPredictions[match.bracketMatchId] || {};
+    const prediction: BracketPrediction = isAuxiliaryMatch
+      ? {
+          homeTeamId: match.homeTeamId || '',
+          homeTeamName: match.homeTeamName || '',
+          awayTeamId: match.awayTeamId || '',
+          awayTeamName: match.awayTeamName || '',
+        }
+      : storedPrediction;
     const matchCandidates = candidateOptions[match.bracketMatchId];
     const unavailableTeamIds = {
       home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
@@ -516,20 +533,22 @@ export function BracketVisualization({
       roundScoring,
     );
     const homeTeamExactPosition =
-      isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
+      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
     const awayTeamExactPosition =
-      isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
+      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
     const homeTeamCorrectButWrongPosition =
-      isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
+      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
     const awayTeamCorrectButWrongPosition =
-      isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
+      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
     const homeTeamIncorrect =
+      !isAuxiliaryMatch &&
       isDeadlinePassed &&
       actualMatchComplete &&
       Boolean(prediction.homeTeamId) &&
       prediction.homeTeamExactPosition === false &&
       prediction.homeTeamCorrectButWrongPosition === false;
     const awayTeamIncorrect =
+      !isAuxiliaryMatch &&
       isDeadlinePassed &&
       actualMatchComplete &&
       Boolean(prediction.awayTeamId) &&
@@ -541,7 +560,7 @@ export function BracketVisualization({
       isFinal && isDeadlinePassed && prediction.tournamentWinnerCorrect === true
         ? tournamentWinnerPoints
         : 0;
-    const points = isDeadlinePassed
+    const points = !isAuxiliaryMatch && isDeadlinePassed
       ? Math.max(0, (prediction.points || 0) - winnerAwardPoints)
       : 0;
     const isFinished = isFinishedBracketMatch(match);
@@ -619,17 +638,23 @@ export function BracketVisualization({
             points={points}
             onMatchClick={onMatchClick}
             locale={locale}
-          isFinished={isFinished}
-        />
+            isFinished={isFinished}
+            forceActualTeams={isAuxiliaryMatch}
+            forceReadOnly={isAuxiliaryMatch && mode !== 'admin'}
+          />
         </div>
       </div>
     );
   };
 
-  const renderTournamentWinnerCard = (match: BracketMatch | undefined) => {
+  const renderWinnerCard = (
+    match: BracketMatch | undefined,
+    variant: 'tournament' | 'third-place' = 'tournament',
+  ) => {
     if (!match) return null;
 
-    const tone = WINNER_TONE;
+    const isThirdPlace = variant === 'third-place';
+    const tone = isThirdPlace ? toneFor('third-place') : WINNER_TONE;
     const prediction = bracketPredictions[match.bracketMatchId] || {};
     const isAdmin = mode === 'admin';
     const finalResult = bracketResults[match.bracketMatchId];
@@ -645,13 +670,14 @@ export function BracketVisualization({
         : typeof match.awayResult === 'number'
         ? match.awayResult
         : null;
-    const homeTeamId = isAdmin ? match.homeTeamId || '' : prediction.homeTeamId || '';
-    const awayTeamId = isAdmin ? match.awayTeamId || '' : prediction.awayTeamId || '';
-    const homeTeamName = isAdmin ? match.homeTeamName || '' : prediction.homeTeamName || '';
-    const awayTeamName = isAdmin ? match.awayTeamName || '' : prediction.awayTeamName || '';
+    const useActualMatch = isAdmin || isThirdPlace;
+    const homeTeamId = useActualMatch ? match.homeTeamId || '' : prediction.homeTeamId || '';
+    const awayTeamId = useActualMatch ? match.awayTeamId || '' : prediction.awayTeamId || '';
+    const homeTeamName = useActualMatch ? match.homeTeamName || '' : prediction.homeTeamName || '';
+    const awayTeamName = useActualMatch ? match.awayTeamName || '' : prediction.awayTeamName || '';
     const homeTeamDisplayName = countryDisplayName(homeTeamName, t);
     const awayTeamDisplayName = countryDisplayName(awayTeamName, t);
-    const selectedWinnerTeamId = isAdmin
+    const selectedWinnerTeamId = useActualMatch
       ? resultHome !== null && resultAway !== null && resultHome !== resultAway
         ? resultHome > resultAway
           ? homeTeamId
@@ -663,7 +689,7 @@ export function BracketVisualization({
         !homeTeamId ||
         !awayTeamId ||
         !onUpdateResult
-      : Boolean(isDeadlinePassed) ||
+      : isThirdPlace || Boolean(isDeadlinePassed) ||
         !onPredictionChange;
     const handleWinnerChange = (teamId: string) => {
       if (isAdmin) {
@@ -676,7 +702,7 @@ export function BracketVisualization({
         return;
       }
 
-      if (!onPredictionChange) return;
+      if (isThirdPlace || !onPredictionChange) return;
       if (teamId === homeTeamId) {
         onPredictionChange(match.bracketMatchId, 'winner', homeTeamId, homeTeamName || '');
       } else if (teamId === awayTeamId) {
@@ -723,9 +749,16 @@ export function BracketVisualization({
 
     const selectedOption = options.find((option) => option.value === selectedWinnerTeamId) ?? null;
     const winnerAwardPoints =
-      isDeadlinePassed && prediction.tournamentWinnerCorrect === true
+      !isThirdPlace && isDeadlinePassed && prediction.tournamentWinnerCorrect === true
         ? tournamentWinnerPoints
         : 0;
+    const winnerLabel = isThirdPlace
+      ? t('bracket.thirdPlaceWinner')
+      : t('bracket.winner');
+    const winnerPlaceholder = isThirdPlace
+      ? t('bracket.selectThirdPlaceWinner')
+      : t('bracket.selectTournamentWinner');
+    const winnerClickHandler = isThirdPlace ? undefined : onWinnerClick;
 
     return (
       <div
@@ -755,17 +788,17 @@ export function BracketVisualization({
             }}
           >
             <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))', flexShrink: 0 }} />
-            {t('bracket.winner')}
+            {winnerLabel}
           </span>
         </div>
         <article
-          role={onWinnerClick ? 'button' : undefined}
-          tabIndex={onWinnerClick ? 0 : undefined}
-          onClick={() => onWinnerClick?.()}
+          role={winnerClickHandler ? 'button' : undefined}
+          tabIndex={winnerClickHandler ? 0 : undefined}
+          onClick={() => winnerClickHandler?.()}
           onKeyDown={(event) => {
-            if (onWinnerClick && (event.key === 'Enter' || event.key === ' ')) {
+            if (winnerClickHandler && (event.key === 'Enter' || event.key === ' ')) {
               event.preventDefault();
-              onWinnerClick();
+              winnerClickHandler();
             }
           }}
           style={{
@@ -781,10 +814,10 @@ export function BracketVisualization({
             gap: '0.35rem',
             overflow: 'visible',
             position: 'relative',
-            cursor: onWinnerClick ? 'pointer' : undefined,
+            cursor: winnerClickHandler ? 'pointer' : undefined,
           }}
         >
-          {onWinnerClick ? (
+          {winnerClickHandler ? (
             <span
               aria-hidden
               style={{
@@ -815,12 +848,12 @@ export function BracketVisualization({
             }}
           >
             <FaTrophy aria-hidden style={{ color: 'rgb(var(--gold))' }} />
-            {t('bracket.winner')}
+            {winnerLabel}
           </span>
           <div onPointerDownCapture={preserveBracketScrollPosition}>
             <Select<{ value: string; label: React.ReactNode; displayLabel: string }, false>
               isSearchable={false}
-              placeholder={t('bracket.selectTournamentWinner')}
+              placeholder={winnerPlaceholder}
               value={selectedOption}
               options={options}
               getOptionLabel={(option) => option.displayLabel}
@@ -837,13 +870,13 @@ export function BracketVisualization({
               styles={selectStyles({
                 control: (base) => ({
                   ...base,
-                  backgroundColor: prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                  backgroundColor: (!isThirdPlace && prediction.tournamentWinnerCorrect === true) || selectedWinnerTeamId
                     ? 'rgb(var(--gold) / 0.08)'
                     : isDisabled
                     ? 'rgb(var(--disabled-bg))'
                     : 'rgb(var(--input-bg))',
                   border: `1px solid ${
-                    prediction.tournamentWinnerCorrect === true || selectedWinnerTeamId
+                    (!isThirdPlace && prediction.tournamentWinnerCorrect === true) || selectedWinnerTeamId
                       ? 'rgb(var(--gold))'
                       : isDisabled
                       ? 'rgb(var(--disabled-border))'
@@ -975,19 +1008,42 @@ export function BracketVisualization({
         >
           {(() => {
             const finalsMatch = bracket['finals']?.[0];
-            if (!finalsMatch) return null;
+            const thirdPlaceMatch = bracket['third-place']?.[0];
+            if (!finalsMatch && !thirdPlaceMatch) return null;
             // renderStandaloneMatch renders its own chip (~LABEL_RESERVE height) above the match
             // box, so positioning it at finalTop aligns the inner match box with the side columns.
             const finalTop = getMatchTop(0, 'finals', bracket);
             const winnerTop = Math.max(0, finalTop - 130);
+            const thirdPlaceTop = finalTop + 340;
+            const thirdPlaceWinnerTop = thirdPlaceTop - 130;
             return (
               <>
-                <div style={{ position: 'absolute', top: `${winnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                  {renderTournamentWinnerCard(finalsMatch)}
-                </div>
-                <div style={{ position: 'absolute', top: `${finalTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                  {renderStandaloneMatch('finals', t('bracket.round.final'), finalsMatch, true)}
-                </div>
+                {finalsMatch ? (
+                  <>
+                    <div style={{ position: 'absolute', top: `${winnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                      {renderWinnerCard(finalsMatch)}
+                    </div>
+                    <div style={{ position: 'absolute', top: `${finalTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                      {renderStandaloneMatch('finals', t('bracket.round.final'), finalsMatch, true)}
+                    </div>
+                  </>
+                ) : null}
+                {thirdPlaceMatch ? (
+                  <>
+                    <div style={{ position: 'absolute', top: `${thirdPlaceWinnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                      {renderWinnerCard(thirdPlaceMatch, 'third-place')}
+                    </div>
+                    <div style={{ position: 'absolute', top: `${thirdPlaceTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                      {renderStandaloneMatch(
+                        'third-place',
+                        t('bracket.round.thirdPlace'),
+                        thirdPlaceMatch,
+                        false,
+                        true,
+                      )}
+                    </div>
+                  </>
+                ) : null}
               </>
             );
           })()}
@@ -1030,6 +1086,8 @@ interface BracketMatchBoxProps {
   onMatchClick?: (match: BracketMatch) => void;
   locale: string;
   isFinished?: boolean;
+  forceActualTeams?: boolean;
+  forceReadOnly?: boolean;
 }
 
 function BracketMatchBox({
@@ -1059,23 +1117,27 @@ function BracketMatchBox({
   onMatchClick,
   locale,
   isFinished = false,
+  forceActualTeams = false,
+  forceReadOnly = false,
 }: Readonly<BracketMatchBoxProps>) {
   const phaseTone = toneFor(phaseKey ?? match.phase);
   const { t } = useI18n();
   const isAdmin = mode === 'admin';
   const formattedSchedule = formatBracketSchedule(match.scheduledAt, locale);
-  const isReadOnlyUser = !isAdmin && Boolean(isDeadlinePassed);
+  const isReadOnlyUser = !isAdmin && (forceReadOnly || Boolean(isDeadlinePassed));
   const isDisabled = isAdmin
     ? updatingMatch === match.bracketMatchId
-    : Boolean(isDeadlinePassed);
+    : forceReadOnly || Boolean(isDeadlinePassed);
 
-  const homeTeamId = isAdmin ? match.homeTeamId : prediction?.homeTeamId || '';
-  const awayTeamId = isAdmin ? match.awayTeamId : prediction?.awayTeamId || '';
+  const useActualTeams = isAdmin || forceActualTeams;
+  const homeTeamId = useActualTeams ? match.homeTeamId : prediction?.homeTeamId || '';
+  const awayTeamId = useActualTeams ? match.awayTeamId : prediction?.awayTeamId || '';
   const sourceMatchupLabel =
     phaseKey === '16th-finals' && match.homeSourceLabel && match.awaySourceLabel
       ? `${match.homeSourceLabel} ${t('bracket.vs')} ${match.awaySourceLabel}`
       : '';
-  const showSlotSourceLabels = phaseKey === '16th-finals' && !sourceMatchupLabel;
+  const showSlotSourceLabels =
+    (phaseKey === '16th-finals' || phaseKey === 'third-place') && !sourceMatchupLabel;
   const homeSlotSourceLabel = showSlotSourceLabels ? match.homeSourceLabel : undefined;
   const awaySlotSourceLabel = showSlotSourceLabels ? match.awaySourceLabel : undefined;
   // Use candidates from the source match. If candidates exist (even empty array), respect them —
