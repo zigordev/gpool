@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.55](https://github.com/zigordev/gpool/compare/v0.1.54...v0.1.55) (2026-07-21)
+
+
+### Features
+
+* add third-place playoff match ([#140](https://github.com/zigordev/gpool/issues/140)) ([32ffaee](https://github.com/zigordev/gpool/commit/32ffaeecd2ef5f45d8b3d30f19429f5a4772644c))
+
 ## [0.1.54](https://github.com/zigordev/gpool/compare/v0.1.53...v0.1.54) (2026-07-01)
 
 
