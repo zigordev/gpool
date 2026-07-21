@@ -277,10 +277,13 @@
       "8th": "Octavos",
       "final": "Final",
       "quarter": "Cuartos",
-      "semi": "Semifinales"
+      "semi": "Semifinales",
+      "thirdPlace": "Partido por el tercer puesto"
     },
     "selectTeam": "Selecciona equipo",
+    "selectThirdPlaceWinner": "Selecciona el tercer clasificado",
     "selectTournamentWinner": "Selecciona ganador del torneo",
+    "thirdPlaceWinner": "Tercer puesto",
     "totalPoints": "Total: +{points} pts",
     "vs": "vs",
     "winner": "Ganador"
