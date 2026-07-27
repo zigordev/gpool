@@ -1,8 +1,8 @@
 'use client';
 
 import { Loading } from '@/components/Loading';
-import { Logo } from '@/components/Logo';
 import { LanguageButton, ThemeButton } from '@/components/NavigationBar';
+import { Logo } from '../../../design-system/components/navigation/Logo.jsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -103,7 +103,7 @@ function LoginPageContent() {
             gap: '0.75rem',
           }}
         >
-          <Logo size="lg" iconOnly />
+          <Logo initials="GP" size="lg" shape="circle" href="/" />
           <p className="eyebrow" style={{ marginTop: '0.25rem' }}>
             {t('login.eyebrow')}
           </p>

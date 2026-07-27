@@ -370,6 +370,8 @@
   },
   "nav": {
     "admin": "Match result and player actions management",
+    "adminLabel": "Admin",
+    "home": "Home",
     "language": "Language",
     "logout": "Log out",
     "pools": "Pools",

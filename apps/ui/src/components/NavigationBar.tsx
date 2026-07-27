@@ -1,14 +1,11 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { FaGlobe, FaMoon, FaPenToSquare, FaSun, FaUser } from 'react-icons/fa6';
-import { Logo } from './Logo';
 
 const LOCALE_META: Record<Locale, { label: string; flagCode: string }> = {
   es: { label: 'Español', flagCode: 'es' },
@@ -44,9 +41,14 @@ export function ThemeButton() {
     setDark(next);
     if (next) {
       document.documentElement.classList.add('dark');
+      // Also flip data-mode: the copied design-system chrome (Sidebar/
+      // Topbar/BottomNav) keys its dark palette off `[data-mode="dark"]`,
+      // a separate mechanism from gpool's own `.dark` class toggle above.
+      document.documentElement.setAttribute('data-mode', 'dark');
       localStorage.setItem('gpool-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.removeAttribute('data-mode');
       localStorage.setItem('gpool-theme', 'light');
     }
   };
@@ -180,7 +182,7 @@ export function LanguageButton() {
   );
 }
 
-function UserButton() {
+export function UserButton() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -288,65 +290,23 @@ function UserButton() {
   );
 }
 
-export function NavigationBar() {
+/** Admin-shortcut icon link — only rendered for admin users. Unchanged from
+ * the pre-migration NavigationBar, just extracted into its own export so it
+ * can be relocated into AppShell's `topbar.utilities` slot (see AppNav.tsx). */
+export function AdminShortcutLink() {
   const { user } = useAuth();
-  const { center, subBar } = useNavCenter();
   const { t } = useI18n();
-  const pathname = usePathname();
 
-  if (pathname === '/login') return null;
+  if (user?.role !== 'admin') return null;
 
   return (
-    <>
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgb(var(--bg) / 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}>
-        <nav
-          aria-label={t('nav.primary')}
-          className={`nav-shell${center ? ' nav-shell--has-center' : ''}`}
-        >
-          <div className="nav-logo-area">
-            <Logo size="sm" />
-          </div>
-
-          {center ? (
-            <div className="nav-center-area">
-              {center}
-            </div>
-          ) : null}
-
-          <div className="nav-icons-area">
-            {user?.role === 'admin' ? (
-              <Link
-                href="/admin"
-                aria-label={t('nav.admin')}
-                title={t('nav.admin')}
-                style={{ ...NAV_ICON_STYLE, color: 'rgb(var(--sunset))' }}
-              >
-                <FaPenToSquare size={18} aria-hidden />
-              </Link>
-            ) : null}
-            <ThemeButton />
-            <LanguageButton />
-            <UserButton />
-          </div>
-        </nav>
-
-        {subBar ? (
-          <div className="nav-sub-bar">{subBar}</div>
-        ) : null}
-      </header>
-
-      {center ? (
-        <div className="nav-mobile-bottom-area" aria-hidden={false}>
-          {center}
-        </div>
-      ) : null}
-    </>
+    <Link
+      href="/admin"
+      aria-label={t('nav.admin')}
+      title={t('nav.admin')}
+      style={{ ...NAV_ICON_STYLE, color: 'rgb(var(--sunset))' }}
+    >
+      <FaPenToSquare size={18} aria-hidden />
+    </Link>
   );
 }

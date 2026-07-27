@@ -370,6 +370,8 @@
   },
   "nav": {
     "admin": "Gestión de resultados y acciones de jugador",
+    "adminLabel": "Admin",
+    "home": "Inicio",
     "language": "Idioma",
     "logout": "Cerrar sesion",
     "pools": "Porras",

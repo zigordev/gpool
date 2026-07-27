@@ -1,4 +1,4 @@
-import { NavigationBar } from '@/components/NavigationBar'
+import { AppNav } from '@/components/AppNav'
 import { NavCenterProvider } from '@/contexts/NavCenterContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -41,9 +41,9 @@ export default async function RootLayout({
   const messages = await getMessages(locale)
 
   return (
-    <html lang={locale} className={`${inter.variable} ${display.variable}`}>
+    <html lang={locale} data-theme="gpool" className={`${inter.variable} ${display.variable}`}>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-mode','dark');}}catch(e){}` }} />
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
             <RUMProvider>
@@ -65,10 +65,7 @@ export default async function RootLayout({
                 />
 
                 <NavCenterProvider>
-                  <NavigationBar />
-                  <div className="container-app" style={{ position: 'relative' }}>
-                    {children}
-                  </div>
+                  <AppNav>{children}</AppNav>
                 </NavCenterProvider>
               </main>
               <Toaster

@@ -1,0 +1,46 @@
+/* Example reskin: matches the real "gpool" app (pitch-green primary,
+   sunset-orange secondary accent). Colors only — shape, type, and spacing
+   stay on the shared base tokens from styles.css so every product renders
+   the same component geometry. GPool has a second accent that this system
+   doesn't standardize globally — consuming components can read a
+   project-local --ds-color-accent-2 the same way this file defines it. */
+:root[data-theme="gpool"] {
+  --ds-color-bg: #eff5f1;
+  --ds-color-surface: #f8fbf9;
+  --ds-color-surface-2: #e7eeea;
+  --ds-color-surface-3: #d5dcd7;
+  --ds-color-border: #bfccc3;
+  --ds-color-border-strong: #91a096;
+
+  --ds-color-fg: #11181c;
+  --ds-color-fg-muted: #475563;
+  --ds-color-fg-subtle: #5c6c75;
+  --ds-color-fg-faint: #7c8a90;
+
+  --ds-color-accent: #166534;
+  --ds-color-accent-hover: #14562c;
+  --ds-color-accent-fg: #ffffff;
+  --ds-color-accent-soft: rgb(22 101 52 / 12%);
+  --ds-color-accent-2: #af3a07;
+
+  --ds-color-success: #0d6943;
+  --ds-color-success-bg: rgb(13 105 67 / 10%);
+  --ds-color-warning: #9a5304;
+  --ds-color-warning-bg: rgb(154 83 4 / 10%);
+  --ds-color-danger: #b91c1c;
+  --ds-color-danger-bg: rgb(185 28 28 / 10%);
+}
+
+:root[data-theme="gpool"][data-mode="dark"] {
+  color-scheme: dark;
+  --ds-color-bg: #0d120f;
+  --ds-color-surface: #1c241f;
+  --ds-color-surface-2: #232b26;
+  --ds-color-border: #486250;
+  --ds-color-fg: #daece1;
+  --ds-color-fg-muted: #98b19e;
+  --ds-color-accent: #34d399;
+  --ds-color-accent-hover: #4ade80;
+  --ds-color-accent-fg: #091e13;
+  --ds-color-accent-2: #fb923c;
+}
