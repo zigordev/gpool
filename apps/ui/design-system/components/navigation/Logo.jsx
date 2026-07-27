@@ -14,11 +14,12 @@ export function Logo({
   size = 'md',
   shape = 'circle',
   href,
+  linkComponent = 'a',
   className = '',
   style,
 }) {
   const dim = SIZES[size] ?? SIZES.md;
-  const Tag = href ? 'a' : 'span';
+  const Tag = href ? linkComponent : 'span';
 
   return (
     <Tag

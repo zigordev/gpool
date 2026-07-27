@@ -12,14 +12,15 @@ function isActive(href, activeHref) {
   return href === activeHref || (href !== '/' && activeHref.startsWith(`${href}/`));
 }
 
-function SidebarItem({ item, activeHref }) {
+function SidebarItem({ item, activeHref, linkComponent }) {
   const active = isActive(item.href, activeHref);
   const hasChildren = item.children && item.children.length > 0;
   const showChildren = hasChildren && active;
+  const Link = linkComponent;
 
   return (
     <div>
-      <a
+      <Link
         href={item.href}
         className={`ds-sidebar-link ${active ? 'ds-sidebar-link-active' : ''}`.trim()}
         style={{
@@ -31,13 +32,13 @@ function SidebarItem({ item, activeHref }) {
       >
         {item.icon ? <span aria-hidden="true" style={{ display: 'grid', placeItems: 'center', width: 18 }}>{item.icon}</span> : null}
         <span>{item.label}</span>
-      </a>
+      </Link>
       {showChildren ? (
         <div style={{ display: 'grid', gap: 2, marginTop: 4, marginLeft: 28, paddingLeft: 8, borderLeft: '1px solid var(--ds-color-border)' }}>
           {item.children.map((child) => {
             const childActive = child.href === activeHref;
             return (
-              <a
+              <Link
                 key={child.href}
                 href={child.href}
                 className={`ds-sidebar-child ${childActive ? 'ds-sidebar-child-active' : ''}`.trim()}
@@ -48,7 +49,7 @@ function SidebarItem({ item, activeHref }) {
                 }}
               >
                 {child.label}
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -57,7 +58,7 @@ function SidebarItem({ item, activeHref }) {
   );
 }
 
-export function Sidebar({ brand, items, activeHref, footer, className = '', style }) {
+export function Sidebar({ brand, items, activeHref, footer, linkComponent = 'a', className = '', style }) {
   return (
     <aside
       className={`ds-sidebar ${className}`.trim()}
@@ -72,7 +73,7 @@ export function Sidebar({ brand, items, activeHref, footer, className = '', styl
       </div>
       <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 12px', display: 'grid', gap: 4, alignContent: 'start' }}>
         {items.map((item) => (
-          <SidebarItem key={item.href} item={item} activeHref={activeHref} />
+          <SidebarItem key={item.href} item={item} activeHref={activeHref} linkComponent={linkComponent} />
         ))}
       </nav>
       {footer ? (

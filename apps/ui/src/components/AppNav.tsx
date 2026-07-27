@@ -3,10 +3,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaHouse, FaShieldHalved, FaTrophy } from 'react-icons/fa6';
 import { AdminShortcutLink, LanguageButton, ThemeButton, UserButton } from './NavigationBar';
-// design-system v0.1.2, copied in (no npm package / build step) — see
+// design-system v0.1.4, copied in (no npm package / build step) — see
 // apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
 // from the sibling design-system repo instead.
 import { AppShell } from '../../design-system/components/navigation/AppShell.jsx';
@@ -51,6 +52,7 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       shape="circle"
       size="sm"
       href="/"
+      linkComponent={Link}
     />
   );
 
@@ -60,6 +62,7 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       sidebarItems={navItems}
       bottomNavItems={navItems}
       activeHref={pathname}
+      linkComponent={Link}
       topbar={{
         tabs: center,
         subBar: subBar,

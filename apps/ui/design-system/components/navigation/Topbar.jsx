@@ -9,6 +9,7 @@ injectOnce('ds-topbar', `
 .ds-topbar-tabs::-webkit-scrollbar{display:none;}
 .ds-topbar-brand{display:flex;flex-shrink:0;}
 @media (min-width: 1025px) { .ds-topbar-brand--hide-desktop{display:none;} }
+@media (max-width: 1024px) { .ds-topbar-row{flex-wrap:wrap;} }
 `);
 
 export function Topbar({
@@ -19,7 +20,7 @@ export function Topbar({
 
   return (
     <header className={`ds-topbar ${className}`.trim()} style={style}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-space-4)', minHeight: 56, padding: '0 var(--ds-space-5)' }}>
+      <div className="ds-topbar-row" style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-space-4)', minHeight: 56, padding: '0 var(--ds-space-5)' }}>
         {brand ? (
           <div className={`ds-topbar-brand ${hideBrandOnDesktop ? 'ds-topbar-brand--hide-desktop' : ''}`.trim()}>
             {brand}

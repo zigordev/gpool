@@ -13,7 +13,8 @@ injectOnce('ds-bottom-nav', `
 .ds-bottom-nav-link-active{color:var(--ds-color-accent);font-weight:var(--ds-weight-semibold);}
 `);
 
-export function BottomNav({ items, activeHref, className = '', style }) {
+export function BottomNav({ items, activeHref, linkComponent = 'a', className = '', style }) {
+  const Link = linkComponent;
   return (
     <nav
       className={`ds-bottom-nav ${className}`.trim()}
@@ -22,14 +23,14 @@ export function BottomNav({ items, activeHref, className = '', style }) {
       {items.map((item) => {
         const active = item.href === activeHref || (item.href !== '/' && activeHref.startsWith(`${item.href}/`));
         return (
-          <a
+          <Link
             key={item.href}
             href={item.href}
             className={`ds-bottom-nav-link ${active ? 'ds-bottom-nav-link-active' : ''}`.trim()}
           >
             <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1 }}>{item.icon}</span>
             <span>{item.label}</span>
-          </a>
+          </Link>
         );
       })}
     </nav>

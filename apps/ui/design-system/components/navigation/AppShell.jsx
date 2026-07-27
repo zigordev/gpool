@@ -26,6 +26,7 @@ export function AppShell({
   sidebarFooter,
   topbar = {},
   hasSidebar = true,
+  linkComponent = 'a',
   children,
   className = '',
   style,
@@ -35,7 +36,7 @@ export function AppShell({
   return (
     <div className={`ds-app-shell ${className}`.trim()} style={{ display: 'flex', minHeight: '100vh', background: 'var(--ds-color-bg)', ...style }}>
       {hasSidebar ? (
-        <Sidebar brand={brand} items={sidebarItems} activeHref={activeHref} footer={sidebarFooter} />
+        <Sidebar brand={brand} items={sidebarItems} activeHref={activeHref} footer={sidebarFooter} linkComponent={linkComponent} />
       ) : null}
       <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto', minWidth: 0 }}>
         <Topbar brand={brand} hideBrandOnDesktop={hasSidebar} {...topbar} />
@@ -46,7 +47,7 @@ export function AppShell({
           {children}
         </main>
       </div>
-      {bottomItems.length ? <BottomNav items={bottomItems} activeHref={activeHref} /> : null}
+      {bottomItems.length ? <BottomNav items={bottomItems} activeHref={activeHref} linkComponent={linkComponent} /> : null}
     </div>
   );
 }
