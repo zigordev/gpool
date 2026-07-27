@@ -9,7 +9,10 @@ injectOnce('ds-topbar', `
 .ds-topbar-tabs::-webkit-scrollbar{display:none;}
 .ds-topbar-brand{display:flex;flex-shrink:0;}
 @media (min-width: 1025px) { .ds-topbar-brand--hide-desktop{display:none;} }
-@media (max-width: 1024px) { .ds-topbar-row{flex-wrap:wrap;} }
+@media (max-width: 1024px) {
+  .ds-topbar-row { flex-wrap: wrap; row-gap: var(--ds-space-2); }
+  .ds-topbar-row > .ds-topbar-header-text { flex-basis: 100%; }
+}
 `);
 
 export function Topbar({
@@ -28,7 +31,7 @@ export function Topbar({
         ) : null}
 
         {hasHeaderText ? (
-          <div style={{ display: 'grid', gap: 2, minWidth: 0, flex: '1 1 auto' }}>
+          <div className="ds-topbar-header-text" style={{ display: 'grid', gap: 2, minWidth: 0, flex: '1 1 auto' }}>
             {title ? (
               <h1 style={{ margin: 0, fontSize: 'var(--ds-text-lg)', fontWeight: 'var(--ds-weight-bold)', color: 'var(--ds-color-fg)', letterSpacing: 'var(--ds-tracking-tight)' }}>
                 {title}
