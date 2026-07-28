@@ -1,5 +1,5 @@
-import { NavigationBar } from '@/components/NavigationBar'
-import { NavCenterProvider } from '@/contexts/NavCenterContext'
+import { AppNav } from '@/components/AppNav'
+import { PoolsProvider } from '@/contexts/PoolsContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
@@ -41,9 +41,9 @@ export default async function RootLayout({
   const messages = await getMessages(locale)
 
   return (
-    <html lang={locale} className={`${inter.variable} ${display.variable}`}>
+    <html lang={locale} data-theme="gpool" className={`${inter.variable} ${display.variable}`}>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-mode','dark');}}catch(e){}` }} />
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
             <RUMProvider>
@@ -64,12 +64,9 @@ export default async function RootLayout({
                   }}
                 />
 
-                <NavCenterProvider>
-                  <NavigationBar />
-                  <div className="container-app" style={{ position: 'relative' }}>
-                    {children}
-                  </div>
-                </NavCenterProvider>
+                  <PoolsProvider>
+                    <AppNav>{children}</AppNav>
+                  </PoolsProvider>
               </main>
               <Toaster
                 position="top-right"

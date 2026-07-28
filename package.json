@@ -39,7 +39,10 @@
     },
     "@nestjs/platform-express": {
       "multer": "2.2.0"
-    }
+    },
+    "gaxios": "7.3.0",
+    "postcss": "8.5.24",
+    "sharp": "0.35.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
@@ -52,6 +55,8 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.14.4"
+    "@grpc/grpc-js": "^1.14.4",
+    "gcp-metadata": "8.1.4",
+    "next": "^15.5.21"
   }
 }
