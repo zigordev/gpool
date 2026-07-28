@@ -1128,87 +1128,30 @@ html.dark .players-pitch-board {
   padding-bottom: 1.25rem;
 }
 
-/* Content rendered inside the shared Topbar's `tabs` slot (moved out of
-   NavigationBar's old responsive grid — Topbar owns the sticky header
-   chrome now; see design-system/components/navigation/Topbar.jsx).
-   `.nav-center-mobile-countdown` is the pool countdown chip that used to
-   live only in the old fixed mobile bottom bar; Topbar.tabs now renders at
-   every width, so this chip needs an explicit mobile-only visibility rule
-   instead (deviation: subBar's own `.pool-header-countdown` stays hidden
-   below 639px — see further down — so the chip isn't shown twice). */
-.nav-center-mobile-countdown {
-  display: none;
-}
-
-@media (max-width: 639px) {
-  .nav-center-mobile-countdown {
-    display: flex;
-    justify-content: center;
-  }
-}
-
-.nav-pool-name {
-  display: block;
-  color: rgb(var(--fg));
-  font-size: 0.8rem;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pool-header-strip {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  width: 100%;
-  gap: 1rem;
-}
-
-.pool-header-name {
-  min-width: 0;
-  justify-self: start;
-}
-
-.pool-header-countdown {
-  display: flex;
-  min-width: 0;
-  justify-content: center;
-}
-
-.pool-header-actions {
-  justify-self: end;
-  max-width: min(100%, 36rem);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pool-header-actions::-webkit-scrollbar {
-  display: none;
-}
-
-/* Right-hand actions inside Topbar's subBar slot (admin icon, countdown chip).
-   Kept despite the "nav-sub-bar*" name — still applied by
-   PoolBreadcrumbs/AdminBreadcrumbs JSX (unchanged) to lay out poolActions. */
-.nav-sub-bar-actions {
+/* Deadline + section info buttons, rendered at the top of a pool section's
+   own content (see components/pool/PoolSectionHeader.tsx). These used to be
+   teleported into a chrome strip below the Topbar together with the pool
+   name; the name now lives in the Sidebar's ScopeSwitcher and the rest is
+   page content, so it sits in the content column instead. */
+.pool-section-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.6rem;
-  flex-shrink: 0;
+  margin-bottom: 0.85rem;
+}
+
+.pool-section-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-left: auto;
 }
 
 @media (max-width: 639px) {
-  .pool-header-strip {
-    grid-template-columns: minmax(5rem, 1fr) minmax(0, auto);
-    gap: 0.5rem;
-  }
-
-  .pool-header-countdown {
-    display: none;
-  }
-
-  .pool-header-actions {
-    max-width: 68vw;
+  .pool-section-header-actions {
     gap: 0.35rem;
   }
 }

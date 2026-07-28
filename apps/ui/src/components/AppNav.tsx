@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -32,7 +31,6 @@ import { MenuItem } from '../../design-system/components/overlay/Menu.jsx';
  */
 export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useAuth();
-  const { subBar } = useNavCenter();
   const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
@@ -141,7 +139,6 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       activeHref={pathname}
       linkComponent={Link}
       topbar={{
-        subBar,
         mode: isPoolAdmin && activePoolId ? (
           <SegmentedControl
             ariaLabel={t('poolDetail.mode.label')}

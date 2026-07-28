@@ -28,7 +28,7 @@ import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerSelectionLimits } from '@/lib/player-selection-limits';
 import { ReadOnlyGroupMatchCard } from '@/components/pool/ReadOnlyGroupMatchCard';
-import { useNavCenter } from '@/contexts/NavCenterContext';
+import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
@@ -665,7 +665,6 @@ export function RankingContent({
   showGeneralSection = true,
 }: Readonly<{ showGeneralSection?: boolean }>) {
   const { t, locale } = useI18n();
-  const { setPoolActions } = useNavCenter();
   const { user } = useAuth();
   const {
     ranking,
@@ -697,31 +696,20 @@ export function RankingContent({
     year: 'numeric',
   });
 
-  useLayoutEffect(() => {
-    setPoolActions(
-      showGeneralSection ? (
-        <GeneralPoolInfoSection
-          deadlineLabel={deadlineHint}
-          entryFeeLabel={entryFee}
-          prizeDistribution={prizeDistribution}
-          formatCurrency={formatCurrency}
-          playerSelectionLimits={playerSelectionLimits}
-        />
-      ) : null
-    );
-    return () => setPoolActions(null);
-  }, [
-    deadlineHint,
-    entryFee,
-    formatCurrency,
-    playerSelectionLimits,
-    prizeDistribution,
-    setPoolActions,
-    showGeneralSection,
-  ]);
+  const sectionActions = showGeneralSection ? (
+    <GeneralPoolInfoSection
+      deadlineLabel={deadlineHint}
+      entryFeeLabel={entryFee}
+      prizeDistribution={prizeDistribution}
+      formatCurrency={formatCurrency}
+      playerSelectionLimits={playerSelectionLimits}
+    />
+  ) : null;
+
 
   return (
     <div className="content-panel main-view-stack">
+      <PoolSectionHeader actions={sectionActions} />
       {ranking.length > 0 ? (
         <RankTable
           ranking={ranking}

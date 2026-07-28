@@ -1,5 +1,4 @@
 import { AppNav } from '@/components/AppNav'
-import { NavCenterProvider } from '@/contexts/NavCenterContext'
 import { PoolsProvider } from '@/contexts/PoolsContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -65,11 +64,9 @@ export default async function RootLayout({
                   }}
                 />
 
-                <NavCenterProvider>
                   <PoolsProvider>
                     <AppNav>{children}</AppNav>
                   </PoolsProvider>
-                </NavCenterProvider>
               </main>
               <Toaster
                 position="top-right"
