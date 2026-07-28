@@ -119,12 +119,17 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
           label={t('poolDetail.title')}
           value={activePool?.name}
           placeholder={t('pools.title')}
-          items={pools.map((pool) => ({
-            id: pool.poolId,
-            label: pool.name,
-            active: pool.poolId === activePoolId,
-            onSelect: (id: string) => router.push(`/pools/${id}/ranking`),
-          }))}
+          // Only pools you can actually enter. /pools returns the whole
+          // directory including ones you are not in — offering those here
+          // would switch scope to a pool that renders disabled.
+          items={pools
+            .filter((pool) => pool.isMember || pool.adminUserId === user?.userId)
+            .map((pool) => ({
+              id: pool.poolId,
+              label: pool.name,
+              active: pool.poolId === activePoolId,
+              onSelect: (id: string) => router.push(`/pools/${id}/ranking`),
+            }))}
           footer={({ close }: { close: () => void }) => (
             <MenuItem onClick={() => { close(); router.push('/pools'); }}>
               <Icon name="trophy" /> {t('pools.title')}
