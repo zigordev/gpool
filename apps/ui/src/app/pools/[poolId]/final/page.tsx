@@ -18,7 +18,7 @@ import {
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
 import ReactCountryFlag from 'react-country-flag';
-import { useNavCenter } from '@/contexts/NavCenterContext';
+import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
 
 const BracketVisualization = dynamic(
   () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
@@ -35,7 +35,6 @@ const WinnerInsightsModal = dynamic(
 
 export default function FinalPage() {
   const { t, locale } = useI18n();
-  const { setPoolActions } = useNavCenter();
   const {
     bracket, teams, pool, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
     bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
@@ -75,8 +74,7 @@ export default function FinalPage() {
     return () => globalThis.clearInterval(timer);
   }, []);
 
-  useLayoutEffect(() => {
-    setPoolActions(
+  const sectionActions = (
       <>
         <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
         {Object.keys(bracket).length > 0 ? (
@@ -93,17 +91,9 @@ export default function FinalPage() {
             {t('poolDetail.finalPhase.autoFillRoundOf32')}
           </Button>
         ) : null}
-      </>,
-    );
-    return () => setPoolActions(null);
-  }, [
-    autoFillingRoundOf32,
-    bracket,
-    bracketScoringConfig,
-    isPastPoolDeadline,
-    setPoolActions,
-    t,
-  ]);
+    </>
+  );
+
 
   const handleAutoFillRoundOf32 = async () => {
     if (Date.now() >= poolDeadline) {
@@ -222,6 +212,7 @@ export default function FinalPage() {
 
   return (
     <div className="content-panel main-view-stack">
+      <PoolSectionHeader actions={sectionActions} />
       {Object.keys(bracket).length > 0 ? (
         <>
           {nextMatchdayMatches.length > 0 ? (

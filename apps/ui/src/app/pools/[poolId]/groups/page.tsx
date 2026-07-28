@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
@@ -19,7 +19,7 @@ import ReactCountryFlag from 'react-country-flag';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
-import { useNavCenter } from '@/contexts/NavCenterContext';
+import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
 
 const MatchInsightsModal = dynamic(
   () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),
@@ -28,7 +28,6 @@ const MatchInsightsModal = dynamic(
 
 export default function GroupsPage() {
   const { t, locale } = useI18n();
-  const { setPoolActions } = useNavCenter();
   const {
     groups,
     matchesByGroup,
@@ -82,33 +81,24 @@ export default function GroupsPage() {
     return () => globalThis.clearInterval(timer);
   }, []);
 
-  useLayoutEffect(() => {
-    setPoolActions(
-      <>
-        <GroupScoringInfoSection groupScoring={groupScoringConfig} />
-        {bestThirdsRanking.length > 0 || realBestThirdsRanking.length > 0 ? (
-          <PoolDetailModalButton
-            title={t('poolDetail.groupPhase.bestThirdsTitle')}
-            icon={<FaRankingStar size={14} />}
-            label={t('poolDetail.groupPhase.bestThirdsTitle')}
-          >
-            <BestThirdsStandingsContent
-              standings={bestThirdsRanking}
-              realStandings={realBestThirdsRanking}
-              t={t}
-            />
-          </PoolDetailModalButton>
-        ) : null}
-      </>,
-    );
-    return () => setPoolActions(null);
-  }, [
-    bestThirdsRanking,
-    groupScoringConfig,
-    realBestThirdsRanking,
-    setPoolActions,
-    t,
-  ]);
+  const sectionActions = (
+    <>
+      <GroupScoringInfoSection groupScoring={groupScoringConfig} />
+      {bestThirdsRanking.length > 0 || realBestThirdsRanking.length > 0 ? (
+        <PoolDetailModalButton
+          title={t('poolDetail.groupPhase.bestThirdsTitle')}
+          icon={<FaRankingStar size={14} />}
+          label={t('poolDetail.groupPhase.bestThirdsTitle')}
+        >
+          <BestThirdsStandingsContent
+            standings={bestThirdsRanking}
+            realStandings={realBestThirdsRanking}
+            t={t}
+          />
+        </PoolDetailModalButton>
+      ) : null}
+    </>
+  );
 
   const renderMatchCard = (match: Match) => {
     const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
@@ -167,6 +157,7 @@ export default function GroupsPage() {
 
   return (
     <div className="content-panel main-view-stack">
+      <PoolSectionHeader actions={sectionActions} />
       {groups.length > 0 ? (
         <div className="main-section-list">
           {nextMatchdayMatches.length > 0 ? (

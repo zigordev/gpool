@@ -17,7 +17,7 @@
     "axios": "^1.18.1",
     "flag-icons": "^7.5.0",
     "jszip": "^3.10.1",
-    "next": "^15.5.18",
+    "next": "^15.5.21",
     "react": "^18.2.0",
     "react-country-flag": "^3.1.0",
     "react-dom": "^18.2.0",

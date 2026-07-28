@@ -20,7 +20,7 @@ import {
   resolvePlayerInfoScoring,
 } from '@/components/pool/PoolInfoSections';
 import type { PlayerInsightsTarget } from '@/components/pool/PlayerInsightsModal';
-import { useNavCenter } from '@/contexts/NavCenterContext';
+import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 
@@ -64,7 +64,6 @@ const eliminatedSelectionCardStyle = {
 
 export default function PlayersPage() {
   const { t, locale } = useI18n();
-  const { setPoolActions } = useNavCenter();
   const {
     players,
     playerSelections,
@@ -90,15 +89,12 @@ export default function PlayersPage() {
     null
   );
 
-  useLayoutEffect(() => {
-    setPoolActions(
-      <>
-        <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
-        <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
-      </>
-    );
-    return () => setPoolActions(null);
-  }, [isPastPoolDeadline, playerInfoScoring, poolId, setPoolActions]);
+  const sectionActions = (
+    <>
+      <PlayerScoringInfoSection playerScoring={playerInfoScoring} />
+      <PlayerSelectionStatistics poolId={poolId} visible={isPastPoolDeadline} />
+    </>
+  );
 
   const insightCardProps = (target: PlayerInsightsTarget | null) => {
     if (!target || !isPastPoolDeadline) return {};
@@ -274,6 +270,7 @@ export default function PlayersPage() {
 
   return (
     <div className="content-panel main-view-stack">
+      <PoolSectionHeader actions={sectionActions} />
       <div className="players-toolbar players-toolbar--tabs-only">
         <div className="players-tab-bar" role="tablist">
           <button
