@@ -309,6 +309,43 @@ jobs:
           wait "$pid_api"
           wait "$pid_web"
 
+      - name: Prepare artifacts dir
+        run: mkdir -p artifacts
+
+      - name: Generate SBOM (api image)
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
+        with:
+          image: gpool-api:ci
+          format: spdx-json
+          output-file: artifacts/sbom-api.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate SBOM (web image)
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
+        with:
+          image: gpool-web:ci
+          format: spdx-json
+          output-file: artifacts/sbom-web.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Validate SBOM files
+        run: |
+          test -s artifacts/sbom-api.spdx.json
+          test -s artifacts/sbom-web.spdx.json
+          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-api.spdx.json
+          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-web.spdx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: sbom
+          path: |
+            artifacts/sbom-api.spdx.json
+            artifacts/sbom-web.spdx.json
+          if-no-files-found: error
+
       - name: Trivy scan (api image)
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
@@ -330,30 +367,3 @@ jobs:
           trivyignores: .trivyignore
           vuln-type: os,library
           severity: HIGH,CRITICAL
-
-      - name: Prepare artifacts dir
-        run: mkdir -p artifacts
-
-      - name: Generate SBOM (api image)
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
-        with:
-          image: gpool-api:ci
-          format: spdx-json
-          output-file: artifacts/sbom-api.spdx.json
-
-      - name: Generate SBOM (web image)
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
-        with:
-          image: gpool-web:ci
-          format: spdx-json
-          output-file: artifacts/sbom-web.spdx.json
-
-      - name: Upload SBOM artifacts
-        if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: sbom
-          path: |
-            artifacts/sbom-api.spdx.json
-            artifacts/sbom-web.spdx.json
-          if-no-files-found: error
