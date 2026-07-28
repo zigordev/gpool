@@ -9,6 +9,7 @@ import { useI18n } from '@/i18n/client';
 import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
+import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
 import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
 import { GiSoccerKick } from 'react-icons/gi';
@@ -17,17 +18,32 @@ import {
   usePoolContext,
 } from '@/contexts/PoolContext';
 
+// Wraps the design-system Icon so it fits the same { className, aria-hidden }
+// interface as the react-icons components the sibling tabs use below.
+function ManageIcon({ className }: { className?: string }) {
+  return <Icon name="settings" className={className} aria-hidden />;
+}
+
 function PoolNav() {
   const { t } = useI18n();
   const { setCenter } = useNavCenter();
   const pathname = usePathname();
-  const { poolId, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
+  const { poolId, pool, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
+  const isPoolAdmin = pool?.userMembership?.role === 'admin';
 
   const routes = [
     { segment: 'ranking', label: t('poolDetail.tabs.ranking'), shortLabel: t('poolDetail.tabs.short.ranking'), icon: FaRankingStar },
     { segment: 'groups', label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
     { segment: 'final', label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
     { segment: 'players', label: t('poolDetail.tabs.players'), shortLabel: t('poolDetail.tabs.short.players'), icon: GiSoccerKick, missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
+    // Per-pool admin ("Manage") — this pool's own scoring/config/entry-fee
+    // settings, distinct from tournament admin (real match results, reached
+    // via the account menu). Contextual to this pool, so it lives here
+    // rather than in the primary sidebar — previously had no nav entry
+    // point at all (only reachable by typing the URL directly).
+    ...(isPoolAdmin
+      ? [{ segment: 'admin', label: t('nav.adminLabel'), shortLabel: t('nav.adminLabel'), icon: ManageIcon }]
+      : []),
   ];
 
   useLayoutEffect(() => {
@@ -111,10 +127,6 @@ function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) 
   const pathname = usePathname();
   const isAdminRoute = pathname.includes('/admin');
 
-  if (isAdminRoute) {
-    return <>{children}</>;
-  }
-
   if (loading) {
     return (
       <main style={{ padding: 'var(--spacing-2xl)', minHeight: '60vh' }}>
@@ -126,7 +138,11 @@ function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) 
   return (
     <>
       <PoolNav />
-      <PoolBreadcrumbs />
+      {/* Admin routes render their own subBar (pool name + countdown, no
+          poolActions) via AdminBreadcrumbs in admin/layout.tsx — PoolNav's
+          tab strip (including "Manage") still applies so admins can move
+          between viewing the pool and administering it without a dead end. */}
+      {isAdminRoute ? null : <PoolBreadcrumbs />}
       <div style={{ marginTop: '0.65rem' }}>
         {children}
       </div>

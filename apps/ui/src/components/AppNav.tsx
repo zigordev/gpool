@@ -1,11 +1,10 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AdminShortcutLink, LanguageButton, ThemeButton, UserButton } from './NavigationBar';
+import { LanguageButton, ThemeButton, UserButton } from './NavigationBar';
 // design-system v0.1.4, copied in (no npm package / build step) — see
 // apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
 // from the sibling design-system repo instead.
@@ -19,13 +18,17 @@ import { Logo } from '../../design-system/components/navigation/Logo.jsx';
  * AppShell's Sidebar + Topbar + BottomNav chrome:
  *   - center  -> topbar.tabs   (pool tab strip / admin section tabs)
  *   - subBar  -> topbar.subBar (pool name + countdown + poolActions)
- *   - ThemeButton/LanguageButton/UserButton/AdminShortcutLink -> topbar.utilities
+ *   - ThemeButton/LanguageButton/UserButton -> topbar.utilities
  *
- * Primary nav (Home/Pools/Admin) is genuinely new — gpool had no sidebar or
- * bottom nav before this migration.
+ * Primary nav is just "Pools" — Home was a bare redirect to /pools (no
+ * content of its own), and system admin now lives in UserButton's menu
+ * (see NavigationBar.tsx) rather than as a sidebar peer, since it's a
+ * secondary/account-level action for the rare admin user, not a feature
+ * area every user navigates to. Per-pool admin ("Manage") is contextual
+ * to a specific pool and lives in that pool's own tab strip (PoolNav),
+ * not here.
  */
 export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { user } = useAuth();
   const { center, subBar } = useNavCenter();
   const { t } = useI18n();
   const pathname = usePathname();
@@ -34,14 +37,8 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   // (login has its own centered, sidebar-less layout).
   if (pathname === '/login') return <>{children}</>;
 
-  const isAdmin = user?.role === 'admin';
-
   const navItems = [
-    { href: '/', label: t('nav.home'), icon: <Icon name="home" /> },
     { href: '/pools', label: t('nav.pools'), icon: <Icon name="trophy" /> },
-    ...(isAdmin
-      ? [{ href: '/admin', label: t('nav.adminLabel'), icon: <Icon name="shield" /> }]
-      : []),
   ];
 
   const brand = (
@@ -68,7 +65,6 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
         subBar: subBar,
         utilities: (
           <>
-            <AdminShortcutLink />
             <ThemeButton />
             <LanguageButton />
             <UserButton />

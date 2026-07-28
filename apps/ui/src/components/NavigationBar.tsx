@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '../../design-system/components/core/Button.jsx';
 import { Flag } from '../../design-system/components/icons/Flag.jsx';
@@ -16,20 +16,6 @@ const LOCALE_META: Record<Locale, { label: string; flagCode: 'gb' | 'es' }> = {
 };
 
 const ICON_STYLE: React.CSSProperties = { lineHeight: 1 };
-
-// Only the admin shortcut still needs this — it's a lone icon Link, not a
-// Menu trigger, so it doesn't go through the shared Button.
-const ADMIN_LINK_STYLE: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '2rem',
-  height: '2rem',
-  borderRadius: '999px',
-  color: 'rgb(var(--sunset))',
-  transition: 'background 0.15s ease',
-  flexShrink: 0,
-};
 
 export function ThemeButton() {
   const { t } = useI18n();
@@ -123,6 +109,8 @@ export function LanguageButton() {
 export function UserButton() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
+  const router = useRouter();
+  const isSystemAdmin = user?.role === 'admin';
 
   if (!user) return null;
 
@@ -156,34 +144,21 @@ export function UserButton() {
               {user.email}
             </div>
           </div>
+          {isSystemAdmin ? (
+            // Tournament admin edits the real match schedule/bracket/player
+            // roster shared by every pool — a platform-level concern, not a
+            // specific pool's own settings (that's the per-pool "Manage" tab
+            // in PoolNav instead). Lives here, not the primary sidebar, since
+            // it's a secondary/account-level action, not a peer of "Pools".
+            <MenuItem onClick={() => { close(); router.push('/admin'); }}>
+              <Icon name="shield" /> {t('nav.adminLabel')}
+            </MenuItem>
+          ) : null}
           <MenuItem onClick={() => { close(); logout(); }}>
             <Icon name="log-out" /> {t('nav.logout')}
           </MenuItem>
         </>
       )}
     </Menu>
-  );
-}
-
-/** Admin-shortcut icon link — only rendered for admin users. Unchanged from
- * the pre-migration NavigationBar, just extracted into its own export so it
- * can be relocated into AppShell's `topbar.utilities` slot (see AppNav.tsx). */
-export function AdminShortcutLink() {
-  const { user } = useAuth();
-  const { t } = useI18n();
-
-  if (user?.role !== 'admin') return null;
-
-  return (
-    <Link
-      href="/admin"
-      aria-label={t('nav.admin')}
-      title={t('nav.admin')}
-      style={ADMIN_LINK_STYLE}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--sunset) / 0.1)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-    >
-      <Icon name="edit" />
-    </Link>
   );
 }
