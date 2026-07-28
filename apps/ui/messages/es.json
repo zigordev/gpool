@@ -277,13 +277,10 @@
       "8th": "Octavos",
       "final": "Final",
       "quarter": "Cuartos",
-      "semi": "Semifinales",
-      "thirdPlace": "Partido por el tercer puesto"
+      "semi": "Semifinales"
     },
     "selectTeam": "Selecciona equipo",
-    "selectThirdPlaceWinner": "Selecciona el tercer clasificado",
     "selectTournamentWinner": "Selecciona ganador del torneo",
-    "thirdPlaceWinner": "Tercer puesto",
     "totalPoints": "Total: +{points} pts",
     "vs": "vs",
     "winner": "Ganador"
@@ -370,8 +367,6 @@
   },
   "nav": {
     "admin": "Gestión de resultados y acciones de jugador",
-    "adminLabel": "Admin",
-    "home": "Inicio",
     "language": "Idioma",
     "logout": "Cerrar sesion",
     "pools": "Porras",
@@ -485,9 +480,9 @@
       "you": "Tú"
     },
     "mode": {
-      "admin": "Gestionar",
-      "label": "Modo",
-      "member": "Ver"
+      "admin": "Administrador",
+      "label": "Modo de vista",
+      "member": "Usuario"
     },
     "players": {
       "actionGroups": {
@@ -671,6 +666,13 @@
       "players": "Jugadores",
       "ranking": "Clasificación",
       "rules": "Reglas",
+      "short": {
+        "finalPhase": "Final",
+        "groupPhase": "Grupos",
+        "players": "Jugadores",
+        "ranking": "Clasif.",
+        "rules": "Reglas"
+      },
       "totalPoints": "{count} puntos"
     },
     "title": "Porra",

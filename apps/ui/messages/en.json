@@ -277,13 +277,10 @@
       "8th": "Round of 16",
       "final": "Final",
       "quarter": "Quarter-finals",
-      "semi": "Semi-finals",
-      "thirdPlace": "Third-place play-off"
+      "semi": "Semi-finals"
     },
     "selectTeam": "Select team",
-    "selectThirdPlaceWinner": "Select third-place winner",
     "selectTournamentWinner": "Select tournament winner",
-    "thirdPlaceWinner": "Third place",
     "totalPoints": "Total: +{points} pts",
     "vs": "vs",
     "winner": "Winner"
@@ -370,8 +367,6 @@
   },
   "nav": {
     "admin": "Match result and player actions management",
-    "adminLabel": "Admin",
-    "home": "Home",
     "language": "Language",
     "logout": "Log out",
     "pools": "Pools",
@@ -485,9 +480,9 @@
       "you": "You"
     },
     "mode": {
-      "admin": "Manage",
-      "label": "Mode",
-      "member": "View"
+      "admin": "Administrator",
+      "label": "View mode",
+      "member": "User"
     },
     "players": {
       "actionGroups": {
@@ -671,6 +666,13 @@
       "players": "Players",
       "ranking": "Ranking",
       "rules": "Rules",
+      "short": {
+        "finalPhase": "Final",
+        "groupPhase": "Groups",
+        "players": "Players",
+        "ranking": "Rank",
+        "rules": "Rules"
+      },
       "totalPoints": "{count} points"
     },
     "title": "Pool",
