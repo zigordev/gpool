@@ -1,5 +1,6 @@
 import { AppNav } from '@/components/AppNav'
 import { NavCenterProvider } from '@/contexts/NavCenterContext'
+import { PoolsProvider } from '@/contexts/PoolsContext'
 import { RUMProvider } from '@/components/RUMProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
@@ -65,7 +66,9 @@ export default async function RootLayout({
                 />
 
                 <NavCenterProvider>
-                  <AppNav>{children}</AppNav>
+                  <PoolsProvider>
+                    <AppNav>{children}</AppNav>
+                  </PoolsProvider>
                 </NavCenterProvider>
               </main>
               <Toaster

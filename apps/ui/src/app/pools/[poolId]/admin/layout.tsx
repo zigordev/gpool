@@ -10,11 +10,10 @@ import { CountdownChip } from '@/components/ui/CountdownChip';
 
 function AdminBreadcrumbs() {
   const { poolName, deadlineLocal } = useAdminContext();
-  const { setCenter, setSubBar } = useNavCenter();
+  const { setSubBar } = useNavCenter();
   const deadlineMs = fromDateTimeLocal(deadlineLocal);
 
   useLayoutEffect(() => {
-    setCenter(<div className="nav-center-mobile-countdown"><CountdownChip deadline={deadlineMs} /></div>);
     setSubBar(
       <div className="pool-header-strip">
         <div className="pool-header-name">
@@ -24,10 +23,7 @@ function AdminBreadcrumbs() {
         <div className="nav-sub-bar-actions pool-header-actions" />
       </div>,
     );
-    return () => {
-      setCenter(null);
-      setSubBar(null);
-    };
+    return () => setSubBar(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolName, deadlineLocal]);
 

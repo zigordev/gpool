@@ -485,9 +485,9 @@
       "you": "You"
     },
     "mode": {
-      "admin": "Administrator",
-      "label": "View mode",
-      "member": "User"
+      "admin": "Manage",
+      "label": "Mode",
+      "member": "View"
     },
     "players": {
       "actionGroups": {

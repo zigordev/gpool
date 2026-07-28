@@ -3,9 +3,14 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
+/**
+ * Lets a route contribute chrome that AppNav renders: `subBar` (the pool's
+ * header strip) and `poolActions` (buttons inside it). The old `center`
+ * slot fed a topbar tab strip that no longer exists — sections are Sidebar
+ * destinations now, so it was removed rather than left as a slot nothing
+ * reads.
+ */
 interface NavCenterContextValue {
-  center: ReactNode;
-  setCenter: (node: ReactNode) => void;
   subBar: ReactNode;
   setSubBar: (node: ReactNode) => void;
   poolActions: ReactNode;
@@ -13,8 +18,6 @@ interface NavCenterContextValue {
 }
 
 const NavCenterContext = createContext<NavCenterContextValue>({
-  center: null,
-  setCenter: () => {},
   subBar: null,
   setSubBar: () => {},
   poolActions: null,
@@ -22,11 +25,10 @@ const NavCenterContext = createContext<NavCenterContextValue>({
 });
 
 export function NavCenterProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const [center, setCenter] = useState<ReactNode>(null);
   const [subBar, setSubBar] = useState<ReactNode>(null);
   const [poolActions, setPoolActions] = useState<ReactNode>(null);
   return (
-    <NavCenterContext.Provider value={{ center, setCenter, subBar, setSubBar, poolActions, setPoolActions }}>
+    <NavCenterContext.Provider value={{ subBar, setSubBar, poolActions, setPoolActions }}>
       {children}
     </NavCenterContext.Provider>
   );

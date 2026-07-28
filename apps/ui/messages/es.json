@@ -485,9 +485,9 @@
       "you": "Tú"
     },
     "mode": {
-      "admin": "Administrador",
-      "label": "Modo de vista",
-      "member": "Usuario"
+      "admin": "Gestionar",
+      "label": "Modo",
+      "member": "Ver"
     },
     "players": {
       "actionGroups": {

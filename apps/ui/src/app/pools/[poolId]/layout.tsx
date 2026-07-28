@@ -1,89 +1,28 @@
 'use client';
 
 import { useLayoutEffect } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
-import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
-import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
-import { TopbarTabs } from '../../../../design-system/components/navigation/TopbarTabs.jsx';
-import { BsFillDiagram3Fill } from 'react-icons/bs';
-import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
-import { GiSoccerKick } from 'react-icons/gi';
 import {
   PoolProvider,
   usePoolContext,
 } from '@/contexts/PoolContext';
 
-function missingBadge(t: ReturnType<typeof useI18n>['t'], count: number) {
-  if (!count) return null;
-  return (
-    <Badge
-      variant="sunset"
-      className="badge-attention"
-      title={t('poolDetail.tabs.missingCount', { count })}
-      aria-label={t('poolDetail.tabs.missingCount', { count })}
-      leadingIcon={
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-          <path d="M12 9v4" /><path d="M12 17h.01" />
-        </svg>
-      }
-    >
-      {count}
-    </Badge>
-  );
-}
-
-function PoolNav() {
-  const { t } = useI18n();
-  const { setCenter } = useNavCenter();
-  const pathname = usePathname();
-  const { poolId, pool, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
-  const isPoolAdmin = pool?.userMembership?.role === 'admin';
-
-  const items = [
-    { href: `/pools/${poolId}/ranking`, label: t('poolDetail.tabs.ranking'), icon: <FaRankingStar aria-hidden /> },
-    { href: `/pools/${poolId}/groups`, label: t('poolDetail.tabs.groupPhase'), icon: <FaLayerGroup aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : groupMissingCount) },
-    { href: `/pools/${poolId}/final`, label: t('poolDetail.tabs.finalPhase'), icon: <BsFillDiagram3Fill aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : finalMissingCount) },
-    { href: `/pools/${poolId}/players`, label: t('poolDetail.tabs.players'), icon: <GiSoccerKick aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : playersMissingCount) },
-    // Per-pool admin ("Manage") — this pool's own scoring/config/entry-fee
-    // settings, distinct from tournament admin (real match results, reached
-    // via the account menu). Contextual to this pool, so it lives here
-    // rather than in the primary sidebar — previously had no nav entry
-    // point at all (only reachable by typing the URL directly).
-    ...(isPoolAdmin
-      ? [{ href: `/pools/${poolId}/admin`, label: t('poolDetail.actions.administrate'), icon: <Icon name="settings" size={15} /> }]
-      : []),
-  ];
-
-  useLayoutEffect(() => {
-    setCenter(
-      <>
-        <div className="nav-center-mobile-countdown"><CountdownChip deadline={poolDeadline} /></div>
-        <TopbarTabs items={items} activeHref={pathname} linkComponent={Link} ariaLabel={t('poolDetail.tabs.label')} />
-      </>,
-    );
-    return () => setCenter(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount, poolId, isPoolAdmin]);
-
-  return null;
-}
-
+/**
+ * The pool's sections live in the Sidebar now (see AppNav) — this only
+ * contributes the pool's own header strip: name, deadline countdown, and
+ * whatever page-level actions the active section registered.
+ */
 function PoolBreadcrumbs() {
   const pathname = usePathname();
   const { pool, poolDeadline } = usePoolContext();
   const { poolActions, setSubBar } = useNavCenter();
 
-  const isAdminRoute = pathname.includes('/admin');
-
   useLayoutEffect(() => {
-    if (isAdminRoute) return;
     setSubBar(
       <div className="pool-header-strip">
         <div className="pool-header-name">
@@ -97,7 +36,7 @@ function PoolBreadcrumbs() {
     );
     return () => setSubBar(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, poolDeadline, pathname, isAdminRoute, poolActions]);
+  }, [pool, poolDeadline, pathname, poolActions]);
 
   return null;
 }
@@ -105,8 +44,6 @@ function PoolBreadcrumbs() {
 function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) {
   const { t } = useI18n();
   const { loading } = usePoolContext();
-  const pathname = usePathname();
-  const isAdminRoute = pathname.includes('/admin');
 
   if (loading) {
     return (
@@ -118,12 +55,7 @@ function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) 
 
   return (
     <>
-      <PoolNav />
-      {/* Admin routes render their own subBar (pool name + countdown, no
-          poolActions) via AdminBreadcrumbs in admin/layout.tsx — PoolNav's
-          tab strip (including "Manage") still applies so admins can move
-          between viewing the pool and administering it without a dead end. */}
-      {isAdminRoute ? null : <PoolBreadcrumbs />}
+      <PoolBreadcrumbs />
       <div style={{ marginTop: '0.65rem' }}>
         {children}
       </div>

@@ -392,7 +392,7 @@ function PoolsContent() {
                 onOpen={() => {
                   if (!isDisabled) router.push(`/pools/${pool.poolId}`);
                 }}
-                onConfigure={() => router.push(`/pools/${pool.poolId}/admin/configuration`)}
+                onConfigure={() => router.push(`/pools/${pool.poolId}/admin/settings`)}
                 onInvite={() => handleInviteUser(pool)}
                 onRequestAccess={() => handleRequestAccess(pool.poolId)}
                 t={t}

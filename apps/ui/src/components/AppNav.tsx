@@ -1,80 +1,181 @@
 'use client';
 
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { usePools } from '@/contexts/PoolsContext';
 import { LanguageButton, ThemeButton, UserButton } from './NavigationBar';
-// design-system v0.1.4, copied in (no npm package / build step) — see
+// design-system, copied in (no npm package / build step) — see
 // apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
 // from the sibling design-system repo instead.
 import { AppShell } from '../../design-system/components/navigation/AppShell.jsx';
 import { Icon } from '../../design-system/components/icons/Icon.jsx';
 import { Logo } from '../../design-system/components/navigation/Logo.jsx';
+import { ScopeSwitcher } from '../../design-system/components/navigation/ScopeSwitcher.jsx';
+import { SegmentedControl } from '../../design-system/components/navigation/SegmentedControl.jsx';
+import { MenuItem } from '../../design-system/components/overlay/Menu.jsx';
 
 /**
- * Wires gpool's existing NavCenterContext (center/subBar/poolActions, set by
- * PoolNav/PoolBreadcrumbs/SystemAdminNav — all unchanged) into the shared
- * AppShell's Sidebar + Topbar + BottomNav chrome:
- *   - center  -> topbar.tabs   (pool tab strip / admin section tabs)
- *   - subBar  -> topbar.subBar (pool name + countdown + poolActions)
- *   - ThemeButton/LanguageButton/UserButton -> topbar.utilities
+ * Navigation follows the design-system taxonomy (see its readme):
+ *   scope       -> which pool (ScopeSwitcher, top of Sidebar)
+ *   destination -> that pool's sections (Sidebar items)
+ *   mode        -> View vs Manage (SegmentedControl, Topbar's `mode` slot)
  *
- * Primary nav is just "Pools" — Home was a bare redirect to /pools (no
- * content of its own), and system admin now lives in UserButton's menu
- * (see NavigationBar.tsx) rather than as a sidebar peer, since it's a
- * secondary/account-level action for the rare admin user, not a feature
- * area every user navigates to. Per-pool admin ("Manage") is contextual
- * to a specific pool and lives in that pool's own tab strip (PoolNav),
- * not here.
+ * The phase axis (Groups / Final / Players) is meaningful at three levels
+ * — the real tournament, this pool's rules, my predictions — so it is NOT
+ * repeated once per level. It is the section axis, and the level is a mode:
+ * View reads /pools/[id]/<section>, Manage reads /pools/[id]/admin/<section>.
+ * Tournament admin is a separate surface entirely (own sections, reached
+ * from the account menu), not a third copy of the same tabs.
  */
 export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { center, subBar } = useNavCenter();
+  const { user } = useAuth();
+  const { subBar } = useNavCenter();
   const { t } = useI18n();
   const pathname = usePathname();
+  const router = useRouter();
+  const { pools, activePool, activePoolId } = usePools();
 
   // The old NavigationBar hid itself entirely on /login; AppShell should too
   // (login has its own centered, sidebar-less layout).
   if (pathname === '/login') return <>{children}</>;
 
-  const navItems = [
-    { href: '/pools', label: t('nav.pools'), icon: <Icon name="trophy" /> },
-  ];
+  const isTournamentAdmin = pathname.startsWith('/admin');
+  const isManage = pathname.includes('/admin');
+  const isPoolAdmin = activePool?.userMembership?.role === 'admin';
 
-  const brand = (
+  // Tournament administration — a distinct surface with its own sections,
+  // editing the real results every pool is graded against.
+  if (isTournamentAdmin) {
+    const adminItems = [
+      { href: '/admin/groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
+      { href: '/admin/final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
+      { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
+    ];
+
+    return (
+      <AppShell
+        brand={<Brand />}
+        sidebarItems={adminItems}
+        activeHref={pathname}
+        linkComponent={Link}
+        topbar={{
+          title: t('systemAdmin.tabsLabel'),
+          description: t('systemAdmin.title'),
+          actions: (
+            <Link href="/pools" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+              {t('common.backToPools')}
+            </Link>
+          ),
+          utilities: <Utilities />,
+        }}
+      >
+        <div className="container-app" style={{ position: 'relative' }}>{children}</div>
+      </AppShell>
+    );
+  }
+
+  const sections = isManage
+    ? [
+        { key: 'settings', label: t('adminResults.config.general.title'), icon: <Icon name="settings" /> },
+        { key: 'groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
+        { key: 'final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
+        { key: 'players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
+      ]
+    : [
+        { key: 'ranking', label: t('poolDetail.tabs.ranking'), icon: <Icon name="trending-up" /> },
+        { key: 'groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
+        { key: 'final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
+        { key: 'players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
+      ];
+
+  const base = activePoolId ? `/pools/${activePoolId}${isManage ? '/admin' : ''}` : null;
+  const sidebarItems = base
+    ? sections.map((section) => ({ href: `${base}/${section.key}`, label: section.label, icon: section.icon }))
+    : [];
+
+  // Switching mode keeps you on the same section when it exists on both
+  // sides; Ranking (a leaderboard) has no Manage twin, so it lands on
+  // Settings instead of dead-ending.
+  const currentSection = pathname.split('/').filter(Boolean).pop();
+  const twin = (target: 'view' | 'manage') => {
+    if (!activePoolId) return '/pools';
+    const shared = ['groups', 'final', 'players'];
+    const section = shared.includes(currentSection ?? '')
+      ? currentSection
+      : target === 'manage' ? 'settings' : 'ranking';
+    return target === 'manage'
+      ? `/pools/${activePoolId}/admin/${section}`
+      : `/pools/${activePoolId}/${section}`;
+  };
+
+  return (
+    <AppShell
+      brand={<Brand />}
+      scope={
+        <ScopeSwitcher
+          label={t('poolDetail.title')}
+          value={activePool?.name}
+          placeholder={t('pools.title')}
+          items={pools.map((pool) => ({
+            id: pool.poolId,
+            label: pool.name,
+            active: pool.poolId === activePoolId,
+            onSelect: (id: string) => router.push(`/pools/${id}/ranking`),
+          }))}
+          footer={({ close }: { close: () => void }) => (
+            <MenuItem onClick={() => { close(); router.push('/pools'); }}>
+              <Icon name="trophy" /> {t('pools.title')}
+            </MenuItem>
+          )}
+        />
+      }
+      sidebarItems={sidebarItems}
+      activeHref={pathname}
+      linkComponent={Link}
+      topbar={{
+        subBar,
+        mode: isPoolAdmin && activePoolId ? (
+          <SegmentedControl
+            ariaLabel={t('poolDetail.mode.label')}
+            linkComponent={Link}
+            value={isManage ? 'manage' : 'view'}
+            options={[
+              { value: 'view', label: t('poolDetail.mode.member'), href: twin('view') },
+              { value: 'manage', label: t('poolDetail.mode.admin'), href: twin('manage') },
+            ]}
+          />
+        ) : null,
+        utilities: <Utilities />,
+      }}
+    >
+      <div className="container-app" style={{ position: 'relative' }}>{children}</div>
+    </AppShell>
+  );
+}
+
+function Brand() {
+  return (
     <Logo
       initials="GP"
       wordmark="GPool"
       tagline="Football pools, with friends"
       shape="circle"
       size="sm"
-      href="/"
+      href="/pools"
       linkComponent={Link}
     />
   );
+}
 
+function Utilities() {
   return (
-    <AppShell
-      brand={brand}
-      sidebarItems={navItems}
-      bottomNavItems={navItems}
-      activeHref={pathname}
-      linkComponent={Link}
-      topbar={{
-        tabs: center,
-        subBar: subBar,
-        utilities: (
-          <>
-            <ThemeButton />
-            <LanguageButton />
-            <UserButton />
-          </>
-        ),
-      }}
-    >
-      <div className="container-app" style={{ position: 'relative' }}>
-        {children}
-      </div>
-    </AppShell>
+    <>
+      <ThemeButton />
+      <LanguageButton />
+      <UserButton />
+    </>
   );
 }
