@@ -42,7 +42,7 @@ function PoolNav() {
     // rather than in the primary sidebar — previously had no nav entry
     // point at all (only reachable by typing the URL directly).
     ...(isPoolAdmin
-      ? [{ segment: 'admin', label: t('nav.adminLabel'), shortLabel: t('nav.adminLabel'), icon: ManageIcon }]
+      ? [{ segment: 'admin', label: t('poolDetail.actions.administrate'), shortLabel: t('poolDetail.actions.administrate'), icon: ManageIcon }]
       : []),
   ];
 

@@ -151,7 +151,7 @@ export function UserButton() {
             // in PoolNav instead). Lives here, not the primary sidebar, since
             // it's a secondary/account-level action, not a peer of "Pools".
             <MenuItem onClick={() => { close(); router.push('/admin'); }}>
-              <Icon name="shield" /> {t('nav.adminLabel')}
+              <Icon name="shield" /> {t('systemAdmin.tabsLabel')}
             </MenuItem>
           ) : null}
           <MenuItem onClick={() => { close(); logout(); }}>
