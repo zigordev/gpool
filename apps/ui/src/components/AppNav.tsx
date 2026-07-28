@@ -40,6 +40,13 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   // (login has its own centered, sidebar-less layout).
   if (pathname === '/login') return <>{children}</>;
 
+  // Dev-only design-system preview (see app/dev/preview). Renders outside the
+  // shell so primitives can be inspected without a session; the route itself
+  // 404s in production builds.
+  if (process.env.NODE_ENV !== 'production' && pathname.startsWith('/dev/')) {
+    return <>{children}</>;
+  }
+
   const isTournamentAdmin = pathname.startsWith('/admin');
   const isManage = pathname.includes('/admin');
   const isPoolAdmin = activePool?.userMembership?.role === 'admin';
