@@ -381,16 +381,6 @@ button:focus-visible,
   overflow: hidden;
 }
 
-.glass-strong {
-  background: rgb(var(--bg-elevated) / 0.94);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgb(var(--border));
-  box-shadow: var(--shadow-md);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
 /* ============================================================================
    Typography helpers
    ============================================================================ */
