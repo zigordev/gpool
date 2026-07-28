@@ -4,26 +4,29 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { Button } from '../../design-system/components/core/Button.jsx';
+import { Flag } from '../../design-system/components/icons/Flag.jsx';
 import { Icon } from '../../design-system/components/icons/Icon.jsx';
+import { Menu, MenuItem } from '../../design-system/components/overlay/Menu.jsx';
 
-const LOCALE_META: Record<Locale, { label: string; flagCode: string }> = {
+const LOCALE_META: Record<Locale, { label: string; flagCode: 'gb' | 'es' }> = {
   es: { label: 'Español', flagCode: 'es' },
   en: { label: 'English', flagCode: 'gb' },
 };
 
-const NAV_ICON_STYLE: React.CSSProperties = {
+const ICON_STYLE: React.CSSProperties = { lineHeight: 1 };
+
+// Only the admin shortcut still needs this — it's a lone icon Link, not a
+// Menu trigger, so it doesn't go through the shared Button.
+const ADMIN_LINK_STYLE: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
   width: '2rem',
   height: '2rem',
-  padding: 0,
-  background: 'transparent',
-  border: 'none',
   borderRadius: '999px',
-  cursor: 'pointer',
-  color: 'rgb(var(--pitch))',
+  color: 'rgb(var(--sunset))',
   transition: 'background 0.15s ease',
   flexShrink: 0,
 };
@@ -32,16 +35,12 @@ export function ThemeButton() {
   const { t } = useI18n();
   const [dark, setDark] = useState(false);
 
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains('dark'));
-  }, []);
-
   const toggle = () => {
     const next = !dark;
     setDark(next);
     if (next) {
       document.documentElement.classList.add('dark');
-      // Also flip data-mode: the copied design-system chrome (Sidebar/
+      // Also flip data-mode: the shared design-system chrome (Sidebar/
       // Topbar/BottomNav) keys its dark palette off `[data-mode="dark"]`,
       // a separate mechanism from gpool's own `.dark` class toggle above.
       document.documentElement.setAttribute('data-mode', 'dark');
@@ -54,48 +53,25 @@ export function ThemeButton() {
   };
 
   return (
-    <button
-      type="button"
+    <Button
       aria-label={`${t('theme.toggle')}: ${dark ? t('theme.light') : t('theme.dark')}`}
-      title={`${t('theme.toggle')}: ${dark ? t('theme.light') : t('theme.dark')}`}
       onClick={toggle}
-      style={NAV_ICON_STYLE}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      size="icon"
+      style={ICON_STYLE}
+      title={`${t('theme.toggle')}: ${dark ? t('theme.light') : t('theme.dark')}`}
+      type="button"
+      variant="ghost"
     >
       <Icon name={dark ? 'sun' : 'moon'} />
-    </button>
+    </Button>
   );
 }
 
 export function LanguageButton() {
   const { locale, t } = useI18n();
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      const t = e.target as Node | null;
-      if (!t) return;
-      if (menuRef.current?.contains(t) || triggerRef.current?.contains(t)) return;
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setOpen(false); triggerRef.current?.focus(); }
-    };
-    document.addEventListener('mousedown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
 
   const switchTo = async (next: Locale) => {
-    setOpen(false);
     if (next === locale) return;
     document.cookie = `${LANGUAGE_COOKIE}=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
     if (user) {
@@ -114,175 +90,78 @@ export function LanguageButton() {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={t('nav.language')}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        style={NAV_ICON_STYLE}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-      >
-        <Icon name="globe" />
-      </button>
-
-      {open ? (
-        <div
-          ref={menuRef}
-          role="menu"
-          className="glass-strong"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 0.5rem)',
-            right: 0,
-            minWidth: '10rem',
-            padding: '0.4rem',
-            zIndex: 1000,
-          }}
+    <Menu
+      trigger={
+        <Button
+          aria-label={t('nav.language')}
+          size="icon"
+          style={ICON_STYLE}
+          title={t('nav.language')}
+          type="button"
+          variant="ghost"
         >
+          <Icon name="globe" />
+        </Button>
+      }
+    >
+      {({ close }: { close: () => void }) => (
+        <>
           {SUPPORTED_LOCALES.map((loc) => {
             const meta = LOCALE_META[loc];
-            const active = loc === locale;
             return (
-              <button
-                key={loc}
-                type="button"
-                role="menuitem"
-                onClick={() => switchTo(loc)}
-                style={{
-                  width: '100%',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  padding: '0.5rem 0.75rem',
-                  background: active ? 'rgb(var(--pitch) / 0.1)' : 'transparent',
-                  color: active ? 'rgb(var(--pitch))' : 'rgb(var(--fg))',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: active ? 700 : 500,
-                  textAlign: 'left',
-                  transition: 'background 0.15s ease',
-                }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'rgb(var(--bg-subtle))'; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <span className={`fi fi-${meta.flagCode}`} style={{ fontSize: '1.1rem', borderRadius: '2px', flexShrink: 0 }} aria-hidden />
-                {meta.label}
-              </button>
+              <MenuItem key={loc} onClick={() => { close(); switchTo(loc); }}>
+                <Flag code={meta.flagCode} /> {meta.label}
+              </MenuItem>
             );
           })}
-        </div>
-      ) : null}
-    </div>
+        </>
+      )}
+    </Menu>
   );
 }
 
 export function UserButton() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      const target = e.target as Node | null;
-      if (!target) return;
-      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setOpen(false); triggerRef.current?.focus(); }
-    };
-    document.addEventListener('mousedown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
 
   if (!user) return null;
 
   return (
-    <div style={{ position: 'relative' }}>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={t('nav.user')}
-        style={NAV_ICON_STYLE}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-      >
-        <Icon name="user" />
-      </button>
-
-      {open ? (
-        <div
-          ref={menuRef}
-          role="menu"
-          className="glass-strong"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 0.5rem)',
-            right: 0,
-            minWidth: '14rem',
-            padding: '0.4rem',
-            zIndex: 1000,
-          }}
+    <Menu
+      trigger={
+        <Button
+          aria-label={t('nav.user')}
+          size="icon"
+          style={ICON_STYLE}
+          title={t('nav.user')}
+          type="button"
+          variant="ghost"
         >
+          <Icon name="user" />
+        </Button>
+      }
+    >
+      {({ close }: { close: () => void }) => (
+        <>
           <div
             style={{
-              padding: '0.55rem 0.75rem 0.65rem',
-              borderBottom: '1px solid rgb(var(--border-subtle))',
-              marginBottom: '0.25rem',
+              padding: '6px 10px 8px', marginBottom: 4,
+              borderBottom: '1px solid var(--ds-color-border)',
             }}
           >
-            <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))', margin: 0, marginBottom: '0.2rem' }}>
+            <div style={{ fontSize: 'var(--ds-text-xs)', fontWeight: 'var(--ds-weight-bold)', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ds-color-fg-subtle)' }}>
               {t('nav.user')}
-            </p>
-            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'rgb(var(--fg))', margin: 0, wordBreak: 'break-word' }}>
+            </div>
+            <div style={{ fontSize: 'var(--ds-text-sm)', fontWeight: 'var(--ds-weight-semibold)', color: 'var(--ds-color-fg)', wordBreak: 'break-word' }}>
               {user.email}
-            </p>
+            </div>
           </div>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setOpen(false); logout(); }}
-            style={{
-              width: '100%',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.55rem 0.75rem',
-              background: 'transparent',
-              color: 'rgb(var(--fg))',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              textAlign: 'left',
-              transition: 'background 0.15s ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--bg-subtle))'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <Icon name="log-out" size={14} />
-            {t('nav.logout')}
-          </button>
-        </div>
-      ) : null}
-    </div>
+          <MenuItem onClick={() => { close(); logout(); }}>
+            <Icon name="log-out" /> {t('nav.logout')}
+          </MenuItem>
+        </>
+      )}
+    </Menu>
   );
 }
 
@@ -300,7 +179,9 @@ export function AdminShortcutLink() {
       href="/admin"
       aria-label={t('nav.admin')}
       title={t('nav.admin')}
-      style={{ ...NAV_ICON_STYLE, color: 'rgb(var(--sunset))' }}
+      style={ADMIN_LINK_STYLE}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--sunset) / 0.1)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
       <Icon name="edit" />
     </Link>
