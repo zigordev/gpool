@@ -5,12 +5,12 @@ import { useNavCenter } from '@/contexts/NavCenterContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHouse, FaShieldHalved, FaTrophy } from 'react-icons/fa6';
 import { AdminShortcutLink, LanguageButton, ThemeButton, UserButton } from './NavigationBar';
 // design-system v0.1.4, copied in (no npm package / build step) — see
 // apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
 // from the sibling design-system repo instead.
 import { AppShell } from '../../design-system/components/navigation/AppShell.jsx';
+import { Icon } from '../../design-system/components/icons/Icon.jsx';
 import { Logo } from '../../design-system/components/navigation/Logo.jsx';
 
 /**
@@ -37,10 +37,10 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   const isAdmin = user?.role === 'admin';
 
   const navItems = [
-    { href: '/', label: t('nav.home'), icon: <FaHouse size={16} aria-hidden /> },
-    { href: '/pools', label: t('nav.pools'), icon: <FaTrophy size={16} aria-hidden /> },
+    { href: '/', label: t('nav.home'), icon: <Icon name="home" /> },
+    { href: '/pools', label: t('nav.pools'), icon: <Icon name="trophy" /> },
     ...(isAdmin
-      ? [{ href: '/admin', label: t('nav.adminLabel'), icon: <FaShieldHalved size={16} aria-hidden /> }]
+      ? [{ href: '/admin', label: t('nav.adminLabel'), icon: <Icon name="shield" /> }]
       : []),
   ];
 

@@ -5,7 +5,7 @@ import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { FaGlobe, FaMoon, FaPenToSquare, FaSun, FaUser } from 'react-icons/fa6';
+import { Icon } from '../../design-system/components/icons/Icon.jsx';
 
 const LOCALE_META: Record<Locale, { label: string; flagCode: string }> = {
   es: { label: 'Español', flagCode: 'es' },
@@ -63,7 +63,7 @@ export function ThemeButton() {
       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
-      {dark ? <FaSun size={18} aria-hidden /> : <FaMoon size={18} aria-hidden />}
+      <Icon name={dark ? 'sun' : 'moon'} />
     </button>
   );
 }
@@ -126,7 +126,7 @@ export function LanguageButton() {
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
-        <FaGlobe size={22} aria-hidden />
+        <Icon name="globe" />
       </button>
 
       {open ? (
@@ -223,7 +223,7 @@ export function UserButton() {
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--pitch) / 0.1)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
-        <FaUser size={17} aria-hidden />
+        <Icon name="user" />
       </button>
 
       {open ? (
@@ -277,11 +277,7 @@ export function UserButton() {
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--bg-subtle))'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <Icon name="log-out" size={14} />
             {t('nav.logout')}
           </button>
         </div>
@@ -306,7 +302,7 @@ export function AdminShortcutLink() {
       title={t('nav.admin')}
       style={{ ...NAV_ICON_STYLE, color: 'rgb(var(--sunset))' }}
     >
-      <FaPenToSquare size={18} aria-hidden />
+      <Icon name="edit" />
     </Link>
   );
 }
