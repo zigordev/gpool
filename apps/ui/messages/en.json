@@ -671,13 +671,6 @@
       "players": "Players",
       "ranking": "Ranking",
       "rules": "Rules",
-      "short": {
-        "finalPhase": "Final",
-        "groupPhase": "Groups",
-        "players": "Players",
-        "ranking": "Rank",
-        "rules": "Rules"
-      },
       "totalPoints": "{count} points"
     },
     "title": "Pool",

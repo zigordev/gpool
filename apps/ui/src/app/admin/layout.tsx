@@ -7,6 +7,7 @@ import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLayoutEffect } from 'react';
+import { TopbarTabs } from '../../../design-system/components/navigation/TopbarTabs.jsx';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
 import { FaLayerGroup } from 'react-icons/fa6';
 import { GiSoccerKick } from 'react-icons/gi';
@@ -15,30 +16,15 @@ function SystemAdminNav() {
   const { t } = useI18n();
   const pathname = usePathname();
   const { setCenter, setSubBar } = useNavCenter();
-  const routes = [
-    { href: '/admin/groups', label: t('poolDetail.tabs.groupPhase'), icon: FaLayerGroup },
-    { href: '/admin/final', label: t('poolDetail.tabs.finalPhase'), icon: BsFillDiagram3Fill },
-    { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: GiSoccerKick },
+  const items = [
+    { href: '/admin/groups', label: t('poolDetail.tabs.groupPhase'), icon: <FaLayerGroup aria-hidden /> },
+    { href: '/admin/final', label: t('poolDetail.tabs.finalPhase'), icon: <BsFillDiagram3Fill aria-hidden /> },
+    { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: <GiSoccerKick aria-hidden /> },
   ];
 
   useLayoutEffect(() => {
     setCenter(
-      <nav aria-label={t('systemAdmin.tabsLabel')} className="floating-nav">
-        {routes.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? 'page' : undefined}
-              className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
-            >
-              <Icon className="floating-nav-icon" aria-hidden />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>,
+      <TopbarTabs items={items} activeHref={pathname} linkComponent={Link} ariaLabel={t('systemAdmin.tabsLabel')} />,
     );
     return () => {
       setCenter(null);

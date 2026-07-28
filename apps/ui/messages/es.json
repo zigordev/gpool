@@ -671,13 +671,6 @@
       "players": "Jugadores",
       "ranking": "Clasificación",
       "rules": "Reglas",
-      "short": {
-        "finalPhase": "Final",
-        "groupPhase": "Grupos",
-        "players": "Jugadores",
-        "ranking": "Clasif.",
-        "rules": "Reglas"
-      },
       "totalPoints": "{count} puntos"
     },
     "title": "Porra",

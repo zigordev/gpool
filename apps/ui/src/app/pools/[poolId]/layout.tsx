@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { Loading } from '@/components/Loading';
 import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
+import { TopbarTabs } from '../../../../design-system/components/navigation/TopbarTabs.jsx';
 import { BsFillDiagram3Fill } from 'react-icons/bs';
 import { FaLayerGroup, FaRankingStar } from 'react-icons/fa6';
 import { GiSoccerKick } from 'react-icons/gi';
@@ -18,10 +19,24 @@ import {
   usePoolContext,
 } from '@/contexts/PoolContext';
 
-// Wraps the design-system Icon so it fits the same { className, aria-hidden }
-// interface as the react-icons components the sibling tabs use below.
-function ManageIcon({ className }: { className?: string }) {
-  return <Icon name="settings" className={className} aria-hidden />;
+function missingBadge(t: ReturnType<typeof useI18n>['t'], count: number) {
+  if (!count) return null;
+  return (
+    <Badge
+      variant="sunset"
+      className="badge-attention"
+      title={t('poolDetail.tabs.missingCount', { count })}
+      aria-label={t('poolDetail.tabs.missingCount', { count })}
+      leadingIcon={
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+          <path d="M12 9v4" /><path d="M12 17h.01" />
+        </svg>
+      }
+    >
+      {count}
+    </Badge>
+  );
 }
 
 function PoolNav() {
@@ -31,18 +46,18 @@ function PoolNav() {
   const { poolId, pool, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount } = usePoolContext();
   const isPoolAdmin = pool?.userMembership?.role === 'admin';
 
-  const routes = [
-    { segment: 'ranking', label: t('poolDetail.tabs.ranking'), shortLabel: t('poolDetail.tabs.short.ranking'), icon: FaRankingStar },
-    { segment: 'groups', label: t('poolDetail.tabs.groupPhase'), shortLabel: t('poolDetail.tabs.short.groupPhase'), icon: FaLayerGroup, missingCount: isPastPoolDeadline ? 0 : groupMissingCount },
-    { segment: 'final', label: t('poolDetail.tabs.finalPhase'), shortLabel: t('poolDetail.tabs.short.finalPhase'), icon: BsFillDiagram3Fill, missingCount: isPastPoolDeadline ? 0 : finalMissingCount },
-    { segment: 'players', label: t('poolDetail.tabs.players'), shortLabel: t('poolDetail.tabs.short.players'), icon: GiSoccerKick, missingCount: isPastPoolDeadline ? 0 : playersMissingCount },
+  const items = [
+    { href: `/pools/${poolId}/ranking`, label: t('poolDetail.tabs.ranking'), icon: <FaRankingStar aria-hidden /> },
+    { href: `/pools/${poolId}/groups`, label: t('poolDetail.tabs.groupPhase'), icon: <FaLayerGroup aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : groupMissingCount) },
+    { href: `/pools/${poolId}/final`, label: t('poolDetail.tabs.finalPhase'), icon: <BsFillDiagram3Fill aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : finalMissingCount) },
+    { href: `/pools/${poolId}/players`, label: t('poolDetail.tabs.players'), icon: <GiSoccerKick aria-hidden />, badge: missingBadge(t, isPastPoolDeadline ? 0 : playersMissingCount) },
     // Per-pool admin ("Manage") — this pool's own scoring/config/entry-fee
     // settings, distinct from tournament admin (real match results, reached
     // via the account menu). Contextual to this pool, so it lives here
     // rather than in the primary sidebar — previously had no nav entry
     // point at all (only reachable by typing the URL directly).
     ...(isPoolAdmin
-      ? [{ segment: 'admin', label: t('poolDetail.actions.administrate'), shortLabel: t('poolDetail.actions.administrate'), icon: ManageIcon }]
+      ? [{ href: `/pools/${poolId}/admin`, label: t('poolDetail.actions.administrate'), icon: <Icon name="settings" size={15} /> }]
       : []),
   ];
 
@@ -50,46 +65,12 @@ function PoolNav() {
     setCenter(
       <>
         <div className="nav-center-mobile-countdown"><CountdownChip deadline={poolDeadline} /></div>
-        <nav aria-label={t('poolDetail.tabs.label')} className="floating-nav">
-          {routes.map((route) => {
-            const href = `/pools/${poolId}/${route.segment}`;
-            const active = pathname === href || pathname.startsWith(href + '/');
-            const Icon = route.icon;
-            return (
-              <Link
-                key={route.segment}
-                href={href}
-                aria-current={active ? 'page' : undefined}
-                className={`floating-nav-btn${active ? ' floating-nav-btn--active' : ''}`}
-              >
-                <Icon className="floating-nav-icon" aria-hidden />
-                <span className="floating-nav-label-desktop">{route.label}</span>
-                <span className="floating-nav-label-mobile">{route.shortLabel}</span>
-                {route.missingCount ? (
-                  <Badge
-                    variant="sunset"
-                    className="badge-attention"
-                    title={t('poolDetail.tabs.missingCount', { count: route.missingCount })}
-                    aria-label={t('poolDetail.tabs.missingCount', { count: route.missingCount })}
-                    leadingIcon={
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-                        <path d="M12 9v4" /><path d="M12 17h.01" />
-                      </svg>
-                    }
-                  >
-                    {route.missingCount}
-                  </Badge>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
+        <TopbarTabs items={items} activeHref={pathname} linkComponent={Link} ariaLabel={t('poolDetail.tabs.label')} />
       </>,
     );
     return () => setCenter(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount, poolId]);
+  }, [pathname, poolDeadline, isPastPoolDeadline, groupMissingCount, finalMissingCount, playersMissingCount, poolId, isPoolAdmin]);
 
   return null;
 }

@@ -747,22 +747,6 @@ input:focus {
   will-change: transform, box-shadow;
 }
 
-/* Invert badge on active OR hovered nav item */
-.floating-nav-btn--active .badge-attention,
-.floating-nav-btn[aria-current="page"] .badge-attention,
-.floating-nav-btn:hover .badge-attention {
-  background: rgb(var(--accent-fg) / 0.14);
-  color: rgb(var(--accent-fg));
-  border-color: rgb(var(--accent-fg) / 0.32);
-}
-
-/* Keep icon aligned with text color */
-.floating-nav-btn--active .badge-attention svg,
-.floating-nav-btn[aria-current="page"] .badge-attention svg,
-.floating-nav-btn:hover .badge-attention svg {
-  stroke: currentColor;
-}
-
 @keyframes badge-attention {
   0%, 7%, 100% {
     transform: translateY(0) scale(1);
@@ -793,74 +777,6 @@ input:focus {
   0%   { box-shadow: 0 0 0 0 rgb(var(--live) / 0.55); }
   70%  { box-shadow: 0 0 0 8px rgb(var(--live) / 0); }
   100% { box-shadow: 0 0 0 0 rgb(var(--live) / 0); }
-}
-
-/* ============================================================================
-   Integrated tabs
-   ============================================================================ */
-
-/* Floating pill navigation */
-.floating-nav {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.3rem;
-  border-radius: 999px;
-  overflow: hidden;
-  clip-path: inset(0 round 999px);
-  pointer-events: auto;
-  flex-wrap: nowrap;
-  background: rgb(var(--bg-elevated) / 0.90);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgb(var(--border) / 0.85);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.06);
-}
-
-.floating-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.15rem;
-  border: none;
-  border-radius: 999px;
-
-  background: transparent;
-  color: rgb(var(--fg-muted));
-
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-  text-decoration: none;
-
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-}
-
-.floating-nav-btn:hover:not(.floating-nav-btn--active) {
-  background: rgb(var(--pitch));
-  color: rgb(var(--accent-fg));
-}
-
-.floating-nav-btn--active,
-.floating-nav-btn--active:hover,
-.floating-nav-btn[aria-current="page"],
-.floating-nav-btn[aria-current="page"]:hover {
-  background: rgb(var(--pitch));
-  color: rgb(var(--accent-fg));
-}
-
-.floating-nav-label-mobile {
-  display: none;
-}
-
-.floating-nav-icon {
-  width: 0.95rem;
-  height: 0.95rem;
-  flex-shrink: 0;
 }
 
 /* Minimal workspace navigation — players page */
