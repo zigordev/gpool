@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.56](https://github.com/zigordev/gpool/compare/v0.1.55...v0.1.56) (2026-07-28)
+
+
+### Features
+
+* design system nav ([#142](https://github.com/zigordev/gpool/issues/142)) ([6c542fc](https://github.com/zigordev/gpool/commit/6c542fcd131336fa2bbf97f073b14dffc9758de5))
+
 ## [0.1.55](https://github.com/zigordev/gpool/compare/v0.1.54...v0.1.55) (2026-07-21)
 
 
