@@ -110,7 +110,6 @@ export function UserButton() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const router = useRouter();
-  const isSystemAdmin = user?.role === 'admin';
 
   if (!user) return null;
 
@@ -144,16 +143,9 @@ export function UserButton() {
               {user.email}
             </div>
           </div>
-          {isSystemAdmin ? (
-            // Tournament admin edits the real match schedule/bracket/player
-            // roster shared by every pool — a platform-level concern, not a
-            // specific pool's own settings (that's the per-pool "Manage" tab
-            // in PoolNav instead). Lives here, not the primary sidebar, since
-            // it's a secondary/account-level action, not a peer of "Pools".
-            <MenuItem onClick={() => { close(); router.push('/admin'); }}>
-              <Icon name="shield" /> {t('systemAdmin.tabsLabel')}
-            </MenuItem>
-          ) : null}
+          {/* Tournament administration moved to the scope switcher. It is a
+              workspace you switch into, not an account action — the account
+              menu is where people look for logout and preferences. */}
           <MenuItem onClick={() => { close(); logout(); }}>
             <Icon name="log-out" /> {t('nav.logout')}
           </MenuItem>
