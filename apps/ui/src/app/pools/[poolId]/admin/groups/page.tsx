@@ -1,9 +1,9 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { Section } from '@/components/ui/Section';
-import { FormField } from '@/components/ui/FormField';
-import { Input } from '@/components/ui/Input';
+import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
+import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
+import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
@@ -22,8 +22,7 @@ function ScoreInput({
   ariaLabel: string;
 }>) {
   return (
-    <input
-      className="input"
+    <Input
       type="text"
       inputMode="numeric"
       autoComplete="off"
@@ -347,8 +346,7 @@ function FairPlayTable({
               </span>
             </td>
             <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
-              <input
-                className="input"
+              <Input
                 type="text"
                 inputMode="text"
                 autoComplete="off"
@@ -400,13 +398,13 @@ export default function AdminGroupsPage() {
 
       {/* Group phase scoring */}
       {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
-        <div className="config-area" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
-          <FormField label={t('adminResults.scoring.groupPhaseWinner')}>
+        <div className="config-area ds-form-compact" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
+          <Field label={t('adminResults.scoring.groupPhaseWinner')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
-          </FormField>
-          <FormField label={t('adminResults.scoring.groupPhaseExact')}>
+          </Field>
+          <Field label={t('adminResults.scoring.groupPhaseExact')}>
             <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} attention={scoringConfig.exactResultPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, exactResultPoints: parseConfigNumberInput(e.target.value) }))} />
-          </FormField>
+          </Field>
         </div>
       </Section>}
 

@@ -562,10 +562,7 @@
       },
       "tabAll": "All",
       "tabSelection": "My players",
-      "title": "Players",
-      "rowsPerPage": "Rows",
-      "previousPage": "Previous page",
-      "nextPage": "Next page"
+      "title": "Players"
     },
     "ranking": {
       "empty": "There is no ranking yet. Points will appear when results are entered and predictions are evaluated.",

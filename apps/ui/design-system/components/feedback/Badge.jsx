@@ -12,10 +12,15 @@ injectOnce('ds-badge', `
 .ds-badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
 `);
 
-export function Badge({ variant = 'neutral', dot = false, children, className = '', ...props }) {
+export function Badge({ variant = 'neutral', dot = false, leadingIcon, children, className = '', ...props }) {
   return (
     <span className={`ds-badge ds-badge-${variant} ${className}`.trim()} {...props}>
       {dot ? <span className="ds-badge-dot" /> : null}
+      {/* Icon before the dot would read as two separate markers; a badge gets
+          one or the other. */}
+      {!dot && leadingIcon ? (
+        <span aria-hidden="true" style={{ display: 'inline-flex', flexShrink: 0 }}>{leadingIcon}</span>
+      ) : null}
       {children}
     </span>
   );

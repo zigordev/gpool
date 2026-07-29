@@ -1,4 +1,19 @@
 import React from 'react';
+import { injectOnce } from '../_shared/injectStyle.js';
+
+injectOnce('ds-form-compact', `
+/* Put .ds-form-compact on a wrapper to tighten every field inside it. Dense
+   settings panels — a grid of scoring numbers, a prize table — want smaller
+   controls than a page-level form, and setting that per control means passing
+   a prop to every one of them and getting it wrong somewhere. */
+.ds-form-compact .ds-field{gap:4px;}
+.ds-form-compact .ds-field > label{font-size:var(--ds-text-xs);}
+.ds-form-compact .ds-input{height:32px;padding:0 9px;font-size:var(--ds-text-sm);}
+@media (max-width: 639px) {
+  /* Back to full size on phones: 32px is under the comfortable touch target. */
+  .ds-form-compact .ds-input{height:40px;padding:0 12px;font-size:var(--ds-text-base);}
+}
+`);
 
 /** Label + control + hint/error, with the label actually wired to the control.
  *

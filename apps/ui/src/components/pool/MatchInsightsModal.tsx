@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useI18n } from '@/i18n/client';
 import { apiClient } from '@/lib/api';
-import { Modal } from '@/components/ui/Modal';
+import { Modal } from '../../../design-system/components/overlay/Modal.jsx';
 import { PointsBadge } from '@/components/PointsBadge';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';

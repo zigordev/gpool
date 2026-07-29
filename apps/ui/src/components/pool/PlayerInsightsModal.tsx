@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n/client';
 import { apiClient } from '@/lib/api';
 import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
-import { Modal } from '@/components/ui/Modal';
+import { Modal } from '../../../design-system/components/overlay/Modal.jsx';
 import { PlayerActionSummary } from '@/components/pool/PlayerActionSummary';
 import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';

@@ -22,6 +22,9 @@ import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
 import { Button } from '../../../design-system/components/core/Button.jsx';
 import { DateField } from '@/../design-system/components/forms/DateField.jsx';
+import { Modal } from '@/../design-system/components/overlay/Modal.jsx';
+import { Field } from '@/../design-system/components/forms/Field.jsx';
+import { Input } from '@/../design-system/components/forms/Input.jsx';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
@@ -406,22 +409,17 @@ function PoolsContent() {
 
       {/* Create Pool Modal */}
       {showCreateModal ? (
-        <div className="modal-overlay" onClick={handleCloseCreateModal}>
-          <div className="modal-card" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display, inherit)',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                letterSpacing: '-0.015em',
-                marginBottom: '1.25rem',
-              }}
-            >
-              {t('pools.modal.createTitle')}
-            </h2>
+        <Modal
+          open
+          onClose={handleCloseCreateModal}
+          busy={creating}
+          size="lg"
+          title={t('pools.modal.createTitle')}
+          closeLabel={t('common.cancel')}
+        >
 
             <form onSubmit={handleSubmit}>
-              <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div className="config-area ds-form-compact" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div
                   style={{
                     display: 'grid',
@@ -430,36 +428,26 @@ function PoolsContent() {
                     alignItems: 'start',
                   }}
                 >
-                  <div>
-                    <label htmlFor="poolName" className="field-label">
-                      {t('pools.modal.poolNameLabel')}
-                    </label>
-                    <input
-                      id="poolName"
+                  <Field label={t('pools.modal.poolNameLabel')}>
+                    <Input
                       type="text"
                       value={poolName}
                       onChange={(e) => setPoolName(e.target.value)}
                       placeholder={t('pools.modal.poolNamePlaceholder')}
                       disabled={creating}
                     />
-                  </div>
-                  <div>
-                    <label htmlFor="poolDeadline" className="field-label">
-                      <FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} />
-                      {t('pools.modal.deadlineLabel')}
-                    </label>
+                  </Field>
+                  <Field
+                    label={<><FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} /> {t('pools.modal.deadlineLabel')}</>}
+                    hint={t('pools.modal.deadlineHint')}
+                  >
                     <DateField
-                      id="poolDeadline"
                       type="datetime-local"
                       value={poolDeadlineLocal}
                       onChange={(e) => setPoolDeadlineLocal(e.target.value)}
                       disabled={creating}
-                      className="input"
                     />
-                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
-                      {t('pools.modal.deadlineHint')}
-                    </p>
-                  </div>
+                  </Field>
                 </div>
 
                 <div
@@ -470,13 +458,11 @@ function PoolsContent() {
                     alignItems: 'start',
                   }}
                 >
-                  <div>
-                    <label htmlFor="poolEntryFee" className="field-label">
-                      <FaDollarSign aria-hidden style={{ color: 'rgb(var(--fg))' }} />
-                      {t('pools.modal.entryFeeLabel')}
-                    </label>
-                    <input
-                      id="poolEntryFee"
+                  <Field
+                    label={<><FaDollarSign aria-hidden style={{ color: 'rgb(var(--fg))' }} /> {t('pools.modal.entryFeeLabel')}</>}
+                    hint={t('pools.modal.entryFeeHint')}
+                  >
+                    <Input
                       type="number"
                       inputMode="decimal"
                       min="0"
@@ -484,18 +470,13 @@ function PoolsContent() {
                       value={poolEntryFee}
                       onChange={(e) => { const v = Number.parseFloat(e.target.value); setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }}
                       disabled={creating}
-                      className="input"
                     />
-                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
-                      {t('pools.modal.entryFeeHint')}
-                    </p>
-                  </div>
-                  <div>
-                    <label htmlFor="poolPrizePaidPositions" className="field-label">
-                      {t('pools.modal.prizePaidPositionsLabel')}
-                    </label>
-                    <input
-                      id="poolPrizePaidPositions"
+                  </Field>
+                  <Field
+                    label={t('pools.modal.prizePaidPositionsLabel')}
+                    hint={t('pools.modal.prizePaidPositionsHint', { count: maxCreatePrizePaidPositions })}
+                  >
+                    <Input
                       type="number"
                       inputMode="numeric"
                       min="0"
@@ -506,12 +487,8 @@ function PoolsContent() {
                         setPoolPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxCreatePrizePaidPositions));
                       }}
                       disabled={creating || poolEntryFee === 0}
-                      className="input"
                     />
-                    <p style={{ margin: '0.3rem 0 0', color: 'rgb(var(--fg-muted))', fontSize: '0.78rem' }}>
-                      {t('pools.modal.prizePaidPositionsHint', { count: maxCreatePrizePaidPositions })}
-                    </p>
-                  </div>
+                  </Field>
                 </div>
 
                 <div style={{ color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
@@ -533,7 +510,7 @@ function PoolsContent() {
                         <span className="prize-payout-rank">
                           {t('adminResults.scoring.prizeNumber', { number: index + 1 })}
                         </span>
-                        <input
+                        <Input
                           type="number"
                           inputMode="numeric"
                           min="1"
@@ -548,12 +525,9 @@ function PoolsContent() {
                             )));
                           }}
                           disabled={creating}
-                          className="input"
-                          style={{
-                            borderColor: createPrizeRanksInvalid ? 'rgb(var(--live) / 0.75)' : undefined,
-                          }}
+                          invalid={createPrizeRanksInvalid}
                         />
-                        <input
+                        <Input
                           type="number"
                           inputMode="decimal"
                           min="0"
@@ -568,12 +542,7 @@ function PoolsContent() {
                             )));
                           }}
                           disabled={creating}
-                          className="input"
-                          style={{
-                            borderColor: createPrizeTotalInvalid || row.amount <= 0
-                              ? 'rgb(var(--live) / 0.75)'
-                              : undefined,
-                          }}
+                          invalid={createPrizeTotalInvalid || row.amount <= 0}
                         />
                         <span className="prize-payout-hint">
                           {t('adminResults.scoring.prizePayoutHint', { rank: row.rank })}
@@ -601,42 +570,29 @@ function PoolsContent() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       ) : null}
 
       {/* Invite User Modal */}
       {invitingPool ? (
-        <div className="modal-overlay" onClick={handleCloseInviteModal}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display, inherit)',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                letterSpacing: '-0.015em',
-                marginBottom: '1.25rem',
-              }}
-            >
-              {t('pools.modal.inviteTitle', { poolName: invitingPool.name })}
-            </h2>
-
+        <Modal
+          open
+          onClose={handleCloseInviteModal}
+          busy={inviting}
+          title={t('pools.modal.inviteTitle', { poolName: invitingPool.name })}
+          closeLabel={t('common.cancel')}
+        >
             <form onSubmit={handleInviteSubmit}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label htmlFor="inviteEmail" className="field-label">
-                  {t('pools.modal.inviteEmailLabel')}
-                </label>
-                <input
-                  id="inviteEmail"
+              <Field label={t('pools.modal.inviteEmailLabel')} error={inviteError || undefined}>
+                <Input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder={t('pools.modal.inviteEmailPlaceholder')}
                   disabled={inviting}
-                  className="input"
+                  invalid={Boolean(inviteError)}
                 />
-                {inviteError ? <p className="field-error">{inviteError}</p> : null}
-              </div>
+              </Field>
 
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
                 <Button variant="ghost"
@@ -654,8 +610,7 @@ function PoolsContent() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       ) : null}
     </>
   );
