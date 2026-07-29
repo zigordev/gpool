@@ -1430,11 +1430,12 @@ html.dark .players-pitch-board {
    Layout helpers
    ============================================================================ */
 
+/* AppShell's <main> already supplies the 24px gutter, so this only adds
+   bottom breathing room. The old 80rem cap plus its own 1.25rem sides cost
+   ~350px of content width on a wide screen. */
 .container-app {
   width: 100%;
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 0.15rem 1.25rem 1.25rem;
+  padding: 0 0 1.25rem;
 }
 
 @media (min-width: 768px) {

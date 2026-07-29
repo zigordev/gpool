@@ -31,7 +31,7 @@ function Pair({ title, note, ds, gp }: { title: string; note?: string; ds: React
 
 export function PreviewGallery() {
   return (
-    <main className="container-app" style={{ padding: '24px 0 64px' }}>
+    <main className="container-app" style={{ padding: 24 }}>
       <PageHeader
         eyebrow="Dev only"
         title="Design system preview"
