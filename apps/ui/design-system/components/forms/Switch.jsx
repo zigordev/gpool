@@ -12,10 +12,9 @@ injectOnce('ds-switch', `
 .ds-switch-row:has(.ds-switch:disabled) .ds-switch-label{opacity:.55;cursor:not-allowed;}
 `);
 
-let seq = 0;
-
 export function Switch({ checked = false, onChange, disabled, label, className = '', ...props }) {
-  const labelId = React.useRef(`ds-switch-${++seq}`).current;
+  // See Field: a module counter desynchronises between server and client.
+  const labelId = React.useId();
   const toggle = () => onChange && onChange(!checked);
 
   const control = (

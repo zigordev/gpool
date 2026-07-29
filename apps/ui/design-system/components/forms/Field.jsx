@@ -1,7 +1,5 @@
 import React from 'react';
 
-let seq = 0;
-
 /** Label + control + hint/error, with the label actually wired to the control.
  *
  * Association works by generating an id and cloning it onto a single element
@@ -13,7 +11,10 @@ let seq = 0;
  * screen reader announces the input as unlabelled.
  */
 export function Field({ label, hint, error, required, htmlFor, children, className = '', style }) {
-  const generated = React.useRef(`ds-field-${++seq}`).current;
+  // useId, not a module counter: a counter advances once per render on the
+  // server and again on the client, so the two disagree and every Field
+  // hydrates with a mismatched htmlFor/id pair.
+  const generated = React.useId();
   const only = React.Children.count(children) === 1 ? React.Children.only(children) : null;
   const childId = React.isValidElement(only) ? only.props.id : undefined;
   const controlId = htmlFor ?? childId ?? (React.isValidElement(only) ? generated : undefined);

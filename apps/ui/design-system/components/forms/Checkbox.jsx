@@ -7,10 +7,10 @@ injectOnce('ds-checkbox', `
 .ds-checkbox-row{display:inline-flex;align-items:center;gap:8px;font-family:var(--ds-font-sans);font-size:var(--ds-text-sm);color:var(--ds-color-fg);cursor:pointer;}
 `);
 
-let seq = 0;
-
 export function Checkbox({ label, className = '', style, id, ...props }) {
-  const inputId = React.useRef(id || `ds-checkbox-${++seq}`).current;
+  // See Field: a module counter desynchronises between server and client.
+  const generated = React.useId();
+  const inputId = id || generated;
   return (
     <label className="ds-checkbox-row" htmlFor={inputId} style={style}>
       <input id={inputId} type="checkbox" className={`ds-checkbox ${className}`.trim()} {...props} />
