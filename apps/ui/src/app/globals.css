@@ -1378,15 +1378,12 @@ html.dark .players-pitch-board {
 /* AppShell's <main> already supplies the 24px gutter, so this only adds
    bottom breathing room. The old 80rem cap plus its own 1.25rem sides cost
    ~350px of content width on a wide screen. */
+/* No padding: AppShell's .ds-app-shell-content already provides the gutter,
+   and adding another 32px here is what made gpool's screens sit visibly
+   narrower than kini's and the operator console's. */
 .container-app {
   width: 100%;
-  padding: 0 0 1.25rem;
-}
-
-@media (min-width: 768px) {
-  .container-app {
-    padding: 0.25rem 2rem 2rem;
-  }
+  min-width: 0;
 }
 
 /* Sr-only utility */
