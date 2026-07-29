@@ -21,6 +21,7 @@ import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
 import { Button } from '../../../design-system/components/core/Button.jsx';
+import { DateField } from '@/../design-system/components/forms/DateField.jsx';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
@@ -440,7 +441,6 @@ function PoolsContent() {
                       onChange={(e) => setPoolName(e.target.value)}
                       placeholder={t('pools.modal.poolNamePlaceholder')}
                       disabled={creating}
-                      className="input"
                     />
                   </div>
                   <div>
@@ -448,7 +448,7 @@ function PoolsContent() {
                       <FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} />
                       {t('pools.modal.deadlineLabel')}
                     </label>
-                    <input
+                    <DateField
                       id="poolDeadline"
                       type="datetime-local"
                       value={poolDeadlineLocal}

@@ -13,6 +13,7 @@ import { IoSettings } from 'react-icons/io5';
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { Button } from '../../../../../../design-system/components/core/Button.jsx';
+import { DateField } from '@/../design-system/components/forms/DateField.jsx';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();
@@ -66,7 +67,7 @@ export default function AdminRankingPage() {
               <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} />
             </FormField>
             <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
-              <Input type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
+              <DateField type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
             </FormField>
             <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.matchdaySeparatorTime')}</span>} hint={t('adminResults.scoring.matchdaySeparatorTimeHint')}>
               <Input type="time" value={matchdaySeparatorTime} onChange={(e) => setMatchdaySeparatorTime(e.target.value)} />

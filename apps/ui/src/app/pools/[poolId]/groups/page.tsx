@@ -20,6 +20,7 @@ import { FaExternalLinkAlt } from 'react-icons/fa';
 import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
 import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
+import { Table } from '../../../../../design-system/components/data-display/Table.jsx';
 
 const MatchInsightsModal = dynamic(
   () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),
@@ -470,123 +471,80 @@ function PredictionStandingsTable({
   ];
 
   return (
-    <div
-      className="data-table-frame"
-      style={{
-        ...style,
-      }}
-    >
-      {caption ? (
-        <div className="data-table-caption">
-          {caption}
-        </div>
-      ) : null}
-      <div className="data-table-scroll">
-        <table
-          className="data-table"
-          style={{
-            minWidth,
-          }}
-        >
-          <thead>
-            <tr
+    <Table caption={caption} minWidth={minWidth} maxHeight="65vh" density="compact" style={style}>
+      <thead>
+        <tr>
+          {columns.map((column) => (
+            <th
+              key={column.key}
+              scope="col"
               style={{
-                background: 'rgb(var(--panel-muted-bg-solid))',
-                borderBottom: '1px solid rgb(var(--border))',
+                ...standingsStickyHeaderStyle(column.key),
+                ...standingsColumnStyle(column.key),
+                textAlign: column.align,
               }}
             >
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  scope="col"
-                  style={{
-                    ...standingsThStyle,
-                    ...standingsStickyHeaderStyle(column.key),
-                    ...standingsColumnStyle(column.key),
-                    textAlign: column.align,
-                  }}
-                >
-                  {column.label}
-                </th>
-              ))}
+              {column.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, index) => {
+          const qualified = index < qualificationCutoff;
+          return (
+            <tr key={`${row.group}-${row.teamId}`}>
+              <td style={{ ...standingsStickyCellStyle('position'), textAlign: 'center', fontWeight: 800, color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))' }}>
+                {index + 1}
+              </td>
+              <td style={{ ...standingsStickyCellStyle('team'), textAlign: 'left', fontWeight: 700 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
+                  <ReactCountryFlag countryCode={countryIsoCode(row.name)} svg style={{ width: '1.5em', height: '1.5em', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{countryDisplayName(row.name, t)}</span>
+                </span>
+              </td>
+              {showGroup ? (
+                <td style={{ ...standingsColumnStyle('group'), textAlign: 'center', fontWeight: 800 }}>{row.group}</td>
+              ) : null}
+              <td style={standingsPointsStyle}>{row.points}</td>
+              <td style={standingsNumberStyle}>{row.played}</td>
+              <td style={standingsNumberStyle}>{row.goalsFor}</td>
+              <td style={standingsNumberStyle}>{row.goalsAgainst}</td>
+              <td style={standingsNumberStyle}>{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</td>
+              {showStatus ? (
+                <td style={{ textAlign: 'center' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0.14rem 0.45rem',
+                      borderRadius: '999px',
+                      border: `1px solid ${qualified ? 'rgb(var(--pitch) / 0.45)' : 'rgb(var(--border))'}`,
+                      background: qualified ? 'rgb(var(--pitch) / 0.10)' : 'rgb(var(--bg-subtle))',
+                      color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))',
+                      fontSize: '0.62rem',
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {qualified ? t('poolDetail.groupPhase.standings.qualified') : t('poolDetail.groupPhase.standings.eliminated')}
+                  </span>
+                </td>
+              ) : null}
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => {
-              const qualified = index < qualificationCutoff;
-              return (
-                <tr key={`${row.group}-${row.teamId}`} style={{ borderBottom: '1px solid rgb(var(--border) / 0.65)' }}>
-                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('position'), textAlign: 'center', fontWeight: 800, color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))' }}>
-                    {index + 1}
-                  </td>
-                  <td style={{ ...standingsTdStyle, ...standingsStickyCellStyle('team'), textAlign: 'left', fontWeight: 700 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
-                      <ReactCountryFlag countryCode={countryIsoCode(row.name)} svg style={{ width: '1.5em', height: '1.5em', flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{countryDisplayName(row.name, t)}</span>
-                    </span>
-                  </td>
-                  {showGroup ? (
-                    <td style={{ ...standingsTdStyle, ...standingsColumnStyle('group'), textAlign: 'center', fontWeight: 800 }}>{row.group}</td>
-                  ) : null}
-                  <td style={standingsPointsStyle}>{row.points}</td>
-                  <td style={standingsNumberStyle}>{row.played}</td>
-                  <td style={standingsNumberStyle}>{row.goalsFor}</td>
-                  <td style={standingsNumberStyle}>{row.goalsAgainst}</td>
-                  <td style={standingsNumberStyle}>{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</td>
-                  {showStatus ? (
-                    <td style={{ ...standingsTdStyle, textAlign: 'center' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0.14rem 0.45rem',
-                          borderRadius: '999px',
-                          border: `1px solid ${qualified ? 'rgb(var(--pitch) / 0.45)' : 'rgb(var(--border))'}`,
-                          background: qualified ? 'rgb(var(--pitch) / 0.10)' : 'rgb(var(--bg-subtle))',
-                          color: qualified ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))',
-                          fontSize: '0.62rem',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {qualified ? t('poolDetail.groupPhase.standings.qualified') : t('poolDetail.groupPhase.standings.eliminated')}
-                      </span>
-                    </td>
-                  ) : null}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          );
+        })}
+      </tbody>
+    </Table>
   );
 }
 
-const standingsThStyle: CSSProperties = {
-  padding: '0.5rem 0.45rem',
-  fontSize: '0.72rem',
-  fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color: 'rgb(var(--fg-muted))',
-  whiteSpace: 'nowrap',
-  position: 'sticky',
-  top: 0,
-  zIndex: 2,
-  background: 'rgb(var(--panel-muted-bg-solid))',
-};
-
-const standingsTdStyle: CSSProperties = {
-  padding: '0.5rem 0.45rem',
-  fontSize: '0.76rem',
-  color: 'rgb(var(--fg))',
-  verticalAlign: 'middle',
-};
-
+// Padding, uppercase header, sticky top, borders and vertical alignment all
+// come from the design system's Table now. What survives here is only what
+// this table specifically needs: the frozen position/team columns and the
+// per-column widths.
 const standingsNumberStyle: CSSProperties = {
-  ...standingsTdStyle,
   textAlign: 'right',
   fontVariantNumeric: 'tabular-nums',
   color: 'rgb(var(--fg-muted))',
@@ -605,7 +563,7 @@ function standingsStickyHeaderStyle(key: string): CSSProperties {
       zIndex: 6,
       width: '3.2rem',
       minWidth: '3.2rem',
-      background: 'rgb(var(--panel-muted-bg-solid))',
+      background: 'var(--ds-color-surface-2)',
     };
   }
   if (key === 'team') {
@@ -615,8 +573,8 @@ function standingsStickyHeaderStyle(key: string): CSSProperties {
       width: '8rem',
       minWidth: '8rem',
       maxWidth: '8rem',
-      background: 'rgb(var(--panel-muted-bg-solid))',
-      borderRight: '1px solid rgb(var(--border))',
+      background: 'var(--ds-color-surface-2)',
+      borderRight: '1px solid var(--ds-color-border)',
     };
   }
   return {};
@@ -630,7 +588,7 @@ function standingsStickyCellStyle(key: string): CSSProperties {
       zIndex: 4,
       width: '3.2rem',
       minWidth: '3.2rem',
-      background: 'rgb(var(--bg-elevated))',
+      background: 'var(--ds-color-surface)',
       backgroundClip: 'padding-box',
     };
   }
@@ -642,9 +600,9 @@ function standingsStickyCellStyle(key: string): CSSProperties {
       width: '8rem',
       minWidth: '8rem',
       maxWidth: '8rem',
-      background: 'rgb(var(--bg-elevated))',
+      background: 'var(--ds-color-surface)',
       backgroundClip: 'padding-box',
-      borderRight: '1px solid rgb(var(--border))',
+      borderRight: '1px solid var(--ds-color-border)',
     };
   }
   return {};
