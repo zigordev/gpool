@@ -18,6 +18,8 @@ export interface TableProps {
   density?: 'default' | 'compact';
   /** Row hover highlight. @default true */
   hoverable?: boolean;
+  /** Alternating row shading. Helps on wide tables, noise on narrow ones. */
+  zebra?: boolean;
   /** `<thead>` / `<tbody>` — the table's own markup. */
   children: React.ReactNode;
   className?: string;
@@ -25,3 +27,40 @@ export interface TableProps {
 }
 
 export declare function Table(props: TableProps): JSX.Element;
+
+export interface TableSortHeaderProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
+  /** Current sort on this column, or null when it is not the active one. */
+  direction?: 'asc' | 'desc' | null;
+  /** Omit to render the label with no affordance (a non-sortable column). */
+  onSort?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface TablePagerProps {
+  /** Already-translated range/count text, e.g. "1–20 of 137". */
+  summary?: React.ReactNode;
+  /** Already-translated label for the page-size picker, e.g. "Rows". */
+  rowsLabel?: React.ReactNode;
+  /** 1-based. TanStack's pageIndex is 0-based — convert at the boundary. */
+  page: number;
+  pageCount?: number;
+  onPageChange: (page: number) => void;
+  pageSize?: number;
+  /** Both this and onPageSizeChange are needed for the picker to appear. */
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
+  prevLabel?: string;
+  nextLabel?: string;
+}
+
+export interface TableEmptyProps {
+  /** Defaults to 99; browsers clamp it to the real column count. */
+  colSpan?: number;
+  children: React.ReactNode;
+}
+
+export declare function TableSortHeader(props: TableSortHeaderProps): JSX.Element;
+export declare function TablePager(props: TablePagerProps): JSX.Element;
+export declare function TableEmpty(props: TableEmptyProps): JSX.Element;

@@ -14,7 +14,7 @@ import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
 import { Button } from '../../../design-system/components/core/Button.jsx';
-import { Table } from '../../../design-system/components/data-display/Table.jsx';
+import { Table, TableSortHeader, TablePager, TableEmpty } from '../../../design-system/components/data-display/Table.jsx';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 type PlayerActionGroup = 'match' | 'penalty' | 'shootout';
@@ -203,15 +203,8 @@ export function PlayerStatsTable({
   const safePage = Math.min(page, totalPages);
   const paged = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const sortIndicator = (key: PlayerSortKey) =>
-    sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
-
-  const sortableTh = (key: PlayerSortKey): React.CSSProperties => ({
-    ...thStyle,
-    cursor: 'pointer',
-    userSelect: 'none',
-    color: sortKey === key ? 'rgb(var(--fg))' : 'rgb(var(--fg-muted))',
-  });
+  const sortDirection = (key: PlayerSortKey) =>
+    sortKey === key ? sortDir : null;
 
   return (
     <Table
@@ -220,63 +213,25 @@ export function PlayerStatsTable({
       maxHeight="65vh"
       density="compact"
       footer={
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <span style={{ fontSize: '0.78rem', color: 'rgb(var(--fg-muted))', whiteSpace: 'nowrap' }}>
-            {sorted.length}{' '}
-            {sorted.length === 1
+        <TablePager
+          summary={`${sorted.length} ${
+            sorted.length === 1
               ? t('poolDetail.players.title')
-              : t('poolDetail.players.title').toLowerCase()}
-            {totalPages > 1 ? ` · ${safePage} / ${totalPages}` : ''}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-              style={{
-                fontSize: '0.78rem',
-                padding: '0.2rem 0.4rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid rgb(var(--border))',
-                background: 'rgb(var(--input-bg))',
-                color: 'rgb(var(--fg))',
-                transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
-              }}
-            >
-              {[10, 20, 50, 100].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-            <Button variant="ghost" size="icon"
-              type="button"
-              disabled={safePage <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              style={{ width: '1.8rem', height: '1.8rem' }}
-            >
-              ←
-            </Button>
-            <Button variant="ghost" size="icon"
-              type="button"
-              disabled={safePage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              style={{ width: '1.8rem', height: '1.8rem' }}
-            >
-              →
-            </Button>
-          </div>
-        </div>
+              : t('poolDetail.players.title').toLowerCase()
+          }`}
+          rowsLabel={t('poolDetail.players.rowsPerPage')}
+          page={safePage}
+          pageCount={totalPages}
+          onPageChange={setPage}
+          pageSize={pageSize}
+          pageSizeOptions={[10, 20, 50, 100]}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+          prevLabel={t('poolDetail.players.previousPage')}
+          nextLabel={t('poolDetail.players.nextPage')}
+        />
       }
     >
         {players.length > 0 ? (
@@ -318,13 +273,16 @@ export function PlayerStatsTable({
             <th
               rowSpan={2}
               style={{
-                ...sortableTh('totalPoints'),
+                ...thStyle,
                 borderLeft: '2px solid rgb(var(--border))',
               }}
-              onClick={() => handleSort('totalPoints')}
             >
-              {t('poolDetail.ranking.totalPoints')}
-              {sortIndicator('totalPoints')}
+              <TableSortHeader
+                direction={sortDirection('totalPoints')}
+                onSort={() => handleSort('totalPoints')}
+              >
+                {t('poolDetail.ranking.totalPoints')}
+              </TableSortHeader>
             </th>
           </tr>
           <tr>
@@ -332,20 +290,22 @@ export function PlayerStatsTable({
               <th
                 key={col.key}
                 style={{
-                  ...sortableTh(col.key),
+                  ...thStyle,
                   top: '1.85rem',
                   borderLeft:
                     index > 0 && visibleStatColumns[index - 1].group !== col.group
                       ? '2px solid rgb(var(--border))'
                       : undefined,
                 }}
-                onClick={() => handleSort(col.key)}
                 title={t(col.labelKey)}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                <TableSortHeader
+                  direction={sortDirection(col.key)}
+                  onSort={() => handleSort(col.key)}
+                  aria-label={t(col.labelKey)}
+                >
                   {col.icon}
-                  {sortIndicator(col.key)}
-                </span>
+                </TableSortHeader>
               </th>
             ))}
             <th
@@ -364,13 +324,7 @@ export function PlayerStatsTable({
         </thead>
         ) : null}
         <tbody>
-          {players.length === 0 ? (
-            <tr>
-              <td colSpan={99} style={{ padding: '1.5rem', textAlign: 'center', color: 'rgb(var(--fg-muted))' }}>
-                {t('poolDetail.players.empty')}
-              </td>
-            </tr>
-          ) : null}
+          {players.length === 0 ? <TableEmpty>{t('poolDetail.players.empty')}</TableEmpty> : null}
           {paged.map((player) => {
             const totalPts = computeTotal(player);
             const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
