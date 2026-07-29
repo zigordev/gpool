@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { IoSettings } from 'react-icons/io5';
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
+import { Button } from '../../../../../../design-system/components/core/Button.jsx';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();
@@ -214,14 +215,13 @@ export default function AdminRankingPage() {
               {t('adminResults.dangerZone.confirmDescription')}
             </p>
             <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-              <button type="button" disabled={deleting} onClick={() => setShowDeleteConfirm(false)} className="btn btn-ghost" style={{ fontSize: '0.875rem' }}>
+              <Button variant="ghost" type="button" disabled={deleting} onClick={() => setShowDeleteConfirm(false)} style={{ fontSize: '0.875rem' }}>
                 {t('adminResults.dangerZone.cancelButton')}
-              </button>
-              <button
+              </Button>
+              <Button variant="danger"
                 type="button"
                 disabled={deleting}
                 onClick={handleDeletePool}
-                className="btn btn-danger"
                 style={{
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.875rem',
@@ -230,7 +230,7 @@ export default function AdminRankingPage() {
               >
                 {deleting && <span className="btn-spinner" style={{ width: '0.8rem', height: '0.8rem', borderWidth: 2 }} />}
                 {deleting ? t('adminResults.dangerZone.deleting') : t('adminResults.dangerZone.confirmButton')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

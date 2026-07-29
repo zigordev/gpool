@@ -13,6 +13,7 @@ import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
+import { Button } from '../../../design-system/components/core/Button.jsx';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 type PlayerActionGroup = 'match' | 'penalty' | 'shootout';
@@ -474,9 +475,8 @@ export function PlayerStatsTable({
                                   gap: '0.12rem',
                                 }}
                               >
-                                <button
+                                <Button variant="ghost" size="icon"
                                   type="button"
-                                  className="btn btn-ghost btn-icon"
                                   disabled={statsDisabled || isUpdating || value <= 0}
                                   title={t('adminResults.players.decrease')}
                                   aria-label={t('adminResults.players.decrease')}
@@ -489,11 +489,10 @@ export function PlayerStatsTable({
                                   }}
                                 >
                                   −
-                                </button>
+                                </Button>
                                 <span style={statNumberStyle}>{value}</span>
-                                <button
+                                <Button variant="ghost" size="icon"
                                   type="button"
-                                  className="btn btn-ghost btn-icon"
                                   disabled={statsDisabled || isUpdating}
                                   title={t('adminResults.players.increase')}
                                   aria-label={t('adminResults.players.increase')}
@@ -506,7 +505,7 @@ export function PlayerStatsTable({
                                   }}
                                 >
                                   +
-                                </button>
+                                </Button>
                               </span>
                             ) : (
                               <span style={statNumberStyle}>{value}</span>
@@ -519,9 +518,8 @@ export function PlayerStatsTable({
                     })}
                     <td style={{ ...tdStyle, borderLeft: '2px solid rgb(var(--border))' }}>
                       {onAwardToggle ? (
-                        <button
+                        <Button variant="ghost" size="icon"
                           type="button"
-                          className="btn btn-ghost btn-icon"
                           aria-pressed={isGoldenBoot}
                           aria-label={t('adminResults.players.awardWinners.toggleGoldenBoot', {
                             player: player.name,
@@ -544,7 +542,7 @@ export function PlayerStatsTable({
                                 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
                             }}
                           />
-                        </button>
+                        </Button>
                       ) : (
                         <GiLeatherBoot
                           size={20}
@@ -558,9 +556,8 @@ export function PlayerStatsTable({
                     </td>
                     <td style={tdStyle}>
                       {onAwardToggle ? (
-                        <button
+                        <Button variant="ghost" size="icon"
                           type="button"
-                          className="btn btn-ghost btn-icon"
                           aria-pressed={isMVP}
                           aria-label={t('adminResults.players.awardWinners.toggleTournamentMvp', {
                             player: player.name,
@@ -583,7 +580,7 @@ export function PlayerStatsTable({
                                 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
                             }}
                           />
-                        </button>
+                        </Button>
                       ) : (
                         <FaStar
                           size={20}
@@ -648,24 +645,22 @@ export function PlayerStatsTable({
               </option>
             ))}
           </select>
-          <button
+          <Button variant="ghost" size="icon"
             type="button"
-            className="btn btn-ghost btn-icon"
             disabled={safePage <= 1}
             onClick={() => setPage((p) => p - 1)}
             style={{ width: '1.8rem', height: '1.8rem' }}
           >
             ←
-          </button>
-          <button
+          </Button>
+          <Button variant="ghost" size="icon"
             type="button"
-            className="btn btn-ghost btn-icon"
             disabled={safePage >= totalPages}
             onClick={() => setPage((p) => p + 1)}
             style={{ width: '1.8rem', height: '1.8rem' }}
           >
             →
-          </button>
+          </Button>
         </div>
       </div>
     </div>

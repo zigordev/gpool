@@ -9,7 +9,7 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { rum } from '@/lib/rum';
-import { Button } from '@/components/ui/Button';
+import { Button } from '../../../../../../design-system/components/core/Button.jsx';
 
 type Status = 'pending' | 'success' | 'error';
 

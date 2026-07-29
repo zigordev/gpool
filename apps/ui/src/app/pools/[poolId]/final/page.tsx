@@ -7,7 +7,7 @@ import { FaMagic } from 'react-icons/fa';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext } from '@/contexts/PoolContext';
 import type { MatchInsightsTarget } from '@/components/pool/MatchInsightsModal';
-import { Button } from '@/components/ui/Button';
+import { Button } from '../../../../../design-system/components/core/Button.jsx';
 import { Modal } from '@/components/ui/Modal';
 import { Section } from '@/components/ui/Section';
 import { apiClient } from '@/lib/api';

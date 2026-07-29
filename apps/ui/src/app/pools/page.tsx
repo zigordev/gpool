@@ -20,6 +20,7 @@ import {
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
+import { Button } from '../../../design-system/components/core/Button.jsx';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
@@ -296,13 +297,13 @@ function PoolsContent() {
           )}
 
           {user?.role === 'admin' ? (
-            <button type="button" onClick={handleCreatePool} className="btn btn-primary">
+            <Button variant="primary" type="button" onClick={handleCreatePool}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               {t('pools.actions.create')}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}
@@ -585,21 +586,19 @@ function PoolsContent() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={handleCloseCreateModal}
                   disabled={creating}
-                  className="btn btn-ghost"
                 >
                   {t('common.cancel')}
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
                   disabled={creating || !poolName.trim() || createPrizeTotalInvalid}
-                  className="btn btn-primary"
                 >
                   {creating ? t('pools.actions.creating') : t('pools.actions.create')}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -640,21 +639,19 @@ function PoolsContent() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={handleCloseInviteModal}
                   disabled={inviting}
-                  className="btn btn-ghost"
                 >
                   {t('common.cancel')}
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
                   disabled={inviting || !inviteEmail.trim()}
-                  className="btn btn-primary"
                 >
                   {inviting ? t('pools.actions.sending') : t('pools.actions.sendInvitation')}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
