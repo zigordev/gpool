@@ -10,6 +10,7 @@ import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext
 import { IoSettings } from 'react-icons/io5';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { FaExternalLinkAlt } from 'react-icons/fa';
+import { Table } from '../../../../../../design-system/components/data-display/Table.jsx';
 
 function ScoreInput({
   value,
@@ -169,32 +170,14 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
   );
 }
 
-const adminFairPlayThStyle: CSSProperties = {
-  padding: '0.55rem 0.65rem',
-  fontSize: '0.62rem',
-  fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color: 'rgb(var(--fg-muted))',
-  whiteSpace: 'nowrap',
-  position: 'sticky',
-  top: 0,
-  zIndex: 2,
-  background: 'rgb(var(--panel-muted-bg-solid))',
-};
-
-const adminFairPlayTdStyle: CSSProperties = {
-  padding: '0.45rem 0.65rem',
-  fontSize: '0.82rem',
-  verticalAlign: 'middle',
-};
-
+// Header typography, cell padding, sticky top and row separators come from
+// the design system's Table. Only the two frozen columns are local.
 function adminFairPlayStickyHeaderStyle(key: 'rank' | 'team'): CSSProperties {
   if (key === 'rank') {
     return {
       left: 0,
       zIndex: 6,
-      background: 'rgb(var(--panel-muted-bg-solid))',
+      background: 'var(--ds-color-surface-2)',
     };
   }
   return {
@@ -203,8 +186,8 @@ function adminFairPlayStickyHeaderStyle(key: 'rank' | 'team'): CSSProperties {
     width: '9rem',
     minWidth: '9rem',
     maxWidth: '9rem',
-    background: 'rgb(var(--panel-muted-bg-solid))',
-    borderRight: '1px solid rgb(var(--border))',
+    background: 'var(--ds-color-surface-2)',
+    borderRight: '1px solid var(--ds-color-border)',
   };
 }
 
@@ -216,7 +199,7 @@ function adminFairPlayStickyCellStyle(key: 'rank' | 'team'): CSSProperties {
       zIndex: 4,
       width: '3.5rem',
       minWidth: '3.5rem',
-      background: 'rgb(var(--bg-elevated))',
+      background: 'var(--ds-color-surface)',
       backgroundClip: 'padding-box',
     };
   }
@@ -227,9 +210,9 @@ function adminFairPlayStickyCellStyle(key: 'rank' | 'team'): CSSProperties {
     width: '9rem',
     minWidth: '9rem',
     maxWidth: '9rem',
-    background: 'rgb(var(--bg-elevated))',
+    background: 'var(--ds-color-surface)',
     backgroundClip: 'padding-box',
-    borderRight: '1px solid rgb(var(--border))',
+    borderRight: '1px solid var(--ds-color-border)',
   };
 }
 
@@ -331,77 +314,74 @@ function FairPlayTable({
           </a>
         </span>
       </p>
-      <div className="admin-table-frame">
-        <table className="data-table" style={{ minWidth: '28rem' }}>
-          <thead style={{ background: 'rgb(var(--panel-muted-bg-solid))' }}>
-            <tr>
-              <th scope="col" style={{ ...adminFairPlayThStyle, ...adminFairPlayStickyHeaderStyle('rank'), width: '3.5rem', textAlign: 'center' }}>
-                {t('adminResults.groupPhase.fairPlay.rank')}
-              </th>
-              <th scope="col" style={{ ...adminFairPlayThStyle, ...adminFairPlayStickyHeaderStyle('team'), textAlign: 'left' }}>
-                {t('adminResults.groupPhase.fairPlay.team')}
-              </th>
-              <th scope="col" style={{ ...adminFairPlayThStyle, width: '6.5rem', textAlign: 'right' }}>
-                {t('adminResults.groupPhase.fairPlay.points')}
-              </th>
-            </tr>
-          </thead>
-          <tbody style={{ background: 'rgb(var(--bg-elevated))' }}>
-            {orderedTeams.map((team, index) => (
-              <tr
-                key={team.teamId}
-                ref={(row) => {
-                  if (row) rowRefs.current.set(team.teamId, row);
-                  else rowRefs.current.delete(team.teamId);
+      <Table minWidth="28rem" maxHeight="65vh" density="compact">
+      <thead>
+        <tr>
+          <th scope="col" style={{ ...adminFairPlayStickyHeaderStyle('rank'), width: '3.5rem', textAlign: 'center' }}>
+            {t('adminResults.groupPhase.fairPlay.rank')}
+          </th>
+          <th scope="col" style={{ ...adminFairPlayStickyHeaderStyle('team'), textAlign: 'left' }}>
+            {t('adminResults.groupPhase.fairPlay.team')}
+          </th>
+          <th scope="col" style={{ width: '6.5rem', textAlign: 'right' }}>
+            {t('adminResults.groupPhase.fairPlay.points')}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {orderedTeams.map((team, index) => (
+          <tr
+            key={team.teamId}
+            ref={(row) => {
+              if (row) rowRefs.current.set(team.teamId, row);
+              else rowRefs.current.delete(team.teamId);
+            }}
+          >
+            <td style={{ ...adminFairPlayStickyCellStyle('rank'), textAlign: 'center', color: 'rgb(var(--fg-muted))', fontWeight: 700 }}>
+              {index + 1}
+            </td>
+            <td style={{ ...adminFairPlayStickyCellStyle('team'), minWidth: 0 }}>
+              <span style={{ display: 'flex', minWidth: 0, alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem', fontWeight: 600 }}>
+                <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '1.5em', height: '1.5em' }} />
+                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</span>
+              </span>
+            </td>
+            <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
+              <input
+                className="input"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
+                disabled={updatingTeamId === team.teamId}
+                aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (/^-?\d*$/.test(value)) {
+                    setDrafts((prev) => ({ ...prev, [team.teamId]: value }));
+                  }
                 }}
-                style={{ borderTop: '1px solid rgb(var(--border-subtle))' }}
-              >
-                <td style={{ ...adminFairPlayTdStyle, ...adminFairPlayStickyCellStyle('rank'), textAlign: 'center', color: 'rgb(var(--fg-muted))', fontWeight: 700 }}>
-                  {index + 1}
-                </td>
-                <td style={{ ...adminFairPlayTdStyle, ...adminFairPlayStickyCellStyle('team'), minWidth: 0 }}>
-                  <span style={{ display: 'flex', minWidth: 0, alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem', fontWeight: 600 }}>
-                    <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '1.5em', height: '1.5em' }} />
-                    <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</span>
-                  </span>
-                </td>
-                <td style={{ ...adminFairPlayTdStyle, padding: '0.35rem 0.5rem', textAlign: 'right' }}>
-                  <input
-                    className="input"
-                    type="text"
-                    inputMode="text"
-                    autoComplete="off"
-                    value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
-                    disabled={updatingTeamId === team.teamId}
-                    aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (/^-?\d*$/.test(value)) {
-                        setDrafts((prev) => ({ ...prev, [team.teamId]: value }));
-                      }
-                    }}
-                    onBlur={() => void saveDraft(team)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                      if (event.key === '+' || event.key === '.' || event.key === 'e' || event.key === 'E') event.preventDefault();
-                    }}
-                    style={{
-                      width: '4.5rem',
-                      height: '2rem',
-                      minHeight: '2rem',
-                      padding: '0.3rem 0.45rem',
-                      textAlign: 'right',
-                      borderRadius: 'var(--radius-sm)',
-                      fontWeight: 700,
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                onBlur={() => void saveDraft(team)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur();
+                  if (event.key === '+' || event.key === '.' || event.key === 'e' || event.key === 'E') event.preventDefault();
+                }}
+                style={{
+                  width: '4.5rem',
+                  height: '2rem',
+                  minHeight: '2rem',
+                  padding: '0.3rem 0.45rem',
+                  textAlign: 'right',
+                  borderRadius: 'var(--radius-sm)',
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+      </Table>
     </Section>
   );
 }

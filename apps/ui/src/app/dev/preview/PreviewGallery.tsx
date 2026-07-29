@@ -5,10 +5,15 @@ import { StatTile as DsStatTile } from '../../../../design-system/components/dat
 import { PageHeader } from '../../../../design-system/components/data-display/PageHeader.jsx';
 import { Badge as DsBadge } from '../../../../design-system/components/feedback/Badge.jsx';
 import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
+import { Table } from '../../../../design-system/components/data-display/Table.jsx';
+import { Field } from '../../../../design-system/components/forms/Field.jsx';
+import { DateField } from '../../../../design-system/components/forms/DateField.jsx';
 
 import { Badge as GpBadge } from '@/components/ui/Badge';
 import { StatTile as GpStatTile } from '@/components/ui/StatTile';
 import { EmptyState as GpEmptyState } from '@/components/ui/EmptyState';
+import { RankTable } from '@/components/pool/RankTable';
+import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 
 function Pair({ title, note, ds, gp }: { title: string; note?: string; ds: React.ReactNode; gp: React.ReactNode }) {
   return (
@@ -94,6 +99,68 @@ export function PreviewGallery() {
           <GpStatTile label="Balance" value="-€310" hint="no value toning" />
         </div>}
       />
+
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Table + DateField</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        Table is presentational only — gpool&apos;s existing .data-table convention, lifted into
+        the design system. Sorting and pagination stay with whatever engine a screen uses.
+      </p>
+      <div style={{ display: 'grid', gap: 16, marginBottom: 28 }}>
+        <Field label="Deadline" hint="Native control, styled to match Input.">
+          <DateField type="datetime-local" defaultValue="2026-06-11T20:00" />
+        </Field>
+        <Table caption="Standings" maxHeight={220} density="compact">
+          <thead>
+            <tr><th>#</th><th>Team</th><th className="ds-table-num">Played</th><th className="ds-table-num">Points</th></tr>
+          </thead>
+          <tbody>
+            {[['1','Spain',3,9],['2','Brazil',3,6],['3','Japan',3,4],['4','Canada',3,0]].map((r) => (
+              <tr key={r[0] as string}>
+                <td>{r[0]}</td><td>{r[1]}</td>
+                <td className="ds-table-num">{r[2]}</td>
+                <td className="ds-table-num">{r[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>RankTable — on the shared Table</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        The real component with fixture rows. Its frozen identity column and display-face numbers
+        are its own; everything else now comes from the design system.
+      </p>
+      <div style={{ marginBottom: 28 }}>
+        <RankTable
+          spyEnabled
+          currentUserId="u2"
+          onSpy={() => {}}
+          ranking={[
+            { rank: 1, userId: 'u1', userName: 'Ana Torres', groupPhasePoints: 41, finalPhasePoints: 18, playerPoints: 9, movement: { previousRank: 3, delta: 2, matchdayPoints: 12 } },
+            { rank: 2, userId: 'u2', userName: 'You', groupPhasePoints: 39, finalPhasePoints: 18, playerPoints: 7 },
+            { rank: 3, userId: 'u3', userName: 'Marc Villalonga Puig', groupPhasePoints: 38, finalPhasePoints: 12, playerPoints: 11, movement: { previousRank: 2, delta: -1, matchdayPoints: 3 } },
+          ]}
+        />
+      </div>
+
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>PlayerStatsTable — caption + footer slots</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        The filter strip and the pagination strip are the Table&apos;s caption and footer, so they
+        sit inside the frame. Its two-row sticky header and frozen name column stay its own.
+      </p>
+      <div style={{ marginBottom: 28 }}>
+        <PlayerStatsTable
+          toolbar={<DsButton variant="outline" size="sm" leadingIcon={<Icon name="search" size={13} />}>Filter players</DsButton>}
+          goldenBootPlayerIds={['p1']}
+          tournamentMvpPlayerId="p1"
+          computeTotal={(p) => p.totalPoints ?? 0}
+          t={(key) => key.split('.').pop() ?? key}
+          players={[
+            { playerId: 'p1', teamId: 't1', teamName: 'Spain', name: 'Lamine Yamal', position: 'forward', goals: 4, assists: 2, mvps: 1, totalPoints: 31 },
+            { playerId: 'p2', teamId: 't2', teamName: 'Brazil', name: 'Vinícius Júnior', position: 'forward', goals: 3, assists: 3, totalPoints: 27, teamEliminated: true },
+          ]}
+        />
+      </div>
 
       <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>EmptyState — gpool only</h2>
       <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>

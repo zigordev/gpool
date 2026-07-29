@@ -896,46 +896,6 @@ html.dark .players-pitch-board {
   border-color: rgb(var(--pitch) / 0.28) !important;
 }
 
-.rank-table {
-  min-width: 540px;
-}
-
-.data-table-frame {
-  min-width: 0;
-  max-width: 100%;
-  overflow: clip;
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--border));
-  background: rgb(var(--bg-elevated));
-  box-shadow: 0 4px 14px rgb(15 23 42 / 0.08);
-}
-
-.data-table-scroll {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 65vh;
-  scrollbar-gutter: stable;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table-caption {
-  padding: 0.5rem 0.6rem;
-  background: rgb(var(--panel-muted-bg-solid));
-  border-bottom: 1px solid rgb(var(--border));
-  color: rgb(var(--fg-subtle));
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .rank-table-identity-col {
   width: 12rem;
   min-width: 12rem;
@@ -985,10 +945,6 @@ html.dark .players-pitch-board {
 }
 
 @media (max-width: 520px) {
-  .rank-table {
-    min-width: 0;
-  }
-
   .rank-table-identity-col {
     min-width: 8.75rem !important;
     width: 8.75rem !important;
@@ -1123,17 +1079,6 @@ html.dark .players-pitch-board {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-}
-
-.admin-table-frame {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 65vh;
-  background: rgb(var(--bg-elevated));
-  border: 1px solid rgb(var(--border));
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 14px rgb(15 23 42 / 0.08);
-  scrollbar-gutter: stable;
 }
 
 .admin-bracket-workspace {
