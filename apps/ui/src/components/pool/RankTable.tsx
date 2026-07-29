@@ -4,6 +4,7 @@ import { useI18n } from "@/i18n/client";
 import { BsFillDiagram3Fill } from "react-icons/bs";
 import { FaLayerGroup } from "react-icons/fa6";
 import { GiSoccerKick } from "react-icons/gi";
+import { Button } from '../../../design-system/components/core/Button.jsx';
 interface RankingEntry {
   rank: number;
   userId?: string;
@@ -154,13 +155,12 @@ export function RankTable({
 
                 {spyEnabled ? (
                   <td style={tdStyle}>
-                    <button
+                    <Button variant="ghost" size="icon"
                       disabled={isCurrentUser || !entry.userId}
                       type="button"
                       onClick={() => entry.userId && onSpy({ userId: entry.userId, userName: entry.userName })}
                       aria-label={t('poolDetail.spy.action')}
                       title={t('poolDetail.spy.action')}
-                      className="btn btn-ghost btn-icon"
                       style={{
                         width: '2.1rem',
                         height: '2.1rem',
@@ -181,7 +181,7 @@ export function RankTable({
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
-                    </button>
+                    </Button>
                   </td>
                 ) : null}
               </tr>

@@ -6,7 +6,6 @@ import { PageHeader } from '../../../../design-system/components/data-display/Pa
 import { Badge as DsBadge } from '../../../../design-system/components/feedback/Badge.jsx';
 import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
 
-import { Button as GpButton } from '@/components/ui/Button';
 import { Badge as GpBadge } from '@/components/ui/Badge';
 import { StatTile as GpStatTile } from '@/components/ui/StatTile';
 import { EmptyState as GpEmptyState } from '@/components/ui/EmptyState';
@@ -39,41 +38,26 @@ export function PreviewGallery() {
         description="Shared primitives beside gpool's own, in gpool's theme. Use the theme toggle to check dark and light."
       />
 
-      <Pair
-        title="Button — variants"
-        note="gpool adds a gradient `solid` variant; the design system has `secondary` instead."
-        ds={<>
+      {/* Button converged: gpool's implementation is gone, its loading and
+          icon slots now live in the design system. One row, not a pair. */}
+      <section style={{ marginBottom: 28 }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Button — converged</h2>
+        <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+          One implementation. gpool&apos;s loading and icon slots were promoted into the design system.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 16, border: '1px solid rgb(var(--border))', borderRadius: 'var(--radius-md)' }}>
           <DsButton variant="primary">Primary</DsButton>
           <DsButton variant="secondary">Secondary</DsButton>
           <DsButton variant="outline">Outline</DsButton>
           <DsButton variant="ghost">Ghost</DsButton>
           <DsButton variant="danger">Danger</DsButton>
-        </>}
-        gp={<>
-          <GpButton variant="primary">Primary</GpButton>
-          <GpButton variant="solid">Solid</GpButton>
-          <GpButton variant="outline">Outline</GpButton>
-          <GpButton variant="ghost">Ghost</GpButton>
-          <GpButton variant="danger">Danger</GpButton>
-        </>}
-      />
-
-      <Pair
-        title="Button — loading and icons"
-        note="Ported up from gpool into the design system; both should now behave the same."
-        ds={<>
           <DsButton variant="primary" loading>Saving</DsButton>
           <DsButton variant="outline" leadingIcon={<Icon name="plus" size={14} />}>Leading</DsButton>
           <DsButton variant="outline" trailingIcon={<Icon name="chevron-right" size={14} />}>Trailing</DsButton>
-          <DsButton variant="primary" size="icon" aria-label="Settings"><Icon name="settings" /></DsButton>
-        </>}
-        gp={<>
-          <GpButton variant="primary" loading>Saving</GpButton>
-          <GpButton variant="outline" leadingIcon={<Icon name="plus" size={14} />}>Leading</GpButton>
-          <GpButton variant="outline" trailingIcon={<Icon name="chevron-right" size={14} />}>Trailing</GpButton>
-          <GpButton variant="primary" iconOnly aria-label="Settings"><Icon name="settings" /></GpButton>
-        </>}
-      />
+          <DsButton variant="ghost" size="icon" aria-label="Settings"><Icon name="settings" /></DsButton>
+          <DsButton variant="outline" size="sm">Small</DsButton>
+        </div>
+      </section>
 
       <Pair
         title="Badge"

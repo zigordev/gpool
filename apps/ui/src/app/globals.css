@@ -409,84 +409,6 @@ button:focus-visible,
    Buttons
    ============================================================================ */
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  border: 1px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease,
-    background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-  white-space: nowrap;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.btn-primary {
-  background: rgb(var(--pitch));
-  color: rgb(var(--accent-fg));
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: rgb(var(--pitch) / 0.88);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-solid {
-  background: rgb(var(--accent-from));
-  color: rgb(var(--accent-fg));
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-solid:hover:not(:disabled) {
-  background: rgb(var(--accent-from) / 0.9);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-outline {
-  background: rgb(var(--bg-elevated));
-  color: rgb(var(--fg));
-  border-color: rgb(var(--border));
-}
-
-.btn-outline:hover:not(:disabled) {
-  border-color: rgb(var(--accent-from) / 0.5);
-  color: rgb(var(--accent-from));
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: rgb(var(--fg-muted));
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: rgb(var(--bg-subtle));
-  color: rgb(var(--fg));
-}
-
-.btn-danger {
-  background: rgb(var(--live));
-  color: rgb(var(--accent-fg));
-  box-shadow: 0 1px 2px rgb(var(--live) / 0.25);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: rgb(var(--live) / 0.92);
-}
-
 .btn-spinner {
   display: inline-block;
   width: 0.95rem;
@@ -499,23 +421,6 @@ button:focus-visible,
 
 @keyframes btn-spin {
   to { transform: rotate(360deg); }
-}
-
-.btn-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border-radius: var(--radius-full);
-}
-
-.btn-sm {
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8125rem;
-}
-
-.btn-lg {
-  padding: 0.7rem 1.4rem;
-  font-size: 0.95rem;
 }
 
 .pool-detail-action-trigger {

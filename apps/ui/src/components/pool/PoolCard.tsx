@@ -1,5 +1,6 @@
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { IoSettings } from 'react-icons/io5';
+import { Button } from '../../../design-system/components/core/Button.jsx';
 
 export function PoolCard({
   pool,
@@ -74,7 +75,7 @@ export function PoolCard({
               zIndex: 2,
             }}
           >
-            <button
+            <Button variant="ghost" size="icon"
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -82,7 +83,6 @@ export function PoolCard({
               }}
               title={t('pools.actions.configuration')}
               aria-label={t('pools.actions.configuration')}
-              className="btn btn-icon"
               style={{
                 background: 'rgb(var(--surface-strong) / 0.96)',
                 color: 'rgb(var(--fg))',
@@ -93,8 +93,8 @@ export function PoolCard({
               }}
             >
               <IoSettings size={14} aria-hidden />
-            </button>
-            <button
+            </Button>
+            <Button variant="ghost" size="icon"
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -102,7 +102,6 @@ export function PoolCard({
               }}
               title={t('pools.actions.inviteTitle')}
               aria-label={t('pools.actions.inviteTitle')}
-              className="btn btn-icon"
               style={{
                 background: 'rgb(var(--surface-strong) / 0.96)',
                 color: 'rgb(var(--fg))',
@@ -115,7 +114,7 @@ export function PoolCard({
               <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
                 <path d="M8 9a3 3 0 100-6 3 3 0 000 6zm0 2a6 6 0 00-6 1 1 1 0 001 1h10a1 1 0 001-1 6 6 0 00-6-1zm8-4a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
               </svg>
-            </button>
+            </Button>
 
           </div>
         ) : null}
@@ -186,17 +185,16 @@ export function PoolCard({
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
             {isDisabled ? (
-              <button
+              <Button variant="outline" size="sm"
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onRequestAccess();
                 }}
                 disabled={requesting}
-                className="btn btn-outline btn-sm"
               >
                 {requesting ? t('pools.actions.requesting') : t('pools.actions.requestAccess')}
-              </button>
+              </Button>
             ) : null}
             {hasDeadline ? <CountdownChip deadline={deadline} /> : null}
           </div>

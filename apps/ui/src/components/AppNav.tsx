@@ -15,6 +15,7 @@ import { Logo } from '../../design-system/components/navigation/Logo.jsx';
 import { ScopeSwitcher } from '../../design-system/components/navigation/ScopeSwitcher.jsx';
 import { SegmentedControl } from '../../design-system/components/navigation/SegmentedControl.jsx';
 import { MenuItem } from '../../design-system/components/overlay/Menu.jsx';
+import { Button } from '../../design-system/components/core/Button.jsx';
 
 /**
  * Navigation follows the design-system taxonomy (see its readme):
@@ -70,9 +71,9 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
           title: t('systemAdmin.tabsLabel'),
           description: t('systemAdmin.title'),
           actions: (
-            <Link href="/pools" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+            <Button as={Link} variant="outline" size="sm" href="/pools" style={{ textDecoration: 'none' }}>
               {t('common.backToPools')}
-            </Link>
+            </Button>
           ),
           utilities: <Utilities />,
         }}
