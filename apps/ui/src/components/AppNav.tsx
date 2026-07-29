@@ -98,9 +98,20 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       ];
 
   const base = activePoolId ? `/pools/${activePoolId}${isManage ? '/admin' : ''}` : null;
-  const sidebarItems = base
-    ? sections.map((section) => ({ href: `${base}/${section.key}`, label: section.label, icon: section.icon }))
-    : [];
+
+  // Two permanent destinations, then the active pool's sections. Before this
+  // the sidebar was empty whenever no pool was selected — including on the
+  // pools directory itself, which is where you land.
+  const sidebarItems = [
+    { href: '/', label: t('pools.filters.mine'), icon: <Icon name="trophy" /> },
+    // exact: /pools/123/... is a pool's own section, not the directory.
+    { href: '/pools', exact: true, label: t('pools.filters.all'), icon: <Icon name="layout-dashboard" /> },
+    ...(base
+      ? sections.map((section) => ({ href: `${base}/${section.key}`, label: section.label, icon: section.icon }))
+      : []),
+  ];
+
+  const isPoolsList = pathname === '/' || pathname === '/pools';
 
   // Switching mode keeps you on the same section when it exists on both
   // sides; Ranking (a leaderboard) has no Manage twin, so it lands on
@@ -137,9 +148,16 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
               onSelect: (id: string) => router.push(`/pools/${id}/ranking`),
             }))}
           footer={({ close }: { close: () => void }) => (
-            <MenuItem onClick={() => { close(); router.push('/pools'); }}>
-              <Icon name="trophy" /> {t('pools.title')}
-            </MenuItem>
+            <>
+              <MenuItem onClick={() => { close(); router.push('/pools'); }}>
+                <Icon name="layout-dashboard" /> {t('pools.filters.all')}
+              </MenuItem>
+              {user?.role === 'admin' ? (
+                <MenuItem onClick={() => { close(); router.push('/admin/groups'); }}>
+                  <Icon name="shield" /> {t('systemAdmin.tabsLabel')}
+                </MenuItem>
+              ) : null}
+            </>
           )}
         />
       }
@@ -147,6 +165,17 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       activeHref={pathname}
       linkComponent={Link}
       topbar={{
+        actions: isPoolsList && user?.role === 'admin' ? (
+          <Button
+            as={Link}
+            variant="primary"
+            size="sm"
+            href={`${pathname}?create=1`}
+            style={{ textDecoration: 'none' }}
+          >
+            <Icon name="plus" size={14} /> {t('pools.actions.create')}
+          </Button>
+        ) : null,
         mode: isPoolAdmin && activePoolId ? (
           <SegmentedControl
             ariaLabel={t('poolDetail.mode.label')}

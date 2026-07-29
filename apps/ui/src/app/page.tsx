@@ -1,34 +1,19 @@
 'use client';
 
+import { Suspense } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useI18n } from '@/i18n/client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { PoolsScreen } from '@/components/pool/PoolsScreen';
 
-function HomeContent() {
-  const router = useRouter();
-  const { t } = useI18n();
-
-  useEffect(() => {
-    router.replace('/pools');
-  }, [router]);
-
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-    }}>
-      <p style={{ color: 'var(--text-secondary)' }}>{t('home.redirecting')}</p>
-    </div>
-  );
-}
-
-export default function Home() {
+/** The landing page: the pools you are actually in, as cards.
+ *
+ * This used to redirect to /pools, so signing in dropped you in the whole
+ * directory — mostly pools you have nothing to do with. */
+export default function HomePage() {
   return (
     <ProtectedRoute>
-      <HomeContent />
+      <Suspense fallback={null}>
+        <PoolsScreen view="mine" />
+      </Suspense>
     </ProtectedRoute>
   );
 }
