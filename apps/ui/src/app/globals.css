@@ -438,67 +438,9 @@ button:focus-visible,
   color: rgb(var(--fg));
 }
 
-/* ============================================================================
-   Inputs
-   ============================================================================ */
-
-.input {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  height: 2.5rem;
-  padding: 0.625rem 0.875rem;
-  background: rgb(var(--input-bg));
-  border: 1px solid rgb(var(--control-border));
-  border-radius: var(--radius-md);
-  font-size: 0.9375rem;
-  line-height: 1.25;
-  color: rgb(var(--fg));
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.input[type="date"],
-.input[type="datetime-local"],
-.input[type="month"],
-.input[type="time"] {
-  appearance: none;
-  -webkit-appearance: none;
-  min-width: 0;
-  text-align: left;
-}
-
-.input::-webkit-date-and-time-value {
-  min-height: 1.25em;
-  text-align: left;
-}
-
-.input::-webkit-calendar-picker-indicator {
-  margin-left: auto;
-}
-
-.input::placeholder {
-  color: rgb(var(--fg-subtle));
-}
-
-.input:hover:not(:disabled):not(:focus) {
-  border-color: rgb(var(--fg-muted));
-}
-
-.input:focus {
-  outline: none;
-  border-color: rgb(var(--accent-from));
-  box-shadow: 0 0 0 3px rgb(var(--accent-from) / 0.15);
-}
-
-.input:disabled {
-  background: rgb(var(--disabled-bg));
-  border-color: rgb(var(--disabled-border));
-  color: rgb(var(--fg-muted));
-  cursor: not-allowed;
-  opacity: 1;
-}
+/* The .input class and .field-label are gone: every form control in the app
+   is now the design system's Input inside its Field. What stays is the focus
+   ring for the few native controls that are not — score boxes and the like. */
 
 /* Uniform focus ring for any native select/input not using the .input class */
 select:focus,
@@ -506,29 +448,6 @@ input:focus {
   outline: none;
   border-color: rgb(var(--accent-from));
   box-shadow: 0 0 0 3px rgb(var(--accent-from) / 0.15);
-}
-
-.field-label {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-width: 0;
-  min-height: 1rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: rgb(var(--fg));
-  margin-bottom: 0.4rem;
-}
-
-.field-label > span {
-  min-width: 0;
-}
-
-.field-label svg {
-  flex: 0 0 auto;
-  width: 1em;
-  height: 1em;
 }
 
 .field-error {
@@ -1207,18 +1126,8 @@ html.dark .players-pitch-board {
   }
 }
 
-/* Config area — compact overrides for scoring/prize form sections */
-.config-area .field-label {
-  font-size: 0.72rem;
-  margin-bottom: 0.2rem;
-}
-
-.config-area .input {
-  height: 2rem;
-  padding: 0.3rem 0.55rem;
-  font-size: 0.8125rem;
-}
-
+/* Config area — the control sizing moved to the design system's
+   .ds-form-compact wrapper, which .config-area now carries. */
 .config-area p {
   font-size: 0.7rem;
 }
@@ -1250,13 +1159,6 @@ html.dark .players-pitch-board {
 }
 
 @media (max-width: 639px) {
-  .input,
-  .config-area .input {
-    height: 2.5rem;
-    padding: 0.625rem 0.875rem;
-    font-size: 1rem;
-  }
-
   .prize-payout-row {
     grid-template-columns: minmax(0, 1fr) minmax(5rem, 8rem);
     gap: 0.3rem 0.65rem;
@@ -1287,61 +1189,7 @@ html.dark .players-pitch-board {
    Modal
    ============================================================================ */
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  min-height: 100dvh;
-  background: rgb(15 23 28 / 0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 1rem;
-  z-index: 1000;
-  animation: gp-fade-in var(--motion-fast) var(--ease-out) both;
-}
-
-@media (min-width: 640px) {
-  .modal-overlay {
-    align-items: center;
-  }
-}
-
-.modal-card {
-  background: rgb(var(--bg-elevated));
-  border: 1px solid rgb(var(--border));
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  width: 100%;
-  max-width: 520px;
-  max-height: min(90vh, calc(100dvh - 2rem));
-  min-width: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: 1.5rem;
-  animation: gp-slide-up-in var(--motion) var(--ease-out) both;
-}
-
-.modal-body {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: hidden;
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
-
-.modal-body p,
-.modal-body li,
-.modal-body dd,
-.modal-body blockquote {
-  overflow-wrap: anywhere;
-}
-
-@media (min-width: 640px) {
-  .modal-card {
-    padding: 1.75rem;
-  }
-}
+/* Modal chrome now comes from the design system's Modal. */
 
 /* ============================================================================
    Avatar

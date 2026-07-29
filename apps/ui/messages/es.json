@@ -562,10 +562,7 @@
       },
       "tabAll": "Todos",
       "tabSelection": "Mis jugadores",
-      "title": "Jugadores",
-      "rowsPerPage": "Filas",
-      "previousPage": "Página anterior",
-      "nextPage": "Página siguiente"
+      "title": "Jugadores"
     },
     "ranking": {
       "empty": "Aun no hay clasificación. Los puntos apareceran cuando se introduzcan resultados y se evalúen las predicciones.",

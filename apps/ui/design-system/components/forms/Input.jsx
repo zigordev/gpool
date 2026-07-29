@@ -7,10 +7,18 @@ injectOnce('ds-input', `
 .ds-input:hover:not(:disabled):not(:focus){border-color:var(--ds-color-border-strong);}
 .ds-input:focus{outline:none;border-color:var(--ds-color-accent);box-shadow:0 0 0 3px var(--ds-color-accent-soft);}
 .ds-input:disabled{background:var(--ds-color-surface-2);color:var(--ds-color-fg-faint);cursor:not-allowed;}
-.ds-input-invalid{border-color:var(--ds-color-danger) !important;}
+.ds-input-invalid{border-color:var(--ds-color-danger) !important;box-shadow:0 0 0 3px var(--ds-color-danger-soft);}
+.ds-input-attention{border-color:var(--ds-color-warning) !important;box-shadow:0 0 0 3px var(--ds-color-warning-soft);}
 `);
 
-export function Input({ invalid = false, className = '', ...props }) {
-  const cls = `ds-input ${invalid ? 'ds-input-invalid' : ''} ${className}`.trim();
-  return <input className={cls} {...props} />;
+/** `invalid` is "this is wrong" and carries `aria-invalid`, so a screen
+ * reader announces it. `attention` is the softer state a required field
+ * sits in before it has been filled — worth pointing at, but not an error
+ * yet, and deliberately not announced as one. */
+export function Input({ invalid = false, attention = false, className = '', ...props }) {
+  const cls = ['ds-input',
+    invalid && 'ds-input-invalid',
+    attention && !invalid && 'ds-input-attention',
+    className].filter(Boolean).join(' ');
+  return <input className={cls} aria-invalid={invalid || undefined} {...props} />;
 }

@@ -6,7 +6,7 @@ import { FaTrophy } from 'react-icons/fa';
 import { useI18n } from '@/i18n/client';
 import { apiClient } from '@/lib/api';
 import { countryIsoCode } from '@/lib/country-flags';
-import { Modal } from '@/components/ui/Modal';
+import { Modal } from '../../../design-system/components/overlay/Modal.jsx';
 
 type WinnerSelection = {
   teamId: string;

@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/i18n/client';
 import { useEffect, useState } from 'react';
-import { Badge } from './Badge';
+import { Badge } from '../../../design-system/components/feedback/Badge.jsx';
 
 interface Props {
   deadline: number;
@@ -45,7 +45,7 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
   return (
     diff > 0 &&
       <Badge
-        variant="sunset"
+        variant="warning"
         className="badge-attention"
         title={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}
         aria-label={`${t('poolDetail.deadline.general')} ${deadlineLocale}`}

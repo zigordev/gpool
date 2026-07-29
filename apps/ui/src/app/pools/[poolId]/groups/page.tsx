@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
-import { Section } from '@/components/ui/Section';
+import { Section } from '../../../../../design-system/components/data-display/Section.jsx';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
 import type { MatchInsightsTarget } from '@/components/pool/MatchInsightsModal';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';

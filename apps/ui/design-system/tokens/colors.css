@@ -51,6 +51,13 @@
   --ds-color-info-fg: oklch(36% 0.1 240);
   --ds-color-info-bg: oklch(96% 0.03 240);
   --ds-color-info-border: oklch(85% 0.07 240);
+
+  /* State rings for focused/flagged form controls, matching the accent ring.
+     Derived rather than declared per theme — the same trick as
+     --ds-color-surface-translucent above, so a theme that overrides danger
+     or warning gets its ring updated for free, in dark mode too. */
+  --ds-color-danger-soft: color-mix(in oklch, var(--ds-color-danger) 22%, transparent);
+  --ds-color-warning-soft: color-mix(in oklch, var(--ds-color-warning) 24%, transparent);
 }
 
 :root[data-theme="dark"] {

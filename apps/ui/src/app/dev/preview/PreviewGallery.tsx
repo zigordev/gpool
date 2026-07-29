@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Button as DsButton } from '../../../../design-system/components/core/Button.jsx';
 import { StatTile as DsStatTile } from '../../../../design-system/components/data-display/StatTile.jsx';
 import { PageHeader } from '../../../../design-system/components/data-display/PageHeader.jsx';
@@ -9,32 +11,13 @@ import { Table } from '../../../../design-system/components/data-display/Table.j
 import { Field } from '../../../../design-system/components/forms/Field.jsx';
 import { DateField } from '../../../../design-system/components/forms/DateField.jsx';
 
-import { Badge as GpBadge } from '@/components/ui/Badge';
-import { StatTile as GpStatTile } from '@/components/ui/StatTile';
-import { EmptyState as GpEmptyState } from '@/components/ui/EmptyState';
+import { Section } from '../../../../design-system/components/data-display/Section.jsx';
+import { Modal } from '../../../../design-system/components/overlay/Modal.jsx';
 import { RankTable } from '@/components/pool/RankTable';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 
-function Pair({ title, note, ds, gp }: { title: string; note?: string; ds: React.ReactNode; gp: React.ReactNode }) {
-  return (
-    <section style={{ marginBottom: 28 }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>{title}</h2>
-      {note ? <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>{note}</p> : null}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
-        <div style={{ padding: 16, border: '1px solid rgb(var(--border))', borderRadius: 'var(--radius-md)' }}>
-          <p style={{ margin: '0 0 10px', fontSize: '.7rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>Design system</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>{ds}</div>
-        </div>
-        <div style={{ padding: 16, border: '1px solid rgb(var(--border))', borderRadius: 'var(--radius-md)' }}>
-          <p style={{ margin: '0 0 10px', fontSize: '.7rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgb(var(--fg-subtle))' }}>gpool today</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>{gp}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function PreviewGallery() {
+  const [modalOpen, setModalOpen] = useState(false);
   return (
     <main className="container-app" style={{ padding: 24 }}>
       <PageHeader
@@ -64,41 +47,65 @@ export function PreviewGallery() {
         </div>
       </section>
 
-      <Pair
-        title="Badge"
-        note="gpool's variants are brand-semantic (pitch, sunset, gold, live); the design system's are generic."
-        ds={<>
-          <DsBadge>Neutral</DsBadge>
-          <DsBadge variant="accent">Accent</DsBadge>
-          <DsBadge variant="success" dot>Success</DsBadge>
-          <DsBadge variant="warning">Warning</DsBadge>
-          <DsBadge variant="danger">Danger</DsBadge>
-          <DsBadge variant="info">Info</DsBadge>
-        </>}
-        gp={<>
-          <GpBadge>Neutral</GpBadge>
-          <GpBadge variant="pitch">Pitch</GpBadge>
-          <GpBadge variant="sunset">Sunset</GpBadge>
-          <GpBadge variant="gold">Gold</GpBadge>
-          <GpBadge variant="live">Live</GpBadge>
-          <GpBadge variant="info">Info</GpBadge>
-        </>}
-      />
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Badge</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        One implementation. gpool&apos;s brand-named variants (pitch, sunset, gold, live) are gone;
+        the semantic ones say what the badge means rather than what colour it is.
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 16, border: '1px solid rgb(var(--border))', borderRadius: 'var(--radius-md)', marginBottom: 28 }}>
+        <DsBadge>Neutral</DsBadge>
+        <DsBadge variant="accent">Accent</DsBadge>
+        <DsBadge variant="success" dot>Success</DsBadge>
+        <DsBadge variant="warning" leadingIcon={<Icon name="clock" size={11} />}>2d 4h</DsBadge>
+        <DsBadge variant="danger">Danger</DsBadge>
+        <DsBadge variant="info">Info</DsBadge>
+      </div>
 
-      <Pair
-        title="StatTile"
-        note="gpool uses a gradient accent treatment; the design system tones the border, and can tone the value."
-        ds={<div style={{ display: 'grid', gap: 10, width: '100%' }}>
-          <DsStatTile label="Members" value={12} hint="3 admins" icon={<Icon name="users" size={13} />} />
-          <DsStatTile tone="accent" label="Jackpot" value="€1,240" hint="Draw 12 Jun" />
-          <DsStatTile tone="accent" valueTone="danger" label="Balance" value="-€310" hint="valueTone: danger" />
-        </div>}
-        gp={<div style={{ display: 'grid', gap: 10, width: '100%' }}>
-          <GpStatTile label="Members" value={12} hint="3 admins" icon={<Icon name="users" size={13} />} />
-          <GpStatTile emphasis="accent" label="Jackpot" value="€1,240" hint="Draw 12 Jun" />
-          <GpStatTile label="Balance" value="-€310" hint="no value toning" />
-        </div>}
-      />
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>StatTile</h2>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 28 }}>
+        <DsStatTile label="Members" value={12} hint="3 admins" icon={<Icon name="users" size={13} />} />
+        <DsStatTile tone="accent" label="Jackpot" value="€1,240" hint="Draw 12 Jun" />
+        <DsStatTile tone="accent" valueTone="danger" label="Balance" value="-€310" hint="valueTone: danger" />
+      </div>
+
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Modal — promoted from gpool</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        Portalled, focus-trapped, Esc-closable, restores focus, locks body scroll. The design
+        system&apos;s previous one did none of it.
+      </p>
+      <div style={{ marginBottom: 28 }}>
+        <DsButton variant="outline" onClick={() => setModalOpen(true)}>Open modal</DsButton>
+        <Modal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="Delete pool?"
+          description="This cannot be undone."
+          size="sm"
+          footer={<>
+            <DsButton variant="ghost" onClick={() => setModalOpen(false)}>Cancel</DsButton>
+            <DsButton variant="danger" onClick={() => setModalOpen(false)}>Delete</DsButton>
+          </>}
+        >
+          <p style={{ margin: 0, fontSize: '.875rem', color: 'rgb(var(--fg-muted))' }}>
+            Tab is trapped inside; Esc closes; focus returns to the button that opened it.
+          </p>
+        </Modal>
+      </div>
+
+      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Section — promoted from gpool</h2>
+      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
+        Eight gpool screens used this; kini and the operator console each approximate it. The
+        collapsible header is a real button with aria-expanded and aria-controls.
+      </p>
+      <div style={{ display: 'grid', gap: 12, marginBottom: 28 }}>
+        <Section eyebrow="Group phase" title="Standings" description="Updated as results are entered."
+                 trailing={<DsBadge>12 teams</DsBadge>} collapsible>
+          <p style={{ margin: 0, fontSize: '.85rem', color: 'rgb(var(--fg-muted))' }}>Collapsible body.</p>
+        </Section>
+        <Section tone="subtle" density="compact" title="Compact, subtle tone">
+          <p style={{ margin: 0, fontSize: '.85rem', color: 'rgb(var(--fg-muted))' }}>For nesting inside a card.</p>
+        </Section>
+      </div>
 
       <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>Table + DateField</h2>
       <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
@@ -162,15 +169,6 @@ export function PreviewGallery() {
         />
       </div>
 
-      <h2 style={{ margin: '0 0 4px', fontSize: '1rem' }}>EmptyState — gpool only</h2>
-      <p style={{ margin: '0 0 12px', fontSize: '.8rem', color: 'rgb(var(--fg-muted))' }}>
-        Bespoke illustrations (pitch line-drawing, referee whistle). Deliberately not replaced by the
-        design system&apos;s generic circle — this is a real design asset, not duplication.
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
-        <GpEmptyState variant="pitch" title="No pools yet" description="Create the first pool to get started." />
-        <GpEmptyState variant="whistle" title="No results" description="Nothing matches these filters." />
-      </div>
     </main>
   );
 }

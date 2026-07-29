@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/client';
-import { Section } from '@/components/ui/Section';
-import { FormField } from '@/components/ui/FormField';
-import { Input } from '@/components/ui/Input';
+import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
+import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
+import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
 import { useAdminContext, resizePrizeDistribution } from '@/contexts/AdminContext';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -61,25 +61,25 @@ export default function AdminRankingPage() {
         tone="plain"
         className="admin-section-plain"
       >
-        <div className="config-area" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="config-area ds-form-compact" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={configPairGrid}>
-            <FormField label={t('pools.modal.poolNameLabel')}>
+            <Field label={t('pools.modal.poolNameLabel')}>
               <Input type="text" value={poolName} onChange={(e) => setPoolName(e.target.value)} />
-            </FormField>
-            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
+            </Field>
+            <Field label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.deadline')}</span>} hint={t('adminResults.scoring.deadlineHint')}>
               <DateField type="datetime-local" value={deadlineLocal} onChange={(e) => setDeadlineLocal(e.target.value)} />
-            </FormField>
-            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.matchdaySeparatorTime')}</span>} hint={t('adminResults.scoring.matchdaySeparatorTimeHint')}>
+            </Field>
+            <Field label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaClock style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.matchdaySeparatorTime')}</span>} hint={t('adminResults.scoring.matchdaySeparatorTimeHint')}>
               <Input type="time" value={matchdaySeparatorTime} onChange={(e) => setMatchdaySeparatorTime(e.target.value)} />
-            </FormField>
+            </Field>
           </div>
           <div style={configPairGrid}>
-            <FormField label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
+            <Field label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FaDollarSign style={{ color: 'rgb(var(--fg))' }} />{t('adminResults.scoring.entryFee')}</span>} hint={t('adminResults.scoring.entryFeeHint')}>
               <Input type="number" inputMode="decimal" min="0" step="0.5" value={entryFee} onChange={(e) => { const v = Number.parseFloat(e.target.value); setEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }} />
-            </FormField>
-            <FormField label={t('adminResults.scoring.prizePaidPositions')} hint={t('adminResults.scoring.prizePaidPositionsHint', { count: maxPrizePaidPositions })}>
+            </Field>
+            <Field label={t('adminResults.scoring.prizePaidPositions')} hint={t('adminResults.scoring.prizePaidPositionsHint', { count: maxPrizePaidPositions })}>
               <Input type="number" inputMode="numeric" min="0" max={maxPrizePaidPositions} value={prizeDistribution.length} onChange={(e) => { const value = Number.parseInt(e.target.value, 10) || 0; setPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxPrizePaidPositions)); }} />
-            </FormField>
+            </Field>
           </div>
           <div style={{ color: prizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
             {t('adminResults.scoring.prizeTotal', {
