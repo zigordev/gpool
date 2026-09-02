@@ -1,4 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -70,6 +71,12 @@ function parseTrustProxy(input: string | undefined): TrustProxy {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const expressApp = app.getHttpAdapter().getInstance();
+
+  // Security headers. CSP is off: this is a JSON API, where a content policy
+  // buys nothing, and both gpool and kini serve Swagger UI, which needs the
+  // inline scripts a default helmet CSP would block. The headers that matter
+  // here — HSTS, nosniff, frame-options, referrer-policy — are all still set.
+  app.use(helmet({ contentSecurityPolicy: false }));
 
   app.setGlobalPrefix('api', { exclude: ['metrics'] });
   if (typeof expressApp?.set === 'function') {
