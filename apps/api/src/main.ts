@@ -78,7 +78,12 @@ async function bootstrap() {
   // here — HSTS, nosniff, frame-options, referrer-policy — are all still set.
   app.use(helmet({ contentSecurityPolicy: false }));
 
-  app.setGlobalPrefix('api', { exclude: ['metrics'] });
+  // Health and metrics sit outside the prefix so every service in the estate
+  // answers on the same paths. Without this, gpool alone would be
+  // `/api/health/readiness` while the others are `/health/readiness`.
+  app.setGlobalPrefix('api', {
+    exclude: ['metrics', 'health', 'health/liveness', 'health/readiness'],
+  });
   if (typeof expressApp?.set === 'function') {
     expressApp.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
   }

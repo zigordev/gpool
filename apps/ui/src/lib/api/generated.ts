@@ -1,5 +1,5 @@
 // Auto-generated from OpenAPI. Do not edit by hand.
-// Source: artifacts/openapi.test.json
+// Source: artifacts/openapi.local.json
 
 export type ApiOperation = {
   method: 'DELETE';
@@ -11,21 +11,6 @@ export type ApiOperation = {
   path: '/api/auth/me';
   operationId: 'AuthController_getMe';
   responseCodes: ['200', '401'];
-} | {
-  method: 'GET';
-  path: '/api/health';
-  operationId: 'HealthController_check';
-  responseCodes: ['200'];
-} | {
-  method: 'GET';
-  path: '/api/health/live';
-  operationId: 'HealthController_live';
-  responseCodes: ['200'];
-} | {
-  method: 'GET';
-  path: '/api/health/ready';
-  operationId: 'HealthController_ready';
-  responseCodes: ['200'];
 } | {
   method: 'GET';
   path: '/api/pools';
@@ -96,6 +81,21 @@ export type ApiOperation = {
   path: '/api/pools/{poolId}/players/selection-statistics';
   operationId: 'PlayerController_getSelectionStatistics';
   responseCodes: ['200', '403'];
+} | {
+  method: 'GET';
+  path: '/health';
+  operationId: 'HealthController_check';
+  responseCodes: ['200'];
+} | {
+  method: 'GET';
+  path: '/health/liveness';
+  operationId: 'HealthController_liveness';
+  responseCodes: ['200'];
+} | {
+  method: 'GET';
+  path: '/health/readiness';
+  operationId: 'HealthController_readiness';
+  responseCodes: ['200'];
 } | {
   method: 'GET';
   path: '/metrics';
@@ -237,30 +237,6 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
-    "path": "/api/health",
-    "operationId": "HealthController_check",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/api/health/live",
-    "operationId": "HealthController_live",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/api/health/ready",
-    "operationId": "HealthController_ready",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
     "path": "/api/pools",
     "operationId": "PoolController_listPools",
     "responseCodes": [
@@ -380,6 +356,30 @@ export const API_OPERATIONS = [
     "responseCodes": [
       "200",
       "403"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+    "operationId": "HealthController_check",
+    "responseCodes": [
+      "200"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/health/liveness",
+    "operationId": "HealthController_liveness",
+    "responseCodes": [
+      "200"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/health/readiness",
+    "operationId": "HealthController_readiness",
+    "responseCodes": [
+      "200"
     ]
   },
   {
