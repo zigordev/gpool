@@ -10,6 +10,14 @@ type CacheEntry = {
 };
 
 const CACHE_TTL_MS = 60_000;
+
+/**
+ * A dead Tolgee fails fast and falls back. A *slow* one is the dangerous case:
+ * `fetch` has no default timeout, so a Tolgee that accepts connections but
+ * cannot answer — a stalled database, for instance — would hang every uncached
+ * server render for as long as it takes to give up.
+ */
+const FETCH_TIMEOUT_MS = 3_000;
 const cacheKey = '__tolgeeMessagesCache';
 
 function getCache(): Map<string, CacheEntry> {
@@ -61,38 +69,55 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
   if (cached?.etag) headers['If-None-Match'] = cached.etag;
   if (cached?.lastModified) headers['If-Modified-Since'] = cached.lastModified;
 
-  const response = await fetch(url.toString(), { headers, cache: 'no-store' });
-  if (response.status === 304 && cached) {
-    cached.updatedAt = Date.now();
-    return cached.messages;
-  }
-  if (!response.ok) {
+  // Everything past this point is best-effort. Translations must never be the
+  // reason a page fails to render: a connection error, a timeout or a malformed
+  // body all fall back to the cached copy, and failing that to null, which
+  // `loadMessages` resolves from the committed message files instead.
+  try {
+    const response = await fetch(url.toString(), {
+      headers,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (response.status === 304 && cached) {
+      cached.updatedAt = Date.now();
+      return cached.messages;
+    }
+    if (!response.ok) {
+      return cached?.messages ?? null;
+    }
+
+    const etag = response.headers.get('etag');
+    const lastModified = response.headers.get('last-modified');
+    const contentType = response.headers.get('content-type') ?? '';
+
+    let messages: Messages | null = null;
+    if (
+      contentType.includes('application/zip') ||
+      contentType.includes('application/octet-stream')
+    ) {
+      const buffer = await response.arrayBuffer();
+      messages = await parseZip(buffer);
+    } else {
+      messages = (await response.json()) as Messages;
+    }
+
+    if (!messages) return cached?.messages ?? null;
+
+    cache.set(locale, {
+      messages,
+      etag,
+      lastModified,
+      updatedAt: Date.now(),
+    });
+
+    return messages;
+  } catch (error) {
+    console.warn(
+      `[i18n] Tolgee fetch failed for "${locale}"; using ${cached ? 'cached' : 'local'} messages.`,
+      error instanceof Error ? error.message : error
+    );
     return cached?.messages ?? null;
   }
-
-  const etag = response.headers.get('etag');
-  const lastModified = response.headers.get('last-modified');
-  const contentType = response.headers.get('content-type') ?? '';
-
-  let messages: Messages | null = null;
-  if (
-    contentType.includes('application/zip') ||
-    contentType.includes('application/octet-stream')
-  ) {
-    const buffer = await response.arrayBuffer();
-    messages = await parseZip(buffer);
-  } else {
-    messages = (await response.json()) as Messages;
-  }
-
-  if (!messages) return cached?.messages ?? null;
-
-  cache.set(locale, {
-    messages,
-    etag,
-    lastModified,
-    updatedAt: Date.now(),
-  });
-
-  return messages;
 }

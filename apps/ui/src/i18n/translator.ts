@@ -1,4 +1,6 @@
-export type MessageValue = string | { [key: string]: MessageValue };
+/** Arrays are here because a message tree can carry ordered prose —
+ *  bullets, steps, lists — not just flat labels. */
+export type MessageValue = string | MessageValue[] | { [key: string]: MessageValue };
 export type Messages = Record<string, MessageValue>;
 export type TranslationParams = Record<string, string | number>;
 
@@ -9,7 +11,8 @@ function lookupMessage(messages: Messages, key: string): string | undefined {
   let current: MessageValue | undefined = messages;
   for (const segment of key.split('.')) {
     if (!current || typeof current === 'string') return undefined;
-    current = current[segment];
+    // An ordered list is addressed by position: the segment is the array index.
+    current = Array.isArray(current) ? current[Number(segment)] : current[segment];
   }
 
   return typeof current === 'string' ? current : undefined;
