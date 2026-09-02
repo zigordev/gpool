@@ -33,7 +33,7 @@
     "kafkajs": "^2.2.4",
     "lodash": "^4.18.1",
     "multer": "2.2.0",
-    "nodemailer": "9.0.1",
+    "nodemailer": "9.0.6",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.18.0",
@@ -41,7 +41,7 @@
     "protobufjs": "^8.6.3",
     "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.2",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
