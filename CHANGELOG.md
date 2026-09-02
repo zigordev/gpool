@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.58](https://github.com/zigordev/gpool/compare/v0.1.57...v0.1.58) (2026-09-02)
+
+
+### Features
+
+* **security:** set security headers and enable Dependabot ([d0acf5f](https://github.com/zigordev/gpool/commit/d0acf5f3580a012ee131107b541a9386289302d1))
+
 ## [0.1.57](https://github.com/zigordev/gpool/compare/v0.1.56...v0.1.57) (2026-09-02)
 
 
