@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.57](https://github.com/zigordev/gpool/compare/v0.1.56...v0.1.57) (2026-09-02)
+
+
+### Features
+
+* dev-only design-system preview, side by side with gpool's kit ([ca821cc](https://github.com/zigordev/gpool/commit/ca821cca28b96bcfdddda6db6b3b7e8d17735541))
+* **ui:** adopt design-system DateField and Table ([437e46b](https://github.com/zigordev/gpool/commit/437e46b60f08452a5cb76245aa87e95539667ef7))
+* **ui:** my pools is the landing page, all pools is a table ([deb3405](https://github.com/zigordev/gpool/commit/deb34058732c242f1dee03108c082a223a6ba7b0))
+* **ui:** shared sort header, pager and empty row ([48f39ec](https://github.com/zigordev/gpool/commit/48f39ecf070f270b894a0893e4b03c218b704067))
+
+
+### Bug Fixes
+
+* **i18n:** bound the Tolgee fetch and let message trees hold arrays ([1af644e](https://github.com/zigordev/gpool/commit/1af644ea6ea16ef9b0eb7b8d61cb03f30a3ea6e8))
+* stop double-padding and capping the content area ([80d8066](https://github.com/zigordev/gpool/commit/80d806623303ac2214f654414b4a93589c74e84c))
+* **ui:** stop double-padding the content frame ([25cc861](https://github.com/zigordev/gpool/commit/25cc861ac13d27d170ed1a89d2f3ab71851ced1d))
+
 ## [0.1.56](https://github.com/zigordev/gpool/compare/v0.1.55...v0.1.56) (2026-07-28)
 
 
