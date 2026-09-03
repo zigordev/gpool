@@ -152,11 +152,6 @@ export type ApiOperation = {
   operationId: 'PoolController_requestAccess';
   responseCodes: ['200', '400', '404'];
 } | {
-  method: 'POST';
-  path: '/api/rum/events';
-  operationId: 'RUMController_receiveEvents';
-  responseCodes: ['200'];
-} | {
   method: 'PUT';
   path: '/api/pools/{poolId}';
   operationId: 'PoolController_updatePool';
@@ -203,7 +198,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 40 as const;
+export const API_OPERATION_COUNT = 39 as const;
 
 export const API_OPERATIONS = [
   {
@@ -473,14 +468,6 @@ export const API_OPERATIONS = [
       "200",
       "400",
       "404"
-    ]
-  },
-  {
-    "method": "POST",
-    "path": "/api/rum/events",
-    "operationId": "RUMController_receiveEvents",
-    "responseCodes": [
-      "200"
     ]
   },
   {
