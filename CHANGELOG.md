@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.59](https://github.com/zigordev/gpool/compare/v0.1.58...v0.1.59) (2026-09-03)
+
+
+### Features
+
+* **observability:** converge on the shared health/metrics/tracing kit ([4f5965c](https://github.com/zigordev/gpool/commit/4f5965cbf9d2339e605ac93495598ffc980cb6a0))
+
+
+### Bug Fixes
+
+* **a11y:** raise fg-subtle/fg-faint contrast to WCAG AA ([f5fcb77](https://github.com/zigordev/gpool/commit/f5fcb77d4d480b5845b641a12fbb25da8c01f38e))
+* **build:** consolidate on React 19, fixing the static /404 prerender crash ([86c1aee](https://github.com/zigordev/gpool/commit/86c1aee8877b04d703ba22ff623a71a78789b905))
+* **ci:** drop Jest-only flags from the post-Vitest-migration test:cov:api script ([faa9018](https://github.com/zigordev/gpool/commit/faa9018989325cfe5c9beeb2abc1f91892214a54))
+
 ## [0.1.58](https://github.com/zigordev/gpool/compare/v0.1.57...v0.1.58) (2026-09-02)
 
 
