@@ -16,18 +16,18 @@ export const options = {
 
 export function setup() {
   for (let attempt = 1; attempt <= 30; attempt += 1) {
-    const res = http.get(`${BASE}/api/health`);
+    const res = http.get(`${BASE}/health`);
     if (res.status === 200) {
       return;
     }
     sleep(1);
   }
 
-  throw new Error(`API did not become healthy at ${BASE}/api/health`);
+  throw new Error(`API did not become healthy at ${BASE}/health`);
 }
 
 export default function () {
-  const res = http.get(`${BASE}/api/health`, {
+  const res = http.get(`${BASE}/health`, {
     headers: { 'x-request-id': `k6-${__VU}-${__ITER}` },
   });
 

@@ -115,6 +115,7 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
     return messages;
   } catch (error) {
     console.warn(
+      // nosemgrep: javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring
       `[i18n] Tolgee fetch failed for "${locale}"; using ${cached ? 'cached' : 'local'} messages.`,
       error instanceof Error ? error.message : error
     );

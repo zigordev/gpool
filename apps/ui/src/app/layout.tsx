@@ -1,6 +1,6 @@
 import { AppNav } from '@/components/AppNav'
 import { PoolsProvider } from '@/contexts/PoolsContext'
-import { RUMProvider } from '@/components/RUMProvider'
+import { RumProvider } from '@/observability/RumProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { I18nProvider } from '@/i18n/client'
 import { getLocale, getMessages, getTranslator } from '@/i18n/server'
@@ -46,7 +46,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-mode','dark');}}catch(e){}` }} />
         <I18nProvider locale={locale} messages={messages}>
           <AuthProvider>
-            <RUMProvider>
+            <RumProvider />
               <main
                 style={{
                   position: 'relative',
@@ -106,7 +106,6 @@ export default async function RootLayout({
                   },
                 }}
               />
-            </RUMProvider>
           </AuthProvider>
         </I18nProvider>
       </body>

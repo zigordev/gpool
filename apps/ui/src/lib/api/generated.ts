@@ -1,5 +1,5 @@
 // Auto-generated from OpenAPI. Do not edit by hand.
-// Source: artifacts/openapi.local.json
+// Source: artifacts/openapi.test.json
 
 export type ApiOperation = {
   method: 'DELETE';
@@ -85,16 +85,6 @@ export type ApiOperation = {
   method: 'GET';
   path: '/health';
   operationId: 'HealthController_check';
-  responseCodes: ['200'];
-} | {
-  method: 'GET';
-  path: '/health/liveness';
-  operationId: 'HealthController_liveness';
-  responseCodes: ['200'];
-} | {
-  method: 'GET';
-  path: '/health/readiness';
-  operationId: 'HealthController_readiness';
   responseCodes: ['200'];
 } | {
   method: 'GET';
@@ -213,7 +203,7 @@ export type ApiOperation = {
   responseCodes: ['200'];
 };
 
-export const API_OPERATION_COUNT = 42 as const;
+export const API_OPERATION_COUNT = 40 as const;
 
 export const API_OPERATIONS = [
   {
@@ -362,22 +352,6 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/health",
     "operationId": "HealthController_check",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/health/liveness",
-    "operationId": "HealthController_liveness",
-    "responseCodes": [
-      "200"
-    ]
-  },
-  {
-    "method": "GET",
-    "path": "/health/readiness",
-    "operationId": "HealthController_readiness",
     "responseCodes": [
       "200"
     ]

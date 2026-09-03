@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
-          node-version: 20.19.0
+          node-version: 24
 
       - name: Install commitlint (minimal)
         run: npm install --no-save --no-package-lock @commitlint/cli@20.4.1 @commitlint/config-conventional@20.4.1

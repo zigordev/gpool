@@ -186,8 +186,12 @@ What the script does:
 Check the API:
 
 ```bash
-curl -fsS http://localhost:3010/api/health
+curl -fsS http://localhost:3010/health
 ```
+
+`status` is `ok` when the database and the broker are both up, `degraded` when
+only Kafka is gone (email publishing stalls; nothing else does), and `error`
+with a 503 when the database is unreachable.
 
 Open the web app:
 

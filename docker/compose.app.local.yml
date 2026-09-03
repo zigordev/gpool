@@ -9,6 +9,8 @@ x-logging: &default-logging
     
 services:
   gpool_db:
+    security_opt:
+      - no-new-privileges:true
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -31,6 +33,8 @@ services:
           - gpool-postgres
 
   gpool_api:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
@@ -74,6 +78,8 @@ services:
           - gpool-api
 
   gpool_web:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/ui/Dockerfile
@@ -94,7 +100,6 @@ services:
       OPENBAO_REQUIRED_KEYS: AUTH_SESSION_SECRET,TOLGEE_API_KEY,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: ${TOLGEE_PROJECT_ID:?TOLGEE_PROJECT_ID is required}
-      NODE_OPTIONS: --no-webstorage
     ports:
       - '3011:3001'
     depends_on:
@@ -106,7 +111,10 @@ services:
         'until wget -qO- http://gpool-api:3000/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
       ]
     logging: *default-logging
-    networks: [gp_shared]
+    networks:
+      gp_shared:
+        aliases:
+          - gpool-web
 
 networks:
   gp_shared:

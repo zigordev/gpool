@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    // Vitest runs with `globals: true`, so describe/it/expect are ambient.
+    // This is the replacement for the @types/jest that used to provide them.
+    "types": ["vitest/globals"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -17,5 +20,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  // Build tooling, not application source, and outside `rootDir`.
+  "exclude": ["vitest.config.ts", "dist", "node_modules"]
 }

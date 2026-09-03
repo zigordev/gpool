@@ -1,8 +1,9 @@
+import { vi } from 'vitest';
 import { PoolRepository } from './pool.repository';
 
 describe('PoolRepository match player insights', () => {
   it('includes selected players from the match teams with zero-valued actions', async () => {
-    const query = jest.fn().mockResolvedValue({ rows: [] });
+    const query = vi.fn().mockResolvedValue({ rows: [] });
     const repository = new PoolRepository({ query } as any);
 
     await repository.getPlayerSelectionsWithMatchStats(

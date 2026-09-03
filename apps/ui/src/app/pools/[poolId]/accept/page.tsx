@@ -8,7 +8,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
-import { rum } from '@/lib/rum';
+import { trackEvent } from '@/observability';
 
 function AcceptInvitationContent() {
   const router = useRouter();
@@ -38,18 +38,14 @@ function AcceptInvitationContent() {
         const successMessage = response.data?.message || t('acceptInvitation.success.joined');
         toast.success(successMessage);
 
-        rum?.trackCustomEvent('Invitation Accepted', {
-          poolId,
-          userId: user.userId,
-          email: user.email,
-        });
+        trackEvent('Invitation Accepted');
 
         globalThis.location.href = `/pools/${poolId}`;
       } catch (error: any) {
         const errorMessage =
           error?.response?.data?.message || error?.message || t('acceptInvitation.errors.acceptFailed');
         toast.error(errorMessage);
-        rum?.trackCustomEvent('Invitation Accept Failed', { poolId, reason: errorMessage });
+        trackEvent('Invitation Accept Failed');
         globalThis.location.href = '/pools';
       }
     };

@@ -30,7 +30,7 @@ For first-time setup (OpenBao secrets/token), follow `docs/local-first-start.md`
 3. Check stack
 
 ```bash
-curl -fsS http://localhost:3010/api/health
+curl -fsS http://localhost:3010/health
 curl -fsS http://localhost:3011
 ```
 

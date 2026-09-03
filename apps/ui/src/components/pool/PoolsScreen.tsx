@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { useI18n } from '@/i18n/client';
 import toast from 'react-hot-toast';
-import { rum } from '@/lib/rum';
+import { trackEvent } from '@/observability';
 import { PoolCard } from './PoolCard';
 import { Loading } from '@/components/Loading';
 import {
@@ -154,7 +154,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
         },
       });
       await fetchPools();
-      rum?.trackCustomEvent('Pool Created', { poolId: response.data.poolId, poolName: poolName.trim() });
+      trackEvent('Pool Created');
       toast.success(t('pools.toast.created'));
       handleCloseCreateModal();
     } catch (err: any) {
@@ -196,7 +196,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       setInviteError(null);
       await apiClient.post(`/pools/${invitingPool.poolId}/invite`, { email: inviteEmail.trim() });
       await fetchPools();
-      rum?.trackCustomEvent('User Invited', { poolId: invitingPool.poolId, email: inviteEmail.trim() });
+      trackEvent('User Invited');
       toast.success(t('pools.toast.invitationSent', { email: inviteEmail.trim() }));
       handleCloseInviteModal();
     } catch (err: any) {
@@ -214,7 +214,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       setRequestingAccess(poolId);
       await apiClient.post(`/pools/${poolId}/request-access`);
       await fetchPools();
-      rum?.trackCustomEvent('Access Requested', { poolId });
+      trackEvent('Access Requested');
       toast.success(t('pools.toast.requestSubmitted'));
     } catch (err: any) {
       console.error('Failed to request access:', err);

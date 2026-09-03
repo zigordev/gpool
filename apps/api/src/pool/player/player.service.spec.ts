@@ -1,18 +1,19 @@
+import { vi } from 'vitest';
 import { PlayerService } from './player.service';
 
 describe('PlayerService third-place match actions', () => {
   it('records a player action against match 103 through the final-match flow', async () => {
     const repository = {
-      getTournamentPlayer: jest.fn().mockResolvedValue({
+      getTournamentPlayer: vi.fn().mockResolvedValue({
         playerId: 'player-a',
         teamId: 'team-a',
       }),
-      getTournamentMatch: jest.fn().mockResolvedValue({
+      getTournamentMatch: vi.fn().mockResolvedValue({
         matchId: 'all-pools-third-place-1',
         homeTeamId: 'team-a',
         awayTeamId: 'team-b',
       }),
-      incrementTournamentPlayerMatchStat: jest.fn().mockResolvedValue({
+      incrementTournamentPlayerMatchStat: vi.fn().mockResolvedValue({
         playerId: 'player-a',
         goals: 1,
         matchStatValue: 1,

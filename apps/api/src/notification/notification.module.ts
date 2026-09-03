@@ -4,6 +4,7 @@ import { NotificationPublisherService } from './notification.publisher.service';
 
 @Module({
   providers: [NotificationPublisherService, NotificationService],
-  exports: [NotificationService],
+  // Exported so the health endpoint can report broker reachability.
+  exports: [NotificationService, NotificationPublisherService],
 })
 export class NotificationModule {}

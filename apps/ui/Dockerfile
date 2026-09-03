@@ -1,4 +1,4 @@
-FROM node:25-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /workspace
 
 FROM base AS deps-build
@@ -41,7 +41,7 @@ COPY apps/ui /workspace/apps/ui
 WORKDIR /workspace/apps/ui
 RUN mkdir -p public && npm run build
 
-FROM node:25-alpine AS prod
+FROM node:24-alpine AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001

@@ -8,7 +8,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
-import { rum } from '@/lib/rum';
+import { trackEvent } from '@/observability';
 import { Button } from '../../../../../../design-system/components/core/Button.jsx';
 
 type Status = 'pending' | 'success' | 'error';
@@ -92,11 +92,7 @@ function AcceptAccessRequestContent() {
         setMessage(successMessage);
         toast.success(successMessage);
 
-        rum?.trackCustomEvent('Access Request Accepted', {
-          poolId,
-          targetUserId: userId,
-          adminUserId: user.userId,
-        });
+        trackEvent('Access Request Accepted');
 
         setTimeout(() => router.push(`/pools/${poolId}`), 1500);
       } catch (error: any) {
@@ -106,11 +102,7 @@ function AcceptAccessRequestContent() {
         setMessage(errorMessage);
         toast.error(errorMessage);
 
-        rum?.trackCustomEvent('Access Request Accept Failed', {
-          poolId,
-          targetUserId: userId,
-          reason: errorMessage,
-        });
+        trackEvent('Access Request Accept Failed');
       }
     };
 
