@@ -9,6 +9,8 @@ x-logging: &default-logging
 
 services:
   gpool_db:
+    security_opt:
+      - no-new-privileges:true
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -29,6 +31,8 @@ services:
           - gpool-postgres
 
   gpool_api:
+    security_opt:
+      - no-new-privileges:true
     image: ${API_IMAGE:?API_IMAGE is required}
     restart: unless-stopped
     environment:
@@ -67,6 +71,8 @@ services:
           - gpool-api
 
   gpool_web:
+    security_opt:
+      - no-new-privileges:true
     image: ${WEB_IMAGE:?WEB_IMAGE is required}
     restart: unless-stopped
     environment:
@@ -81,7 +87,6 @@ services:
       OPENBAO_REQUIRED_KEYS: AUTH_SESSION_SECRET,TOLGEE_API_KEY,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: ${TOLGEE_PROJECT_ID:?TOLGEE_PROJECT_ID is required}
-      NODE_OPTIONS: --no-webstorage
     depends_on:
       - gpool_api
     command:

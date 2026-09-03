@@ -258,7 +258,7 @@ Important:
 Validate the public API:
 
 ```bash
-curl -fsS https://gpool-api.zigordev.com/api/health/ready
+curl -fsS https://gpool-api.zigordev.com/health
 ```
 
 Validate the public web app:

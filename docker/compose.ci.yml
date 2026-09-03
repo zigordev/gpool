@@ -2,6 +2,8 @@ name: gpool-ci
 
 services:
   postgres:
+    security_opt:
+      - no-new-privileges:true
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: gpool_admin
@@ -16,6 +18,8 @@ services:
       - '5433:5432'
 
   api:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
@@ -54,6 +58,8 @@ services:
         condition: service_healthy
 
   web:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/ui/Dockerfile
@@ -75,13 +81,14 @@ services:
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
       GOOGLE_OAUTH_REDIRECT_URI: http://localhost:3101/api/auth/google/callback
-      NODE_OPTIONS: --no-webstorage
     ports:
       - '3101:3001'
     depends_on:
       - api
 
   k6_test:
+    security_opt:
+      - no-new-privileges:true
     image: grafana/k6:0.49.0
     environment:
       API_BASE_URL: http://api:3000

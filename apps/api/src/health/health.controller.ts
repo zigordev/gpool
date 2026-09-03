@@ -1,35 +1,39 @@
 import { Controller, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { PostgresService } from '../database/postgres.service';
+import { NotificationPublisherService } from '../notification/notification.publisher.service';
+import { recordHealth } from '../observability';
 
 /** Matches `OTEL_SERVICE_NAME`, so health, metrics, traces and logs all name
  *  this service identically. */
 const SERVICE = 'gpool-api';
 
 /**
- * Liveness answers "is the process running" and must not touch a dependency —
- * a liveness probe that fails on a database blip gets the container killed,
- * turning a brief outage into a crash loop. Readiness answers "can this serve
- * traffic", and is the one worth alerting on.
+ * One endpoint, reporting everything.
  *
- * Readiness sets the status code directly instead of throwing. Throwing routes
- * the response through the global exception filter, which replaces the body
- * with its own error shape — so the 503 arrived saying nothing about *which*
- * dependency was down, which is the only useful part.
+ * `status` is `ok` when every component is up, `degraded` when an optional one
+ * is down, and `error` (503) when a required one is. The distinction matters:
+ * this service PRODUCES to Kafka rather than consuming from it, so a broker
+ * outage stops emails being queued but leaves everything else working. Failing
+ * the whole health check for that would take the service out of rotation over a
+ * partial degradation.
  *
- * Shape and paths follow the observability contract in platform-ops.
+ * The database is required — without it there is nothing to serve.
+ *
+ * Note for the future: a single dependency-probing endpoint is fine as a Docker
+ * healthcheck, which does not restart on failure. Used as a Kubernetes liveness
+ * probe it would turn a database blip into a restart loop; a separate liveness
+ * path would be needed then.
  */
 @Controller('health')
 export class HealthController {
-  constructor(private readonly postgres: PostgresService) {}
+  constructor(
+    private readonly postgres: PostgresService,
+    private readonly publisher: NotificationPublisherService,
+  ) {}
 
-  @Get('liveness')
-  liveness() {
-    return { status: 'ok', service: SERVICE };
-  }
-
-  @Get('readiness')
-  async readiness(@Res({ passthrough: true }) res: Response) {
+  @Get()
+  async check(@Res({ passthrough: true }) res: Response) {
     let db = false;
     try {
       await this.postgres.ping();
@@ -38,18 +42,23 @@ export class HealthController {
       db = false;
     }
 
+    const kafka = this.publisher.isKafkaUp();
+
+    // `null` means no connection has been attempted yet, which is not a
+    // failure — reporting "down" at boot would be a lie.
+    const kafkaDown = kafka === false;
+    const status = !db ? 'error' : kafkaDown ? 'degraded' : 'ok';
     if (!db) res.status(503);
 
-    return {
-      status: db ? 'ok' : 'error',
-      service: SERVICE,
-      components: { db: { status: db ? 'up' : 'down' } },
+    const components = {
+      db: { status: db ? 'up' : 'down' },
+      kafka: { status: kafka === null ? 'unknown' : kafka ? 'up' : 'down' },
     };
-  }
 
-  /** Bare `/health` is readiness: it is what the compose healthcheck calls. */
-  @Get()
-  check(@Res({ passthrough: true }) res: Response) {
-    return this.readiness(res);
+    // The same judgement the response carries, as a metric — otherwise
+    // `degraded` is a state nothing can alert on.
+    recordHealth(status, components);
+
+    return { status, service: SERVICE, components };
   }
 }

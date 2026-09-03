@@ -1,3 +1,11 @@
+// FIRST, above every other import. OpenTelemetry instruments by patching
+// modules as they load, so anything required before this line is never
+// instrumented. This import used to sit at the bottom of the list, and the
+// result was measurable: gpool's traces had express middleware spans but no
+// `pg.query` and no controller spans, because `pg` and `@nestjs/core` had
+// already loaded. Do not let a formatter or an import sorter move it.
+import './observability/tracing';
+
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { NestFactory } from '@nestjs/core';
@@ -5,8 +13,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { httpMetricsMiddleware } from './common/metrics/http-metrics.middleware';
-import './observability/tracing';
+import { httpMetricsMiddleware, JsonLogger } from './observability';
 
 type TrustProxy = boolean | number | 'loopback' | 'linklocal' | 'uniquelocal';
 
@@ -69,7 +76,11 @@ function parseTrustProxy(input: string | undefined): TrustProxy {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // `bufferLogs` holds the bootstrap lines until the logger is installed, so
+  // startup logs come out as JSON with a traceId like everything else instead
+  // of as Nest's coloured text.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(JsonLogger));
   const expressApp = app.getHttpAdapter().getInstance();
 
   // Security headers. CSP is off: this is a JSON API, where a content policy
@@ -80,10 +91,8 @@ async function bootstrap() {
 
   // Health and metrics sit outside the prefix so every service in the estate
   // answers on the same paths. Without this, gpool alone would be
-  // `/api/health/readiness` while the others are `/health/readiness`.
-  app.setGlobalPrefix('api', {
-    exclude: ['metrics', 'health', 'health/liveness', 'health/readiness'],
-  });
+  // `/api/health` while the others are `/health`.
+  app.setGlobalPrefix('api', { exclude: ['metrics', 'health'] });
   if (typeof expressApp?.set === 'function') {
     expressApp.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
   }

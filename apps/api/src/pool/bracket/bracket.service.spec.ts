@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { BracketService } from './bracket.service';
 
 const roundOf32 = Array.from({ length: 16 }, (_, index) => ({
@@ -17,9 +18,9 @@ const roundOf16 = Array.from({ length: 8 }, (_, index) => ({
 describe('BracketService startup recalculation', () => {
   it('creates missing final phase matches before re-evaluating on bootstrap', async () => {
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([]),
-      createBracketMatch: jest.fn().mockImplementation((match) => Promise.resolve(match)),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      getBracketMatches: vi.fn().mockResolvedValue([]),
+      createBracketMatch: vi.fn().mockImplementation((match) => Promise.resolve(match)),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -80,12 +81,12 @@ describe('BracketService startup recalculation', () => {
       },
     ];
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue(existingMatches),
-      createBracketMatch: jest.fn().mockImplementation((match) => Promise.resolve(match)),
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([]),
-      listPools: jest.fn().mockResolvedValue([]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      getBracketMatches: vi.fn().mockResolvedValue(existingMatches),
+      createBracketMatch: vi.fn().mockImplementation((match) => Promise.resolve(match)),
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([]),
+      listPools: vi.fn().mockResolvedValue([]),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -128,11 +129,11 @@ describe('BracketService team elimination sync', () => {
       awayTeamId: `team-${index * 4 + 3}`,
     }));
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([...roundOf32, ...realisticRoundOf16]),
-      getAllTeams: jest.fn().mockResolvedValue(
+      getBracketMatches: vi.fn().mockResolvedValue([...roundOf32, ...realisticRoundOf16]),
+      getAllTeams: vi.fn().mockResolvedValue(
         Array.from({ length: 48 }, (_, index) => ({ teamId: `team-${index + 1}` }))
       ),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -149,7 +150,7 @@ describe('BracketService team elimination sync', () => {
 
   it('does not eliminate unknown teams before the first knockout phase is fully populated', async () => {
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([
+      getBracketMatches: vi.fn().mockResolvedValue([
         ...roundOf32.slice(0, 15),
         {
           bracketMatchId: 'all-pools-16th-finals-16',
@@ -158,7 +159,7 @@ describe('BracketService team elimination sync', () => {
           awayTeamId: '',
         },
       ]),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -169,7 +170,7 @@ describe('BracketService team elimination sync', () => {
 
   it('marks the final loser eliminated when the final result is known', async () => {
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([
+      getBracketMatches: vi.fn().mockResolvedValue([
         {
           bracketMatchId: 'all-pools-finals-1',
           phase: 'finals',
@@ -179,7 +180,7 @@ describe('BracketService team elimination sync', () => {
           awayResult: 1,
         },
       ]),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -200,12 +201,12 @@ describe('BracketService final phase match materialization', () => {
       homeTeamName: 'Team A',
     };
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([]),
-      createBracketMatch: jest.fn().mockResolvedValue(createdMatch),
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([]),
-      listPools: jest.fn().mockResolvedValue([]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      getBracketMatches: vi.fn().mockResolvedValue([]),
+      createBracketMatch: vi.fn().mockResolvedValue(createdMatch),
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([]),
+      listPools: vi.fn().mockResolvedValue([]),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -244,9 +245,9 @@ describe('BracketService final phase match materialization', () => {
       awayTeamName: 'Team B',
     };
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([thirdPlaceMatch]),
-      updateBracketMatch: jest.fn().mockResolvedValue(thirdPlaceMatch),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      getBracketMatches: vi.fn().mockResolvedValue([thirdPlaceMatch]),
+      updateBracketMatch: vi.fn().mockResolvedValue(thirdPlaceMatch),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 
@@ -282,10 +283,10 @@ describe('BracketService final phase match materialization', () => {
       status: 'completed',
     };
     const repository = {
-      getBracketMatches: jest.fn().mockResolvedValue([thirdPlaceMatch]),
-      updateBracketMatch: jest.fn().mockResolvedValue(completedMatch),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
-      getAllBracketPredictionsForMatch: jest.fn(),
+      getBracketMatches: vi.fn().mockResolvedValue([thirdPlaceMatch]),
+      updateBracketMatch: vi.fn().mockResolvedValue(completedMatch),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
+      getAllBracketPredictionsForMatch: vi.fn(),
     };
     const service = new BracketService(repository as any);
 
@@ -307,17 +308,17 @@ describe('BracketService final phase match materialization', () => {
 
   it('rejects bracket predictions for the third-place match', async () => {
     const repository = {
-      getPool: jest.fn().mockResolvedValue({
+      getPool: vi.fn().mockResolvedValue({
         config: { deadline: Date.now() + 60_000 },
       }),
-      getBracketMatches: jest.fn().mockResolvedValue([
+      getBracketMatches: vi.fn().mockResolvedValue([
         {
           bracketMatchId: 'all-pools-third-place-1',
           phase: 'third-place',
           matchNumber: 103,
         },
       ]),
-      createBracketPrediction: jest.fn(),
+      createBracketPrediction: vi.fn(),
     };
     const service = new BracketService(repository as any);
 
@@ -364,7 +365,7 @@ describe('BracketService final phase scoring', () => {
 
   it('awards wrong-position points when a team is in another match box in the same round', async () => {
     const repository = {
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([
         {
           bracketPredictionId: 'prediction-1',
           poolId: 'pool-1',
@@ -390,9 +391,9 @@ describe('BracketService final phase scoring', () => {
           awayTeamId: '',
         },
       ]),
-      getBracketMatches: jest.fn().mockResolvedValue(phaseMatches),
-      listPools: jest.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+      getBracketMatches: vi.fn().mockResolvedValue(phaseMatches),
+      listPools: vi.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
     };
     const service = new BracketService(repository as any);
 
@@ -468,7 +469,7 @@ describe('BracketService final phase scoring', () => {
       },
     ];
     const repository = {
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([
         {
           bracketPredictionId: 'prediction-1',
           poolId: 'pool-1',
@@ -476,8 +477,8 @@ describe('BracketService final phase scoring', () => {
           awayTeamId: '',
         },
       ]),
-      getBracketMatches: jest.fn().mockResolvedValue(phaseMatches),
-      listPools: jest.fn().mockResolvedValue([
+      getBracketMatches: vi.fn().mockResolvedValue(phaseMatches),
+      listPools: vi.fn().mockResolvedValue([
         {
           poolId: 'pool-1',
           config: {
@@ -511,7 +512,7 @@ describe('BracketService final phase scoring', () => {
           },
         },
       ]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
     };
     const service = new BracketService(repository as any);
 
@@ -538,7 +539,7 @@ describe('BracketService final phase scoring', () => {
       awayTeamId: '',
     };
     const repository = {
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([
         {
           bracketPredictionId: 'prediction-1',
           poolId: 'pool-1',
@@ -552,9 +553,9 @@ describe('BracketService final phase scoring', () => {
           awayTeamId: '',
         },
       ]),
-      getBracketMatches: jest.fn().mockResolvedValue([partialMatch]),
-      listPools: jest.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
+      getBracketMatches: vi.fn().mockResolvedValue([partialMatch]),
+      listPools: vi.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
     };
     const service = new BracketService(repository as any);
 
@@ -607,10 +608,10 @@ describe('BracketService final phase scoring', () => {
     };
     const phaseMatches = [emptyPredictionBox, knownTeamBox, thirdPlaceMatch];
     const repository = {
-      getBracketMatches: jest.fn().mockImplementation((_poolId, phase) =>
+      getBracketMatches: vi.fn().mockImplementation((_poolId, phase) =>
         Promise.resolve(phase ? phaseMatches.filter((match) => match.phase === phase) : phaseMatches)
       ),
-      getAllBracketPredictionsForMatch: jest.fn().mockImplementation((bracketMatchId) =>
+      getAllBracketPredictionsForMatch: vi.fn().mockImplementation((bracketMatchId) =>
         Promise.resolve(
           bracketMatchId === emptyPredictionBox.bracketMatchId
             ? [
@@ -624,9 +625,9 @@ describe('BracketService final phase scoring', () => {
             : []
         )
       ),
-      listPools: jest.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
-      bulkUpdateBracketPredictionPoints: jest.fn().mockResolvedValue(undefined),
-      updateTeamEliminatedState: jest.fn().mockResolvedValue([]),
+      listPools: vi.fn().mockResolvedValue([{ poolId: 'pool-1', config: scoring }]),
+      bulkUpdateBracketPredictionPoints: vi.fn().mockResolvedValue(undefined),
+      updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
 

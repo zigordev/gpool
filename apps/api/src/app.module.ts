@@ -2,9 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
-import { MetricsModule } from './common/metrics/metrics.module';
+import { ObservabilityModule } from './observability';
 import { PoolModule } from './pool/pool.module';
-import { RUMModule } from './rum/rum.module';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
@@ -15,9 +14,8 @@ import { DatabaseModule } from './database/database.module';
     DatabaseModule,
     AuthModule,
     HealthModule,
-    MetricsModule,
+    ObservabilityModule,
     PoolModule,
-    RUMModule,
   ],
 })
 export class AppModule {}

@@ -2,6 +2,8 @@ name: gpool-precommit
 
 services:
   postgres:
+    security_opt:
+      - no-new-privileges:true
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: gpool_admin
@@ -16,6 +18,8 @@ services:
       - '5433:5432'
 
   api:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
@@ -54,6 +58,8 @@ services:
         condition: service_healthy
 
   web:
+    security_opt:
+      - no-new-privileges:true
     build:
       context: ..
       dockerfile: apps/ui/Dockerfile

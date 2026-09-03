@@ -1,13 +1,14 @@
+import { vi } from 'vitest';
 import { MatchService } from './match.service';
 
 describe('MatchService match insights', () => {
   it('uses canonical team names for final-phase match flags', async () => {
     const repository = {
-      getPool: jest.fn().mockResolvedValue({
+      getPool: vi.fn().mockResolvedValue({
         poolId: 'pool-1',
         config: { deadline: Date.now() - 1_000 },
       }),
-      getBracketMatches: jest.fn().mockResolvedValue([
+      getBracketMatches: vi.fn().mockResolvedValue([
         {
           bracketMatchId: 'final-match-1',
           homeTeamId: 'team-a',
@@ -16,13 +17,13 @@ describe('MatchService match insights', () => {
           awayTeamName: 'South Africa',
         },
       ]),
-      getTeam: jest
+      getTeam: vi
         .fn()
         .mockResolvedValueOnce({ teamId: 'team-a', name: 'México' })
         .mockResolvedValueOnce({ teamId: 'team-b', name: 'Sudáfrica' }),
-      getPoolMembers: jest.fn().mockResolvedValue([]),
-      getAllBracketPredictionsForMatch: jest.fn().mockResolvedValue([]),
-      getPlayerSelectionsWithMatchStats: jest.fn().mockResolvedValue([]),
+      getPoolMembers: vi.fn().mockResolvedValue([]),
+      getAllBracketPredictionsForMatch: vi.fn().mockResolvedValue([]),
+      getPlayerSelectionsWithMatchStats: vi.fn().mockResolvedValue([]),
     };
     const service = new MatchService(repository as any);
 
@@ -73,20 +74,20 @@ describe('MatchService match insights', () => {
       redCards: 0,
     };
     const repository = {
-      getPool: jest.fn().mockResolvedValue({
+      getPool: vi.fn().mockResolvedValue({
         poolId: 'pool-1',
         config: { deadline: Date.now() - 1_000 },
       }),
-      getMatch: jest.fn().mockResolvedValue({
+      getMatch: vi.fn().mockResolvedValue({
         matchId: 'match-1',
         homeTeamId: 'team-a',
         awayTeamId: 'team-b',
       }),
-      getPoolMembers: jest.fn().mockResolvedValue([
+      getPoolMembers: vi.fn().mockResolvedValue([
         { userId: 'user-1', userName: 'User One', status: 'active' },
       ]),
-      getAllPredictionsForMatch: jest.fn().mockResolvedValue([]),
-      getPlayerSelectionsWithMatchStats: jest
+      getAllPredictionsForMatch: vi.fn().mockResolvedValue([]),
+      getPlayerSelectionsWithMatchStats: vi
         .fn()
         .mockResolvedValue([zeroActionPlayer]),
     };

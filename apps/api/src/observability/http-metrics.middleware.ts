@@ -1,3 +1,6 @@
+// DO NOT EDIT. Vendored from platform-ops/packages/observability.
+// Change it there and run: bash platform-ops/scripts/sync-observability.sh
+
 import type { NextFunction, Request, Response } from 'express';
 import * as client from 'prom-client';
 import { registry } from './metrics.registry';
@@ -17,30 +20,27 @@ const httpRequestDuration = new client.Histogram({
   registers: [registry],
 });
 
-export function httpMetricsMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+/**
+ * The two metrics every alert in `platform-ops/docker/prometheus/` is built on:
+ * a request counter and a duration histogram, both labelled by method, route
+ * and status.
+ *
+ * `route` is the Express route *pattern* (`/pools/:id`), never the resolved
+ * path. A label whose value is an id gives Prometheus one time series per id,
+ * which is the classic way to melt a Prometheus server.
+ */
+export function httpMetricsMiddleware(req: Request, res: Response, next: NextFunction): void {
   const start = process.hrtime.bigint();
 
   res.on('finish', () => {
-    const diffNs = process.hrtime.bigint() - start;
-    const seconds = Number(diffNs) / 1e9;
+    const seconds = Number(process.hrtime.bigint() - start) / 1e9;
 
     const route =
       (req.route?.path as string | undefined) ??
       (req.baseUrl ? `${req.baseUrl}${req.path}` : req.path);
-    if (!route) {
-      return;
-    }
+    if (!route) return;
 
-    const labels = {
-      method: req.method,
-      route,
-      status: String(res.statusCode),
-    };
-
+    const labels = { method: req.method, route, status: String(res.statusCode) };
     httpRequestsTotal.inc(labels, 1);
     httpRequestDuration.observe(labels, seconds);
   });
