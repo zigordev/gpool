@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.60](https://github.com/zigordev/gpool/compare/v0.1.59...v0.1.60) (2026-09-03)
+
+
+### Bug Fixes
+
+* **contract:** regenerate the web API client, drop the removed RUM endpoint ([9a6d3d9](https://github.com/zigordev/gpool/commit/9a6d3d9be6480f26145a326b2351a977c1d9e66d))
+
 ## [0.1.59](https://github.com/zigordev/gpool/compare/v0.1.58...v0.1.59) (2026-09-03)
 
 
