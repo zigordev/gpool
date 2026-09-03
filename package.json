@@ -4,7 +4,7 @@
   "private": true,
   "description": "Real-time football pool management platform",
   "engines": {
-    "node": ">=20.19.0 <21",
+    "node": ">=24 <25",
     "npm": ">=10"
   },
   "workspaces": [
@@ -18,7 +18,7 @@
     "typecheck": "npm run typecheck -w @gpool/api",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:cov:api": "npm run test:cov -w @gpool/api -- --passWithNoTests --watchman=false --ci",
+    "test:cov:api": "npm run test:cov -w @gpool/api -- --passWithNoTests",
     "test:secrets:gitleaks": "./scripts/precommit-gitleaks.sh",
     "ci:integration:local": "./scripts/precommit-integration-e2e.sh",
     "ci:quality:local": "npm run lint && npm run typecheck && npm run build && npm run test:cov:api",
@@ -41,8 +41,10 @@
       "multer": "2.2.0"
     },
     "gaxios": "7.3.0",
-    "postcss": "8.5.24",
-    "sharp": "0.35.3"
+    "postcss": "8.5.27",
+    "sharp": "0.35.3",
+    "nanoid": "6.0.1",
+    "js-yaml": "5.4.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
