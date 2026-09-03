@@ -25,7 +25,12 @@
   /* Foreground */
   --fg: 17 24 28;               /* deep ink */
   --fg-muted: 71 85 99;
-  --fg-subtle: 92 108 117;
+  /* Hand-mirrors design-system/themes/gpool.css's --ds-color-fg-subtle — kept
+     numerically identical on purpose, update both together. This value itself
+     already cleared 4.5:1 (4.93:1); moved to 4.99:1 only to stay in sync with
+     that file's re-tuned value — the failure it was fixed alongside was
+     --ds-color-fg-faint, which this local system has no equivalent of. */
+  --fg-subtle: 92 107 116;
 
   /* Borders */
   --border: 191 204 195;

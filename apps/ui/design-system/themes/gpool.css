@@ -1,4 +1,5 @@
-/* Example reskin: matches the real "gpool" app (pitch-green primary,
+/* DO NOT EDIT. Vendored from design-system/themes/gpool.css.
+   Change it there and run: bash platform-ops/scripts/sync-design-system.sh *//* Example reskin: matches the real "gpool" app (pitch-green primary,
    sunset-orange secondary accent). Colors only — shape, type, and spacing
    stay on the shared base tokens from styles.css so every product renders
    the same component geometry. GPool has a second accent that this system
@@ -14,8 +15,11 @@
 
   --ds-color-fg: #11181c;
   --ds-color-fg-muted: #475563;
-  --ds-color-fg-subtle: #5c6c75;
-  --ds-color-fg-faint: #7c8a90;
+  /* faint was #7c8a90 — 3.2:1 against --ds-color-bg, below the 4.5:1 WCAG AA
+     floor for the 11-12px labels these land on (see tokens/colors.css for the
+     full finding). Both re-tuned to clear it with margin: 5.0:1 and 4.6:1. */
+  --ds-color-fg-subtle: #5c6b74;
+  --ds-color-fg-faint: #647076;
 
   --ds-color-accent: #166534;
   --ds-color-accent-hover: #14562c;
@@ -39,6 +43,14 @@
   --ds-color-border: #486250;
   --ds-color-fg: #daece1;
   --ds-color-fg-muted: #98b19e;
+  /* Previously unset here, which is worse than a wrong value: the light block
+     above is `:root[data-theme="gpool"]`, one attribute selector, so it still
+     matches when `data-mode="dark"` is also set — this block only wins on the
+     properties it actually redeclares. Dark mode was rendering the LIGHT
+     subtle/faint (#5c6c75 / #7c8a90) against this DARK background: 3.5:1 and
+     5.3:1, one of them failing by luck of which way the miss fell. */
+  --ds-color-fg-subtle: #82939c;
+  --ds-color-fg-faint: #7f8c92;
   --ds-color-accent: #34d399;
   --ds-color-accent-hover: #4ade80;
   --ds-color-accent-fg: #091e13;
