@@ -177,7 +177,7 @@ jobs:
       # which is the whole reason to prefer it over a long-lived key in a
       # secret.
       - name: Install cosign
-        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Sign images (keyless)
         env:
