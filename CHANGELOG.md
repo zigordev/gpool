@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.61](https://github.com/zigordev/gpool/compare/v0.1.60...v0.1.61) (2026-09-04)
+
+
+### Bug Fixes
+
+* **ci:** raise commitlint header-max-length to fit Dependabot titles ([#161](https://github.com/zigordev/gpool/issues/161)) ([24aa121](https://github.com/zigordev/gpool/commit/24aa12104d37a0229500b4fafe087e9c0d4ff590))
+
 ## [0.1.60](https://github.com/zigordev/gpool/compare/v0.1.59...v0.1.60) (2026-09-03)
 
 
