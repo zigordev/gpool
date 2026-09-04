@@ -319,7 +319,7 @@ jobs:
         run: mkdir -p artifacts
 
       - name: Generate SBOM (api image)
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0
         with:
           image: gpool-api:ci
           format: spdx-json
@@ -328,7 +328,7 @@ jobs:
           upload-release-assets: false
 
       - name: Generate SBOM (web image)
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0
         with:
           image: gpool-web:ci
           format: spdx-json
