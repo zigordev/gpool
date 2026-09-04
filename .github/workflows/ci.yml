@@ -104,6 +104,14 @@ jobs:
     name: Secrets Scan (Gitleaks)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # gitleaks-action calls GET /pulls/{n}/commits to scope its scan to the PR's
+    # own commits. The workflow-level `contents: read` above doesn't cover that
+    # call, and Dependabot-triggered runs get no implicit permissions beyond
+    # what's declared here — every Dependabot PR failed this job with a 403
+    # until this was added.
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -111,25 +119,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitleaks
-        run: |
-          set -euo pipefail
-          VERSION=8.24.2
-          ARCHIVE="gitleaks_${VERSION}_linux_x64.tar.gz"
-          mkdir -p artifacts
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_checksums.txt" -o /tmp/gitleaks_checksums.txt
-          grep "${ARCHIVE}" /tmp/gitleaks_checksums.txt > /tmp/gitleaks_checksum_line.txt
-          (cd /tmp && sha256sum -c /tmp/gitleaks_checksum_line.txt)
-          tar -xzf "/tmp/${ARCHIVE}" -C /tmp gitleaks
-          /tmp/gitleaks detect --source . --no-git --redact --config .gitleaks.toml --report-format json --report-path artifacts/gitleaks-report.json
-
-      - name: Upload gitleaks report
-        if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: gitleaks-report
-          path: artifacts/gitleaks-report.json
-          if-no-files-found: warn
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
 
   integration-e2e:
     name: Integration Smoke (Compose)
