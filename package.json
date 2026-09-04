@@ -51,7 +51,7 @@
     "@commitlint/config-conventional": "^20.4.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
-    "glob": "^10.5.0",
+    "glob": "^13.0.6",
     "husky": "^9.1.7",
     "prettier": "^3.1.0",
     "typescript": "^5.3.0"
