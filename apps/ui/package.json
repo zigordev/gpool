@@ -28,7 +28,7 @@
     "react-select": "^5.10.2"
   },
   "devDependencies": {
-    "@tolgee/cli": "2.16.1",
+    "@tolgee/cli": "2.20.0",
     "@types/node": "^20.3.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
