@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { usePoolContext, resolveGroupScoring } from '@/contexts/PoolContext';
-import { Section } from '../../../../../design-system/components/data-display/Section.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
 import { MatchPredictionCard } from '@/components/pool/MatchPredictionCard';
 import type { MatchInsightsTarget } from '@/components/pool/MatchInsightsModal';
 import { MatchPredictionState } from '@/types/matchPredictionState.type';
@@ -20,7 +20,7 @@ import { FaExternalLinkAlt } from 'react-icons/fa';
 import { FaRankingStar } from 'react-icons/fa6';
 import { IoWarning } from 'react-icons/io5';
 import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
-import { Table } from '../../../../../design-system/components/data-display/Table.jsx';
+import { Table } from 'design-system/components/data-display/Table.jsx';
 
 const MatchInsightsModal = dynamic(
   () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),

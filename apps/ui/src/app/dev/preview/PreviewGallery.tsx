@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 
-import { Button as DsButton } from '../../../../design-system/components/core/Button.jsx';
-import { StatTile as DsStatTile } from '../../../../design-system/components/data-display/StatTile.jsx';
-import { PageHeader } from '../../../../design-system/components/data-display/PageHeader.jsx';
-import { Badge as DsBadge } from '../../../../design-system/components/feedback/Badge.jsx';
-import { Icon } from '../../../../design-system/components/icons/Icon.jsx';
-import { Table } from '../../../../design-system/components/data-display/Table.jsx';
-import { Field } from '../../../../design-system/components/forms/Field.jsx';
-import { DateField } from '../../../../design-system/components/forms/DateField.jsx';
+import { Button as DsButton } from 'design-system/components/core/Button.jsx';
+import { StatTile as DsStatTile } from 'design-system/components/data-display/StatTile.jsx';
+import { PageHeader } from 'design-system/components/data-display/PageHeader.jsx';
+import { Badge as DsBadge } from 'design-system/components/feedback/Badge.jsx';
+import { Icon } from 'design-system/components/icons/Icon.jsx';
+import { Table } from 'design-system/components/data-display/Table.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { DateField } from 'design-system/components/forms/DateField.jsx';
 
-import { Section } from '../../../../design-system/components/data-display/Section.jsx';
-import { Modal } from '../../../../design-system/components/overlay/Modal.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
+import { Modal } from 'design-system/components/overlay/Modal.jsx';
 import { RankTable } from '@/components/pool/RankTable';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 

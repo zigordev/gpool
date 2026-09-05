@@ -13,8 +13,8 @@ import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
-import { Button } from '../../../design-system/components/core/Button.jsx';
-import { Table, TableSortHeader, TablePager, TableEmpty } from '../../../design-system/components/data-display/Table.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { Table, TableSortHeader, TablePager, TableEmpty } from 'design-system/components/data-display/Table.jsx';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 type PlayerActionGroup = 'match' | 'penalty' | 'shootout';

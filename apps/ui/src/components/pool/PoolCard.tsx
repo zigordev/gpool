@@ -1,6 +1,6 @@
 import { CountdownChip } from '@/components/ui/CountdownChip';
 import { IoSettings } from 'react-icons/io5';
-import { Button } from '../../../design-system/components/core/Button.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
 
 export function PoolCard({
   pool,

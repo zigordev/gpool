@@ -5,10 +5,10 @@ import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '../../design-system/components/core/Button.jsx';
-import { Flag } from '../../design-system/components/icons/Flag.jsx';
-import { Icon } from '../../design-system/components/icons/Icon.jsx';
-import { Menu, MenuItem } from '../../design-system/components/overlay/Menu.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { Flag } from 'design-system/components/icons/Flag.jsx';
+import { Icon } from 'design-system/components/icons/Icon.jsx';
+import { Menu, MenuItem } from 'design-system/components/overlay/Menu.jsx';
 
 const LOCALE_META: Record<Locale, { label: string; flagCode: 'gb' | 'es' }> = {
   es: { label: 'Español', flagCode: 'es' },

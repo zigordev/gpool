@@ -1,7 +1,7 @@
 /* Shared navigation design-system (Sidebar/Topbar/BottomNav/AppShell/Logo) —
    copied from design-system v0.1.3, themed via themes/gpool.css below. */
-@import "../../design-system/styles.css";
-@import "../../design-system/themes/gpool.css";
+@import "design-system/styles.css";
+@import "design-system/themes/gpool.css";
 
 /* ============================================================================
    GPool — design tokens

@@ -20,13 +20,13 @@ import {
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { PrizePayout } from '@/types/prizePayout.type';
-import { Button } from '@/../design-system/components/core/Button.jsx';
-import { DateField } from '@/../design-system/components/forms/DateField.jsx';
-import { Modal } from '@/../design-system/components/overlay/Modal.jsx';
-import { Field } from '@/../design-system/components/forms/Field.jsx';
-import { Input } from '@/../design-system/components/forms/Input.jsx';
-import { Table } from '@/../design-system/components/data-display/Table.jsx';
-import { Badge } from '@/../design-system/components/feedback/Badge.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { DateField } from 'design-system/components/forms/DateField.jsx';
+import { Modal } from 'design-system/components/overlay/Modal.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { Input } from 'design-system/components/forms/Input.jsx';
+import { Table } from 'design-system/components/data-display/Table.jsx';
+import { Badge } from 'design-system/components/feedback/Badge.jsx';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
