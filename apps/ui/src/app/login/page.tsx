@@ -2,11 +2,11 @@
 
 import { Loading } from '@/components/Loading';
 import { LanguageButton, ThemeButton } from '@/components/NavigationBar';
-import { AuthCard } from '../../../design-system/components/auth/AuthCard.jsx';
-import { AuthShell } from '../../../design-system/components/auth/AuthShell.jsx';
-import { Button } from '../../../design-system/components/core/Button.jsx';
-import { GoogleMark } from '../../../design-system/components/icons/GoogleMark.jsx';
-import { Logo } from '../../../design-system/components/navigation/Logo.jsx';
+import { AuthCard } from 'design-system/components/auth/AuthCard.jsx';
+import { AuthShell } from 'design-system/components/auth/AuthShell.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { GoogleMark } from 'design-system/components/icons/GoogleMark.jsx';
+import { Logo } from 'design-system/components/navigation/Logo.jsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';

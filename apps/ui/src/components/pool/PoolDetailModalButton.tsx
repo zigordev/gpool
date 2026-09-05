@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Modal } from '../../../design-system/components/overlay/Modal.jsx';
+import { Modal } from 'design-system/components/overlay/Modal.jsx';
 
 export function PoolDetailModalButton({
   title,

@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/i18n/client';
 import { useEffect, useState } from 'react';
-import { Badge } from '../../../design-system/components/feedback/Badge.jsx';
+import { Badge } from 'design-system/components/feedback/Badge.jsx';
 
 interface Props {
   deadline: number;

@@ -3,17 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@/i18n/client';
-import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
-import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
-import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { Input } from 'design-system/components/forms/Input.jsx';
 import { useAdminContext, resizePrizeDistribution } from '@/contexts/AdminContext';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { IoSettings } from 'react-icons/io5';
 import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
-import { Button } from '../../../../../../design-system/components/core/Button.jsx';
-import { DateField } from '@/../design-system/components/forms/DateField.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { DateField } from 'design-system/components/forms/DateField.jsx';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();

@@ -3,9 +3,9 @@
 import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
-import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
-import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
-import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { Input } from 'design-system/components/forms/Input.jsx';
 import { parseConfigNumberInput, useAdminContext, PHASES } from '@/contexts/AdminContext';
 import { computeAdminCandidateOptions } from '@/lib/bracket-projection';
 import { FaTrophy } from 'react-icons/fa';
