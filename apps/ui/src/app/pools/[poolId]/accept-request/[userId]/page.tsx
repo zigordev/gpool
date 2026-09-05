@@ -71,13 +71,16 @@ function AcceptAccessRequestContent() {
       ? params.userId[0]
       : '';
 
-  const [status, setStatus] = useState<Status>('pending');
-  const [message, setMessage] = useState<string>(() => t('acceptRequest.processingMessage'));
+  const isInvalidLink = !poolId || !userId;
+
+  const [asyncStatus, setAsyncStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [asyncMessage, setAsyncMessage] = useState<string>(() => t('acceptRequest.processingMessage'));
+
+  const status: Status = isInvalidLink ? 'error' : asyncStatus;
+  const message: string = isInvalidLink ? t('acceptRequest.errors.invalidLink') : asyncMessage;
 
   useEffect(() => {
-    if (!poolId || !userId) {
-      setStatus('error');
-      setMessage(t('acceptRequest.errors.invalidLink'));
+    if (isInvalidLink) {
       toast.error(t('acceptRequest.errors.invalidLink'));
       return;
     }
@@ -88,8 +91,8 @@ function AcceptAccessRequestContent() {
       try {
         const response = await apiClient.post(`/pools/${poolId}/accept-request/${userId}`);
         const successMessage = response.data?.message || t('acceptRequest.success.accepted');
-        setStatus('success');
-        setMessage(successMessage);
+        setAsyncStatus('success');
+        setAsyncMessage(successMessage);
         toast.success(successMessage);
 
         trackEvent('Access Request Accepted');
@@ -98,8 +101,8 @@ function AcceptAccessRequestContent() {
       } catch (error: any) {
         const errorMessage =
           error?.response?.data?.message || error?.message || t('acceptRequest.errors.acceptFailed');
-        setStatus('error');
-        setMessage(errorMessage);
+        setAsyncStatus('error');
+        setAsyncMessage(errorMessage);
         toast.error(errorMessage);
 
         trackEvent('Access Request Accept Failed');
@@ -107,7 +110,7 @@ function AcceptAccessRequestContent() {
     };
 
     acceptRequest();
-  }, [poolId, userId, user, router, t]);
+  }, [isInvalidLink, poolId, userId, user, router, t]);
 
   const heading =
     status === 'pending'

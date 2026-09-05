@@ -55,6 +55,11 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     }, []);
 
     useEffect(() => {
+        // checkAuth is exposed via context for consumers to trigger a manual
+        // re-check too, so it can't be restructured around this one call site.
+        // Known rule limitation, not an oversight:
+        // https://github.com/facebook/react/issues/34743
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         checkAuth();
     }, [checkAuth]);
 

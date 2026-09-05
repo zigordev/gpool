@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/i18n/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,9 +97,14 @@ function SpyPicksModal({
   const [tab, setTab] = useState<'groups' | 'final' | 'players'>('groups');
 
   const targetUserId = spy?.target.userId;
-  useEffect(() => {
+  // Jump back to the groups tab whenever a new spy target opens, adjusted
+  // during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevTargetUserId, setPrevTargetUserId] = useState(targetUserId);
+  if (targetUserId !== prevTargetUserId) {
+    setPrevTargetUserId(targetUserId);
     if (targetUserId) setTab('groups');
-  }, [targetUserId]);
+  }
 
   const open = spy !== null;
   const data = spy?.data ?? null;

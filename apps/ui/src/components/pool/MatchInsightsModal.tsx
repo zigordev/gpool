@@ -72,14 +72,23 @@ export function MatchInsightsModal({
   const [data, setData] = useState<MatchInsightsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [prevTarget, setPrevTarget] = useState(target);
+  if (target !== prevTarget) {
+    setPrevTarget(target);
     if (!target) {
       setData(null);
       setError(null);
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!target) return;
     let active = true;
+    // Must re-arm on every target change, not just mount, so a fresh spinner
+    // shows each time a different match's insights are requested.
+    // Acknowledged upstream as a rule limitation with no clean restructuring:
+    // https://github.com/facebook/react/issues/34743
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
     apiClient

@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 
 function sanitizeRedirectPath(value: string | null): string {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
@@ -23,21 +23,15 @@ function LoginPageContent() {
   const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
   const redirectPath = sanitizeRedirectPath(searchParams.get('redirect'));
+  const errorParam = searchParams.get('error');
+  const error = errorParam ? decodeURIComponent(errorParam) : null;
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
       router.push(redirectPath);
     }
   }, [isAuthenticated, loading, redirectPath, router]);
-
-  useEffect(() => {
-    const errorParam = searchParams.get('error');
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-    }
-  }, [searchParams]);
 
   if (loading) {
     return (

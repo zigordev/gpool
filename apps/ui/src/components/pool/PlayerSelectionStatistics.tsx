@@ -49,6 +49,11 @@ export function PlayerSelectionStatistics({
   useEffect(() => {
     if (!visible) return;
     let active = true;
+    // Must re-arm on every visible/poolId change, not just mount, so a fresh
+    // spinner shows on every refetch; the fetch below is genuinely
+    // effect-driven. Acknowledged upstream as a rule limitation with no clean
+    // restructuring, not a mistake: https://github.com/facebook/react/issues/34743
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
     apiClient

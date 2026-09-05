@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { FaFutbol, FaMagic, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { GiGoalKeeper, GiLeatherBoot } from 'react-icons/gi';
@@ -176,12 +176,17 @@ export function PlayerStatsTable({
   const visibleStatKey = visibleStatColumns.map((col) => col.key).join('|');
   const tableMinWidth = `${Math.max(520, 360 + visibleStatColumns.length * (editable ? 92 : 64))}px`;
 
-  useEffect(() => {
+  // Fall back to the default sort whenever the visible columns change and the
+  // current sort key is no longer among them, adjusted during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevVisibleStatKey, setPrevVisibleStatKey] = useState(visibleStatKey);
+  if (visibleStatKey !== prevVisibleStatKey) {
+    setPrevVisibleStatKey(visibleStatKey);
     if (sortKey !== 'totalPoints' && !visibleStatKey.split('|').includes(sortKey)) {
       setSortKey('totalPoints');
       setSortDir('desc');
     }
-  }, [sortKey, visibleStatKey]);
+  }
 
   const handleSort = (key: PlayerSortKey) => {
     if (sortKey === key) {
