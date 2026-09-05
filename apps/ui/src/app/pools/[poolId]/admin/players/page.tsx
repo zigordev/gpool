@@ -1,9 +1,9 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
-import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
-import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { Input } from 'design-system/components/forms/Input.jsx';
 import { PlayerStatsTable } from '@/components/pool/PlayerStatsTable';
 import Select from 'react-select';
 import { selectStyles } from '@/lib/select-styles';

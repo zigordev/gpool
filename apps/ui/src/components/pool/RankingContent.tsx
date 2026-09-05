@@ -12,8 +12,8 @@ import {
   PLAYER_POSITIONS,
 } from '@/contexts/PoolContext';
 import { RankTable } from '@/components/pool/RankTable';
-import { Modal } from '../../../design-system/components/overlay/Modal.jsx';
-import { Section } from '../../../design-system/components/data-display/Section.jsx';
+import { Modal } from 'design-system/components/overlay/Modal.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
 import ReactCountryFlag from 'react-country-flag';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import { SpyPicksData } from '@/types/spyPicksData.interface';

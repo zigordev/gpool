@@ -4,8 +4,8 @@ import { useI18n } from "@/i18n/client";
 import { BsFillDiagram3Fill } from "react-icons/bs";
 import { FaLayerGroup } from "react-icons/fa6";
 import { GiSoccerKick } from "react-icons/gi";
-import { Button } from '../../../design-system/components/core/Button.jsx';
-import { Table } from '../../../design-system/components/data-display/Table.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
+import { Table } from 'design-system/components/data-display/Table.jsx';
 interface RankingEntry {
   rank: number;
   userId?: string;

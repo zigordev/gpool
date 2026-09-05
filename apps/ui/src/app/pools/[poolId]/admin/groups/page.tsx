@@ -1,16 +1,16 @@
 'use client';
 
 import { useI18n } from '@/i18n/client';
-import { Section } from '../../../../../../design-system/components/data-display/Section.jsx';
-import { Field } from '../../../../../../design-system/components/forms/Field.jsx';
-import { Input } from '../../../../../../design-system/components/forms/Input.jsx';
+import { Section } from 'design-system/components/data-display/Section.jsx';
+import { Field } from 'design-system/components/forms/Field.jsx';
+import { Input } from 'design-system/components/forms/Input.jsx';
 import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { FaExternalLinkAlt } from 'react-icons/fa';
-import { Table } from '../../../../../../design-system/components/data-display/Table.jsx';
+import { Table } from 'design-system/components/data-display/Table.jsx';
 
 function ScoreInput({
   value,

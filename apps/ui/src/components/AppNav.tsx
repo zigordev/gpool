@@ -9,13 +9,13 @@ import { LanguageButton, ThemeButton, UserButton } from './NavigationBar';
 // design-system, copied in (no npm package / build step) — see
 // apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
 // from the sibling design-system repo instead.
-import { AppShell } from '../../design-system/components/navigation/AppShell.jsx';
-import { Icon } from '../../design-system/components/icons/Icon.jsx';
-import { Logo } from '../../design-system/components/navigation/Logo.jsx';
-import { ScopeSwitcher } from '../../design-system/components/navigation/ScopeSwitcher.jsx';
-import { SegmentedControl } from '../../design-system/components/navigation/SegmentedControl.jsx';
-import { MenuItem } from '../../design-system/components/overlay/Menu.jsx';
-import { Button } from '../../design-system/components/core/Button.jsx';
+import { AppShell } from 'design-system/components/navigation/AppShell.jsx';
+import { Icon } from 'design-system/components/icons/Icon.jsx';
+import { Logo } from 'design-system/components/navigation/Logo.jsx';
+import { ScopeSwitcher } from 'design-system/components/navigation/ScopeSwitcher.jsx';
+import { SegmentedControl } from 'design-system/components/navigation/SegmentedControl.jsx';
+import { MenuItem } from 'design-system/components/overlay/Menu.jsx';
+import { Button } from 'design-system/components/core/Button.jsx';
 
 /**
  * Navigation follows the design-system taxonomy (see its readme):
