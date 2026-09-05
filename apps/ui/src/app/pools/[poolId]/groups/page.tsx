@@ -103,7 +103,7 @@ export default function GroupsPage() {
 
   const renderMatchCard = (match: Match) => {
     const prediction = predictions[match.matchId] || ({ homeScore: '', awayScore: '' } as Prediction);
-    const isPastDeadline = Date.now() >= poolDeadline;
+    const isPastDeadline = matchdayNow >= poolDeadline;
     const formattedDate = new Date(match.scheduledAt).toLocaleString(locale, {
       month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
     });

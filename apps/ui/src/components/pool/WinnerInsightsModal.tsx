@@ -35,14 +35,23 @@ export function WinnerInsightsModal({
   const [data, setData] = useState<WinnerInsights | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) {
       setData(null);
       setError(null);
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!open) return;
     let active = true;
+    // Must re-arm on every open, not just mount, so a fresh spinner shows
+    // each time the modal reopens. Acknowledged upstream as a rule
+    // limitation with no clean restructuring:
+    // https://github.com/facebook/react/issues/34743
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     apiClient
       .get(`/pools/${poolId}/bracket/winner-insights`)

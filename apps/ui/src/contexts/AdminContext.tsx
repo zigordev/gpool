@@ -698,11 +698,53 @@ export function AdminProvider({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, t, poolId, systemMode]);
 
-  useEffect(() => {
-    if (systemMode || loading || entryFee !== 0) return;
-    if (prizeDistribution.length > 0) setPrizeDistribution([]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryFee, loading, systemMode]);
+  // Clear the prize distribution whenever entry fee drops back to 0, adjusted
+  // during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevEntryFeeForPrize, setPrevEntryFeeForPrize] = useState(entryFee);
+  if (entryFee !== prevEntryFeeForPrize) {
+    setPrevEntryFeeForPrize(entryFee);
+    if (!systemMode && !loading && entryFee === 0 && prizeDistribution.length > 0) {
+      setPrizeDistribution([]);
+    }
+  }
+
+  const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
+  const prizePoolTotal = entryFee * poolMemberCount;
+  const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.amount, 0);
+  const prizeRanks = prizeDistribution.map((row) => row.rank);
+  const prizeRanksInvalid =
+    prizeRanks.some(
+      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxPrizePaidPositions,
+    ) ||
+    new Set(prizeRanks).size !== prizeRanks.length;
+  const prizeAmountsInvalid = prizeDistribution.some(
+    (row) => !Number.isFinite(row.amount) || row.amount <= 0,
+  );
+  const prizeTotalInvalid =
+    prizePoolTotal > 0
+      ? prizeDistribution.length === 0 ||
+        prizeRanksInvalid ||
+        prizeAmountsInvalid ||
+        Math.abs(prizeTotal - prizePoolTotal) > 0.01
+      : prizeDistribution.length > 0;
+
+  const autoSaveConfig = async () => {
+    if (!poolId) return;
+    if (prizeTotalInvalid) return;
+    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, memberCount: poolMemberCount, prizeDistribution });
+    const snapshot = JSON.stringify(payload);
+    if (snapshot === lastSavedConfig.current) return;
+    try {
+      setSavingConfig(true);
+      await apiClient.put(`/pools/${poolId}/configuration`, payload);
+      lastSavedConfig.current = snapshot;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || t('adminResults.errors.saveScoring'));
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
   useEffect(() => {
     if (systemMode || loading) return;
@@ -733,23 +775,6 @@ export function AdminProvider({
     return () => { if (nameSaveTimer.current) { clearTimeout(nameSaveTimer.current); nameSaveTimer.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolName, poolId, loading, systemMode]);
-
-  const autoSaveConfig = async () => {
-    if (!poolId) return;
-    if (prizeTotalInvalid) return;
-    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, memberCount: poolMemberCount, prizeDistribution });
-    const snapshot = JSON.stringify(payload);
-    if (snapshot === lastSavedConfig.current) return;
-    try {
-      setSavingConfig(true);
-      await apiClient.put(`/pools/${poolId}/configuration`, payload);
-      lastSavedConfig.current = snapshot;
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.saveScoring'));
-    } finally {
-      setSavingConfig(false);
-    }
-  };
 
   const handleResultChange = (matchId: string, side: 'home' | 'away', value: string) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
@@ -925,25 +950,6 @@ export function AdminProvider({
     }
   };
 
-  const maxPrizePaidPositions = prizePaidPositionsLimit(poolMemberCount);
-  const prizePoolTotal = entryFee * poolMemberCount;
-  const prizeTotal = prizeDistribution.reduce((sum, row) => sum + row.amount, 0);
-  const prizeRanks = prizeDistribution.map((row) => row.rank);
-  const prizeRanksInvalid =
-    prizeRanks.some(
-      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxPrizePaidPositions,
-    ) ||
-    new Set(prizeRanks).size !== prizeRanks.length;
-  const prizeAmountsInvalid = prizeDistribution.some(
-    (row) => !Number.isFinite(row.amount) || row.amount <= 0,
-  );
-  const prizeTotalInvalid =
-    prizePoolTotal > 0
-      ? prizeDistribution.length === 0 ||
-        prizeRanksInvalid ||
-        prizeAmountsInvalid ||
-        Math.abs(prizeTotal - prizePoolTotal) > 0.01
-      : prizeDistribution.length > 0;
   const groupConfigMissingCount = groupScoringMissingCount(scoringConfig);
   const finalConfigMissingCount = bracketScoringMissingCount(bracketScoringConfig);
   const playersConfigMissingCount = playerScoringMissingCount(playerScoringConfig);

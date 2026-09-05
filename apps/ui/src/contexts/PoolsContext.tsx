@@ -49,6 +49,11 @@ export function PoolsProvider({ children }: Readonly<{ children: React.ReactNode
   }, [isAuthenticated]);
 
   useEffect(() => {
+    // refresh is exposed via context for consumers to re-trigger after
+    // mutating pool membership elsewhere, so it can't be restructured around
+    // this one call site. Known rule limitation, not an oversight:
+    // https://github.com/facebook/react/issues/34743
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 

@@ -76,10 +76,14 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
         Math.abs(createPrizeTotal - createPrizePoolTotal) > 0.01
       : poolPrizeDistribution.length > 0;
 
-  useEffect(() => {
-    if (poolEntryFee !== 0) return;
-    if (poolPrizeDistribution.length > 0) setPoolPrizeDistribution([]);
-  }, [poolEntryFee, poolPrizeDistribution.length]);
+  // Clear the prize distribution whenever entry fee drops back to 0, adjusted
+  // during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevPoolEntryFee, setPrevPoolEntryFee] = useState(poolEntryFee);
+  if (poolEntryFee !== prevPoolEntryFee) {
+    setPrevPoolEntryFee(poolEntryFee);
+    if (poolEntryFee === 0 && poolPrizeDistribution.length > 0) setPoolPrizeDistribution([]);
+  }
 
   const fetchPools = useCallback(async () => {
     try {
@@ -98,6 +102,12 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
   }, [t]);
 
   useEffect(() => {
+    // fetchPools is shared with the create/invite/accept-request handlers
+    // below, which legitimately set loading synchronously from an event
+    // handler; stripping that to satisfy this effect would silently drop the
+    // spinner there too. Known rule limitation, not an oversight:
+    // https://github.com/facebook/react/issues/34743
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPools();
   }, [fetchPools]);
 
@@ -107,15 +117,20 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
   const closeCreate = useCallback(() => router.replace(pathname), [router, pathname]);
 
   // Reset the form each time the dialog is opened rather than on close, so a
-  // Back-button dismissal leaves the same clean slate a Cancel does.
-  useEffect(() => {
-    if (!showCreateModal) return;
-    setPoolName('');
-    setPoolDeadlineLocal(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
-    setPoolEntryFee(0);
-    setPoolPrizeDistribution([]);
-    setCreateError(null);
-  }, [showCreateModal]);
+  // Back-button dismissal leaves the same clean slate a Cancel does. Adjusted
+  // during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevShowCreateModal, setPrevShowCreateModal] = useState(showCreateModal);
+  if (showCreateModal !== prevShowCreateModal) {
+    setPrevShowCreateModal(showCreateModal);
+    if (showCreateModal) {
+      setPoolName('');
+      setPoolDeadlineLocal(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
+      setPoolEntryFee(0);
+      setPoolPrizeDistribution([]);
+      setCreateError(null);
+    }
+  }
 
   const handleCloseCreateModal = closeCreate;
 
