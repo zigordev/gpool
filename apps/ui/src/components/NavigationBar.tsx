@@ -59,6 +59,9 @@ export function LanguageButton() {
 
   const switchTo = async (next: Locale) => {
     if (next === locale) return;
+    // Only ever invoked from the onClick below, not during render — the linter
+    // can't trace that through the indirection.
+    // eslint-disable-next-line react-hooks/immutability
     document.cookie = `${LANGUAGE_COOKIE}=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
     if (user) {
       try {

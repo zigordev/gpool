@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/i18n/client';
 import { countryDisplayName, countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
@@ -246,7 +246,12 @@ export function BracketVisualization({
   onWinnerClick,
 }: Readonly<BracketVisualizationProps>) {
   const { t, locale } = useI18n();
-  const isDeadlinePassed = deadline ? Date.now() >= deadline : false;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 60_000);
+    return () => globalThis.clearInterval(timer);
+  }, []);
+  const isDeadlinePassed = deadline ? now >= deadline : false;
   const bracketScrollRef = useRef<HTMLDivElement | null>(null);
   const scrollLockRef = useRef<{ left: number; until: number } | null>(null);
 

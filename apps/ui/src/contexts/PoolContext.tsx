@@ -357,23 +357,34 @@ const [teams, setTeams] = useState<Team[]>([]);
     setPlayerAwardSelections(awardSelectionsMap);
   };
 
-  useEffect(() => {
-    if (!poolId) { setLoading(false); return; }
+  // Reset every pool-scoped field whenever poolId changes, adjusted during
+  // render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevPoolId, setPrevPoolId] = useState(poolId);
+  if (poolId !== prevPoolId) {
+    setPrevPoolId(poolId);
+    if (!poolId) {
+      setLoading(false);
+    } else {
+      setPool(null);
+      setMatchesByGroup({});
+      setGroups([]);
+      setPredictions({});
+      setRanking([]);
+      setBracket({});
+      setBracketPredictions({});
+      setTeams([]);
+      setPlayers([]);
+      setPlayerSelections({});
+      setPlayerSelectionLimits(DEFAULT_PLAYER_SELECTION_LIMITS);
+      setPlayerAwardSelections({ golden_boot: undefined, tournament_mvp: undefined });
+      setSpy(null);
+      setLoadedSurfaces(EMPTY_LOADED_SURFACES);
+    }
+  }
 
-    setPool(null);
-    setMatchesByGroup({});
-    setGroups([]);
-    setPredictions({});
-    setRanking([]);
-    setBracket({});
-    setBracketPredictions({});
-    setTeams([]);
-    setPlayers([]);
-    setPlayerSelections({});
-    setPlayerSelectionLimits(DEFAULT_PLAYER_SELECTION_LIMITS);
-    setPlayerAwardSelections({ golden_boot: undefined, tournament_mvp: undefined });
-    setSpy(null);
-    setLoadedSurfaces(EMPTY_LOADED_SURFACES);
+  useEffect(() => {
+    if (!poolId) return;
 
     const fetchPool = async () => {
       try {
@@ -499,13 +510,19 @@ const [teams, setTeams] = useState<Team[]>([]);
 
   const poolDeadline = resolveDeadline(pool);
 
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 60_000);
+    return () => globalThis.clearInterval(timer);
+  }, []);
+
   const bracketProjection = useMemo(
     () => buildBracketProjection({ matchesByGroup, groupPredictions: predictions, teams, bracket, bracketPredictions }),
     [matchesByGroup, predictions, teams, bracket, bracketPredictions],
   );
   const effectiveBracketPredictions = bracketProjection.effectivePredictions;
 
-  const isPastPoolDeadline = Date.now() >= poolDeadline;
+  const isPastPoolDeadline = now >= poolDeadline;
 
   const groupMissingCount = Object.values(matchesByGroup)
     .flat()

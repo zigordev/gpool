@@ -8,7 +8,7 @@ import { countryIsoCode } from '@/lib/country-flags';
 import ReactCountryFlag from 'react-country-flag';
 import { parseConfigNumberInput, useAdminContext } from '@/contexts/AdminContext';
 import { IoSettings } from 'react-icons/io5';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { Table } from '../../../../../../design-system/components/data-display/Table.jsx';
 
@@ -225,13 +225,20 @@ function FairPlayTable({
   onSave: (teamId: string, fairPlay: number) => Promise<void>;
 }>) {
   const { t } = useI18n();
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [prevTeams, setPrevTeams] = useState(teams);
+  const [drafts, setDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(teams.map((team) => [team.teamId, String(team.fairPlay ?? 0)]))
+  );
   const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
   const previousRowPositions = useRef(new Map<string, DOMRect>());
 
-  useEffect(() => {
+  // Reset drafts to the latest server values whenever teams changes (e.g. after
+  // a save), adjusted during render per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (teams !== prevTeams) {
+    setPrevTeams(teams);
     setDrafts(Object.fromEntries(teams.map((team) => [team.teamId, String(team.fairPlay ?? 0)])));
-  }, [teams]);
+  }
 
   const orderedTeams = useMemo(() => {
     const draftScore = (team: Team) => {
