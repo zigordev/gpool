@@ -337,6 +337,7 @@ jobs:
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Semgrep rather than CodeQL: CodeQL code scanning on a *private* repository
     # requires GitHub Code Security, a paid add-on. The CodeQL workflow beside
     # this one is gated on `!repository.private` for that reason and never runs.
