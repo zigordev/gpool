@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.62](https://github.com/zigordev/gpool/compare/v0.1.61...v0.1.62) (2026-09-06)
+
+
+### Features
+
+* **ui:** consume design-system as a package instead of vendoring it ([#171](https://github.com/zigordev/gpool/issues/171)) ([440021b](https://github.com/zigordev/gpool/commit/440021be833088ebfb72dddaecefe7398f020af5))
+
+
+### Bug Fixes
+
+* **ci:** merge with a PAT so push-triggered workflows still run ([#172](https://github.com/zigordev/gpool/issues/172)) ([201f5bc](https://github.com/zigordev/gpool/commit/201f5bc142093953c4af18ed795dea8b2185d091))
+
 ## [0.1.61](https://github.com/zigordev/gpool/compare/v0.1.60...v0.1.61) (2026-09-04)
 
 
