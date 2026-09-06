@@ -1,6 +1,6 @@
 {
   "name": "gpool",
-  "version": "0.1.61",
+  "version": "0.1.62",
   "private": true,
   "description": "Real-time football pool management platform",
   "engines": {
