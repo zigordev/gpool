@@ -163,6 +163,116 @@ jobs:
           echo "api_image=$api_image" >> "$GITHUB_OUTPUT"
           echo "web_image=$web_image" >> "$GITHUB_OUTPUT"
 
+      # --- Pin to the digest actually in the registry --------------------------
+      #
+      # Everything below refers to images by digest rather than tag, and the
+      # digest is read back from ECR rather than from the local daemon.
+      #
+      # The local daemon is not a reliable source here. The build step above
+      # skips the build entirely when the tag already exists in ECR, so on a
+      # re-run there is no local image to inspect at all — and a `docker
+      # inspect` lookup that fails leaves you signing and scanning a mutable
+      # tag, which is the exact substitution the signing comment below warns
+      # about. Reading from ECR gives the same answer on both paths.
+      - name: Resolve pushed image digests
+        id: digests
+        env:
+          API_REPOSITORY: ${{ vars.AWS_ECR_API_REPOSITORY_URI }}
+          WEB_REPOSITORY: ${{ vars.AWS_ECR_WEB_REPOSITORY_URI }}
+          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          resolve() {
+            repo_uri="$1"
+            repo_name="${repo_uri#*/}"
+            digest="$(aws ecr describe-images \
+              --repository-name "$repo_name" \
+              --image-ids imageTag="$IMAGE_TAG" \
+              --query 'imageDetails[0].imageDigest' \
+              --output text 2>/dev/null || true)"
+
+            if [ -z "$digest" ] || [ "$digest" = "None" ]; then
+              echo "Could not resolve digest for ${repo_uri}:${IMAGE_TAG}" >&2
+              exit 1
+            fi
+            printf '%s@%s' "$repo_uri" "$digest"
+          }
+
+          api_ref="$(resolve "$API_REPOSITORY")"
+          web_ref="$(resolve "$WEB_REPOSITORY")"
+
+          echo "api_ref=$api_ref" >> "$GITHUB_OUTPUT"
+          echo "web_ref=$web_ref" >> "$GITHUB_OUTPUT"
+          echo "Resolved API: $api_ref"
+          echo "Resolved web: $web_ref"
+
+      # --- Scan what is about to ship -----------------------------------------
+      #
+      # CI already runs Trivy and an SBOM, but on an image it builds itself and
+      # then throws away — a different build from a different tree at a
+      # different time. Two builds of one commit are not the same artifact:
+      # `node:24-alpine` is a moving tag that upstream rebuilds for security
+      # patches, and that base layer is most of what Trivy has an opinion
+      # about. So CI's scan is early warning, and this is the gate.
+      #
+      # It runs before signing deliberately. A signature over an unscanned
+      # image is an attestation that it was built here, not that it is fit to
+      # run — and once signed it looks trustworthy to everything downstream.
+      - name: Trivy scan (API image)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: ${{ steps.digests.outputs.api_ref }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Trivy scan (web image)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: ${{ steps.digests.outputs.web_ref }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Prepare artifacts dir
+        run: mkdir -p artifacts
+
+      - name: Generate SBOM (API image)
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0
+        with:
+          image: ${{ steps.digests.outputs.api_ref }}
+          format: spdx-json
+          output-file: artifacts/sbom-api.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate SBOM (web image)
+        uses: anchore/sbom-action@aa80c8c5bd439a416a62804f2151ab38c671a638 # v0
+        with:
+          image: ${{ steps.digests.outputs.web_ref }}
+          format: spdx-json
+          output-file: artifacts/sbom-web.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      # sbom-action reports success even when it writes an unusable file, and
+      # an empty SBOM attached to a signed image is worse than none — it looks
+      # like a component inventory and is not one.
+      - name: Validate SBOM files
+        run: |
+          set -euo pipefail
+          test -s artifacts/sbom-api.spdx.json
+          test -s artifacts/sbom-web.spdx.json
+          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-api.spdx.json > /dev/null
+          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-web.spdx.json > /dev/null
+
       # --- Supply-chain attestation -------------------------------------------
       #
       # Signing and provenance answer two different questions. The signature
@@ -181,26 +291,27 @@ jobs:
 
       - name: Sign images (keyless)
         env:
-          IMAGES: ${{ steps.images.outputs.api_image }} ${{ steps.images.outputs.web_image }}
+          # Digests resolved from ECR above. Sign by digest, never by tag: a
+          # tag can be repointed at a different image after signing, and the
+          # signature would still verify against the tag.
+          IMAGES: ${{ steps.digests.outputs.api_ref }} ${{ steps.digests.outputs.web_ref }}
         run: |
+          set -euo pipefail
           for image in $IMAGES; do
             [ -n "$image" ] || continue
-            # Sign by digest, never by tag: a tag can be repointed at a
-            # different image after signing, and the signature would still
-            # verify against the tag.
-            digest="$(docker inspect --format='{{index .RepoDigests 0}}' "$image" 2>/dev/null || echo "$image")"
-            cosign sign --yes "$digest"
-            echo "signed: $digest"
+            cosign sign --yes "$image"
+            echo "signed: $image"
           done
 
       - name: Attach SLSA provenance
         env:
-          IMAGES: ${{ steps.images.outputs.api_image }} ${{ steps.images.outputs.web_image }}
+          IMAGES: ${{ steps.digests.outputs.api_ref }} ${{ steps.digests.outputs.web_ref }}
           BUILD_REPO: ${{ github.repository }}
           BUILD_SHA: ${{ github.sha }}
           BUILD_REF: ${{ github.ref }}
           BUILD_RUN: ${{ github.run_id }}
         run: |
+          set -euo pipefail
           cat > /tmp/provenance.json <<JSON
           {
             "buildType": "https://github.com/actions/runner",
@@ -216,10 +327,25 @@ jobs:
           JSON
           for image in $IMAGES; do
             [ -n "$image" ] || continue
-            digest="$(docker inspect --format='{{index .RepoDigests 0}}' "$image" 2>/dev/null || echo "$image")"
-            cosign attest --yes --predicate /tmp/provenance.json --type slsaprovenance "$digest"
-            echo "attested: $digest"
+            cosign attest --yes --predicate /tmp/provenance.json --type slsaprovenance "$image"
+            echo "attested: $image"
           done
+
+      # The SBOM travels with the image rather than sitting in a CI artifact
+      # nobody fetches. Attached after signing so that anything consuming it
+      # can verify the signature first, and keyed to the same digest — an SBOM
+      # attached to a tag would describe whatever that tag pointed at when it
+      # was written, not what is running.
+      - name: Attach SBOM attestations
+        env:
+          API_REF: ${{ steps.digests.outputs.api_ref }}
+          WEB_REF: ${{ steps.digests.outputs.web_ref }}
+        run: |
+          set -euo pipefail
+          cosign attest --yes --predicate artifacts/sbom-api.spdx.json --type spdxjson "$API_REF"
+          echo "sbom attested: $API_REF"
+          cosign attest --yes --predicate artifacts/sbom-web.spdx.json --type spdxjson "$WEB_REF"
+          echo "sbom attested: $WEB_REF"
 
       - name: Package tracked files into deploy bundle
         env:
