@@ -189,62 +189,15 @@ jobs:
           docker compose -f docker/compose.ci.yml logs --no-color web api
           exit 1
 
-      - name: k6 smoke
-        run: |
-          mkdir -p artifacts
-          chmod 0777 artifacts
-          docker compose -f docker/compose.ci.yml up --no-deps --no-recreate --abort-on-container-exit --exit-code-from k6_test k6_test
-
-      - name: Upload k6 summary
-        if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: k6-summary-test
-          path: artifacts/k6-summary-test.json
-          if-no-files-found: error
-
-      - name: Compose logs (on failure)
-        if: failure()
-        run: docker compose -f docker/compose.ci.yml logs --no-color
-
-      - name: Compose down
-        if: always()
-        run: docker compose -f docker/compose.ci.yml down -v
-
-  web-smoke:
-    name: Web Smoke (HTTP)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Compose up (postgres + api + web)
-        run: docker compose -f docker/compose.ci.yml up -d --build postgres api web
-
-      - name: Wait for web
-        run: |
-          i=1
-          while [ $i -le 60 ]; do
-            if curl -fsS http://localhost:3101/login > /dev/null; then
-              echo "Web login route is reachable"
-              exit 0
-            fi
-            sleep 2
-            i=$((i+1))
-          done
-          docker compose -f docker/compose.ci.yml logs --no-color web api
-          exit 1
-
-      - name: Web and API smoke probes
+      # Absorbed from the old Web Smoke job, which brought up an identical
+      # stack purely to reach these two URLs. The stack is already running
+      # here, so this is two curls rather than a second 116-second build.
+      #
+      # /login is checked separately from the `/` wait above because they are
+      # different route components: `/` is a client component behind
+      # ProtectedRoute, /login renders the sign-in form. One can throw at
+      # runtime while the other is fine, and `npm run build` catches neither.
+      - name: Web and API route probes
         run: |
           probe() {
             name="$1"
@@ -266,9 +219,23 @@ jobs:
           probe "Web login route" http://localhost:3101/login
           probe "API health route" http://localhost:3010/health
 
+      - name: k6 smoke
+        run: |
+          mkdir -p artifacts
+          chmod 0777 artifacts
+          docker compose -f docker/compose.ci.yml up --no-deps --no-recreate --abort-on-container-exit --exit-code-from k6_test k6_test
+
+      - name: Upload k6 summary
+        if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: k6-summary-test
+          path: artifacts/k6-summary-test.json
+          if-no-files-found: error
+
       - name: Compose logs (on failure)
         if: failure()
-        run: docker compose -f docker/compose.ci.yml logs --no-color web api
+        run: docker compose -f docker/compose.ci.yml logs --no-color
 
       - name: Compose down
         if: always()
