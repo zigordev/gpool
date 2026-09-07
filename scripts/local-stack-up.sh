@@ -248,5 +248,12 @@ if [ "$db_exists" != "1" ]; then
     sh -lc "psql -U \"$db_user\" -d gpool -c \"CREATE DATABASE \\\"$db_name\\\";\""
 fi
 
+if [ "${LOCAL_STACK_MODE:-}" = "dev" ]; then
+  echo "Starting the app stack in watch mode (API runs migrations on startup)."
+  exec docker compose --env-file "$APP_ENV_FILE" \
+    -f docker/compose.app.local.yml -f docker/compose.app.dev.yml \
+    up --build --remove-orphans --watch
+fi
+
 docker compose --env-file "$APP_ENV_FILE" -f docker/compose.app.local.yml up -d --build --force-recreate --remove-orphans
 echo "App stack started (API runs migrations on startup)."

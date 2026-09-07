@@ -1,0 +1,49 @@
+services:
+  gpool_api:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    command: ['node', '/app/scripts/openbao-run.mjs', '--', 'npm', 'run', 'start:dev']
+    develop:
+      watch:
+        - action: sync
+          path: ../apps/api/src
+          target: /app/apps/api/src
+        - action: sync+restart
+          path: ../apps/api/nest-cli.json
+          target: /app/apps/api/nest-cli.json
+        - action: sync+restart
+          path: ../apps/api/tsconfig.json
+          target: /app/apps/api/tsconfig.json
+        - action: rebuild
+          path: ../package-lock.json
+        - action: rebuild
+          path: ../apps/api/package.json
+
+  gpool_web:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    command:
+      [
+        'sh',
+        '-lc',
+        'until wget -qO- http://gpool-api:3000/health >/dev/null 2>&1; do sleep 2; done; exec node /workspace/scripts/openbao-run.mjs -- npm exec -- next dev -H 0.0.0.0 -p 3001',
+      ]
+    develop:
+      watch:
+        - action: sync
+          path: ../apps/ui/src
+          target: /workspace/apps/ui/src
+        - action: sync
+          path: ../apps/ui/messages
+          target: /workspace/apps/ui/messages
+        - action: sync+restart
+          path: ../apps/ui/next.config.js
+          target: /workspace/apps/ui/next.config.js
+        - action: rebuild
+          path: ../package-lock.json
+        - action: rebuild
+          path: ../apps/ui/package.json

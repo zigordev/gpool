@@ -27,6 +27,17 @@ npm run local:up
 This app stack expects the shared Docker network from `platform-ops` (`platform_ops_shared` by default).
 For first-time setup (OpenBao secrets/token), follow `docs/local-first-start.md`.
 
+For an edit-and-refresh loop instead of a rebuild:
+
+```bash
+npm run local:dev
+```
+
+Same preflight and same ports, but the containers build their `dev` stage and
+run `nest start --watch` and `next dev` under `docker compose watch`, which copies changed source into
+them. Dependency manifests trigger a rebuild rather than a sync. Both modes are
+the same services on the same ports, so run one at a time.
+
 3. Check stack
 
 ```bash

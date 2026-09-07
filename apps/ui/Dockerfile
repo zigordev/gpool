@@ -60,3 +60,14 @@ EXPOSE 3001
 CMD ["node", "apps/ui/server.js"]
 
 FROM prod AS local
+
+FROM base AS dev
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps-build /workspace/node_modules /workspace/node_modules
+COPY package.json package-lock.json /workspace/
+COPY scripts/openbao-run.mjs /workspace/scripts/openbao-run.mjs
+COPY apps/ui /workspace/apps/ui
+WORKDIR /workspace/apps/ui
+EXPOSE 3001
+CMD ["npm", "exec", "--", "next", "dev", "-H", "0.0.0.0", "-p", "3001"]
