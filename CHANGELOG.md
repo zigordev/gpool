@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.64](https://github.com/zigordev/gpool/compare/v0.1.63...v0.1.64) (2026-09-07)
+
+
+### Bug Fixes
+
+* **deps:** patch the grpc-scoped protobufjs, drop the redundant override ([#182](https://github.com/zigordev/gpool/issues/182)) ([cc3476b](https://github.com/zigordev/gpool/commit/cc3476bca517cd1d2bbf0ff0de64bc2c4a6a8486))
+
 ## [0.1.63](https://github.com/zigordev/gpool/compare/v0.1.62...v0.1.63) (2026-09-07)
 
 
