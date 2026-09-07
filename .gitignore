@@ -71,3 +71,5 @@ docs/*
 # one records a gitlink with no .gitmodules entry, which makes every
 # actions/checkout post-cleanup fail with "No url found for submodule path".
 .claude/worktrees/
+apps/ui/playwright-report/
+apps/ui/test-results/
