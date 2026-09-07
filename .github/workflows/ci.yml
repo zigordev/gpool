@@ -89,8 +89,11 @@ jobs:
       - name: Build workspaces
         run: npm run build --workspaces
 
-      - name: Unit tests with coverage (api)
-        run: npm run test:cov:api
+      - name: API tests with coverage
+        run: npm run test:cov
+
+      - name: Web tests
+        run: npm run test -w @gpool/web
 
       - name: Upload api coverage
         if: always()
