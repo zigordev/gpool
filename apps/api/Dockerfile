@@ -56,3 +56,15 @@ EXPOSE 3000
 CMD ["node", "dist/main.js"]
 
 FROM prod AS local
+
+FROM base AS dev
+ENV NODE_ENV=development
+ENV NODE_PATH=/app/apps/api/node_modules:/app/node_modules
+COPY --from=deps-build /app/node_modules /app/node_modules
+COPY --from=deps-build /app/apps/api/node_modules /app/apps/api/node_modules
+COPY package.json package-lock.json /app/
+COPY scripts/openbao-run.mjs /app/scripts/openbao-run.mjs
+COPY apps/api /app/apps/api
+WORKDIR /app/apps/api
+EXPOSE 3000
+CMD ["npm", "run", "start:dev"]
