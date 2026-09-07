@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.63](https://github.com/zigordev/gpool/compare/v0.1.62...v0.1.63) (2026-09-07)
+
+
+### Bug Fixes
+
+* **deps:** patch protobufjs, and move the override with it ([#180](https://github.com/zigordev/gpool/issues/180)) ([b42a89a](https://github.com/zigordev/gpool/commit/b42a89a775f9e789b5a59f607d49cf86afaa1a9e))
+
 ## [0.1.62](https://github.com/zigordev/gpool/compare/v0.1.61...v0.1.62) (2026-09-06)
 
 
