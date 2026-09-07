@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.4",
-    "gcp-metadata": "8.1.4",
+    "gcp-metadata": "9.0.3",
     "next": "^16.3.3"
   }
 }
