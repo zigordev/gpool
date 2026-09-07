@@ -44,7 +44,7 @@ function LoginPageContent() {
   return (
     <AuthShell utilities={<><ThemeButton /><LanguageButton /></>}>
       <AuthCard
-        logo={<Logo initials="GP" size="lg" shape="circle" href="/" linkComponent={Link} />}
+        logo={<Logo initials="GP" label="gpool" size="lg" shape="circle" href="/" linkComponent={Link} />}
         eyebrow={t('login.eyebrow')}
         title={t('login.title')}
         description={t('login.tagline')}
