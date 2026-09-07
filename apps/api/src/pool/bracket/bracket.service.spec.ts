@@ -652,3 +652,52 @@ describe('BracketService final phase scoring', () => {
     ]);
   });
 });
+
+describe('BracketService prediction deadline', () => {
+  it('refuses a bracket prediction once the pool deadline has passed, touching nothing', async () => {
+    const repository = {
+      getPool: vi.fn().mockResolvedValue({
+        config: { deadline: Date.now() - 1_000 },
+      }),
+      getBracketMatches: vi.fn(),
+      createBracketPrediction: vi.fn(),
+    };
+    const service = new BracketService(repository as any);
+
+    await expect(
+      service.createBracketPrediction(
+        'pool-1',
+        'all-pools-16th-finals-1',
+        'user-1',
+        'team-1',
+        'Team 1',
+        'team-2',
+        'Team 2'
+      )
+    ).rejects.toThrow('Deadline has passed');
+    expect(repository.getBracketMatches).not.toHaveBeenCalled();
+    expect(repository.createBracketPrediction).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the default deadline when the pool has none configured', async () => {
+    const repository = {
+      getPool: vi.fn().mockResolvedValue({ config: {} }),
+      getBracketMatches: vi.fn(),
+      createBracketPrediction: vi.fn(),
+    };
+    const service = new BracketService(repository as any);
+
+    await expect(
+      service.createBracketPrediction(
+        'pool-1',
+        'all-pools-16th-finals-1',
+        'user-1',
+        'team-1',
+        'Team 1',
+        'team-2',
+        'Team 2'
+      )
+    ).rejects.toThrow('Deadline has passed');
+    expect(repository.createBracketPrediction).not.toHaveBeenCalled();
+  });
+});
