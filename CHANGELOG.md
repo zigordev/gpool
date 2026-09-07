@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.65](https://github.com/zigordev/gpool/compare/v0.1.64...v0.1.65) (2026-09-07)
+
+
+### Features
+
+* **docker:** run the api and web under compose watch for local development ([#194](https://github.com/zigordev/gpool/issues/194)) ([f424f16](https://github.com/zigordev/gpool/commit/f424f16430d46ec51253e76dfac49d51e443645a))
+
 ## [0.1.64](https://github.com/zigordev/gpool/compare/v0.1.63...v0.1.64) (2026-09-07)
 
 
