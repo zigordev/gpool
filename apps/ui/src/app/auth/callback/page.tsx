@@ -14,54 +14,20 @@ function AuthCallbackPageContent() {
 
     useEffect(() => {
         const processCallback = async () => {
-            const transfer = searchParams.get('transfer');
-            const signature = searchParams.get('sig');
             const error = searchParams.get('error');
 
             if (error) {
-                console.error('Auth error:', error);
-                router.push(`/login?error=${encodeURIComponent(error)}`);
+                router.replace(`/login?error=${encodeURIComponent(error)}`);
                 return;
             }
 
-            if (transfer && signature) {
-                setStatus(t('authCallback.authenticating'));
-                try {
-                    const response = await fetch('/api/auth/session', {
-                        method: 'POST',
-                        headers: {
-                            'content-type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            transfer,
-                            signature,
-                        }),
-                        cache: 'no-store',
-                    });
+            setStatus(t('authCallback.authenticating'));
 
-                    if (!response.ok) {
-                        router.push('/login?error=session_creation_failed');
-                        return;
-                    }
-
-                    const payload = await response.json() as {
-                        authenticated?: boolean;
-                        redirectPath?: string;
-                    };
-
-                    if (!payload.authenticated) {
-                        router.push('/login?error=session_creation_failed');
-                        return;
-                    }
-
-                    await checkAuth();
-                    router.replace(payload.redirectPath || '/');
-                } catch (error) {
-                    console.error('Failed to verify auth after callback:', error);
-                    router.push('/login?error=auth_verification_failed');
-                }
-            } else {
-                router.push('/login?error=missing_tokens');
+            try {
+                await checkAuth();
+                router.replace('/pools');
+            } catch {
+                router.replace('/login?error=auth_verification_failed');
             }
         };
 

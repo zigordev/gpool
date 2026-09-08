@@ -1,13 +1,13 @@
 import axios, { AxiosInstance } from 'axios';
-
-const API_URL = '/api/proxy';
+import { getApiBaseUrl } from './api-base-url';
 
 class ApiClient {
     private readonly client: AxiosInstance;
 
     constructor() {
         this.client = axios.create({
-            baseURL: API_URL,
+            baseURL: getApiBaseUrl(),
+            withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
             },

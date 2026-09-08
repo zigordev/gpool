@@ -56,7 +56,8 @@ Create a Google OAuth client for production with:
 
 - application type: `Web application`
 - authorized JavaScript origin: `https://gpool.zigordev.com`
-- authorized redirect URI: `https://gpool.zigordev.com/api/auth/google/callback`
+- authorized redirect URI: `https://gpool-api.zigordev.com/auth/google/callback`
+  - the API completes the OAuth exchange, not the web app, so the redirect URI is on the API host
 
 If your final public domain is different, use the real domain instead.
 
@@ -116,8 +117,10 @@ Important values:
   - numeric Tolgee project id for `gpool`
 - `GOOGLE_CLIENT_ID`
   - public Google OAuth client id
-- `GOOGLE_OAUTH_REDIRECT_URI`
+- `GOOGLE_CALLBACK_URL`
   - must exactly match the production Google OAuth redirect URI
+- `AUTH_SUCCESS_REDIRECT_URL` and `AUTH_FAILURE_REDIRECT_URL`
+  - where the API sends the browser once the session exists; both must be on the web origin
 - `FRONTEND_URL`
   - public `gpool` web origin
 - `NOTIFICATIONS_KAFKA_BROKERS`
@@ -141,7 +144,7 @@ Create secret path `kv/gpool` in the OpenBao production UI.
 
 Add these keys:
 
-- `AUTH_SESSION_SECRET`
+- `SESSION_SECRET` and `SESSION_COOKIE_SECRET`
   - generate with `openssl rand -hex 32`
 - `GOOGLE_CLIENT_SECRET`
   - production Google OAuth client secret
@@ -277,7 +280,7 @@ Recommended manual checks:
 
 Google login fails in production:
 
-- `GOOGLE_OAUTH_REDIRECT_URI` does not exactly match the Google Cloud client
+- `GOOGLE_CALLBACK_URL` does not exactly match the Google Cloud client
 - `GOOGLE_CLIENT_ID` is wrong in `docker/.env.app.prod`
 - `GOOGLE_CLIENT_SECRET` is wrong in OpenBao
 

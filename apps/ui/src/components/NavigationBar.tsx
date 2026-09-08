@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { getApiBaseUrl } from '@/lib/api-base-url';
 import { useI18n } from '@/i18n/client';
 import { LANGUAGE_COOKIE, SUPPORTED_LOCALES, type Locale } from '@/i18n/config';
 import { useRouter } from 'next/navigation';
@@ -65,8 +66,9 @@ export function LanguageButton() {
     document.cookie = `${LANGUAGE_COOKIE}=${next}; path=/; max-age=${365 * 24 * 60 * 60}`;
     if (user) {
       try {
-        await fetch('/api/proxy/auth/me/locale', {
+        await fetch(`${getApiBaseUrl()}/auth/me/locale`, {
           method: 'PATCH',
+          credentials: 'include',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ locale: next }),
           cache: 'no-store',

@@ -2,6 +2,7 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import type { Locale } from '@/i18n/config';
+import { getApiBaseUrl } from '@/lib/api-base-url';
 
 interface User {
     userId: string;
@@ -27,8 +28,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     const checkAuth = useCallback(async () => {
         try {
-            const response = await fetch('/api/auth/session', {
+            const response = await fetch(`${getApiBaseUrl()}/auth/me`, {
                 method: 'GET',
+                credentials: 'include',
                 cache: 'no-store',
             });
             if (!response.ok) {
@@ -36,16 +38,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
                 return;
             }
 
-            const payload = await response.json() as {
-                authenticated?: boolean;
-                user?: User;
-            };
-
-            if (payload.authenticated && payload.user) {
-                setUser(payload.user);
-            } else {
-                setUser(null);
-            }
+            setUser(await response.json() as User);
         } catch (error: any) {
             console.error('Auth check failed:', error);
             setUser(null);
@@ -66,13 +59,16 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     const login = (redirectPath?: string) => {
         const currentPath = `${globalThis.location.pathname || '/pools'}${globalThis.location.search || ''}`;
         const targetPath = redirectPath || currentPath;
-        globalThis.location.href = `/api/auth/google/start?redirect=${encodeURIComponent(targetPath)}`;
+        const start = new URL(`${getApiBaseUrl()}/auth/google`);
+        start.searchParams.set('redirect_uri', targetPath);
+        globalThis.location.href = start.toString();
     };
 
     const logout = async () => {
         try {
-            await fetch('/api/auth/session', {
-                method: 'DELETE',
+            await fetch(`${getApiBaseUrl()}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
                 cache: 'no-store',
             });
         } catch (error) {

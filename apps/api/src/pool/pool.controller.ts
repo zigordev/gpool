@@ -20,12 +20,12 @@ import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { RolesGuard, Roles } from '../common/guards/roles.guard';
-import { SessionUserGuard } from '../common/auth/session-user.guard';
+import { AuthenticatedGuard } from '../auth/authenticated.guard';
 import { Request } from 'express';
 
 @ApiTags('pools')
 @Controller('pools')
-@UseGuards(SessionUserGuard)
+@UseGuards(AuthenticatedGuard)
 @ApiBearerAuth()
 export class PoolController {
   constructor(private readonly poolService: PoolService) {}
