@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.67](https://github.com/zigordev/gpool/compare/v0.1.66...v0.1.67) (2026-09-08)
+
+
+### Bug Fixes
+
+* **ci:** release on refactor and perf, not only feat and fix ([#208](https://github.com/zigordev/gpool/issues/208)) ([a8bca05](https://github.com/zigordev/gpool/commit/a8bca0548df3907f1d323b35f1ff99eb9606de50))
+
+
+### Refactoring
+
+* **auth:** move Google OAuth into the API and drop the /api prefix ([#207](https://github.com/zigordev/gpool/issues/207)) ([756a39a](https://github.com/zigordev/gpool/commit/756a39a328a36fa28b96082d0331f0d0387f459a))
+
 ## [0.1.66](https://github.com/zigordev/gpool/compare/v0.1.65...v0.1.66) (2026-09-08)
 
 
