@@ -68,7 +68,7 @@ Create a Google OAuth client in Google Cloud Console with:
 
 - application type: `Web application`
 - authorized JavaScript origin: `http://localhost:3011`
-- authorized redirect URI: `http://localhost:3010/api/auth/google/callback`
+- authorized redirect URI: `http://localhost:3010/auth/google/callback`
   - port 3010 is the API, which owns the OAuth exchange; the web app on 3011 never sees the client secret
 
 If you use different local ports, change the origin and redirect URI accordingly. The

@@ -56,7 +56,7 @@ Create a Google OAuth client for production with:
 
 - application type: `Web application`
 - authorized JavaScript origin: `https://gpool.zigordev.com`
-- authorized redirect URI: `https://gpool-api.zigordev.com/api/auth/google/callback`
+- authorized redirect URI: `https://gpool-api.zigordev.com/auth/google/callback`
   - the API completes the OAuth exchange, not the web app, so the redirect URI is on the API host
 
 If your final public domain is different, use the real domain instead.

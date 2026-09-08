@@ -48,7 +48,7 @@ services:
       SESSION_COOKIE_SECRET: ci-session-cookie-secret
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
-      GOOGLE_CALLBACK_URL: http://localhost:3100/api/auth/google/callback
+      GOOGLE_CALLBACK_URL: http://localhost:3100/auth/google/callback
       AUTH_SUCCESS_REDIRECT_URL: http://localhost:3101/auth/callback
       AUTH_FAILURE_REDIRECT_URL: http://localhost:3101/login
       SESSION_COOKIE_SECURE: 'false'
@@ -81,14 +81,6 @@ services:
       OPENBAO_REQUIRED_KEYS_WEB: TOLGEE_API_KEY
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: '3'
-      SESSION_SECRET: ci-session-secret
-      SESSION_COOKIE_SECRET: ci-session-cookie-secret
-      GOOGLE_CLIENT_ID: ci-google-id
-      GOOGLE_CLIENT_SECRET: ci-google-secret
-      GOOGLE_CALLBACK_URL: http://localhost:3100/api/auth/google/callback
-      AUTH_SUCCESS_REDIRECT_URL: http://localhost:3101/auth/callback
-      AUTH_FAILURE_REDIRECT_URL: http://localhost:3101/login
-      SESSION_COOKIE_SECURE: 'false'
     ports:
       - '3101:3001'
     depends_on:

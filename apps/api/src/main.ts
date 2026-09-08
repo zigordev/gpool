@@ -127,10 +127,6 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Health and metrics sit outside the prefix so every service in the estate
-  // answers on the same paths. Without this, gpool alone would be
-  // `/api/health` while the others are `/health`.
-  app.setGlobalPrefix('api', { exclude: ['metrics', 'health'] });
   if (typeof expressApp?.set === 'function') {
     expressApp.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
   }
