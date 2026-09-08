@@ -68,9 +68,11 @@ Create a Google OAuth client in Google Cloud Console with:
 
 - application type: `Web application`
 - authorized JavaScript origin: `http://localhost:3011`
-- authorized redirect URI: `http://localhost:3011/api/auth/google/callback`
+- authorized redirect URI: `http://localhost:3010/api/auth/google/callback`
+  - port 3010 is the API, which owns the OAuth exchange; the web app on 3011 never sees the client secret
 
-If you use a different local frontend URL, change the origin and redirect URI accordingly.
+If you use different local ports, change the origin and redirect URI accordingly. The
+JavaScript origin stays the web app; only the redirect URI is on the API.
 
 You will need:
 
@@ -85,7 +87,7 @@ Open OpenBao:
 
 Create secret path `kv/gpool` with these keys:
 
-- `AUTH_SESSION_SECRET`
+- `SESSION_SECRET` and `SESSION_COOKIE_SECRET`
   - used to sign the application session
   - generate with `openssl rand -hex 32`
 - `GOOGLE_CLIENT_SECRET`
@@ -150,8 +152,12 @@ Set or review these values:
   - set it to the real Tolgee project id for `gpool`
 - `GOOGLE_CLIENT_ID`
   - public client id from the Google OAuth client
-- `GOOGLE_OAUTH_REDIRECT_URI`
+- `GOOGLE_CALLBACK_URL`
   - should match the Google OAuth client redirect URI
+- `AUTH_SUCCESS_REDIRECT_URL` and `AUTH_FAILURE_REDIRECT_URL`
+  - where the API sends the browser after login; both on the web origin
+- `NEXT_PUBLIC_API_BASE_URL`
+  - must be reachable from the browser now that the web app no longer proxies API calls
 - `FRONTEND_URL`
   - should match the local web origin, normally `http://localhost:3011`
 - `SWAGGER_ENABLED`

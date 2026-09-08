@@ -1,7 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { SessionUserGuard } from '../../common/auth/session-user.guard';
+import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import {
   PlayerAward,
   PlayerInsightSelectionType,
@@ -13,7 +13,7 @@ import {
 
 @ApiTags('players')
 @Controller('pools/:poolId/players')
-@UseGuards(SessionUserGuard)
+@UseGuards(AuthenticatedGuard)
 @ApiBearerAuth()
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}

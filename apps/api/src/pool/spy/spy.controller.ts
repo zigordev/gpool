@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { SessionUserGuard } from '../../common/auth/session-user.guard';
+import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import { SpyService } from './spy.service';
 
 /**
@@ -11,7 +11,7 @@ import { SpyService } from './spy.service';
  */
 @ApiTags('spy')
 @Controller('pools/:poolId/members/:userId/picks')
-@UseGuards(SessionUserGuard)
+@UseGuards(AuthenticatedGuard)
 @ApiBearerAuth()
 export class SpyController {
   constructor(private readonly spyService: SpyService) {}

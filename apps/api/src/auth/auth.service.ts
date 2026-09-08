@@ -1,30 +1,20 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'node:crypto';
+import { Profile } from 'passport-google-oauth20';
 import { v4 as uuidv4 } from 'uuid';
+import type { AuthRole, AuthenticatedUser, Locale } from '../common/auth/authenticated-user';
 import { AuthRepository } from './database/auth.repository';
 
-type GoogleUserInfo = {
-  email?: string;
-  email_verified?: boolean;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  picture?: string;
-};
-
-type SignedTransfer = {
-  transfer: string;
-  signature: string;
-};
-
-const GOOGLE_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
 const DEFAULT_LOCALE = 'es';
 const SUPPORTED_LOCALES = new Set(['es', 'en']);
 
-function normalizeLocale(value: string | null | undefined): string {
+function normalizeLocale(value: string | null | undefined): Locale {
   const locale = value?.trim().toLowerCase().split(/[-_]/)[0] || DEFAULT_LOCALE;
-  return SUPPORTED_LOCALES.has(locale) ? locale : DEFAULT_LOCALE;
+  return (SUPPORTED_LOCALES.has(locale) ? locale : DEFAULT_LOCALE) as Locale;
+}
+
+function normalizeRole(value: string | null | undefined): AuthRole {
+  return value === 'admin' ? 'admin' : 'user';
 }
 
 @Injectable()
@@ -33,69 +23,40 @@ export class AuthService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly authRepository: AuthRepository,
+    private readonly authRepository: AuthRepository
   ) {}
 
-  private signTransferPayload(encodedPayload: string): string {
-    const secret = this.configService.get<string>('AUTH_SESSION_SECRET', '').trim();
-    if (!secret) {
-      throw new UnauthorizedException('AUTH_SESSION_SECRET is not configured');
-    }
-    return createHmac('sha256', secret).update(encodedPayload).digest('base64url');
-  }
-
-  private buildTransferPayload(input: {
+  private toAuthenticatedUser(row: {
     userId: string;
     email: string;
     role: string;
-    name: string | null;
-    picture: string | null;
-    locale: string;
-  }): SignedTransfer {
-    const transferPayload = {
-      userId: input.userId,
-      email: input.email,
-      role: input.role,
-      name: input.name,
-      picture: input.picture,
-      locale: normalizeLocale(input.locale),
-      exp: Math.floor(Date.now() / 1000) + 120,
-      ver: 1 as const,
+    name?: string | null;
+    locale?: string | null;
+  }): AuthenticatedUser {
+    return {
+      userId: row.userId,
+      email: row.email,
+      role: normalizeRole(row.role),
+      name: row.name || row.email.split('@')[0] || 'User',
+      locale: normalizeLocale(row.locale),
     };
-    const transfer = Buffer.from(JSON.stringify(transferPayload), 'utf8').toString('base64url');
-    const signature = this.signTransferPayload(transfer);
-    return { transfer, signature };
   }
 
-  async createGoogleTransferFromAccessToken(
-    accessToken: string,
-    locale?: string,
-  ): Promise<SignedTransfer> {
-    const token = accessToken.trim();
-    if (!token) {
-      throw new UnauthorizedException('Missing Google access token');
-    }
-    const resolvedLocale = normalizeLocale(locale);
-
-    const userInfoResponse = await fetch(GOOGLE_USERINFO_ENDPOINT, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!userInfoResponse.ok) {
-      throw new UnauthorizedException('Google token validation failed');
+  async validateGoogleProfile(profile: Profile): Promise<AuthenticatedUser> {
+    const email = profile.emails?.[0]?.value?.trim().toLowerCase();
+    if (!email) {
+      throw new UnauthorizedException('Google account has no email address');
     }
 
-    const userInfo = (await userInfoResponse.json()) as GoogleUserInfo;
-    const email = userInfo.email?.trim().toLowerCase();
-    if (!email || userInfo.email_verified !== true) {
+    if (profile.emails?.[0]?.verified === false) {
       throw new UnauthorizedException('Google account email is not verified');
     }
 
     const fullName =
-      `${userInfo.given_name?.trim() ?? ''} ${userInfo.family_name?.trim() ?? ''}`.trim() ||
-      userInfo.name?.trim() ||
+      `${profile.name?.givenName?.trim() ?? ''} ${profile.name?.familyName?.trim() ?? ''}`.trim() ||
+      profile.displayName?.trim() ||
       email;
-    const picture = userInfo.picture?.trim() ?? '';
+    const picture = profile.photos?.[0]?.value?.trim() ?? '';
 
     let dbUser = await this.authRepository.getUserByEmail(email);
 
@@ -114,19 +75,58 @@ export class AuthService {
         name: fullName,
         picture,
         role: 'user',
-        locale: resolvedLocale,
+        locale: DEFAULT_LOCALE,
       });
       this.logger.log(`New user created from Google login: ${userId}`);
     }
 
-    return this.buildTransferPayload({
-      userId: dbUser.userId,
-      email: dbUser.email,
-      role: dbUser.role,
-      name: dbUser.name || null,
-      picture: dbUser.picture || null,
-      locale: dbUser.locale || DEFAULT_LOCALE,
-    });
+    return this.toAuthenticatedUser(dbUser);
+  }
+
+  async getAuthenticatedUser(userId: string): Promise<AuthenticatedUser | null> {
+    const dbUser = await this.authRepository.getUser(userId);
+    return dbUser ? this.toAuthenticatedUser(dbUser) : null;
+  }
+
+  getSuccessRedirectUrl(overrideUrl?: string | null): string {
+    return this.createAllowedRedirectUrl(
+      overrideUrl,
+      this.configService.get<string>('AUTH_SUCCESS_REDIRECT_URL')
+    ).toString();
+  }
+
+  getFailureRedirectUrl(errorCode = 'auth_failed', overrideUrl?: string | null): string {
+    const url = this.createAllowedRedirectUrl(
+      overrideUrl,
+      this.configService.get<string>('AUTH_FAILURE_REDIRECT_URL')
+    );
+    url.searchParams.set('error', errorCode);
+    return url.toString();
+  }
+
+  private createAllowedRedirectUrl(
+    overrideUrl: string | null | undefined,
+    fallbackUrl: string | undefined
+  ): URL {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', '');
+    const fallback = fallbackUrl?.trim() || `${frontendUrl.replace(/\/+$/, '')}/`;
+
+    const candidate = overrideUrl?.trim();
+    if (!candidate) {
+      return new URL(fallback);
+    }
+
+    try {
+      const resolved = new URL(candidate, fallback);
+      const allowed = new URL(fallback);
+      if (resolved.origin === allowed.origin) {
+        return resolved;
+      }
+    } catch {
+      // Fall through to the configured redirect below.
+    }
+
+    return new URL(fallback);
   }
 
   async updateLocale(userId: string, locale: string) {

@@ -7,9 +7,16 @@
 import './observability/tracing';
 
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as connectPgSimple from 'connect-pg-simple';
+import * as cookieParser from 'cookie-parser';
+import * as session from 'express-session';
 import helmet from 'helmet';
+import * as passport from 'passport';
+import { Pool } from 'pg';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { buildSessionPoolConfig, SESSION_TABLE_NAME } from './auth/session-store.config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -88,6 +95,37 @@ async function bootstrap() {
   // inline scripts a default helmet CSP would block. The headers that matter
   // here — HSTS, nosniff, frame-options, referrer-policy — are all still set.
   app.use(helmet({ contentSecurityPolicy: false }));
+
+  const configService = app.get(ConfigService);
+  const PgSession = connectPgSimple(session);
+
+  app.use(cookieParser(configService.get<string>('SESSION_COOKIE_SECRET')));
+  app.use(
+    session({
+      store: new PgSession({
+        pool: new Pool(buildSessionPoolConfig(configService)),
+        tableName: SESSION_TABLE_NAME,
+        createTableIfMissing: true,
+      }),
+      secret: configService.get<string>('SESSION_SECRET', ''),
+      resave: false,
+      saveUninitialized: false,
+      name: configService.get<string>('SESSION_COOKIE_NAME', 'gpool.sid'),
+      cookie: {
+        maxAge: Number(configService.get<string>('SESSION_COOKIE_MAX_AGE_MS', '604800000')),
+        sameSite: configService.get<string>('SESSION_COOKIE_SAME_SITE', 'lax') as
+          | boolean
+          | 'lax'
+          | 'strict'
+          | 'none',
+        httpOnly: true,
+        secure: configService.get<string>('SESSION_COOKIE_SECURE') === 'true',
+        domain: configService.get<string>('SESSION_COOKIE_DOMAIN') || undefined,
+      },
+    })
+  );
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // Health and metrics sit outside the prefix so every service in the estate
   // answers on the same paths. Without this, gpool alone would be

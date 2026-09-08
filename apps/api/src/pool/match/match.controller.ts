@@ -16,12 +16,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { MatchService } from './match.service';
-import { SessionUserGuard } from '../../common/auth/session-user.guard';
+import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import { Request } from 'express';
 
 @ApiTags('matches')
 @Controller('pools/:poolId/matches')
-@UseGuards(SessionUserGuard)
+@UseGuards(AuthenticatedGuard)
 @ApiBearerAuth()
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
