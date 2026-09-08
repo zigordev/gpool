@@ -1,32 +1,59 @@
-import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
+import type { Session, SessionData } from 'express-session';
+import type { AuthenticatedUser } from '../common/auth/authenticated-user';
 import { AuthService } from './auth.service';
-import { SessionUserGuard } from '../common/auth/session-user.guard';
-
-type GoogleTransferRequest = {
-  accessToken?: string;
-  locale?: string;
-};
+import { AuthenticatedGuard } from './authenticated.guard';
+import { GoogleAuthGuard } from './google-auth.guard';
 
 type LocaleUpdateRequest = {
   locale?: string;
 };
 
+type OauthSession = Session &
+  SessionData & {
+    oauthSuccessRedirect?: string;
+    oauthFailureRedirect?: string;
+  };
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
-  @Post('google/transfer')
-  @ApiOperation({ summary: 'Create signed transfer payload from a Google access token' })
-  @ApiResponse({ status: 200, description: 'Returns transfer payload and signature' })
-  @ApiResponse({ status: 401, description: 'Invalid Google access token' })
-  async googleTransfer(@Body() body: GoogleTransferRequest) {
-    return this.authService.createGoogleTransferFromAccessToken(
-      body.accessToken?.trim() ?? '',
-      body.locale,
-    );
+  @Get('google')
+  @ApiOperation({ summary: 'Start the Google OAuth flow' })
+  @UseGuards(GoogleAuthGuard)
+  async googleLogin(): Promise<void> {
+    // The guard redirects to Google.
+  }
+
+  @Get('google/callback')
+  @ApiOperation({ summary: 'Complete the Google OAuth flow and create the session' })
+  @UseGuards(GoogleAuthGuard)
+  async googleCallback(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const user = req.user as AuthenticatedUser | undefined;
+    const session = req.session as OauthSession | null;
+
+    const successOverride = session?.oauthSuccessRedirect ?? null;
+    const failureOverride = session?.oauthFailureRedirect ?? null;
+
+    if (session) {
+      delete session.oauthSuccessRedirect;
+      delete session.oauthFailureRedirect;
+    }
+
+    if (!user) {
+      res.redirect(this.authService.getFailureRedirectUrl('missing_user', failureOverride));
+      return;
+    }
+
+    res.redirect(this.authService.getSuccessRedirectUrl(successOverride));
   }
 
   @Get('me')
@@ -34,7 +61,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Returns current user information' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(SessionUserGuard)
+  @UseGuards(AuthenticatedGuard)
   async getMe(@Req() req: Request) {
     return req.user;
   }
@@ -44,8 +71,27 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiResponse({ status: 200, description: 'Updates current user locale' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(SessionUserGuard)
+  @UseGuards(AuthenticatedGuard)
   async updateLocale(@Req() req: Request, @Body() body: LocaleUpdateRequest) {
-    return this.authService.updateLocale((req.user as any).userId, body.locale?.trim() ?? '');
+    const user = req.user as AuthenticatedUser;
+    return this.authService.updateLocale(user.userId, body.locale?.trim() ?? '');
+  }
+
+  @Post('logout')
+  @ApiOperation({ summary: 'Destroy the current session' })
+  @UseGuards(AuthenticatedGuard)
+  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const cookieName = this.configService.get<string>('SESSION_COOKIE_NAME', 'gpool.sid');
+
+    await new Promise<void>((resolve, reject) =>
+      req.logout((error) => (error ? reject(error) : resolve()))
+    );
+
+    await new Promise<void>((resolve, reject) =>
+      req.session.destroy((error) => (error ? reject(error) : resolve()))
+    );
+
+    res.clearCookie(cookieName);
+    res.status(204).send();
   }
 }

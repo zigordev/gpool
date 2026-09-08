@@ -16,12 +16,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { BracketService } from './bracket.service';
-import { SessionUserGuard } from '../../common/auth/session-user.guard';
+import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import { Request } from 'express';
 
 @ApiTags('bracket')
 @Controller('pools/:poolId/bracket')
-@UseGuards(SessionUserGuard)
+@UseGuards(AuthenticatedGuard)
 @ApiBearerAuth()
 export class BracketController {
   constructor(private readonly bracketService: BracketService) {}

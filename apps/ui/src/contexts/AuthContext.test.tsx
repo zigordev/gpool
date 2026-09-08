@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthProvider, useAuth } from './AuthContext';
+import { getApiBaseUrl } from '@/lib/api-base-url';
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -34,14 +35,17 @@ describe('AuthProvider', () => {
 
   it('turns a valid session into the signed-in user', async () => {
     fetchMock.mockResolvedValue(
-      session({ authenticated: true, user: { userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' } }),
+      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' }),
     );
     mount();
 
     expect(screen.getByTestId('state').textContent).toBe('loading');
     await waitFor(() => expect(screen.getByTestId('state').textContent).toBe('in'));
     expect(screen.getByTestId('email').textContent).toBe('ada@example.com');
-    expect(fetchMock).toHaveBeenCalledWith('/api/auth/session', expect.objectContaining({ method: 'GET', cache: 'no-store' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${getApiBaseUrl()}/auth/me`,
+      expect.objectContaining({ method: 'GET', credentials: 'include', cache: 'no-store' }),
+    );
   });
 
   it('treats a rejected session and a failed request alike: signed out, not stuck loading', async () => {
@@ -57,9 +61,9 @@ describe('AuthProvider', () => {
     consoleError.mockRestore();
   });
 
-  it('logging out deletes the server session before forgetting the user', async () => {
+  it('logging out destroys the server session before forgetting the user', async () => {
     fetchMock.mockResolvedValueOnce(
-      session({ authenticated: true, user: { userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' } }),
+      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' }),
     );
     fetchMock.mockResolvedValueOnce(session({}, true));
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -70,7 +74,10 @@ describe('AuthProvider', () => {
       fireEvent.click(screen.getByText('logout'));
     });
 
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/auth/session', expect.objectContaining({ method: 'DELETE' }));
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `${getApiBaseUrl()}/auth/logout`,
+      expect.objectContaining({ method: 'POST', credentials: 'include' }),
+    );
     expect(screen.getByTestId('state').textContent).toBe('out');
     consoleError.mockRestore();
   });
