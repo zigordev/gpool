@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.66](https://github.com/zigordev/gpool/compare/v0.1.65...v0.1.66) (2026-09-08)
+
+
+### Bug Fixes
+
+* **deploy:** let the ECR digest lookup report why it failed ([#205](https://github.com/zigordev/gpool/issues/205)) ([a58e1b8](https://github.com/zigordev/gpool/commit/a58e1b89546903e57fa37fcd92d1d761b5154f9c))
+
 ## [0.1.65](https://github.com/zigordev/gpool/compare/v0.1.64...v0.1.65) (2026-09-07)
 
 
