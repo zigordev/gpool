@@ -253,7 +253,7 @@ Local translation snapshots:
 
 Google login redirects fail:
 
-- `GOOGLE_OAUTH_REDIRECT_URI` does not exactly match the redirect URI configured in Google Cloud
+- `GOOGLE_CALLBACK_URL` does not exactly match the redirect URI configured in Google Cloud
 - `FRONTEND_URL` and the authorized origin do not match
 - `GOOGLE_CLIENT_SECRET` in OpenBao is wrong
 
