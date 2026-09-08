@@ -190,7 +190,7 @@ jobs:
               --repository-name "$repo_name" \
               --image-ids imageTag="$IMAGE_TAG" \
               --query 'imageDetails[0].imageDigest' \
-              --output text 2>/dev/null || true)"
+              --output text)"
 
             if [ -z "$digest" ] || [ "$digest" = "None" ]; then
               echo "Could not resolve digest for ${repo_uri}:${IMAGE_TAG}" >&2
