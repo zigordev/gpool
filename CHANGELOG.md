@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.69](https://github.com/zigordev/gpool/compare/v0.1.68...v0.1.69) (2026-09-09)
+
+
+### Bug Fixes
+
+* **docker:** track .dockerignore so every image build uses it ([#211](https://github.com/zigordev/gpool/issues/211)) ([511b1ef](https://github.com/zigordev/gpool/commit/511b1ef26c99873efcf701f238fde158eff92dc3))
+
 ## [0.1.68](https://github.com/zigordev/gpool/compare/v0.1.67...v0.1.68) (2026-09-09)
 
 
