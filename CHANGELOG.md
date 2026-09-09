@@ -4,485 +4,416 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.71](https://github.com/zigordev/gpool/compare/v0.1.70...v0.1.71) (2026-09-09)
 
-
 ### Features
 
-* **api:** send RFC 9457 problem details and declare status codes ([#218](https://github.com/zigordev/gpool/issues/218)) ([940e90c](https://github.com/zigordev/gpool/commit/940e90cf4d8bcd39d02edcf716f58ccedd56f0e5))
+- **api:** send RFC 9457 problem details and declare status codes ([#218](https://github.com/zigordev/gpool/issues/218)) ([940e90c](https://github.com/zigordev/gpool/commit/940e90cf4d8bcd39d02edcf716f58ccedd56f0e5))
 
 ## [0.1.70](https://github.com/zigordev/gpool/compare/v0.1.69...v0.1.70) (2026-09-09)
 
-
 ### Bug Fixes
 
-* **api:** send a content security policy instead of disabling it ([#216](https://github.com/zigordev/gpool/issues/216)) ([10b6ebc](https://github.com/zigordev/gpool/commit/10b6ebc9b5dba8de656915dab159604f85961a9b))
+- **api:** send a content security policy instead of disabling it ([#216](https://github.com/zigordev/gpool/issues/216)) ([10b6ebc](https://github.com/zigordev/gpool/commit/10b6ebc9b5dba8de656915dab159604f85961a9b))
 
 ## [0.1.69](https://github.com/zigordev/gpool/compare/v0.1.68...v0.1.69) (2026-09-09)
 
-
 ### Bug Fixes
 
-* **docker:** track .dockerignore so every image build uses it ([#211](https://github.com/zigordev/gpool/issues/211)) ([511b1ef](https://github.com/zigordev/gpool/commit/511b1ef26c99873efcf701f238fde158eff92dc3))
+- **docker:** track .dockerignore so every image build uses it ([#211](https://github.com/zigordev/gpool/issues/211)) ([511b1ef](https://github.com/zigordev/gpool/commit/511b1ef26c99873efcf701f238fde158eff92dc3))
 
 ## [0.1.68](https://github.com/zigordev/gpool/compare/v0.1.67...v0.1.68) (2026-09-09)
 
-
 ### Bug Fixes
 
-* **deps:** take the patched multer, sharp and nodemailer ([#213](https://github.com/zigordev/gpool/issues/213)) ([19dcf41](https://github.com/zigordev/gpool/commit/19dcf41de121a8c189a44e2de34a740fa701ea24))
+- **deps:** take the patched multer, sharp and nodemailer ([#213](https://github.com/zigordev/gpool/issues/213)) ([19dcf41](https://github.com/zigordev/gpool/commit/19dcf41de121a8c189a44e2de34a740fa701ea24))
 
 ## [0.1.67](https://github.com/zigordev/gpool/compare/v0.1.66...v0.1.67) (2026-09-08)
 
-
 ### Bug Fixes
 
-* **ci:** release on refactor and perf, not only feat and fix ([#208](https://github.com/zigordev/gpool/issues/208)) ([a8bca05](https://github.com/zigordev/gpool/commit/a8bca0548df3907f1d323b35f1ff99eb9606de50))
-
+- **ci:** release on refactor and perf, not only feat and fix ([#208](https://github.com/zigordev/gpool/issues/208)) ([a8bca05](https://github.com/zigordev/gpool/commit/a8bca0548df3907f1d323b35f1ff99eb9606de50))
 
 ### Refactoring
 
-* **auth:** move Google OAuth into the API and drop the /api prefix ([#207](https://github.com/zigordev/gpool/issues/207)) ([756a39a](https://github.com/zigordev/gpool/commit/756a39a328a36fa28b96082d0331f0d0387f459a))
+- **auth:** move Google OAuth into the API and drop the /api prefix ([#207](https://github.com/zigordev/gpool/issues/207)) ([756a39a](https://github.com/zigordev/gpool/commit/756a39a328a36fa28b96082d0331f0d0387f459a))
 
 ## [0.1.66](https://github.com/zigordev/gpool/compare/v0.1.65...v0.1.66) (2026-09-08)
 
-
 ### Bug Fixes
 
-* **deploy:** let the ECR digest lookup report why it failed ([#205](https://github.com/zigordev/gpool/issues/205)) ([a58e1b8](https://github.com/zigordev/gpool/commit/a58e1b89546903e57fa37fcd92d1d761b5154f9c))
+- **deploy:** let the ECR digest lookup report why it failed ([#205](https://github.com/zigordev/gpool/issues/205)) ([a58e1b8](https://github.com/zigordev/gpool/commit/a58e1b89546903e57fa37fcd92d1d761b5154f9c))
 
 ## [0.1.65](https://github.com/zigordev/gpool/compare/v0.1.64...v0.1.65) (2026-09-07)
 
-
 ### Features
 
-* **docker:** run the api and web under compose watch for local development ([#194](https://github.com/zigordev/gpool/issues/194)) ([f424f16](https://github.com/zigordev/gpool/commit/f424f16430d46ec51253e76dfac49d51e443645a))
+- **docker:** run the api and web under compose watch for local development ([#194](https://github.com/zigordev/gpool/issues/194)) ([f424f16](https://github.com/zigordev/gpool/commit/f424f16430d46ec51253e76dfac49d51e443645a))
 
 ## [0.1.64](https://github.com/zigordev/gpool/compare/v0.1.63...v0.1.64) (2026-09-07)
 
-
 ### Bug Fixes
 
-* **deps:** patch the grpc-scoped protobufjs, drop the redundant override ([#182](https://github.com/zigordev/gpool/issues/182)) ([cc3476b](https://github.com/zigordev/gpool/commit/cc3476bca517cd1d2bbf0ff0de64bc2c4a6a8486))
+- **deps:** patch the grpc-scoped protobufjs, drop the redundant override ([#182](https://github.com/zigordev/gpool/issues/182)) ([cc3476b](https://github.com/zigordev/gpool/commit/cc3476bca517cd1d2bbf0ff0de64bc2c4a6a8486))
 
 ## [0.1.63](https://github.com/zigordev/gpool/compare/v0.1.62...v0.1.63) (2026-09-07)
 
-
 ### Bug Fixes
 
-* **deps:** patch protobufjs, and move the override with it ([#180](https://github.com/zigordev/gpool/issues/180)) ([30a9816](https://github.com/zigordev/gpool/commit/30a9816214a45233e79f907322008df544533e9c))
+- **deps:** patch protobufjs, and move the override with it ([#180](https://github.com/zigordev/gpool/issues/180)) ([30a9816](https://github.com/zigordev/gpool/commit/30a9816214a45233e79f907322008df544533e9c))
 
 ## [0.1.62](https://github.com/zigordev/gpool/compare/v0.1.61...v0.1.62) (2026-09-06)
 
-
 ### Features
 
-* **ui:** consume design-system as a package instead of vendoring it ([#171](https://github.com/zigordev/gpool/issues/171)) ([440021b](https://github.com/zigordev/gpool/commit/440021be833088ebfb72dddaecefe7398f020af5))
-
+- **ui:** consume design-system as a package instead of vendoring it ([#171](https://github.com/zigordev/gpool/issues/171)) ([440021b](https://github.com/zigordev/gpool/commit/440021be833088ebfb72dddaecefe7398f020af5))
 
 ### Bug Fixes
 
-* **ci:** merge with a PAT so push-triggered workflows still run ([#172](https://github.com/zigordev/gpool/issues/172)) ([201f5bc](https://github.com/zigordev/gpool/commit/201f5bc142093953c4af18ed795dea8b2185d091))
+- **ci:** merge with a PAT so push-triggered workflows still run ([#172](https://github.com/zigordev/gpool/issues/172)) ([201f5bc](https://github.com/zigordev/gpool/commit/201f5bc142093953c4af18ed795dea8b2185d091))
 
 ## [0.1.61](https://github.com/zigordev/gpool/compare/v0.1.60...v0.1.61) (2026-09-04)
 
-
 ### Bug Fixes
 
-* **ci:** raise commitlint header-max-length to fit Dependabot titles ([#161](https://github.com/zigordev/gpool/issues/161)) ([0e636a0](https://github.com/zigordev/gpool/commit/0e636a093f3fd678ee71232bd10a7be455a65761))
+- **ci:** raise commitlint header-max-length to fit Dependabot titles ([#161](https://github.com/zigordev/gpool/issues/161)) ([0e636a0](https://github.com/zigordev/gpool/commit/0e636a093f3fd678ee71232bd10a7be455a65761))
 
 ## [0.1.60](https://github.com/zigordev/gpool/compare/v0.1.59...v0.1.60) (2026-09-03)
 
-
 ### Bug Fixes
 
-* **contract:** regenerate the web API client, drop the removed RUM endpoint ([b654974](https://github.com/zigordev/gpool/commit/b654974cbbfa1e8e52e68762835b360e1b0efcef))
+- **contract:** regenerate the web API client, drop the removed RUM endpoint ([b654974](https://github.com/zigordev/gpool/commit/b654974cbbfa1e8e52e68762835b360e1b0efcef))
 
 ## [0.1.59](https://github.com/zigordev/gpool/compare/v0.1.58...v0.1.59) (2026-09-03)
 
-
 ### Features
 
-* **observability:** converge on the shared health/metrics/tracing kit ([4f5965c](https://github.com/zigordev/gpool/commit/4f5965cbf9d2339e605ac93495598ffc980cb6a0))
-
+- **observability:** converge on the shared health/metrics/tracing kit ([4f5965c](https://github.com/zigordev/gpool/commit/4f5965cbf9d2339e605ac93495598ffc980cb6a0))
 
 ### Bug Fixes
 
-* **a11y:** raise fg-subtle/fg-faint contrast to WCAG AA ([f5fcb77](https://github.com/zigordev/gpool/commit/f5fcb77d4d480b5845b641a12fbb25da8c01f38e))
-* **build:** consolidate on React 19, fixing the static /404 prerender crash ([86c1aee](https://github.com/zigordev/gpool/commit/86c1aee8877b04d703ba22ff623a71a78789b905))
-* **ci:** drop Jest-only flags from the post-Vitest-migration test:cov:api script ([faa9018](https://github.com/zigordev/gpool/commit/faa9018989325cfe5c9beeb2abc1f91892214a54))
+- **a11y:** raise fg-subtle/fg-faint contrast to WCAG AA ([f5fcb77](https://github.com/zigordev/gpool/commit/f5fcb77d4d480b5845b641a12fbb25da8c01f38e))
+- **build:** consolidate on React 19, fixing the static /404 prerender crash ([86c1aee](https://github.com/zigordev/gpool/commit/86c1aee8877b04d703ba22ff623a71a78789b905))
+- **ci:** drop Jest-only flags from the post-Vitest-migration test:cov:api script ([faa9018](https://github.com/zigordev/gpool/commit/faa9018989325cfe5c9beeb2abc1f91892214a54))
 
 ## [0.1.58](https://github.com/zigordev/gpool/compare/v0.1.57...v0.1.58) (2026-09-02)
 
-
 ### Features
 
-* **security:** set security headers and enable Dependabot ([a668e8d](https://github.com/zigordev/gpool/commit/a668e8d88d36b694e7856550f4a217518cb0e003))
+- **security:** set security headers and enable Dependabot ([a668e8d](https://github.com/zigordev/gpool/commit/a668e8d88d36b694e7856550f4a217518cb0e003))
 
 ## [0.1.57](https://github.com/zigordev/gpool/compare/v0.1.56...v0.1.57) (2026-09-02)
 
-
 ### Features
 
-* dev-only design-system preview, side by side with gpool's kit ([ca821cc](https://github.com/zigordev/gpool/commit/ca821cca28b96bcfdddda6db6b3b7e8d17735541))
-* **ui:** adopt design-system DateField and Table ([437e46b](https://github.com/zigordev/gpool/commit/437e46b60f08452a5cb76245aa87e95539667ef7))
-* **ui:** my pools is the landing page, all pools is a table ([deb3405](https://github.com/zigordev/gpool/commit/deb34058732c242f1dee03108c082a223a6ba7b0))
-* **ui:** shared sort header, pager and empty row ([48f39ec](https://github.com/zigordev/gpool/commit/48f39ecf070f270b894a0893e4b03c218b704067))
-
+- dev-only design-system preview, side by side with gpool's kit ([ca821cc](https://github.com/zigordev/gpool/commit/ca821cca28b96bcfdddda6db6b3b7e8d17735541))
+- **ui:** adopt design-system DateField and Table ([437e46b](https://github.com/zigordev/gpool/commit/437e46b60f08452a5cb76245aa87e95539667ef7))
+- **ui:** my pools is the landing page, all pools is a table ([deb3405](https://github.com/zigordev/gpool/commit/deb34058732c242f1dee03108c082a223a6ba7b0))
+- **ui:** shared sort header, pager and empty row ([48f39ec](https://github.com/zigordev/gpool/commit/48f39ecf070f270b894a0893e4b03c218b704067))
 
 ### Bug Fixes
 
-* **i18n:** bound the Tolgee fetch and let message trees hold arrays ([1af644e](https://github.com/zigordev/gpool/commit/1af644ea6ea16ef9b0eb7b8d61cb03f30a3ea6e8))
-* stop double-padding and capping the content area ([80d8066](https://github.com/zigordev/gpool/commit/80d806623303ac2214f654414b4a93589c74e84c))
-* **ui:** stop double-padding the content frame ([25cc861](https://github.com/zigordev/gpool/commit/25cc861ac13d27d170ed1a89d2f3ab71851ced1d))
+- **i18n:** bound the Tolgee fetch and let message trees hold arrays ([1af644e](https://github.com/zigordev/gpool/commit/1af644ea6ea16ef9b0eb7b8d61cb03f30a3ea6e8))
+- stop double-padding and capping the content area ([80d8066](https://github.com/zigordev/gpool/commit/80d806623303ac2214f654414b4a93589c74e84c))
+- **ui:** stop double-padding the content frame ([25cc861](https://github.com/zigordev/gpool/commit/25cc861ac13d27d170ed1a89d2f3ab71851ced1d))
 
 ## [0.1.56](https://github.com/zigordev/gpool/compare/v0.1.55...v0.1.56) (2026-07-28)
 
-
 ### Features
 
-* design system nav ([#142](https://github.com/zigordev/gpool/issues/142)) ([6c542fc](https://github.com/zigordev/gpool/commit/6c542fcd131336fa2bbf97f073b14dffc9758de5))
+- design system nav ([#142](https://github.com/zigordev/gpool/issues/142)) ([6c542fc](https://github.com/zigordev/gpool/commit/6c542fcd131336fa2bbf97f073b14dffc9758de5))
 
 ## [0.1.55](https://github.com/zigordev/gpool/compare/v0.1.54...v0.1.55) (2026-07-21)
 
-
 ### Features
 
-* add third-place playoff match ([#140](https://github.com/zigordev/gpool/issues/140)) ([3af7385](https://github.com/zigordev/gpool/commit/3af7385c6534932ae2605e1beeb95e1f94f59d29))
+- add third-place playoff match ([#140](https://github.com/zigordev/gpool/issues/140)) ([3af7385](https://github.com/zigordev/gpool/commit/3af7385c6534932ae2605e1beeb95e1f94f59d29))
 
 ## [0.1.54](https://github.com/zigordev/gpool/compare/v0.1.53...v0.1.54) (2026-07-01)
 
-
 ### Bug Fixes
 
-* pass bracket scoring into spy final view ([e3efe00](https://github.com/zigordev/gpool/commit/e3efe005469f51f28d46a54076597398594358f7))
+- pass bracket scoring into spy final view ([e3efe00](https://github.com/zigordev/gpool/commit/e3efe005469f51f28d46a54076597398594358f7))
 
 ## [0.1.53](https://github.com/zigordev/gpool/compare/v0.1.52...v0.1.53) (2026-06-30)
 
-
 ### Bug Fixes
 
-* parse bracket scoring values in UI ([d92b52c](https://github.com/zigordev/gpool/commit/d92b52c445e235ec36589cec373b8503bc993771))
+- parse bracket scoring values in UI ([d92b52c](https://github.com/zigordev/gpool/commit/d92b52c445e235ec36589cec373b8503bc993771))
 
 ## [0.1.52](https://github.com/zigordev/gpool/compare/v0.1.51...v0.1.52) (2026-06-30)
 
-
 ### Bug Fixes
 
-* use round-specific bracket partial points ([7050ad1](https://github.com/zigordev/gpool/commit/7050ad1785a88608866ab4fdb0be806ce6e260b6))
+- use round-specific bracket partial points ([7050ad1](https://github.com/zigordev/gpool/commit/7050ad1785a88608866ab4fdb0be806ce6e260b6))
 
 ## [0.1.51](https://github.com/zigordev/gpool/compare/v0.1.50...v0.1.51) (2026-06-30)
 
-
 ### Bug Fixes
 
-* **api:** evaluate bracket scoring across active phases ([#135](https://github.com/zigordev/gpool/issues/135)) ([b3d91e6](https://github.com/zigordev/gpool/commit/b3d91e61db7bcc3a8ab0ac9772a6b966de3c92e2))
+- **api:** evaluate bracket scoring across active phases ([#135](https://github.com/zigordev/gpool/issues/135)) ([b3d91e6](https://github.com/zigordev/gpool/commit/b3d91e61db7bcc3a8ab0ac9772a6b966de3c92e2))
 
 ## [0.1.50](https://github.com/zigordev/gpool/compare/v0.1.49...v0.1.50) (2026-06-30)
 
-
 ### Bug Fixes
 
-* final phase spy UI polish ([#133](https://github.com/zigordev/gpool/issues/133)) ([a1f23aa](https://github.com/zigordev/gpool/commit/a1f23aa5c9a508585d9031dce00ba68fd59847f6))
+- final phase spy UI polish ([#133](https://github.com/zigordev/gpool/issues/133)) ([a1f23aa](https://github.com/zigordev/gpool/commit/a1f23aa5c9a508585d9031dce00ba68fd59847f6))
 
 ## [0.1.49](https://github.com/zigordev/gpool/compare/v0.1.48...v0.1.49) (2026-06-29)
 
-
 ### Bug Fixes
 
-* final phase upcoming match display ([32ffc5f](https://github.com/zigordev/gpool/commit/32ffc5f72daf3b370bb4256b4cd142fd64fb4bd6))
+- final phase upcoming match display ([32ffc5f](https://github.com/zigordev/gpool/commit/32ffc5f72daf3b370bb4256b4cd142fd64fb4bd6))
 
 ## [0.1.48](https://github.com/zigordev/gpool/compare/v0.1.47...v0.1.48) (2026-06-29)
 
-
 ### Features
 
-* add next matches to the final phase view ([7f6ef16](https://github.com/zigordev/gpool/commit/7f6ef161ad49c048c85494000cf5e1a5f224c10e))
+- add next matches to the final phase view ([7f6ef16](https://github.com/zigordev/gpool/commit/7f6ef161ad49c048c85494000cf5e1a5f224c10e))
 
 ## [0.1.47](https://github.com/zigordev/gpool/compare/v0.1.46...v0.1.47) (2026-06-29)
 
-
 ### Bug Fixes
 
-* materialize final phase matches on startup ([#129](https://github.com/zigordev/gpool/issues/129)) ([659e41f](https://github.com/zigordev/gpool/commit/659e41f0f3b7cb96964be56db9d5f7d0961fdbcb))
+- materialize final phase matches on startup ([#129](https://github.com/zigordev/gpool/issues/129)) ([659e41f](https://github.com/zigordev/gpool/commit/659e41f0f3b7cb96964be56db9d5f7d0961fdbcb))
 
 ## [0.1.46](https://github.com/zigordev/gpool/compare/v0.1.45...v0.1.46) (2026-06-28)
 
-
 ### Bug Fixes
 
-* final phase wrong box points ([#127](https://github.com/zigordev/gpool/issues/127)) ([06dec1f](https://github.com/zigordev/gpool/commit/06dec1f2ad603988e5f9eb148c6246193f6606a1))
+- final phase wrong box points ([#127](https://github.com/zigordev/gpool/issues/127)) ([06dec1f](https://github.com/zigordev/gpool/commit/06dec1f2ad603988e5f9eb148c6246193f6606a1))
 
 ## [0.1.45](https://github.com/zigordev/gpool/compare/v0.1.44...v0.1.45) (2026-06-25)
 
-
 ### Features
 
-* eliminated teams and players ([#125](https://github.com/zigordev/gpool/issues/125)) ([694c092](https://github.com/zigordev/gpool/commit/694c092a27cfa25715b40e1977cc98578c16423c))
+- eliminated teams and players ([#125](https://github.com/zigordev/gpool/issues/125)) ([694c092](https://github.com/zigordev/gpool/commit/694c092a27cfa25715b40e1977cc98578c16423c))
 
 ## [0.1.44](https://github.com/zigordev/gpool/compare/v0.1.43...v0.1.44) (2026-06-24)
 
-
 ### Features
 
-* add theme and language switch buttons to the main sign in page ([#123](https://github.com/zigordev/gpool/issues/123)) ([8801396](https://github.com/zigordev/gpool/commit/880139649277eb04ba6ec8f8b81380836ade6359))
+- add theme and language switch buttons to the main sign in page ([#123](https://github.com/zigordev/gpool/issues/123)) ([8801396](https://github.com/zigordev/gpool/commit/880139649277eb04ba6ec8f8b81380836ade6359))
 
 ## [0.1.43](https://github.com/zigordev/gpool/compare/v0.1.42...v0.1.43) (2026-06-23)
 
-
 ### Features
 
-* penalty miss force player action ([#121](https://github.com/zigordev/gpool/issues/121)) ([6e25e52](https://github.com/zigordev/gpool/commit/6e25e529aab988ed1b12a96e76b40689d0fec96c))
+- penalty miss force player action ([#121](https://github.com/zigordev/gpool/issues/121)) ([6e25e52](https://github.com/zigordev/gpool/commit/6e25e529aab988ed1b12a96e76b40689d0fec96c))
 
 ## [0.1.42](https://github.com/zigordev/gpool/compare/v0.1.41...v0.1.42) (2026-06-19)
 
-
 ### Features
 
-* code optimization ([#119](https://github.com/zigordev/gpool/issues/119)) ([5bfff69](https://github.com/zigordev/gpool/commit/5bfff695c76bd70c3c9495a8c7e793d91da41dab))
+- code optimization ([#119](https://github.com/zigordev/gpool/issues/119)) ([5bfff69](https://github.com/zigordev/gpool/commit/5bfff695c76bd70c3c9495a8c7e793d91da41dab))
 
 ## [0.1.41](https://github.com/zigordev/gpool/compare/v0.1.40...v0.1.41) (2026-06-19)
 
-
 ### Features
 
-* code optimization ([#117](https://github.com/zigordev/gpool/issues/117)) ([c043c41](https://github.com/zigordev/gpool/commit/c043c414e4c5d27e63f7c20a229553d44f162371))
+- code optimization ([#117](https://github.com/zigordev/gpool/issues/117)) ([c043c41](https://github.com/zigordev/gpool/commit/c043c414e4c5d27e63f7c20a229553d44f162371))
 
 ## [0.1.40](https://github.com/zigordev/gpool/compare/v0.1.39...v0.1.40) (2026-06-19)
 
-
 ### Bug Fixes
 
-* pre commit config ([#115](https://github.com/zigordev/gpool/issues/115)) ([b807a5f](https://github.com/zigordev/gpool/commit/b807a5f1337ecf1708cb4c49fa4d0feda40193ae))
+- pre commit config ([#115](https://github.com/zigordev/gpool/issues/115)) ([b807a5f](https://github.com/zigordev/gpool/commit/b807a5f1337ecf1708cb4c49fa4d0feda40193ae))
 
 ## [0.1.39](https://github.com/zigordev/gpool/compare/v0.1.38...v0.1.39) (2026-06-19)
 
-
 ### Bug Fixes
 
-* pre commit config ([#113](https://github.com/zigordev/gpool/issues/113)) ([9b9fc96](https://github.com/zigordev/gpool/commit/9b9fc9664305bc14c2cd6b538ad5aec048fb7a97))
+- pre commit config ([#113](https://github.com/zigordev/gpool/issues/113)) ([9b9fc96](https://github.com/zigordev/gpool/commit/9b9fc9664305bc14c2cd6b538ad5aec048fb7a97))
 
 ## [0.1.38](https://github.com/zigordev/gpool/compare/v0.1.37...v0.1.38) (2026-06-19)
 
-
 ### Features
 
-* centralized logs generation ([#111](https://github.com/zigordev/gpool/issues/111)) ([4e2abd0](https://github.com/zigordev/gpool/commit/4e2abd08b253cd436022d95698754278344c3098))
+- centralized logs generation ([#111](https://github.com/zigordev/gpool/issues/111)) ([4e2abd0](https://github.com/zigordev/gpool/commit/4e2abd08b253cd436022d95698754278344c3098))
 
 ## [0.1.37](https://github.com/zigordev/gpool/compare/v0.1.36...v0.1.37) (2026-06-18)
 
-
 ### Features
 
-* ranking and group phase improvements ([#109](https://github.com/zigordev/gpool/issues/109)) ([8299b9d](https://github.com/zigordev/gpool/commit/8299b9d3df7718d20911b8ef7e3048f02a226c45))
+- ranking and group phase improvements ([#109](https://github.com/zigordev/gpool/issues/109)) ([8299b9d](https://github.com/zigordev/gpool/commit/8299b9d3df7718d20911b8ef7e3048f02a226c45))
 
 ## [0.1.36](https://github.com/zigorlsp7/gpool/compare/v0.1.35...v0.1.36) (2026-06-16)
 
-
 ### Bug Fixes
 
-* real standings correct tie criteria ([#107](https://github.com/zigorlsp7/gpool/issues/107)) ([0616b79](https://github.com/zigorlsp7/gpool/commit/0616b79dcca858a34c510bcce219c49d69270425))
+- real standings correct tie criteria ([#107](https://github.com/zigorlsp7/gpool/issues/107)) ([0616b79](https://github.com/zigorlsp7/gpool/commit/0616b79dcca858a34c510bcce219c49d69270425))
 
 ## [0.1.35](https://github.com/zigorlsp7/gpool/compare/v0.1.34...v0.1.35) (2026-06-16)
 
-
 ### Bug Fixes
 
-* waiting for result instead of no prediction ([#105](https://github.com/zigorlsp7/gpool/issues/105)) ([f879825](https://github.com/zigorlsp7/gpool/commit/f879825c8ef2e5dfef07335adf9c2eb7071a7d2c))
+- waiting for result instead of no prediction ([#105](https://github.com/zigorlsp7/gpool/issues/105)) ([f879825](https://github.com/zigorlsp7/gpool/commit/f879825c8ef2e5dfef07335adf9c2eb7071a7d2c))
 
 ## [0.1.34](https://github.com/zigorlsp7/gpool/compare/v0.1.33...v0.1.34) (2026-06-16)
 
-
 ### Bug Fixes
 
-* ui issues ([#103](https://github.com/zigorlsp7/gpool/issues/103)) ([143b115](https://github.com/zigorlsp7/gpool/commit/143b11534c65d2e22417ad977e181425e4e6a743))
+- ui issues ([#103](https://github.com/zigorlsp7/gpool/issues/103)) ([143b115](https://github.com/zigorlsp7/gpool/commit/143b11534c65d2e22417ad977e181425e4e6a743))
 
 ## [0.1.33](https://github.com/zigorlsp7/gpool/compare/v0.1.32...v0.1.33) (2026-06-16)
 
-
 ### Bug Fixes
 
-* fix missing player in admin view ([#101](https://github.com/zigorlsp7/gpool/issues/101)) ([e8458d4](https://github.com/zigorlsp7/gpool/commit/e8458d435356d8d97708186a354c21867635c5f3))
+- fix missing player in admin view ([#101](https://github.com/zigorlsp7/gpool/issues/101)) ([e8458d4](https://github.com/zigorlsp7/gpool/commit/e8458d435356d8d97708186a354c21867635c5f3))
 
 ## [0.1.32](https://github.com/zigorlsp7/gpool/compare/v0.1.31...v0.1.32) (2026-06-16)
 
-
 ### Features
 
-* improve model ids structure ([#99](https://github.com/zigorlsp7/gpool/issues/99)) ([5539c54](https://github.com/zigorlsp7/gpool/commit/5539c5466d892018e02b7608be6ee85f044011ce))
+- improve model ids structure ([#99](https://github.com/zigorlsp7/gpool/issues/99)) ([5539c54](https://github.com/zigorlsp7/gpool/commit/5539c5466d892018e02b7608be6ee85f044011ce))
 
 ## [0.1.31](https://github.com/zigorlsp7/gpool/compare/v0.1.30...v0.1.31) (2026-06-16)
 
-
 ### Bug Fixes
 
-* icons colors mismatch ([#97](https://github.com/zigorlsp7/gpool/issues/97)) ([48b30af](https://github.com/zigorlsp7/gpool/commit/48b30aff80877585433e3c0855e35bc2ed82ba1e))
+- icons colors mismatch ([#97](https://github.com/zigorlsp7/gpool/issues/97)) ([48b30af](https://github.com/zigorlsp7/gpool/commit/48b30aff80877585433e3c0855e35bc2ed82ba1e))
 
 ## [0.1.30](https://github.com/zigorlsp7/gpool/compare/v0.1.29...v0.1.30) (2026-06-15)
 
-
 ### Features
 
-* ui improvements ([#95](https://github.com/zigorlsp7/gpool/issues/95)) ([901281a](https://github.com/zigorlsp7/gpool/commit/901281a06ef87cb649c935a74706563852222266))
+- ui improvements ([#95](https://github.com/zigorlsp7/gpool/issues/95)) ([901281a](https://github.com/zigorlsp7/gpool/commit/901281a06ef87cb649c935a74706563852222266))
 
 ## [0.1.29](https://github.com/zigorlsp7/gpool/compare/v0.1.28...v0.1.29) (2026-06-12)
 
-
 ### Bug Fixes
 
-* repeated standing warning ([#93](https://github.com/zigorlsp7/gpool/issues/93)) ([a8fd052](https://github.com/zigorlsp7/gpool/commit/a8fd05216a476d5e05985457246f19b97eeb61ac))
+- repeated standing warning ([#93](https://github.com/zigorlsp7/gpool/issues/93)) ([a8fd052](https://github.com/zigorlsp7/gpool/commit/a8fd05216a476d5e05985457246f19b97eeb61ac))
 
 ## [0.1.28](https://github.com/zigorlsp7/gpool/compare/v0.1.27...v0.1.28) (2026-06-12)
 
-
 ### Bug Fixes
 
-* ui improvement ([#91](https://github.com/zigorlsp7/gpool/issues/91)) ([1046d63](https://github.com/zigorlsp7/gpool/commit/1046d63001efbfa0ba68be05bfed369edb2ceed4))
+- ui improvement ([#91](https://github.com/zigorlsp7/gpool/issues/91)) ([1046d63](https://github.com/zigorlsp7/gpool/commit/1046d63001efbfa0ba68be05bfed369edb2ceed4))
 
 ## [0.1.27](https://github.com/zigorlsp7/gpool/compare/v0.1.26...v0.1.27) (2026-06-12)
 
-
 ### Features
 
-* add real standings ([#89](https://github.com/zigorlsp7/gpool/issues/89)) ([2e72716](https://github.com/zigorlsp7/gpool/commit/2e72716c08bb06c17de09bec55365a656b766c68))
+- add real standings ([#89](https://github.com/zigorlsp7/gpool/issues/89)) ([2e72716](https://github.com/zigorlsp7/gpool/commit/2e72716c08bb06c17de09bec55365a656b766c68))
 
 ## [0.1.26](https://github.com/zigorlsp7/gpool/compare/v0.1.25...v0.1.26) (2026-06-12)
 
-
 ### Bug Fixes
 
-* revert pool missing count ([#87](https://github.com/zigorlsp7/gpool/issues/87)) ([d1ff0c3](https://github.com/zigorlsp7/gpool/commit/d1ff0c3b94a921cd5705d3ffbcba2d40ab820195))
+- revert pool missing count ([#87](https://github.com/zigorlsp7/gpool/issues/87)) ([d1ff0c3](https://github.com/zigorlsp7/gpool/commit/d1ff0c3b94a921cd5705d3ffbcba2d40ab820195))
 
 ## [0.1.25](https://github.com/zigorlsp7/gpool/compare/v0.1.24...v0.1.25) (2026-06-12)
 
-
 ### Bug Fixes
 
-* ui improvements ([#85](https://github.com/zigorlsp7/gpool/issues/85)) ([7a1c074](https://github.com/zigorlsp7/gpool/commit/7a1c07481a99f1524048079594d2ef78f80f4a44))
+- ui improvements ([#85](https://github.com/zigorlsp7/gpool/issues/85)) ([7a1c074](https://github.com/zigorlsp7/gpool/commit/7a1c07481a99f1524048079594d2ef78f80f4a44))
 
 ## [0.1.24](https://github.com/zigorlsp7/gpool/compare/v0.1.23...v0.1.24) (2026-06-09)
 
-
 ### Bug Fixes
 
-* player actions points changeable ([#83](https://github.com/zigorlsp7/gpool/issues/83)) ([687898c](https://github.com/zigorlsp7/gpool/commit/687898c278b05dfa0e52a70b013ec97b3cc1afb5))
+- player actions points changeable ([#83](https://github.com/zigorlsp7/gpool/issues/83)) ([687898c](https://github.com/zigorlsp7/gpool/commit/687898c278b05dfa0e52a70b013ec97b3cc1afb5))
 
 ## [0.1.23](https://github.com/zigorlsp7/gpool/compare/v0.1.22...v0.1.23) (2026-06-09)
 
-
 ### Bug Fixes
 
-* player actions points changeable ([#81](https://github.com/zigorlsp7/gpool/issues/81)) ([845e2b0](https://github.com/zigorlsp7/gpool/commit/845e2b0d3ee65370e6940add33e8c4719af3512a))
+- player actions points changeable ([#81](https://github.com/zigorlsp7/gpool/issues/81)) ([845e2b0](https://github.com/zigorlsp7/gpool/commit/845e2b0d3ee65370e6940add33e8c4719af3512a))
 
 ## [0.1.22](https://github.com/zigorlsp7/gpool/compare/v0.1.21...v0.1.22) (2026-06-09)
 
-
 ### Features
 
-* add match detail info and statistics ([#79](https://github.com/zigorlsp7/gpool/issues/79)) ([2fa39e4](https://github.com/zigorlsp7/gpool/commit/2fa39e499cea998f36179cfd8f69e498ac3db352))
+- add match detail info and statistics ([#79](https://github.com/zigorlsp7/gpool/issues/79)) ([2fa39e4](https://github.com/zigorlsp7/gpool/commit/2fa39e499cea998f36179cfd8f69e498ac3db352))
 
 ## [0.1.21](https://github.com/zigorlsp7/gpool/compare/v0.1.20...v0.1.21) (2026-06-08)
 
-
 ### Features
 
-* usability improvements ([#77](https://github.com/zigorlsp7/gpool/issues/77)) ([3157dfa](https://github.com/zigorlsp7/gpool/commit/3157dfa114b22af87f343d78690351d7b6cdec4c))
+- usability improvements ([#77](https://github.com/zigorlsp7/gpool/issues/77)) ([3157dfa](https://github.com/zigorlsp7/gpool/commit/3157dfa114b22af87f343d78690351d7b6cdec4c))
 
 ## [0.1.20](https://github.com/zigorlsp7/gpool/compare/v0.1.19...v0.1.20) (2026-06-07)
 
-
 ### Features
 
-* usability improvements ([#75](https://github.com/zigorlsp7/gpool/issues/75)) ([23c2f35](https://github.com/zigorlsp7/gpool/commit/23c2f35bd10bccc5f0915ffad863bf548e525529))
+- usability improvements ([#75](https://github.com/zigorlsp7/gpool/issues/75)) ([23c2f35](https://github.com/zigorlsp7/gpool/commit/23c2f35bd10bccc5f0915ffad863bf548e525529))
 
 ## [0.1.19](https://github.com/zigorlsp7/gpool/compare/v0.1.18...v0.1.19) (2026-06-06)
 
-
 ### Features
 
-* usability improvements ([#73](https://github.com/zigorlsp7/gpool/issues/73)) ([c7c3dcd](https://github.com/zigorlsp7/gpool/commit/c7c3dcdbc8ed38def0e899c3fd59cbd1b8b2a3a3))
+- usability improvements ([#73](https://github.com/zigorlsp7/gpool/issues/73)) ([c7c3dcd](https://github.com/zigorlsp7/gpool/commit/c7c3dcdbc8ed38def0e899c3fd59cbd1b8b2a3a3))
 
 ## [0.1.18](https://github.com/zigorlsp7/gpool/compare/v0.1.17...v0.1.18) (2026-05-15)
 
-
 ### Features
 
-* improve usability ([#71](https://github.com/zigorlsp7/gpool/issues/71)) ([7beb652](https://github.com/zigorlsp7/gpool/commit/7beb652abfc1f2c8b3b2d340b75a17a798691e40))
+- improve usability ([#71](https://github.com/zigorlsp7/gpool/issues/71)) ([7beb652](https://github.com/zigorlsp7/gpool/commit/7beb652abfc1f2c8b3b2d340b75a17a798691e40))
 
 ## [0.1.17](https://github.com/zigorlsp7/gpool/compare/v0.1.16...v0.1.17) (2026-05-14)
 
-
 ### Features
 
-* button to automatically set brackets ([#69](https://github.com/zigorlsp7/gpool/issues/69)) ([dd2cbdb](https://github.com/zigorlsp7/gpool/commit/dd2cbdbc7c187c30a7a5c1f3bfc3974cdabcc830))
+- button to automatically set brackets ([#69](https://github.com/zigorlsp7/gpool/issues/69)) ([dd2cbdb](https://github.com/zigorlsp7/gpool/commit/dd2cbdbc7c187c30a7a5c1f3bfc3974cdabcc830))
 
 ## [0.1.16](https://github.com/zigorlsp7/gpool/compare/v0.1.15...v0.1.16) (2026-05-14)
 
-
 ### Bug Fixes
 
-* restore flags in bracket country selects ([#67](https://github.com/zigorlsp7/gpool/issues/67)) ([53cdeb4](https://github.com/zigorlsp7/gpool/commit/53cdeb4d665d99035ad99ce147e6d005575dcf43))
+- restore flags in bracket country selects ([#67](https://github.com/zigorlsp7/gpool/issues/67)) ([53cdeb4](https://github.com/zigorlsp7/gpool/commit/53cdeb4d665d99035ad99ce147e6d005575dcf43))
 
 ## [0.1.15](https://github.com/zigorlsp7/gpool/compare/v0.1.14...v0.1.15) (2026-05-14)
 
-
 ### Features
 
-* translate countries ([#65](https://github.com/zigorlsp7/gpool/issues/65)) ([45ee26e](https://github.com/zigorlsp7/gpool/commit/45ee26ec067ff1520e7f8c2a4ddb54c766d481ac))
+- translate countries ([#65](https://github.com/zigorlsp7/gpool/issues/65)) ([45ee26e](https://github.com/zigorlsp7/gpool/commit/45ee26ec067ff1520e7f8c2a4ddb54c766d481ac))
 
 ## [0.1.14](https://github.com/zigorlsp7/gpool/compare/v0.1.13...v0.1.14) (2026-05-13)
 
-
 ### Features
 
-* penbao prod config ([#63](https://github.com/zigorlsp7/gpool/issues/63)) ([a47ca49](https://github.com/zigorlsp7/gpool/commit/a47ca497160aaedff205ccc82c1de10ee34fdf8c))
+- penbao prod config ([#63](https://github.com/zigorlsp7/gpool/issues/63)) ([a47ca49](https://github.com/zigorlsp7/gpool/commit/a47ca497160aaedff205ccc82c1de10ee34fdf8c))
 
 ## [0.1.13](https://github.com/zigorlsp7/gpool/compare/v0.1.12...v0.1.13) (2026-05-13)
 
-
 ### Bug Fixes
 
-* form display issues ([#60](https://github.com/zigorlsp7/gpool/issues/60)) ([51e25a1](https://github.com/zigorlsp7/gpool/commit/51e25a10ede3ca4e3dd872c7d665135eb44f5e45))
+- form display issues ([#60](https://github.com/zigorlsp7/gpool/issues/60)) ([51e25a1](https://github.com/zigorlsp7/gpool/commit/51e25a10ede3ca4e3dd872c7d665135eb44f5e45))
 
 ## [0.1.12](https://github.com/zigorlsp7/gpool/compare/v0.1.11...v0.1.12) (2026-05-13)
 
-
 ### Bug Fixes
 
-* forms display issues ([#58](https://github.com/zigorlsp7/gpool/issues/58)) ([978434e](https://github.com/zigorlsp7/gpool/commit/978434e5d87bb7466fb8e1e36803046fe3e501b9))
+- forms display issues ([#58](https://github.com/zigorlsp7/gpool/issues/58)) ([978434e](https://github.com/zigorlsp7/gpool/commit/978434e5d87bb7466fb8e1e36803046fe3e501b9))
 
 ## [0.1.11](https://github.com/zigorlsp7/gpool/compare/v0.1.10...v0.1.11) (2026-05-13)
 
-
 ### Features
 
-* display brackets vertically ([#56](https://github.com/zigorlsp7/gpool/issues/56)) ([198d732](https://github.com/zigorlsp7/gpool/commit/198d732ff70c4f724421cd4eff3d01b14c557eec))
+- display brackets vertically ([#56](https://github.com/zigorlsp7/gpool/issues/56)) ([198d732](https://github.com/zigorlsp7/gpool/commit/198d732ff70c4f724421cd4eff3d01b14c557eec))
 
 ## [0.1.10](https://github.com/zigorlsp7/gpool/compare/v0.1.9...v0.1.10) (2026-05-13)
 
-
 ### Features
 
-* add support for english ([#54](https://github.com/zigorlsp7/gpool/issues/54)) ([19fe293](https://github.com/zigorlsp7/gpool/commit/19fe2936c28684eba1e15b42a685e3e70a9e6102))
+- add support for english ([#54](https://github.com/zigorlsp7/gpool/issues/54)) ([19fe293](https://github.com/zigorlsp7/gpool/commit/19fe2936c28684eba1e15b42a685e3e70a9e6102))
 
 ## [0.1.9](https://github.com/zigorlsp7/gpool/compare/v0.1.8...v0.1.9) (2026-05-13)
 
-
 ### Bug Fixes
 
-* redirect uri fixed ([#52](https://github.com/zigorlsp7/gpool/issues/52)) ([4875558](https://github.com/zigorlsp7/gpool/commit/48755584ec31e073abeadf9ed411a507b1167ca6))
+- redirect uri fixed ([#52](https://github.com/zigorlsp7/gpool/issues/52)) ([4875558](https://github.com/zigorlsp7/gpool/commit/48755584ec31e073abeadf9ed411a507b1167ca6))
 
 ## [0.1.8](https://github.com/zigorlsp7/gpool/compare/v0.1.7...v0.1.8) (2026-05-13)
 
-
 ### Bug Fixes
 
-* ui issues ([#50](https://github.com/zigorlsp7/gpool/issues/50)) ([dab3694](https://github.com/zigorlsp7/gpool/commit/dab3694eb54f81c7cd59ed5df410547bceb81163))
+- ui issues ([#50](https://github.com/zigorlsp7/gpool/issues/50)) ([dab3694](https://github.com/zigorlsp7/gpool/commit/dab3694eb54f81c7cd59ed5df410547bceb81163))
 
 ## [0.1.7](https://github.com/zigorlsp7/gpool/compare/v0.1.6...v0.1.7) (2026-05-13)
 
-
 ### Features
 
-* added multiple functionalities ([#48](https://github.com/zigorlsp7/gpool/issues/48)) ([8ea40ea](https://github.com/zigorlsp7/gpool/commit/8ea40ea29709a7056b806c752a73b1e259e8d431))
+- added multiple functionalities ([#48](https://github.com/zigorlsp7/gpool/issues/48)) ([8ea40ea](https://github.com/zigorlsp7/gpool/commit/8ea40ea29709a7056b806c752a73b1e259e8d431))
 
 ## [0.1.6](https://github.com/zigorlsp7/gpool/compare/v0.1.5...v0.1.6) (2026-04-28)
 
