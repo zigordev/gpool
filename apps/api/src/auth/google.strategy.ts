@@ -19,14 +19,37 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
     const callbackURL = configService.get<string>('GOOGLE_CALLBACK_URL');
 
+    // Unset in every environment but CI, where they point at the mock
+    // OpenID Connect provider the browser suite signs in against. Left
+    // undefined, passport-google-oauth20 uses Google's own endpoints, so
+    // production configuration and the production image are unchanged.
+    const authorizationURL = configService.get<string>('GOOGLE_AUTHORIZATION_URL');
+    const tokenURL = configService.get<string>('GOOGLE_TOKEN_URL');
+    const userProfileURL = configService.get<string>('GOOGLE_USERINFO_URL');
+
     super({
       clientID,
       clientSecret,
       callbackURL,
-      scope: ['profile', 'email'],
+      ...(authorizationURL ? { authorizationURL } : null),
+      ...(tokenURL ? { tokenURL } : null),
+      ...(userProfileURL ? { userProfileURL } : null),
+      // openid alongside profile and email is the canonical OpenID Connect
+      // triple. Google accepts it and returns the same profile; a provider
+      // that follows the spec rejects an authorization request without it.
+      scope: ['openid', 'profile', 'email'],
       passReqToCallback: true,
       state: true,
     });
+
+    // passport-oauth2 sends the access token as a ?access_token= query
+    // parameter by default. Google tolerates that; RFC 6750 warns against it,
+    // because a token in a URL is copied into server logs, proxy logs and
+    // Referer headers, and a provider that follows the spec rejects it
+    // outright with "missing bearer token". Send the header instead.
+    (
+      this as unknown as { _oauth2: { useAuthorizationHeaderforGET(use: boolean): void } }
+    )._oauth2.useAuthorizationHeaderforGET(true);
 
     this.isConfigured = Boolean(clientID && clientSecret);
   }

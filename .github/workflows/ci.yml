@@ -146,7 +146,7 @@ jobs:
         run: npm ci
 
       - name: Compose up (postgres + api + web)
-        run: docker compose -f docker/compose.ci.yml up -d --build postgres api web
+        run: docker compose -f docker/compose.ci.yml up -d --build postgres oauth api web
 
       - name: Wait for API
         run: |
@@ -233,12 +233,31 @@ jobs:
           probe "Web login route" http://localhost:3101/login
           probe "API health route" http://localhost:3010/health
 
+      # The provider is silent by design since version 6, so a dead one shows up
+      # as a Chrome connection error inside a browser test rather than here.
+      - name: Wait for the mock provider
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:3900/gpool/.well-known/openid-configuration > /dev/null; then
+              echo "Mock provider ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Mock provider never served its discovery document" >&2
+          curl -sS -o /dev/null -w 'discovery status=%{http_code}\n' \
+            http://localhost:3900/gpool/.well-known/openid-configuration || true
+          docker compose -f docker/compose.ci.yml ps
+          docker compose -f docker/compose.ci.yml logs --no-color oauth
+          exit 1
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Browser checks (axe + Core Web Vitals)
+      - name: Browser checks (axe, Core Web Vitals, signed-in flows)
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3101
+          PLAYWRIGHT_API_BASE_URL: http://localhost:3010
         run: npm run e2e -w @gpool/web
 
       - name: Upload Playwright report on failure
@@ -246,8 +265,11 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: playwright-report-web
-          path: apps/ui/playwright-report
+          path: |
+            apps/ui/playwright-report
+            apps/ui/test-results
           retention-days: 7
+          if-no-files-found: warn
 
       - name: k6 smoke
         run: |
