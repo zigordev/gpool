@@ -233,6 +233,24 @@ jobs:
           probe "Web login route" http://localhost:3101/login
           probe "API health route" http://localhost:3010/health
 
+      # The provider is silent by design since version 6, so a dead one shows up
+      # as a Chrome connection error inside a browser test rather than here.
+      - name: Wait for the mock provider
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:3900/gpool/.well-known/openid-configuration > /dev/null; then
+              echo "Mock provider ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Mock provider never served its discovery document" >&2
+          curl -sS -o /dev/null -w 'discovery status=%{http_code}\n' \
+            http://localhost:3900/gpool/.well-known/openid-configuration || true
+          docker compose -f docker/compose.ci.yml ps
+          docker compose -f docker/compose.ci.yml logs --no-color oauth
+          exit 1
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
