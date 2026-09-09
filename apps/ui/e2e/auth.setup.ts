@@ -38,10 +38,20 @@ setup('sign in through the provider', async ({ page }) => {
   await subject.fill('e2e-user');
   await page.locator('form button, form input[type="submit"]').first().click();
 
-  // Back on the application. Landing somewhere that is not /login proves the
-  // redirect happened, not that a session exists: a profile the API rejects
-  // also comes back through /auth/callback before bouncing to /login.
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 30_000 });
+  // Wait to be back on the application, not merely off the login page: the
+  // callback runs on the API's origin, and "not /login" is already true while
+  // the browser is still sitting on it with the code in the query string.
+  const appOrigin = new URL(process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3101').origin;
+  try {
+    await page.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/login'), {
+      timeout: 30_000,
+    });
+  } catch (error) {
+    throw new Error(
+      `The provider callback never returned to ${appOrigin}.\nStopped at: ${page.url()}`,
+      { cause: error }
+    );
+  }
 
   const apiBaseUrl = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:3010';
   const me = await page.request.get(`${apiBaseUrl}/auth/me`);
