@@ -99,10 +99,13 @@ services:
       dockerfile: apps/ui/Dockerfile
       target: local
       args:
-        NEXT_PUBLIC_API_BASE_URL: http://api:3000
+        # Baked into the client bundle, so it has to be an address the browser
+        # can reach. Every use of it is a fetch from the browser, and the
+        # browser running the suite is on the host, where `api` is not a name.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:3010
         NEXT_PUBLIC_RELEASE: ci
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://api:3000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3010
       NEXT_PUBLIC_RELEASE: ci
       OPENBAO_ADDR: http://openbao:8200
       OPENBAO_TOKEN: ci-openbao-token
