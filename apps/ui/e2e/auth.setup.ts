@@ -38,8 +38,21 @@ setup('sign in through the provider', async ({ page }) => {
   await subject.fill('e2e-user');
   await page.locator('form button, form input[type="submit"]').first().click();
 
-  // Back on the application with a session.
+  // Back on the application. Landing somewhere that is not /login proves the
+  // redirect happened, not that a session exists: a profile the API rejects
+  // also comes back through /auth/callback before bouncing to /login.
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 30_000 });
+
+  const apiBaseUrl = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:3010';
+  const me = await page.request.get(`${apiBaseUrl}/auth/me`);
+  if (!me.ok()) {
+    throw new Error(
+      `Signed in but the API does not know it.\n` +
+        `GET ${apiBaseUrl}/auth/me -> ${me.status()}\n` +
+        `Landed on: ${page.url()}\n` +
+        `Body:\n${(await me.text()).slice(0, 500)}`
+    );
+  }
 
   await page.context().storageState({ path: SIGNED_IN_STATE });
 });
