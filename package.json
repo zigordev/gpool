@@ -1,6 +1,6 @@
 {
   "name": "gpool",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "private": true,
   "description": "Real-time football pool management platform",
   "engines": {
@@ -33,16 +33,16 @@
     "contract:gen:web": "node ./scripts/generate-api-contract.mjs"
   },
   "overrides": {
-    "multer": "2.2.0",
+    "multer": "2.3.0",
     "@grpc/proto-loader": {
       "protobufjs": "7.6.5"
     },
     "@nestjs/platform-express": {
-      "multer": "2.2.0"
+      "multer": "2.3.0"
     },
     "gaxios": "7.3.0",
     "postcss": "8.5.27",
-    "sharp": "0.35.3",
+    "sharp": "0.35.4",
     "nanoid": "6.0.1",
     "js-yaml": "5.4.1"
   },
