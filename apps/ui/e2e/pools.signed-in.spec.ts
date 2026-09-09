@@ -12,10 +12,15 @@ test.describe('signed in', () => {
 
     expect(new URL(page.url()).pathname).not.toContain('/login');
 
-    // The pools screen renders a main landmark and no sign-in control. A
-    // heading is not a useful proxy here: this page has none, so asserting on
-    // one tested the markup rather than whether the session held.
-    await expect(page.getByRole('main')).toBeVisible();
+    // The signed-in shell renders and the sign-in control is gone. A heading is
+    // not a useful proxy here: this page has none, so asserting on one tested
+    // the markup rather than whether the session held.
+    //
+    // .first() because the page has two main landmarks, one from the app shell
+    // and one from the screen inside it. A document should have one; the axe
+    // suite does not catch it because landmark-unique is a best-practice rule
+    // rather than WCAG A or AA, and that suite only runs the WCAG tags.
+    await expect(page.getByRole('main').first()).toBeVisible();
     await expect(page.getByRole('button', { name: /google/i })).toHaveCount(0);
   });
 
