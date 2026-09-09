@@ -42,6 +42,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       state: true,
     });
 
+    // passport-oauth2 sends the access token as a ?access_token= query
+    // parameter by default. Google tolerates that; RFC 6750 warns against it,
+    // because a token in a URL is copied into server logs, proxy logs and
+    // Referer headers, and a provider that follows the spec rejects it
+    // outright with "missing bearer token". Send the header instead.
+    (
+      this as unknown as { _oauth2: { useAuthorizationHeaderforGET(use: boolean): void } }
+    )._oauth2.useAuthorizationHeaderforGET(true);
+
     this.isConfigured = Boolean(clientID && clientSecret);
   }
 
