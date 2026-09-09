@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.70](https://github.com/zigordev/gpool/compare/v0.1.69...v0.1.70) (2026-09-09)
+
+
+### Bug Fixes
+
+* **api:** send a content security policy instead of disabling it ([#216](https://github.com/zigordev/gpool/issues/216)) ([10b6ebc](https://github.com/zigordev/gpool/commit/10b6ebc9b5dba8de656915dab159604f85961a9b))
+
 ## [0.1.69](https://github.com/zigordev/gpool/compare/v0.1.68...v0.1.69) (2026-09-09)
 
 
