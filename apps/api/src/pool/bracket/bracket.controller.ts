@@ -8,6 +8,8 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -34,6 +36,7 @@ export class BracketController {
   }
 
   @Post('phases/:phase')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a bracket phase (Admin only)' })
   @ApiResponse({ status: 201, description: 'Phase created successfully' })
   @ApiResponse({ status: 400, description: 'Phase already exists' })
@@ -96,6 +99,7 @@ export class BracketController {
   }
 
   @Post('matches/:bracketMatchId/predict')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Create or update bracket prediction' })
   @ApiResponse({ status: 200, description: 'Prediction saved successfully' })
   async createPrediction(
@@ -143,6 +147,7 @@ export class BracketController {
   }
 
   @Post('re-evaluate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Re-evaluate all bracket matches for a pool (Admin only)' })
   @ApiResponse({ status: 200, description: 'All matches re-evaluated successfully' })
   async reEvaluateAll(@Param('poolId') poolId: string, @Req() req: Request) {

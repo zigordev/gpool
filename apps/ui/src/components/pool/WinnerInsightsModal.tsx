@@ -7,6 +7,7 @@ import { useI18n } from '@/i18n/client';
 import { apiClient } from '@/lib/api';
 import { countryIsoCode } from '@/lib/country-flags';
 import { Modal } from 'design-system/components/overlay/Modal.jsx';
+import { apiErrorDetail } from '@/lib/api-error';
 
 type WinnerSelection = {
   teamId: string;
@@ -61,7 +62,7 @@ export function WinnerInsightsModal({
       .catch((requestError) => {
         if (active) {
           setError(
-            requestError.response?.data?.message ||
+            apiErrorDetail(requestError) ||
               t('poolDetail.winnerInsights.loadError'),
           );
         }

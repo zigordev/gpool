@@ -9,6 +9,7 @@ import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { trackEvent } from '@/observability';
+import { apiErrorDetail } from '@/lib/api-error';
 
 function AcceptInvitationContent() {
   const router = useRouter();
@@ -43,7 +44,7 @@ function AcceptInvitationContent() {
         globalThis.location.href = `/pools/${poolId}`;
       } catch (error: any) {
         const errorMessage =
-          error?.response?.data?.message || error?.message || t('acceptInvitation.errors.acceptFailed');
+          apiErrorDetail(error) || t('acceptInvitation.errors.acceptFailed');
         toast.error(errorMessage);
         trackEvent('Invitation Accept Failed');
         globalThis.location.href = '/pools';

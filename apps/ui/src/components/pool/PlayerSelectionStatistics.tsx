@@ -11,6 +11,7 @@ import { PlayerPosition } from '@/types/playerPosition.type';
 import { PoolDetailModalButton } from '@/components/pool/PoolDetailModalButton';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
+import { apiErrorDetail } from '@/lib/api-error';
 
 type PopularPlayer = {
   playerId: string;
@@ -64,7 +65,7 @@ export function PlayerSelectionStatistics({
       .catch((requestError) => {
         if (active) {
           setError(
-            requestError.response?.data?.message || t('poolDetail.players.statistics.loadError')
+            apiErrorDetail(requestError) || t('poolDetail.players.statistics.loadError')
           );
         }
       })

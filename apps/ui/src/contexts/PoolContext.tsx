@@ -22,6 +22,7 @@ import {
   resolvePlayerSelectionLimits,
   type PlayerSelectionLimits,
 } from '@/lib/player-selection-limits';
+import { apiErrorDetail } from '@/lib/api-error';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -397,7 +398,7 @@ const [teams, setTeams] = useState<Team[]>([]);
         );
         setLoadedSurfaces((prev) => ({ ...prev, common: true }));
       } catch (err: any) {
-        toast.error(err.response?.data?.message || t('poolDetail.errors.loadData'));
+        toast.error(apiErrorDetail(err) || t('poolDetail.errors.loadData'));
       } finally {
         setLoading(false);
       }
@@ -495,7 +496,7 @@ const [teams, setTeams] = useState<Team[]>([]);
 
         await Promise.all(requests);
       } catch (err: any) {
-        if (!cancelled) toast.error(err.response?.data?.message || t('poolDetail.errors.loadData'));
+        if (!cancelled) toast.error(apiErrorDetail(err) || t('poolDetail.errors.loadData'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -593,7 +594,7 @@ const [teams, setTeams] = useState<Team[]>([]);
       }));
       setRanking(response.data?.ranking || ranking);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
+      toast.error(apiErrorDetail(err) || t('poolDetail.errors.savePrediction'));
     }
   };
 
@@ -685,7 +686,7 @@ const [teams, setTeams] = useState<Team[]>([]);
       };
       setSpy({ target, loading: false, error: null, data });
     } catch (err: any) {
-      const message = err.response?.data?.message || t('poolDetail.spy.loadError');
+      const message = apiErrorDetail(err) || t('poolDetail.spy.loadError');
       setSpy({ target, loading: false, error: message, data: null });
     }
   };
@@ -707,7 +708,7 @@ const [teams, setTeams] = useState<Team[]>([]);
         return next;
       });
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('poolDetail.players.saveError'));
+      toast.error(apiErrorDetail(err) || t('poolDetail.players.saveError'));
     } finally {
       setSavingPlayerSlot(null);
     }
@@ -726,7 +727,7 @@ const [teams, setTeams] = useState<Team[]>([]);
           : undefined,
       }));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('poolDetail.players.saveError'));
+      toast.error(apiErrorDetail(err) || t('poolDetail.players.saveError'));
     } finally {
       setSavingPlayerSlot(null);
     }
