@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.71](https://github.com/zigordev/gpool/compare/v0.1.70...v0.1.71) (2026-09-09)
+
+
+### Features
+
+* **api:** send RFC 9457 problem details and declare status codes ([#218](https://github.com/zigordev/gpool/issues/218)) ([b480dc8](https://github.com/zigordev/gpool/commit/b480dc81bf3d4d24d2cc01579f89c7b2f1cbbd69))
+
 ## [0.1.70](https://github.com/zigordev/gpool/compare/v0.1.69...v0.1.70) (2026-09-09)
 
 
