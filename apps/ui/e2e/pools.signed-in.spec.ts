@@ -11,7 +11,12 @@ test.describe('signed in', () => {
     await page.waitForLoadState('networkidle');
 
     expect(new URL(page.url()).pathname).not.toContain('/login');
-    await expect(page.getByRole('heading').first()).toBeVisible();
+
+    // The pools screen renders a main landmark and no sign-in control. A
+    // heading is not a useful proxy here: this page has none, so asserting on
+    // one tested the markup rather than whether the session held.
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByRole('button', { name: /google/i })).toHaveCount(0);
   });
 
   test('the API recognises the session the browser carries', async ({ page }) => {
