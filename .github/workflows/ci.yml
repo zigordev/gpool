@@ -102,8 +102,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: api-coverage
+          name: coverage-api
           path: apps/api/coverage
+          retention-days: 7
           if-no-files-found: warn
 
   secrets-scan:
@@ -170,6 +171,15 @@ jobs:
           mkdir -p artifacts
           docker compose -f docker/compose.ci.yml exec -T api sh -lc 'wget -qO- http://localhost:3000/docs-json' > artifacts/openapi.test.json
 
+      - name: Upload OpenAPI spec
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: openapi-api
+          path: artifacts/openapi.test.json
+          retention-days: 7
+          if-no-files-found: error
+
       - name: Regenerate web API contract
         run: npm run contract:gen:web -- artifacts/openapi.test.json apps/ui/src/lib/api/generated.ts
 
@@ -232,7 +242,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: playwright-report
+          name: playwright-report-web
           path: apps/ui/playwright-report
           retention-days: 7
 
@@ -246,8 +256,9 @@ jobs:
         if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: k6-summary-test
+          name: k6-summary-api
           path: artifacts/k6-summary-test.json
+          retention-days: 7
           if-no-files-found: error
 
       - name: Compose logs (on failure)
@@ -300,7 +311,7 @@ jobs:
         with:
           image: gpool-api:ci
           format: spdx-json
-          output-file: artifacts/sbom-api.spdx.json
+          output-file: artifacts/sbom-gpool-api.spdx.json
           upload-artifact: false
           upload-release-assets: false
 
@@ -309,24 +320,76 @@ jobs:
         with:
           image: gpool-web:ci
           format: spdx-json
-          output-file: artifacts/sbom-web.spdx.json
+          output-file: artifacts/sbom-gpool-web.spdx.json
           upload-artifact: false
           upload-release-assets: false
 
       - name: Validate SBOM files
         run: |
-          test -s artifacts/sbom-api.spdx.json
-          test -s artifacts/sbom-web.spdx.json
-          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-api.spdx.json
-          jq -e '.spdxVersion and (.packages | type == "array")' artifacts/sbom-web.spdx.json
+          for file in artifacts/sbom-gpool-api.spdx.json artifacts/sbom-gpool-web.spdx.json; do
+            test -s "$file"
+            jq -e '.spdxVersion and (.packages | type == "array")' "$file"
+          done
 
-      - name: Upload SBOM artifacts
+      - name: Upload SBOM (api image)
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: sbom
-          path: |
-            artifacts/sbom-api.spdx.json
-            artifacts/sbom-web.spdx.json
+          name: sbom-api
+          path: artifacts/sbom-gpool-api.spdx.json
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload SBOM (web image)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: sbom-web
+          path: artifacts/sbom-gpool-web.spdx.json
+          retention-days: 30
+          if-no-files-found: error
+
+      # Twice per image on purpose: the JSON run records what was found and
+      # never fails, so the artifact exists even when the gate below stops the
+      # build. The vulnerability database is cached after the first scan.
+      - name: Trivy report (api image)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: gpool-api:ci
+          format: json
+          output: artifacts/trivy-gpool-api.json
+          exit-code: '0'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Trivy report (web image)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: gpool-web:ci
+          format: json
+          output: artifacts/trivy-gpool-web.json
+          exit-code: '0'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+
+      - name: Upload Trivy report (api image)
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: trivy-api
+          path: artifacts/trivy-gpool-api.json
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload Trivy report (web image)
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: trivy-web
+          path: artifacts/trivy-gpool-web.json
+          retention-days: 30
           if-no-files-found: error
 
       - name: Trivy scan (api image)
