@@ -3,9 +3,9 @@ name: gpool-app-prod
 x-logging: &default-logging
   driver: json-file
   options:
-    max-size: "10m"
-    max-file: "3"  
-    labels: "com.docker.compose.project,com.docker.compose.service"
+    max-size: '10m'
+    max-file: '3'
+    labels: 'com.docker.compose.project,com.docker.compose.service'
 
 services:
   gpool_db:

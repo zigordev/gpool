@@ -18,16 +18,32 @@ import { join } from 'node:path';
 
 // Permissive licences that impose no obligation beyond attribution.
 const ALLOWED = new Set([
-  '0BSD', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', 'BlueOak-1.0.0',
-  'CC0-1.0', 'CC-BY-3.0', 'CC-BY-4.0', 'ISC', 'MIT', 'MIT-0', 'MPL-2.0',
-  'Python-2.0', 'Unlicense', 'WTFPL', 'Zlib',
+  '0BSD',
+  'Apache-2.0',
+  'BSD-2-Clause',
+  'BSD-3-Clause',
+  'BlueOak-1.0.0',
+  'CC0-1.0',
+  'CC-BY-3.0',
+  'CC-BY-4.0',
+  'ISC',
+  'MIT',
+  'MIT-0',
+  'MPL-2.0',
+  'Python-2.0',
+  'Unlicense',
+  'WTFPL',
+  'Zlib',
 ]);
 
 // Named rather than pattern-matched, so adding one is a deliberate act with a
 // reviewer attached.
 const ALLOWED_PACKAGES = new Set([
   // Dual-licensed or non-SPDX strings that are permissive in practice.
-  'argparse', 'caniuse-lite', 'spdx-exceptions', 'spdx-license-ids',
+  'argparse',
+  'caniuse-lite',
+  'spdx-exceptions',
+  'spdx-license-ids',
 ]);
 
 /**
@@ -66,7 +82,7 @@ try {
       // `npm ls` exits non-zero on peer warnings while still printing valid
       // JSON, so the output matters more than the status.
       stdio: ['ignore', 'pipe', 'ignore'],
-    }),
+    })
   );
 } catch (error) {
   if (!error.stdout) throw error;
@@ -99,7 +115,7 @@ function resolveManifest(name) {
   const candidates = [
     join(root, 'node_modules', name, 'package.json'),
     ...['apps/api', 'apps/ui', 'apps/control-plane', 'apps/operator-console'].map((w) =>
-      join(root, w, 'node_modules', name, 'package.json'),
+      join(root, w, 'node_modules', name, 'package.json')
     ),
   ];
   return candidates.find((c) => existsSync(c)) ?? null;
