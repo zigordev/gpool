@@ -17,6 +17,19 @@ services:
     ports:
       - '5433:5432'
 
+  # The browser suite signs in through the real Google callback code, so CI
+  # needs something that speaks OpenID Connect. Published on the host as well
+  # as reachable on the network, because the authorization redirect goes
+  # through the browser while the token and userinfo calls come from the API.
+  oauth:
+    security_opt:
+      - no-new-privileges:true
+    image: ghcr.io/navikt/mock-oauth2-server:6.0.2
+    environment:
+      JSON_CONFIG: '{"interactiveLogin":true,"tokenCallbacks":[{"issuerId":"gpool","requestMappings":[{"requestParam":"code","match":"*","claims":{"email":"e2e@zigordev.test","email_verified":true,"name":"End To End","picture":"https://localhost/avatar.png"}}]}]}'
+    ports:
+      - '3900:8080'
+
   api:
     security_opt:
       - no-new-privileges:true
@@ -48,7 +61,10 @@ services:
       SESSION_COOKIE_SECRET: ci-session-cookie-secret
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
-      GOOGLE_CALLBACK_URL: http://localhost:3100/auth/google/callback
+      GOOGLE_CALLBACK_URL: http://localhost:3010/auth/google/callback
+      GOOGLE_AUTHORIZATION_URL: http://localhost:3900/gpool/authorize
+      GOOGLE_TOKEN_URL: http://oauth:8080/gpool/token
+      GOOGLE_USERINFO_URL: http://oauth:8080/gpool/userinfo
       AUTH_SUCCESS_REDIRECT_URL: http://localhost:3101/auth/callback
       AUTH_FAILURE_REDIRECT_URL: http://localhost:3101/login
       SESSION_COOKIE_SECURE: 'false'

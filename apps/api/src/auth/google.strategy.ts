@@ -19,10 +19,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
     const callbackURL = configService.get<string>('GOOGLE_CALLBACK_URL');
 
+    // Unset in every environment but CI, where they point at the mock
+    // OpenID Connect provider the browser suite signs in against. Left
+    // undefined, passport-google-oauth20 uses Google's own endpoints, so
+    // production configuration and the production image are unchanged.
+    const authorizationURL = configService.get<string>('GOOGLE_AUTHORIZATION_URL');
+    const tokenURL = configService.get<string>('GOOGLE_TOKEN_URL');
+    const userProfileURL = configService.get<string>('GOOGLE_USERINFO_URL');
+
     super({
       clientID,
       clientSecret,
       callbackURL,
+      ...(authorizationURL ? { authorizationURL } : null),
+      ...(tokenURL ? { tokenURL } : null),
+      ...(userProfileURL ? { userProfileURL } : null),
       scope: ['profile', 'email'],
       passReqToCallback: true,
       state: true,
