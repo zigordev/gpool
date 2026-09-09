@@ -18,9 +18,23 @@ setup('sign in through the provider', async ({ page }) => {
     .first()
     .click();
 
-  // The mock's login page: one visible text field for the subject, then submit.
+  // The provider's login page. If it is not what we landed on, say what we did
+  // land on: a redirect that failed silently is otherwise a bare "not found".
   const subject = page.locator('form input:not([type="hidden"])').first();
-  await expect(subject).toBeVisible();
+  try {
+    await expect(subject).toBeVisible({ timeout: 15_000 });
+  } catch (error) {
+    const body = (
+      await page
+        .locator('body')
+        .innerText()
+        .catch(() => '')
+    ).slice(0, 800);
+    throw new Error(
+      `Expected the provider login form.\nURL: ${page.url()}\nTitle: ${await page.title()}\nBody:\n${body}`,
+      { cause: error }
+    );
+  }
   await subject.fill('e2e-user');
   await page.locator('form button, form input[type="submit"]').first().click();
 
