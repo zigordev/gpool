@@ -27,6 +27,7 @@ import { Field } from 'design-system/components/forms/Field.jsx';
 import { Input } from 'design-system/components/forms/Input.jsx';
 import { Table } from 'design-system/components/data-display/Table.jsx';
 import { Badge } from 'design-system/components/feedback/Badge.jsx';
+import { apiErrorDetail } from '@/lib/api-error';
 
 const CREATE_POOL_MEMBER_COUNT = 1;
 
@@ -93,7 +94,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       setError(null);
     } catch (err: any) {
       console.error('Failed to fetch pools:', err);
-      const message = err.response?.data?.message || t('pools.errors.loadPools');
+      const message = apiErrorDetail(err) || t('pools.errors.loadPools');
       setError(message);
       toast.error(message);
     } finally {
@@ -174,7 +175,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       handleCloseCreateModal();
     } catch (err: any) {
       console.error('Failed to create pool:', err);
-      const message = err.response?.data?.message || t('pools.errors.create');
+      const message = apiErrorDetail(err) || t('pools.errors.create');
       setCreateError(message);
       toast.error(message);
     } finally {
@@ -216,7 +217,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       handleCloseInviteModal();
     } catch (err: any) {
       console.error('Failed to invite user:', err);
-      const message = err.response?.data?.message || t('pools.errors.invite');
+      const message = apiErrorDetail(err) || t('pools.errors.invite');
       setInviteError(message);
       toast.error(message);
     } finally {
@@ -233,7 +234,7 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       toast.success(t('pools.toast.requestSubmitted'));
     } catch (err: any) {
       console.error('Failed to request access:', err);
-      const message = err.response?.data?.message || t('pools.errors.requestAccess');
+      const message = apiErrorDetail(err) || t('pools.errors.requestAccess');
       toast.error(message);
     } finally {
       setRequestingAccess(null);
