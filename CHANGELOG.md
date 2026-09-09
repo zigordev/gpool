@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.68](https://github.com/zigordev/gpool/compare/v0.1.67...v0.1.68) (2026-09-09)
+
+
+### Bug Fixes
+
+* **deps:** take the patched multer, sharp and nodemailer ([#213](https://github.com/zigordev/gpool/issues/213)) ([f797402](https://github.com/zigordev/gpool/commit/f797402f0d3b8968512ebaa1e2a62a742fc9cbb4))
+
 ## [0.1.67](https://github.com/zigordev/gpool/compare/v0.1.66...v0.1.67) (2026-09-08)
 
 
