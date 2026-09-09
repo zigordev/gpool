@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import * as connectPgSimple from 'connect-pg-simple';
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import * as passport from 'passport';
 import { Pool } from 'pg';
@@ -21,6 +22,8 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { httpMetricsMiddleware, JsonLogger } from './observability';
+
+const SWAGGER_PATH = '/docs';
 
 type TrustProxy = boolean | number | 'loopback' | 'linklocal' | 'uniquelocal';
 
@@ -66,11 +69,7 @@ function parseTrustProxy(input: string | undefined): TrustProxy {
   if (normalized === 'false' || normalized === '0' || normalized === 'no') {
     return false;
   }
-  if (
-    normalized === 'loopback' ||
-    normalized === 'linklocal' ||
-    normalized === 'uniquelocal'
-  ) {
+  if (normalized === 'loopback' || normalized === 'linklocal' || normalized === 'uniquelocal') {
     return normalized;
   }
   if (/^\d+$/.test(normalized)) {
@@ -78,7 +77,7 @@ function parseTrustProxy(input: string | undefined): TrustProxy {
   }
 
   throw new Error(
-    'TRUST_PROXY must be one of: false, true, loopback, linklocal, uniquelocal, or a numeric hop count',
+    'TRUST_PROXY must be one of: false, true, loopback, linklocal, uniquelocal, or a numeric hop count'
   );
 }
 
@@ -90,11 +89,40 @@ async function bootstrap() {
   app.useLogger(app.get(JsonLogger));
   const expressApp = app.getHttpAdapter().getInstance();
 
-  // Security headers. CSP is off: this is a JSON API, where a content policy
-  // buys nothing, and both gpool and kini serve Swagger UI, which needs the
-  // inline scripts a default helmet CSP would block. The headers that matter
-  // here — HSTS, nosniff, frame-options, referrer-policy — are all still set.
-  app.use(helmet({ contentSecurityPolicy: false }));
+  const apiSecurityHeaders = helmet({
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        'default-src': ["'none'"],
+        'base-uri': ["'none'"],
+        'form-action': ["'none'"],
+        'frame-ancestors': ["'none'"],
+      },
+    },
+  });
+
+  const swaggerSecurityHeaders = helmet({
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        'default-src': ["'self'"],
+        'script-src': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:'],
+        'font-src': ["'self'", 'data:'],
+        'connect-src': ["'self'"],
+        'base-uri': ["'none'"],
+        'form-action': ["'none'"],
+        'frame-ancestors': ["'none'"],
+      },
+    },
+  });
+
+  app.use((req: Request, res: Response, next: NextFunction) =>
+    req.path === SWAGGER_PATH || req.path.startsWith(`${SWAGGER_PATH}/`)
+      ? swaggerSecurityHeaders(req, res, next)
+      : apiSecurityHeaders(req, res, next)
+  );
 
   const configService = app.get(ConfigService);
   const PgSession = connectPgSimple(session);
@@ -114,10 +142,7 @@ async function bootstrap() {
       cookie: {
         maxAge: Number(configService.get<string>('SESSION_COOKIE_MAX_AGE_MS', '604800000')),
         sameSite: configService.get<string>('SESSION_COOKIE_SAME_SITE', 'lax') as
-          | boolean
-          | 'lax'
-          | 'strict'
-          | 'none',
+          boolean | 'lax' | 'strict' | 'none',
         httpOnly: true,
         secure: configService.get<string>('SESSION_COOKIE_SECURE') === 'true',
         domain: configService.get<string>('SESSION_COOKIE_DOMAIN') || undefined,
@@ -143,7 +168,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    }),
+    })
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -159,7 +184,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup(SWAGGER_PATH.slice(1), app, document);
   }
 
   const port = Number(process.env.PORT || '3000');
@@ -167,7 +192,7 @@ async function bootstrap() {
 
   console.log(`gpool api listening on http://localhost:${port}`);
   if (swaggerEnabled) {
-    console.log(`Swagger docs: http://localhost:${port}/docs`);
+    console.log(`Swagger docs: http://localhost:${port}${SWAGGER_PATH}`);
   }
 }
 
