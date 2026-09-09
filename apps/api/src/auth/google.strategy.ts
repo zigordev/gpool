@@ -34,7 +34,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       ...(authorizationURL ? { authorizationURL } : null),
       ...(tokenURL ? { tokenURL } : null),
       ...(userProfileURL ? { userProfileURL } : null),
-      scope: ['profile', 'email'],
+      // openid alongside profile and email is the canonical OpenID Connect
+      // triple. Google accepts it and returns the same profile; a provider
+      // that follows the spec rejects an authorization request without it.
+      scope: ['openid', 'profile', 'email'],
       passReqToCallback: true,
       state: true,
     });
