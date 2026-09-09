@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { getApiBaseUrl } from './api-base-url';
+import { apiErrorDetail } from '@/lib/api-error';
 
 class ApiClient {
     private readonly client: AxiosInstance;
@@ -61,7 +62,7 @@ class ApiClient {
                                     method: error.config?.method,
                                     url: error.config?.url,
                                     status: error.response?.status,
-                                    message: error.response?.data?.message,
+                                    message: apiErrorDetail(error),
                                 }
                             );
                         }

@@ -8,6 +8,8 @@ import {
   Body,
   UseGuards,
   Req,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,6 +33,7 @@ export class PoolController {
   constructor(private readonly poolService: PoolService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles('admin')
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Create a new pool (Admin only)' })
@@ -75,16 +78,18 @@ export class PoolController {
   }
 
   @Delete(':poolId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete pool (pool membership admin only)' })
-  @ApiResponse({ status: 200, description: 'Pool deleted successfully' })
+  @ApiResponse({ status: 204, description: 'Pool deleted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
-  async deletePool(@Param('poolId') poolId: string, @Req() req: Request) {
+  async deletePool(@Param('poolId') poolId: string, @Req() req: Request): Promise<void> {
     const user = req.user as any;
-    return this.poolService.deletePool(poolId, user.userId, user.role);
+    await this.poolService.deletePool(poolId, user.userId, user.role);
   }
 
   @Post(':poolId/request-access')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request access to a pool' })
   @ApiResponse({ status: 200, description: 'Access requested successfully' })
   @ApiResponse({ status: 400, description: 'Already a member' })
@@ -95,6 +100,7 @@ export class PoolController {
   }
 
   @Post(':poolId/accept-request/:userId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept access request (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Access granted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
@@ -109,6 +115,7 @@ export class PoolController {
   }
 
   @Post(':poolId/invite')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Invite user to pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Invitation sent successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
@@ -123,6 +130,7 @@ export class PoolController {
   }
 
   @Post(':poolId/accept-invitation')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept invitation to join a pool' })
   @ApiResponse({ status: 200, description: 'Invitation accepted successfully' })
   @ApiResponse({ status: 404, description: 'Pool not found' })

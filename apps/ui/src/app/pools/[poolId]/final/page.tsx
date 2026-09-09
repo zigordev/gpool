@@ -19,6 +19,7 @@ import {
 } from '@/components/pool/PoolInfoSections';
 import ReactCountryFlag from 'react-country-flag';
 import { PoolSectionHeader } from '@/components/pool/PoolSectionHeader';
+import { apiErrorDetail } from '@/lib/api-error';
 
 const BracketVisualization = dynamic(
   () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
@@ -140,7 +141,7 @@ export default function FinalPage() {
       setShowAutoFillConfirm(false);
       toast.success(t('poolDetail.finalPhase.autoFillSuccess'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('poolDetail.finalPhase.autoFillError'));
+      toast.error(apiErrorDetail(err) || t('poolDetail.finalPhase.autoFillError'));
     } finally {
       setAutoFillingRoundOf32(false);
     }
@@ -293,7 +294,7 @@ export default function FinalPage() {
                   setBracketPredictions(newMap);
                   toast.success(t('poolDetail.finalPhase.predictionSaved'));
                 } catch (err: any) {
-                  toast.error(err.response?.data?.message || t('poolDetail.errors.savePrediction'));
+                  toast.error(apiErrorDetail(err) || t('poolDetail.errors.savePrediction'));
                 }
               }}
             />

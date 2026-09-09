@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n/client';
 import { trackEvent } from '@/observability';
 import { Button } from 'design-system/components/core/Button.jsx';
+import { apiErrorDetail } from '@/lib/api-error';
 
 type Status = 'pending' | 'success' | 'error';
 
@@ -100,7 +101,7 @@ function AcceptAccessRequestContent() {
         setTimeout(() => router.push(`/pools/${poolId}`), 1500);
       } catch (error: any) {
         const errorMessage =
-          error?.response?.data?.message || error?.message || t('acceptRequest.errors.acceptFailed');
+          apiErrorDetail(error) || t('acceptRequest.errors.acceptFailed');
         setAsyncStatus('error');
         setAsyncMessage(errorMessage);
         toast.error(errorMessage);

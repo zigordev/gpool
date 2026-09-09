@@ -1,12 +1,10 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
+import {
+  internalProblem,
+  PROBLEM_CONTENT_TYPE,
+  problemFromException,
+} from '../http/problem-details';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -17,43 +15,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let error = 'Internal Server Error';
+    const problem =
+      exception instanceof HttpException
+        ? problemFromException(exception, request.url)
+        : internalProblem(request.url);
 
-    if (exception instanceof HttpException) {
-      const httpException = exception;
-      status = httpException.getStatus();
-      const exceptionResponse = httpException.getResponse();
-      
-      if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
-      } else if (typeof exceptionResponse === 'object') {
-        message = (exceptionResponse as any).message || message;
-        error = (exceptionResponse as any).error || error;
-      }
-    } else if (exception instanceof Error) {
-      message = exception.message;
+    // The request method, path and timestamp the body used to repeat are on
+    // every log line already, keyed by traceId.
+    if (problem.status >= 500) {
       this.logger.error(
-        `Unhandled exception: ${exception.message}`,
-        exception.stack,
-        `${request.method} ${request.url}`,
+        `${request.method} ${request.url} - ${problem.status} - ${problem.code}`,
+        exception instanceof Error ? exception.stack : undefined
       );
+    } else {
+      this.logger.warn(`${request.method} ${request.url} - ${problem.status} - ${problem.code}`);
     }
 
-    const errorResponse = {
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      method: request.method,
-      message,
-      error,
-    };
-
-    this.logger.error(
-      `${request.method} ${request.url} - ${status} - ${message}`,
-    );
-
-    response.status(status).json(errorResponse);
+    response.status(problem.status).type(PROBLEM_CONTENT_TYPE).json(problem);
   }
 }

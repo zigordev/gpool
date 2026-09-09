@@ -5,7 +5,7 @@ export type ApiOperation = {
   method: 'DELETE';
   path: '/pools/{poolId}';
   operationId: 'PoolController_deletePool';
-  responseCodes: ['200', '403', '404'];
+  responseCodes: ['204', '403', '404'];
 } | {
   method: 'GET';
   path: '/auth/google';
@@ -110,7 +110,7 @@ export type ApiOperation = {
   method: 'POST';
   path: '/auth/logout';
   operationId: 'AuthController_logout';
-  responseCodes: ['201'];
+  responseCodes: ['200'];
 } | {
   method: 'POST';
   path: '/pools';
@@ -216,7 +216,7 @@ export const API_OPERATIONS = [
     "path": "/pools/{poolId}",
     "operationId": "PoolController_deletePool",
     "responseCodes": [
-      "200",
+      "204",
       "403",
       "404"
     ]
@@ -399,7 +399,7 @@ export const API_OPERATIONS = [
     "path": "/auth/logout",
     "operationId": "AuthController_logout",
     "responseCodes": [
-      "201"
+      "200"
     ]
   },
   {

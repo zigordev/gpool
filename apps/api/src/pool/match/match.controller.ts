@@ -8,6 +8,8 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -59,6 +61,7 @@ export class MatchController {
   }
 
   @Post(':matchId/predict')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Submit a prediction for a match' })
   @ApiResponse({ status: 200, description: 'Prediction submitted successfully' })
   @ApiResponse({ status: 400, description: 'Invalid prediction or deadline passed' })
@@ -110,6 +113,7 @@ export class MatchController {
   }
 
   @Post(':matchId/results')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update match results (Admin only)' })
   @ApiResponse({ status: 200, description: 'Match results updated and predictions evaluated' })
   @ApiResponse({ status: 400, description: 'Invalid results' })

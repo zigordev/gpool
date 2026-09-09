@@ -15,6 +15,7 @@ import {
   type PlayerSelectionLimits,
   resolvePlayerSelectionLimits,
 } from '@/lib/player-selection-limits';
+import { apiErrorDetail } from '@/lib/api-error';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -689,7 +690,7 @@ export function AdminProvider({
           }
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || t('adminResults.errors.loadData'));
+        setError(apiErrorDetail(err) || t('adminResults.errors.loadData'));
       } finally {
         setLoading(false);
       }
@@ -740,7 +741,7 @@ export function AdminProvider({
       await apiClient.put(`/pools/${poolId}/configuration`, payload);
       lastSavedConfig.current = snapshot;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.saveScoring'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.saveScoring'));
     } finally {
       setSavingConfig(false);
     }
@@ -769,7 +770,7 @@ export function AdminProvider({
         await apiClient.put(`/pools/${poolId}`, { name: trimmed });
         lastSavedName.current = trimmed;
       } catch (err: any) {
-        toast.error(err.response?.data?.message || t('pools.errors.update'));
+        toast.error(apiErrorDetail(err) || t('pools.errors.update'));
       }
     }, 600);
     return () => { if (nameSaveTimer.current) { clearTimeout(nameSaveTimer.current); nameSaveTimer.current = null; } };
@@ -823,7 +824,7 @@ export function AdminProvider({
         });
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.saveResults'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.saveResults'));
     } finally {
       setSubmitting((current) => (current === matchId ? null : current));
     }
@@ -843,7 +844,7 @@ export function AdminProvider({
       });
       setBracketResults(bracketResultsMap);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.updateTeam'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.updateTeam'));
     } finally {
       setUpdatingMatch(null);
     }
@@ -868,7 +869,7 @@ export function AdminProvider({
       });
       setBracketResults(bracketResultsMap);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.saveBracketResult'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.saveBracketResult'));
     } finally {
       setSubmittingBracketResult(null);
     }
@@ -892,7 +893,7 @@ export function AdminProvider({
       });
       setPlayers((prev) => prev.map((item) => item.playerId === player.playerId ? (() => { const nextPlayer = { ...item, goals: updated.data?.goals ?? item.goals, penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals, missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties, mvps: updated.data?.mvps ?? item.mvps, penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved, forcedPenaltyMisses: updated.data?.forcedPenaltyMisses ?? item.forcedPenaltyMisses, shootoutPenaltiesSaved: updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved, shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals, shootoutMissedPenalties: updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties, shootoutForcedPenaltyMisses: updated.data?.shootoutForcedPenaltyMisses ?? item.shootoutForcedPenaltyMisses, cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets, assists: updated.data?.assists ?? item.assists, yellowCards: updated.data?.yellowCards ?? item.yellowCards, doubleYellowCards: updated.data?.doubleYellowCards ?? item.doubleYellowCards, redCards: updated.data?.redCards ?? item.redCards }; return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) }; })() : item));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.updatePlayerStats'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.updatePlayerStats'));
     } finally {
       setUpdatingPlayerStat(null);
     }
@@ -918,7 +919,7 @@ export function AdminProvider({
         tournamentMvpPlayerId: response.data?.tournamentMvpPlayerId || '',
       });
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.updatePlayerAward'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.updatePlayerAward'));
     } finally {
       setUpdatingPlayerAward((current) => (current === key ? null : current));
     }
@@ -934,7 +935,7 @@ export function AdminProvider({
           : team
       )));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.updateFairPlay'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.updateFairPlay'));
       throw err;
     } finally {
       setUpdatingTeamFairPlay((current) => (current === teamId ? null : current));
@@ -946,7 +947,7 @@ export function AdminProvider({
       await apiClient.post(`/pools/${poolId}/bracket/re-evaluate`);
       toast.success(t('adminResults.toast.bracketReEvaluated'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.bracketReEvaluate'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.bracketReEvaluate'));
     }
   };
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
@@ -78,6 +78,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Destroy the current session' })
   @UseGuards(AuthenticatedGuard)
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {

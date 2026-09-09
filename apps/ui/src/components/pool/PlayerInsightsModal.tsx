@@ -12,6 +12,7 @@ import { resolvePlayerInfoScoring } from '@/components/pool/PoolInfoSections';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
+import { apiErrorDetail } from '@/lib/api-error';
 
 export type PlayerInsightsTarget = {
   playerId: string;
@@ -108,7 +109,7 @@ export function PlayerInsightsModal({
       .catch((requestError) => {
         if (active) {
           setError(
-            requestError.response?.data?.message || t('poolDetail.players.insights.loadError')
+            apiErrorDetail(requestError) || t('poolDetail.players.insights.loadError')
           );
         }
       })

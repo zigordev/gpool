@@ -12,6 +12,7 @@ import { countryIsoCode } from '@/lib/country-flags';
 import { PlayerPosition } from '@/types/playerPosition.type';
 import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
+import { apiErrorDetail } from '@/lib/api-error';
 
 export type MatchInsightsTarget = {
   matchId: string;
@@ -98,7 +99,7 @@ export function MatchInsightsModal({
       })
       .catch((requestError) => {
         if (active) {
-          setError(requestError.response?.data?.message || t('poolDetail.matchInsights.loadError'));
+          setError(apiErrorDetail(requestError) || t('poolDetail.matchInsights.loadError'));
         }
       })
       .finally(() => {

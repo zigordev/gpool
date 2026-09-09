@@ -14,6 +14,7 @@ import { FaClock } from 'react-icons/fa';
 import { FaDollarSign } from 'react-icons/fa6';
 import { Button } from 'design-system/components/core/Button.jsx';
 import { DateField } from 'design-system/components/forms/DateField.jsx';
+import { apiErrorDetail } from '@/lib/api-error';
 
 export default function AdminRankingPage() {
   const { t } = useI18n();
@@ -43,7 +44,7 @@ export default function AdminRankingPage() {
       toast.success(t('adminResults.toast.poolDeleted'));
       router.push('/pools');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('adminResults.errors.deletePool'));
+      toast.error(apiErrorDetail(err) || t('adminResults.errors.deletePool'));
       setDeleting(false);
       setShowDeleteConfirm(false);
     }
