@@ -6,8 +6,7 @@ Football pool platform monorepo.
 
 - `apps/web`: Next.js web app
 - `apps/api`: NestJS monolithic backend (auth + pools + notifications + RUM)
-- `docker/`: app-local, app-prod, ci/precommit compose manifests + env templates
-- `infra/terraform/`: deploy-facing terraform layout
+- `docker/`: app-local, app-dev, app-prod and CI compose manifests + env templates
 - `.github/workflows/`: CI, deploy, release, governance workflows
 
 ## Quick start
