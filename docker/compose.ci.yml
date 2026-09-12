@@ -96,7 +96,7 @@ services:
       - no-new-privileges:true
     build:
       context: ..
-      dockerfile: apps/ui/Dockerfile
+      dockerfile: apps/web/Dockerfile
       target: local
       args:
         # Baked into the client bundle, so it has to be an address the browser

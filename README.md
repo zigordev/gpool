@@ -4,7 +4,7 @@ Football pool platform monorepo.
 
 ## Repository shape
 
-- `apps/ui`: Next.js web app
+- `apps/web`: Next.js web app
 - `apps/api`: NestJS monolithic backend (auth + pools + notifications + RUM)
 - `docker/`: app-local, app-prod, ci/precommit compose manifests + env templates
 - `infra/terraform/`: deploy-facing terraform layout
@@ -51,7 +51,7 @@ curl -fsS http://localhost:3011
 npm run local:down
 ```
 
-Translations are authored in the local Tolgee from `platform-ops`. After changing translations there, rerun `npm run local:up` to refresh the tracked `apps/ui/messages/*.json` snapshots before committing them.
+Translations are authored in the local Tolgee from `platform-ops`. After changing translations there, rerun `npm run local:up` to refresh the tracked `apps/web/messages/*.json` snapshots before committing them.
 
 ## Quality commands
 

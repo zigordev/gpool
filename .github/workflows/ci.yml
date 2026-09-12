@@ -184,10 +184,10 @@ jobs:
           if-no-files-found: error
 
       - name: Regenerate web API contract
-        run: npm run contract:gen:web -- artifacts/openapi.test.json apps/ui/src/lib/api/generated.ts
+        run: npm run contract:gen:web -- artifacts/openapi.test.json apps/web/src/lib/api/generated.ts
 
       - name: Enforce API contract drift
-        run: git diff --exit-code -- apps/ui/src/lib/api/generated.ts
+        run: git diff --exit-code -- apps/web/src/lib/api/generated.ts
 
       - name: Wait for web
         run: |
@@ -266,8 +266,8 @@ jobs:
         with:
           name: playwright-report-web
           path: |
-            apps/ui/playwright-report
-            apps/ui/test-results
+            apps/web/playwright-report
+            apps/web/test-results
           retention-days: 7
           if-no-files-found: warn
 
@@ -323,7 +323,7 @@ jobs:
         run: |
           docker build -f apps/api/Dockerfile --target prod -t gpool-api:ci . &
           pid_api=$!
-          docker build --build-arg NEXT_PUBLIC_API_BASE_URL=http://api:3000 --build-arg NEXT_PUBLIC_RELEASE=ci -f apps/ui/Dockerfile --target prod -t gpool-web:ci . &
+          docker build --build-arg NEXT_PUBLIC_API_BASE_URL=http://api:3000 --build-arg NEXT_PUBLIC_RELEASE=ci -f apps/web/Dockerfile --target prod -t gpool-web:ci . &
           pid_web=$!
           wait "$pid_api"
           wait "$pid_web"

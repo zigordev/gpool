@@ -114,7 +114,7 @@ const seen = new Map();
 function resolveManifest(name) {
   const candidates = [
     join(root, 'node_modules', name, 'package.json'),
-    ...['apps/api', 'apps/ui', 'apps/control-plane', 'apps/operator-console'].map((w) =>
+    ...['apps/api', 'apps/web', 'apps/control-plane', 'apps/operator-console'].map((w) =>
       join(root, w, 'node_modules', name, 'package.json')
     ),
   ];

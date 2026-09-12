@@ -35,15 +35,15 @@ services:
     develop:
       watch:
         - action: sync
-          path: ../apps/ui/src
-          target: /workspace/apps/ui/src
+          path: ../apps/web/src
+          target: /workspace/apps/web/src
         - action: sync
-          path: ../apps/ui/messages
-          target: /workspace/apps/ui/messages
+          path: ../apps/web/messages
+          target: /workspace/apps/web/messages
         - action: sync+restart
-          path: ../apps/ui/next.config.js
-          target: /workspace/apps/ui/next.config.js
+          path: ../apps/web/next.config.js
+          target: /workspace/apps/web/next.config.js
         - action: rebuild
           path: ../package-lock.json
         - action: rebuild
-          path: ../apps/ui/package.json
+          path: ../apps/web/package.json

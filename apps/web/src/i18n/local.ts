@@ -5,7 +5,7 @@ import type { Locale } from './config';
 import type { Messages } from './translator';
 
 const MESSAGE_DIR_CANDIDATES = [
-  path.join(process.cwd(), 'apps/ui/messages'),
+  path.join(process.cwd(), 'apps/web/messages'),
   path.join(process.cwd(), 'messages'),
 ];
 
