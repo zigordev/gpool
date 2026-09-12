@@ -13,8 +13,8 @@
   "scripts": {
     "prepare": "node ./scripts/prepare-husky.mjs",
     "lint": "npm run lint --workspaces --if-present",
-    "format": "prettier --write \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
-    "format:check": "prettier --check \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
+    "format": "prettier --write \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"scripts/**/*.json\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
+    "format:check": "prettier --check \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"scripts/**/*.json\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
     "typecheck": "npm run typecheck -w @gpool/api",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
