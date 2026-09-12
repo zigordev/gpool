@@ -13,8 +13,8 @@
   "scripts": {
     "prepare": "node ./scripts/prepare-husky.mjs",
     "lint": "npm run lint --workspaces --if-present",
-    "format": "prettier --write \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"infra/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
-    "format:check": "prettier --check \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"infra/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
+    "format": "prettier --write \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
+    "format:check": "prettier --check \".github/**/*.{yml,yaml}\" \"docker/**/*.{yml,yaml}\" \"scripts/**/*.mjs\" \"docs/**/*.md\" \"README.md\" \"CHANGELOG.md\" \"package.json\" \".release-please-config.json\" \".release-please-manifest.json\"",
     "typecheck": "npm run typecheck -w @gpool/api",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
@@ -27,10 +27,13 @@
     "local:dev": "bash ./scripts/local-stack-dev.sh",
     "local:down": "bash ./scripts/local-stack-down.sh",
     "local:reset": "bash ./scripts/local-stack-reset.sh",
+    "local:token": "bash ../platform-ops/scripts/provision-local-app-token.sh gpool",
     "audit": "npm audit --audit-level=high",
     "audit:prod:gate": "node ./scripts/audit-prod-gate.mjs",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
-    "contract:gen:web": "node ./scripts/generate-api-contract.mjs"
+    "contract:gen:web": "node ./scripts/generate-api-contract.mjs",
+    "i18n:push:local": "node scripts/i18n-sync-local.mjs --once --workspace @gpool/web",
+    "i18n:watch:local": "node scripts/i18n-sync-local.mjs --watch --workspace @gpool/web"
   },
   "overrides": {
     "multer": "2.3.0",

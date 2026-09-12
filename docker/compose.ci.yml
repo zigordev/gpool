@@ -15,7 +15,7 @@ services:
       timeout: 3s
       retries: 20
     ports:
-      - '5433:5432'
+      - '${CI_DB_PORT:-5433}:5432'
 
   # The browser suite signs in through the real Google callback code, so CI
   # needs something that speaks OpenID Connect. Published on the host as well
@@ -33,7 +33,7 @@ services:
       SERVER_PORT: '8080'
       JSON_CONFIG: '{"interactiveLogin":true,"tokenCallbacks":[{"issuerId":"gpool","requestMappings":[{"requestParam":"code","match":"*","claims":{"email":"e2e@zigordev.test","email_verified":true,"name":"End To End"}}]}]}'
     ports:
-      - '3900:8080'
+      - '${CI_OAUTH_PORT:-3900}:8080'
     healthcheck:
       test:
         [
@@ -47,6 +47,13 @@ services:
   api:
     security_opt:
       - no-new-privileges:true
+    init: true
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health >/dev/null 2>&1 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
@@ -59,7 +66,7 @@ services:
       DB_USER: gpool_admin
       DB_PASSWORD: app
       DB_NAME: gpool_test
-      CORS_ORIGINS: http://localhost:3101
+      CORS_ORIGINS: http://localhost:${CI_WEB_PORT:-3101}
       TRUST_PROXY: 'false'
       SWAGGER_ENABLED: 'true'
       OTEL_SERVICE_NAME: gpool-api-test
@@ -75,18 +82,18 @@ services:
       SESSION_COOKIE_SECRET: ci-session-cookie-secret
       GOOGLE_CLIENT_ID: ci-google-id
       GOOGLE_CLIENT_SECRET: ci-google-secret
-      GOOGLE_CALLBACK_URL: http://localhost:3010/auth/google/callback
-      GOOGLE_AUTHORIZATION_URL: http://localhost:3900/gpool/authorize
+      GOOGLE_CALLBACK_URL: http://localhost:${CI_API_PORT:-3010}/auth/google/callback
+      GOOGLE_AUTHORIZATION_URL: http://localhost:${CI_OAUTH_PORT:-3900}/gpool/authorize
       GOOGLE_TOKEN_URL: http://oauth:8080/gpool/token
       GOOGLE_USERINFO_URL: http://oauth:8080/gpool/userinfo
-      AUTH_SUCCESS_REDIRECT_URL: http://localhost:3101/auth/callback
-      AUTH_FAILURE_REDIRECT_URL: http://localhost:3101/login
+      AUTH_SUCCESS_REDIRECT_URL: http://localhost:${CI_WEB_PORT:-3101}/auth/callback
+      AUTH_FAILURE_REDIRECT_URL: http://localhost:${CI_WEB_PORT:-3101}/login
       SESSION_COOKIE_SECURE: 'false'
-      FRONTEND_URL: http://localhost:3101
+      FRONTEND_URL: http://localhost:${CI_WEB_PORT:-3101}
       NOTIFICATIONS_KAFKA_BROKERS: platform-redpanda:9092
       NOTIFICATIONS_EMAIL_TOPIC: notification.email.requested.v1
     ports:
-      - '3010:3000'
+      - '${CI_API_PORT:-3010}:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,6 +101,13 @@ services:
   web:
     security_opt:
       - no-new-privileges:true
+    init: true
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/health >/dev/null 2>&1 || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
@@ -102,10 +116,10 @@ services:
         # Baked into the client bundle, so it has to be an address the browser
         # can reach. Every use of it is a fetch from the browser, and the
         # browser running the suite is on the host, where `api` is not a name.
-        NEXT_PUBLIC_API_BASE_URL: http://localhost:3010
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:${CI_API_PORT:-3010}
         NEXT_PUBLIC_RELEASE: ci
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:3010
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:${CI_API_PORT:-3010}
       NEXT_PUBLIC_RELEASE: ci
       OPENBAO_ADDR: http://openbao:8200
       OPENBAO_TOKEN: ci-openbao-token
@@ -115,7 +129,7 @@ services:
       TOLGEE_API_URL: http://tolgee:8080
       TOLGEE_PROJECT_ID: '3'
     ports:
-      - '3101:3001'
+      - '${CI_WEB_PORT:-3101}:3001'
     depends_on:
       - api
 
