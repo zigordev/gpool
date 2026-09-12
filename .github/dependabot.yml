@@ -71,6 +71,9 @@ updates:
     # urgent enough to be worth being the first to install it.
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     commit-message:
       prefix: chore
       include: scope
@@ -83,6 +86,9 @@ updates:
       timezone: 'Europe/Madrid'
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     commit-message:
       prefix: chore
       include: scope
