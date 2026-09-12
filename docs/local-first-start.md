@@ -232,7 +232,7 @@ npm run local:reset
 Translation workflow:
 
 - edit translations in the local Tolgee UI at `http://localhost:8090`
-- rerun `npm run local:up` to pull the latest Tolgee export into `apps/ui/messages/*.json`
+- rerun `npm run local:up` to pull the latest Tolgee export into `apps/web/messages/*.json`
 - commit those JSON snapshot changes to git
 - let the production translation promotion workflow push the committed snapshots into prod Tolgee
 

@@ -6,9 +6,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePools } from '@/contexts/PoolsContext';
 import { LanguageButton, ThemeButton, UserButton } from './NavigationBar';
-// design-system, copied in (no npm package / build step) — see
-// apps/ui/design-system/. Do not hand-edit the .jsx files there; re-copy
-// from the sibling design-system repo instead.
 import { AppShell } from 'design-system/components/navigation/AppShell.jsx';
 import { Icon } from 'design-system/components/icons/Icon.jsx';
 import { Logo } from 'design-system/components/navigation/Logo.jsx';
