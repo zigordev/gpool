@@ -60,7 +60,7 @@
     "@types/node": "^20.19.30",
     "@types/nodemailer": "^6.4.21",
     "@types/passport-google-oauth20": "^2.0.17",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.68.0",
     "@vitest/coverage-v8": "^4.1.11",
