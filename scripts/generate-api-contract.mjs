@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const input = process.argv[2] ?? 'artifacts/openapi.test.json';
-const output = process.argv[3] ?? 'apps/ui/src/lib/api/generated.ts';
+const output = process.argv[3] ?? 'apps/web/src/lib/api/generated.ts';
 
 const raw = fs.readFileSync(input, 'utf8');
 const spec = JSON.parse(raw);

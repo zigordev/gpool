@@ -242,7 +242,7 @@ Workflow:
 
 Trigger it in either way:
 
-- merge a commit to `main` that changes `apps/ui/messages/*.json`
+- merge a commit to `main` that changes `apps/web/messages/*.json`
 - or run `workflow_dispatch` manually
 
 What the workflow does:

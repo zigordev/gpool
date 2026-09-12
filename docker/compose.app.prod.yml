@@ -97,7 +97,7 @@ services:
       [
         'sh',
         '-lc',
-        'until wget -qO- http://gpool-api:3000/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/ui/server.js',
+        'until wget -qO- http://gpool-api:3000/health >/dev/null 2>&1; do sleep 2; done; exec node /app/scripts/openbao-run.mjs -- node apps/web/server.js',
       ]
     logging: *default-logging
     networks:

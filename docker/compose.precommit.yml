@@ -66,7 +66,7 @@ services:
       - no-new-privileges:true
     build:
       context: ..
-      dockerfile: apps/ui/Dockerfile
+      dockerfile: apps/web/Dockerfile
       target: local
       args:
         NEXT_PUBLIC_API_BASE_URL: http://api:3000

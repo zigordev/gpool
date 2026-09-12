@@ -82,7 +82,7 @@ async function main() {
   const { watch: watchMode, workspace } = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const envFile = path.join(repoRoot, 'docker/.env.app.local');
-  const messagesDir = path.join(repoRoot, 'apps/ui/messages');
+  const messagesDir = path.join(repoRoot, 'apps/web/messages');
 
   if (!existsSync(envFile)) {
     die(`Missing ${path.relative(repoRoot, envFile)}. Create it before running Tolgee sync.`);

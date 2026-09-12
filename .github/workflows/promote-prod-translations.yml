@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/ui/messages/**/*.json'
+      - 'apps/web/messages/**/*.json'
       - 'docker/.env.app.prod'
-      - 'apps/ui/tolgee.config.cjs'
+      - 'apps/web/tolgee.config.cjs'
   workflow_dispatch:
 
 permissions:
