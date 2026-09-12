@@ -70,7 +70,5 @@ npm run test
 
 See:
 
-- `docs/deployment.md`
-- `docs/observability.md`
-- `docs/deploy-aws-terraform.md`
-- `docs/github-governance.md`
+- `docs/local-first-start.md`
+- `docs/cloud-first-deploy.md`
