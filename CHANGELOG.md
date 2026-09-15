@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.72](https://github.com/zigordev/gpool/compare/v0.1.71...v0.1.72) (2026-09-15)
+
+
+### Bug Fixes
+
+* **ci:** stop format:check from gating on the generated changelog ([#242](https://github.com/zigordev/gpool/issues/242)) ([580fd8d](https://github.com/zigordev/gpool/commit/580fd8d9aeb38eac703f00d87a75f87021adb414))
+
+
+### Refactoring
+
+* **scripts:** one local-stack body with a per-repo config block ([#241](https://github.com/zigordev/gpool/issues/241)) ([9da5acf](https://github.com/zigordev/gpool/commit/9da5acf4bb49842097b6b1519bc70269df59a6ba))
+* **scripts:** one shared body for the audit gate and licence check ([#239](https://github.com/zigordev/gpool/issues/239)) ([e2207f6](https://github.com/zigordev/gpool/commit/e2207f68792b1e29cdf4af37fb10d4cb28b4860a))
+* **shape:** converge compose conventions, drop the terraform stub and add the web health route ([#238](https://github.com/zigordev/gpool/issues/238)) ([0d86c21](https://github.com/zigordev/gpool/commit/0d86c213f3e824fce5f0e90372d612aa26873a5b))
+* **web:** rename apps/ui to apps/web ([#231](https://github.com/zigordev/gpool/issues/231)) ([a2875f4](https://github.com/zigordev/gpool/commit/a2875f4034ca357657cc451f78647f3feebd15c6))
+
 ## [0.1.71](https://github.com/zigordev/gpool/compare/v0.1.70...v0.1.71) (2026-09-09)
 
 ### Features
