@@ -54,7 +54,9 @@ export function PoolDetailModalButton({
           textAlign: label ? 'center' : undefined,
         }}
       >
-        <span aria-hidden style={{ display: 'inline-flex' }}>{icon}</span>
+        <span aria-hidden style={{ display: 'inline-flex' }}>
+          {icon}
+        </span>
         {label ? <span>{label}</span> : null}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title={title} size="lg">

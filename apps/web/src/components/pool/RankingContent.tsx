@@ -635,9 +635,9 @@ function SpyPlayersView({
                         compact
                       />
                     </>
-                ) : (
-                  <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
-                )}
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', color: 'rgb(var(--fg-subtle))' }}>—</span>
+                  )}
                 </article>
               );
             })}
@@ -710,7 +710,6 @@ export function RankingContent({
       playerSelectionLimits={playerSelectionLimits}
     />
   ) : null;
-
 
   return (
     <div className="content-panel main-view-stack">

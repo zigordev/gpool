@@ -1,14 +1,8 @@
-import { BracketCandidateMap } from "@/types/bracketCandidateMap.type";
-import { BracketPredictionProjection } from "@/types/bracketPredictionProjection.interface";
-import { ScorePredictionProjection } from "@/types/scorePredictionProjection.interface";
+import { BracketCandidateMap } from '@/types/bracketCandidateMap.type';
+import { BracketPredictionProjection } from '@/types/bracketPredictionProjection.interface';
+import { ScorePredictionProjection } from '@/types/scorePredictionProjection.interface';
 
-const PHASE_ORDER = [
-  '16th-finals',
-  '8th-finals',
-  'quarter-finals',
-  'semi-finals',
-  'finals',
-];
+const PHASE_ORDER = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'];
 
 const THIRD_PLACE_WINNER_GROUP_ORDER = ['A', 'B', 'D', 'E', 'G', 'I', 'K', 'L'] as const;
 
@@ -517,7 +511,7 @@ const FIFA_THIRD_PLACE_ASSIGNMENTS = new Map<string, string>(
   FIFA_THIRD_PLACE_ASSIGNMENT_ROWS.map((row) => {
     const [qualifiedGroups, assignments] = row.split(':');
     return [qualifiedGroups, assignments];
-  }),
+  })
 );
 
 function scoreValue(value: number | ''): number | null {
@@ -538,7 +532,7 @@ function teamFromMatchSide(
   teamName: string,
   group: string,
   teamsById: Map<string, Team>,
-  teamsByName: Map<string, Team>,
+  teamsByName: Map<string, Team>
 ): Team {
   const byId = teamId ? teamsById.get(teamId) : undefined;
   const byName = teamsByName.get(teamName);
@@ -569,7 +563,7 @@ export function compareRows(a: StandingRow, b: StandingRow): number {
 function rankGroup(
   rows: StandingRow[],
   groupMatches: Match[],
-  predictions: Record<string, ScorePredictionProjection>,
+  predictions: Record<string, ScorePredictionProjection>
 ): StandingRow[] {
   const byPoints = new Map<number, StandingRow[]>();
   rows.forEach((row) => {
@@ -584,8 +578,13 @@ function rankGroup(
       if (tiedRows.length <= 1) return tiedRows;
 
       const tiedIds = new Set(tiedRows.map((row: StandingRow) => row.teamId));
-      const headToHead = new Map<string, { points: number; goalDifference: number; goalsFor: number }>();
-      tiedRows.forEach((row: StandingRow) => headToHead.set(row.teamId, { points: 0, goalDifference: 0, goalsFor: 0 }));
+      const headToHead = new Map<
+        string,
+        { points: number; goalDifference: number; goalsFor: number }
+      >();
+      tiedRows.forEach((row: StandingRow) =>
+        headToHead.set(row.teamId, { points: 0, goalDifference: 0, goalsFor: 0 })
+      );
 
       groupMatches.forEach((match) => {
         if (!match.homeTeamId || !match.awayTeamId) return;
@@ -627,7 +626,7 @@ function rankGroup(
 export function computeGroupStandings(
   matchesByGroup: Record<string, Match[]>,
   predictions: Record<string, ScorePredictionProjection>,
-  teams: Team[],
+  teams: Team[]
 ): Record<string, StandingRow[]> {
   const teamsById = new Map(teams.map((team) => [team.teamId, team]));
   const teamsByName = new Map(teams.map((team) => [team.name, team]));
@@ -654,10 +653,10 @@ export function computeGroupStandings(
 
     groupMatches.forEach((match) => {
       const home = ensureRow(
-        teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName),
+        teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName)
       );
       const away = ensureRow(
-        teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName),
+        teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName)
       );
       const prediction = predictions[match.matchId];
       if (!matchPredictionComplete(prediction)) return;
@@ -689,7 +688,7 @@ export function computeGroupStandings(
 
 export function computeRealGroupStandings(
   matchesByGroup: Record<string, Match[]>,
-  teams: Team[],
+  teams: Team[]
 ): Record<string, StandingRow[]> {
   const teamsById = new Map(teams.map((team) => [team.teamId, team]));
   const teamsByName = new Map(teams.map((team) => [team.name, team]));
@@ -724,16 +723,14 @@ export function computeRealGroupStandings(
       return row;
     };
 
-    teams
-      .filter((team) => team.group === group)
-      .forEach(ensureRow);
+    teams.filter((team) => team.group === group).forEach(ensureRow);
 
     groupMatches.forEach((match) => {
       const home = ensureRow(
-        teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName),
+        teamFromMatchSide(match.homeTeamId, match.homeTeamName, group, teamsById, teamsByName)
       );
       const away = ensureRow(
-        teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName),
+        teamFromMatchSide(match.awayTeamId, match.awayTeamName, group, teamsById, teamsByName)
       );
 
       if (typeof match.homeResult !== 'number' || typeof match.awayResult !== 'number') return;
@@ -772,10 +769,7 @@ export function computeRealGroupStandings(
   return standings;
 }
 
-function rankGroupFromResults(
-  rows: StandingRow[],
-  groupMatches: Match[],
-): StandingRow[] {
+function rankGroupFromResults(rows: StandingRow[], groupMatches: Match[]): StandingRow[] {
   const byPoints = new Map<number, StandingRow[]>();
   rows.forEach((row) => {
     const bucket = byPoints.get(row.points) || [];
@@ -789,7 +783,10 @@ function rankGroupFromResults(
       if (tiedRows.length <= 1) return tiedRows;
 
       const tiedIds = new Set(tiedRows.map((row: StandingRow) => row.teamId));
-      const headToHead = new Map<string, { points: number; goalDifference: number; goalsFor: number }>();
+      const headToHead = new Map<
+        string,
+        { points: number; goalDifference: number; goalsFor: number }
+      >();
       tiedRows.forEach((row: StandingRow) =>
         headToHead.set(row.teamId, { points: 0, goalDifference: 0, goalsFor: 0 })
       );
@@ -832,14 +829,19 @@ function rankGroupFromResults(
     });
 }
 
-function selectedTeam(prediction: BracketPredictionProjection | undefined, side: 'home' | 'away'): Team | null {
+function selectedTeam(
+  prediction: BracketPredictionProjection | undefined,
+  side: 'home' | 'away'
+): Team | null {
   const teamId = side === 'home' ? prediction?.homeTeamId : prediction?.awayTeamId;
   const name = side === 'home' ? prediction?.homeTeamName : prediction?.awayTeamName;
   return teamId && name ? { teamId, name } : null;
 }
 
 function selectedTeams(prediction: BracketPredictionProjection | undefined): Team[] {
-  return [selectedTeam(prediction, 'home'), selectedTeam(prediction, 'away')].filter(Boolean) as Team[];
+  return [selectedTeam(prediction, 'home'), selectedTeam(prediction, 'away')].filter(
+    Boolean
+  ) as Team[];
 }
 
 function teamAllowed(teamId: string | undefined, candidates: Team[]): boolean {
@@ -863,7 +865,7 @@ function sourceCandidates(
   standings: Record<string, StandingRow[]>,
   qualifiedThirds: StandingRow[],
   bracket: Record<string, BracketMatch[]>,
-  effectivePredictions: Record<string, BracketPredictionProjection>,
+  effectivePredictions: Record<string, BracketPredictionProjection>
 ): Team[] {
   if (!sourceLabel) return [];
 
@@ -881,7 +883,9 @@ function sourceCandidates(
   const third = sourceLabel.match(/^3([A-L]+)$/);
   if (third) {
     const allowedGroups = new Set(third[1].split(''));
-    const projectedThirds = qualifiedThirds.filter((row) => row.group && allowedGroups.has(row.group));
+    const projectedThirds = qualifiedThirds.filter(
+      (row) => row.group && allowedGroups.has(row.group)
+    );
     const projectedIds = new Set(projectedThirds.map((row) => row.teamId));
     const allowedGroupTeams = Object.values(standings)
       .flat()
@@ -892,7 +896,9 @@ function sourceCandidates(
   const winnerMatchNumber = sourceMatchNumber(sourceLabel);
   if (winnerMatchNumber) {
     const sourceMatch = matchByNumber(bracket, winnerMatchNumber);
-    return selectedTeams(sourceMatch ? effectivePredictions[sourceMatch.bracketMatchId] : undefined);
+    return selectedTeams(
+      sourceMatch ? effectivePredictions[sourceMatch.bracketMatchId] : undefined
+    );
   }
 
   return [];
@@ -900,7 +906,7 @@ function sourceCandidates(
 
 function assignThirdPlaceDefaults(
   bracket: Record<string, BracketMatch[]>,
-  qualifiedThirds: StandingRow[],
+  qualifiedThirds: StandingRow[]
 ): Record<string, Team> {
   const assigned: Record<string, Team> = {};
   const thirdRows = qualifiedThirds.filter((row) => /^[A-L]$/.test(row.group || ''));
@@ -917,22 +923,24 @@ function assignThirdPlaceDefaults(
     THIRD_PLACE_WINNER_GROUP_ORDER.map((winnerGroup, index) => [
       winnerGroup,
       assignmentGroups[index],
-    ]),
+    ])
   );
 
   (bracket['16th-finals'] || []).forEach((match) => {
-    ([
-      {
-        side: 'home',
-        sourceLabel: match.homeSourceLabel,
-        opponentSourceLabel: match.awaySourceLabel,
-      },
-      {
-        side: 'away',
-        sourceLabel: match.awaySourceLabel,
-        opponentSourceLabel: match.homeSourceLabel,
-      },
-    ] as const).forEach(({ side, sourceLabel, opponentSourceLabel }) => {
+    (
+      [
+        {
+          side: 'home',
+          sourceLabel: match.homeSourceLabel,
+          opponentSourceLabel: match.awaySourceLabel,
+        },
+        {
+          side: 'away',
+          sourceLabel: match.awaySourceLabel,
+          opponentSourceLabel: match.homeSourceLabel,
+        },
+      ] as const
+    ).forEach(({ side, sourceLabel, opponentSourceLabel }) => {
       const thirdSlot = sourceLabel?.match(/^3([A-L]+)$/);
       if (!thirdSlot) return;
 
@@ -983,8 +991,20 @@ export function buildBracketProjection({
     (bracket[phase] || []).forEach((match) => {
       const existing = bracketPredictions[match.bracketMatchId] || {};
       const candidates = {
-        home: sourceCandidates(match.homeSourceLabel, standings, qualifiedThirds, bracket, effectivePredictions),
-        away: sourceCandidates(match.awaySourceLabel, standings, qualifiedThirds, bracket, effectivePredictions),
+        home: sourceCandidates(
+          match.homeSourceLabel,
+          standings,
+          qualifiedThirds,
+          bracket,
+          effectivePredictions
+        ),
+        away: sourceCandidates(
+          match.awaySourceLabel,
+          standings,
+          qualifiedThirds,
+          bracket,
+          effectivePredictions
+        ),
       };
 
       if (phase === '16th-finals') {
@@ -994,10 +1014,22 @@ export function buildBracketProjection({
         const awayDefault = prefillRoundOf32 ? awayThird || candidates.away[0] : undefined;
         const existingHomeAllowed = teamAllowed(existing.homeTeamId, candidates.home);
         const existingAwayAllowed = teamAllowed(existing.awayTeamId, candidates.away);
-        const homeTeamId = existingHomeAllowed && existing.homeTeamId ? existing.homeTeamId : homeDefault?.teamId || '';
-        const homeTeamName = existingHomeAllowed && existing.homeTeamName ? existing.homeTeamName : homeDefault?.name || '';
-        const awayTeamId = existingAwayAllowed && existing.awayTeamId ? existing.awayTeamId : awayDefault?.teamId || '';
-        const awayTeamName = existingAwayAllowed && existing.awayTeamName ? existing.awayTeamName : awayDefault?.name || '';
+        const homeTeamId =
+          existingHomeAllowed && existing.homeTeamId
+            ? existing.homeTeamId
+            : homeDefault?.teamId || '';
+        const homeTeamName =
+          existingHomeAllowed && existing.homeTeamName
+            ? existing.homeTeamName
+            : homeDefault?.name || '';
+        const awayTeamId =
+          existingAwayAllowed && existing.awayTeamId
+            ? existing.awayTeamId
+            : awayDefault?.teamId || '';
+        const awayTeamName =
+          existingAwayAllowed && existing.awayTeamName
+            ? existing.awayTeamName
+            : awayDefault?.name || '';
 
         effectivePredictions[match.bracketMatchId] = {
           ...existing,
@@ -1008,17 +1040,24 @@ export function buildBracketProjection({
           awayTeamName,
         };
       } else {
-        const homeTeamId = teamAllowed(existing.homeTeamId, candidates.home) ? existing.homeTeamId || '' : '';
+        const homeTeamId = teamAllowed(existing.homeTeamId, candidates.home)
+          ? existing.homeTeamId || ''
+          : '';
         const homeTeamName = homeTeamId ? existing.homeTeamName || '' : '';
-        const awayTeamId = teamAllowed(existing.awayTeamId, candidates.away) ? existing.awayTeamId || '' : '';
+        const awayTeamId = teamAllowed(existing.awayTeamId, candidates.away)
+          ? existing.awayTeamId || ''
+          : '';
         const awayTeamName = awayTeamId ? existing.awayTeamName || '' : '';
         const predictedWinnerTeamId =
           match.phase === 'finals' &&
           existing.predictedWinnerTeamId &&
-          (existing.predictedWinnerTeamId === homeTeamId || existing.predictedWinnerTeamId === awayTeamId)
+          (existing.predictedWinnerTeamId === homeTeamId ||
+            existing.predictedWinnerTeamId === awayTeamId)
             ? existing.predictedWinnerTeamId
             : '';
-        const predictedWinnerTeamName = predictedWinnerTeamId ? existing.predictedWinnerTeamName || '' : '';
+        const predictedWinnerTeamName = predictedWinnerTeamId
+          ? existing.predictedWinnerTeamName || ''
+          : '';
 
         effectivePredictions[match.bracketMatchId] = {
           ...existing,
@@ -1045,7 +1084,7 @@ export function buildBracketProjection({
 function adminSourceCandidates(
   sourceLabel: string | undefined,
   bracket: Record<string, BracketMatch[]>,
-  teams: Team[],
+  teams: Team[]
 ): Team[] {
   if (!sourceLabel) return teams;
 
@@ -1088,14 +1127,16 @@ function adminSourceCandidates(
 
 export function computeAdminCandidateOptions(
   bracket: Record<string, BracketMatch[]>,
-  teams: Team[],
+  teams: Team[]
 ): BracketCandidateMap {
   const options: BracketCandidateMap = {};
-  Object.values(bracket).flat().forEach((match) => {
-    options[match.bracketMatchId] = {
-      home: adminSourceCandidates(match.homeSourceLabel, bracket, teams),
-      away: adminSourceCandidates(match.awaySourceLabel, bracket, teams),
-    };
-  });
+  Object.values(bracket)
+    .flat()
+    .forEach((match) => {
+      options[match.bracketMatchId] = {
+        home: adminSourceCandidates(match.homeSourceLabel, bracket, teams),
+        away: adminSourceCandidates(match.awaySourceLabel, bracket, teams),
+      };
+    });
   return options;
 }

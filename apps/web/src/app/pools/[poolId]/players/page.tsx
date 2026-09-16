@@ -763,7 +763,9 @@ export default function PlayersPage() {
                                     cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                     assists: t('poolDetail.players.actions.assists'),
                                     yellowCards: t('poolDetail.players.actions.yellowCards'),
-                                    doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
+                                    doubleYellowCards: t(
+                                      'poolDetail.players.actions.doubleYellowCards'
+                                    ),
                                     redCards: t('poolDetail.players.actions.redCards'),
                                   }}
                                   position={position}
@@ -812,7 +814,9 @@ export default function PlayersPage() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          padding: selected?.teamEliminated ? '0.55rem 5.8rem 0.55rem 0.55rem' : '0.55rem',
+                          padding: selected?.teamEliminated
+                            ? '0.55rem 5.8rem 0.55rem 0.55rem'
+                            : '0.55rem',
                           borderRadius: 'var(--radius-md)',
                           border: selected?.teamEliminated
                             ? eliminatedSelectionCardStyle.border
@@ -1147,7 +1151,9 @@ export default function PlayersPage() {
                                 cleanSheets: t('poolDetail.players.actions.cleanSheets'),
                                 assists: t('poolDetail.players.actions.assists'),
                                 yellowCards: t('poolDetail.players.actions.yellowCards'),
-                                doubleYellowCards: t('poolDetail.players.actions.doubleYellowCards'),
+                                doubleYellowCards: t(
+                                  'poolDetail.players.actions.doubleYellowCards'
+                                ),
                                 redCards: t('poolDetail.players.actions.redCards'),
                               }}
                               position={position}

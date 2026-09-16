@@ -28,15 +28,47 @@ interface Props {
 
 const STATE_TONES: Record<
   MatchPredictionState,
-  { border: string; tint: string; statusBadge: 'pitch' | 'sunset' | 'live' | 'info' | 'neutral' | 'gold' | null }
+  {
+    border: string;
+    tint: string;
+    statusBadge: 'pitch' | 'sunset' | 'live' | 'info' | 'neutral' | 'gold' | null;
+  }
 > = {
-  open:           { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: null },
-  incomplete:     { border: 'rgb(var(--gold) / 0.68)',     tint: 'rgb(var(--gold) / 0.07)',                   statusBadge: 'gold' },
-  locked:         { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
-  exact:          { border: 'rgb(var(--pitch) / 0.68)',    tint: 'rgb(var(--pitch) / 0.07)',                  statusBadge: 'pitch' },
-  'correct-winner':{ border: 'rgb(var(--info) / 0.68)',   tint: 'rgb(var(--info) / 0.07)',                   statusBadge: 'info' },
-  incorrect:      { border: 'rgb(var(--live) / 0.68)',     tint: 'rgb(var(--live) / 0.07)',                   statusBadge: 'live' },
-  pending:        { border: 'rgb(var(--control-border))',  tint: 'rgb(var(--match-neutral-bg))',              statusBadge: 'neutral' },
+  open: {
+    border: 'rgb(var(--control-border))',
+    tint: 'rgb(var(--match-neutral-bg))',
+    statusBadge: null,
+  },
+  incomplete: {
+    border: 'rgb(var(--gold) / 0.68)',
+    tint: 'rgb(var(--gold) / 0.07)',
+    statusBadge: 'gold',
+  },
+  locked: {
+    border: 'rgb(var(--control-border))',
+    tint: 'rgb(var(--match-neutral-bg))',
+    statusBadge: 'neutral',
+  },
+  exact: {
+    border: 'rgb(var(--pitch) / 0.68)',
+    tint: 'rgb(var(--pitch) / 0.07)',
+    statusBadge: 'pitch',
+  },
+  'correct-winner': {
+    border: 'rgb(var(--info) / 0.68)',
+    tint: 'rgb(var(--info) / 0.07)',
+    statusBadge: 'info',
+  },
+  incorrect: {
+    border: 'rgb(var(--live) / 0.68)',
+    tint: 'rgb(var(--live) / 0.07)',
+    statusBadge: 'live',
+  },
+  pending: {
+    border: 'rgb(var(--control-border))',
+    tint: 'rgb(var(--match-neutral-bg))',
+    statusBadge: 'neutral',
+  },
 };
 
 export function MatchPredictionCard({
@@ -58,12 +90,17 @@ export function MatchPredictionCard({
   showMatchDate = true,
   showRealResult = true,
 }: Readonly<Props>) {
-  const hasRealResult = isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
+  const hasRealResult =
+    isPastDeadline && typeof homeResult === 'number' && typeof awayResult === 'number';
   const baseId = useId();
   const tone = STATE_TONES[state];
-  const hasStatusBorder = state === 'incomplete' || state === 'exact' || state === 'correct-winner' || state === 'incorrect';
+  const hasStatusBorder =
+    state === 'incomplete' ||
+    state === 'exact' ||
+    state === 'correct-winner' ||
+    state === 'incorrect';
 
-  const { t } = useI18n()
+  const { t } = useI18n();
 
   const handleScoreInput = (side: 'home' | 'away', raw: string) => {
     if (raw === '' || /^\d+$/.test(raw)) {
@@ -85,9 +122,7 @@ export function MatchPredictionCard({
       style={{
         position: 'relative',
         display: 'grid',
-        gridTemplateColumns: showTeams
-          ? 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)'
-          : 'minmax(0, 1fr)',
+        gridTemplateColumns: showTeams ? 'minmax(0, 1fr) 4.65rem minmax(0, 1fr)' : 'minmax(0, 1fr)',
         alignItems: 'center',
         gap: '0.25rem 0.35rem',
         padding: '0.38rem 0.5rem',
@@ -115,8 +150,7 @@ export function MatchPredictionCard({
           points={pointsEarned}
           label={t('poolDetail.match.points', { points: pointsEarned })}
         />
-      ) : null
-      }
+      ) : null}
       {showTeams ? (
         <p
           style={{
@@ -132,12 +166,23 @@ export function MatchPredictionCard({
             gap: '0.4rem',
           }}
         >
-          <ReactCountryFlag countryCode={countryIsoCode(homeTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <ReactCountryFlag
+            countryCode={countryIsoCode(homeTeamName)}
+            svg
+            style={{ width: '2em', height: '2em' }}
+          />
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{homeTeamName}</span>
         </p>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2rem 0.45rem 2rem', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '2rem 0.45rem 2rem',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <input
           id={`${baseId}-home`}
           type="text"
@@ -146,7 +191,8 @@ export function MatchPredictionCard({
           value={homeScore === '' ? '' : String(homeScore)}
           onChange={(e) => handleScoreInput('home', e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === '-' || e.key === '.' || e.key === 'e' || e.key === 'E') e.preventDefault();
+            if (e.key === '-' || e.key === '.' || e.key === 'e' || e.key === 'E')
+              e.preventDefault();
           }}
           disabled={disabled}
           aria-label={`${homeTeamName} score`}
@@ -186,7 +232,8 @@ export function MatchPredictionCard({
           value={awayScore === '' ? '' : String(awayScore)}
           onChange={(e) => handleScoreInput('away', e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === '-' || e.key === '.' || e.key === 'e' || e.key === 'E') e.preventDefault();
+            if (e.key === '-' || e.key === '.' || e.key === 'e' || e.key === 'E')
+              e.preventDefault();
           }}
           disabled={disabled}
           aria-label={`${awayTeamName} score`}
@@ -225,7 +272,11 @@ export function MatchPredictionCard({
           }}
         >
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{awayTeamName}</span>
-          <ReactCountryFlag countryCode={countryIsoCode(awayTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <ReactCountryFlag
+            countryCode={countryIsoCode(awayTeamName)}
+            svg
+            style={{ width: '2em', height: '2em' }}
+          />
         </p>
       ) : null}
 
@@ -273,10 +324,10 @@ export function MatchPredictionCard({
               state === 'exact'
                 ? 'rgb(var(--pitch))'
                 : state === 'correct-winner'
-                ? 'rgb(var(--info))'
-                : state === 'incorrect'
-                ? 'rgb(var(--live))'
-                : 'rgb(var(--fg-muted))',
+                  ? 'rgb(var(--info))'
+                  : state === 'incorrect'
+                    ? 'rgb(var(--live))'
+                    : 'rgb(var(--fg-muted))',
           }}
         >
           {showRealResult && hasRealResult

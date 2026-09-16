@@ -57,11 +57,26 @@ export function PoolCard({
             zIndex: 1,
           }}
         >
-          <span className="badge" style={{ background: 'rgb(var(--surface-strong) / 0.96)', color: 'rgb(var(--pitch))', border: 'none' }}>
+          <span
+            className="badge"
+            style={{
+              background: 'rgb(var(--surface-strong) / 0.96)',
+              color: 'rgb(var(--pitch))',
+              border: 'none',
+            }}
+          >
             {t('pools.card.members', { count: pool.memberCount || 0 })}
           </span>
-          <span className="badge" style={{ background: 'rgb(var(--surface-strong) / 0.96)', color: 'rgb(var(--pitch))', border: 'none' }}>
-            {t('poolDetail.info.entryFee')}: {entryFee > 0 ? `${entryFee} €` : t('poolDetail.info.entryFeeFree')}
+          <span
+            className="badge"
+            style={{
+              background: 'rgb(var(--surface-strong) / 0.96)',
+              color: 'rgb(var(--pitch))',
+              border: 'none',
+            }}
+          >
+            {t('poolDetail.info.entryFee')}:{' '}
+            {entryFee > 0 ? `${entryFee} €` : t('poolDetail.info.entryFeeFree')}
           </span>
         </div>
         {isPoolAdmin ? (
@@ -75,7 +90,9 @@ export function PoolCard({
               zIndex: 2,
             }}
           >
-            <Button variant="ghost" size="icon"
+            <Button
+              variant="ghost"
+              size="icon"
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -94,7 +111,9 @@ export function PoolCard({
             >
               <IoSettings size={14} aria-hidden />
             </Button>
-            <Button variant="ghost" size="icon"
+            <Button
+              variant="ghost"
+              size="icon"
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -115,7 +134,6 @@ export function PoolCard({
                 <path d="M8 9a3 3 0 100-6 3 3 0 000 6zm0 2a6 6 0 00-6 1 1 1 0 001 1h10a1 1 0 001-1 6 6 0 00-6-1zm8-4a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
               </svg>
             </Button>
-
           </div>
         ) : null}
       </div>
@@ -183,9 +201,19 @@ export function PoolCard({
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '0.5rem',
+              flexShrink: 0,
+            }}
+          >
             {isDisabled ? (
-              <Button variant="outline" size="sm"
+              <Button
+                variant="outline"
+                size="sm"
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();

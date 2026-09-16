@@ -17,7 +17,12 @@ interface BracketVisualizationProps {
   poolId: string;
   mode?: 'admin' | 'user';
   updatingMatch?: string | null;
-  onUpdateTeam?: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => void;
+  onUpdateTeam?: (
+    bracketMatchId: string,
+    side: 'home' | 'away',
+    teamId: string,
+    teamName: string
+  ) => void;
   onUpdateResult?: (bracketMatchId: string, homeResult: number, awayResult: number) => void;
   bracketResults?: Record<string, { homeResult: number | ''; awayResult: number | '' }>;
   submittingResult?: string | null;
@@ -28,12 +33,15 @@ interface BracketVisualizationProps {
     bracketMatchId: string,
     side: 'home' | 'away' | 'winner',
     teamId: string,
-    teamName: string,
+    teamName: string
   ) => void;
   exactPositionPoints?: number;
   correctTeamWrongPositionPoints?: number;
   tournamentWinnerPoints?: number;
-  roundScoring?: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>;
+  roundScoring?: Record<
+    string,
+    { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }
+  >;
   onMatchClick?: (match: BracketMatch) => void;
   onWinnerClick?: () => void;
 }
@@ -142,7 +150,7 @@ function renderConnectorPath(
   fromY2: number,
   toX: number,
   toY: number,
-  side: 'left' | 'right',
+  side: 'left' | 'right'
 ): string {
   const direction = side === 'left' ? 1 : -1;
   const elbowX = fromX + direction * (ROUND_GAP / 2);
@@ -161,7 +169,7 @@ function slotState(
   selected: boolean,
   exactPosition: boolean,
   correctButWrongPosition: boolean,
-  incorrect: boolean,
+  incorrect: boolean
 ): SlotState {
   if (!selected) return 'empty';
   if (isAdmin) return 'selected';
@@ -189,14 +197,17 @@ function resolveBracketRoundPoints(
   phaseKey: string,
   exactPositionPoints: number,
   correctTeamWrongPositionPoints: number,
-  roundScoring: Record<string, { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }>,
+  roundScoring: Record<
+    string,
+    { exactPositionPoints?: number; correctTeamWrongPositionPoints?: number }
+  >
 ) {
   const scoring = roundScoring[phaseKey] || {};
   return {
     exactPositionPoints: firstConfiguredPoint(scoring.exactPositionPoints, exactPositionPoints),
     correctTeamWrongPositionPoints: firstConfiguredPoint(
       scoring.correctTeamWrongPositionPoints,
-      correctTeamWrongPositionPoints,
+      correctTeamWrongPositionPoints
     ),
   };
 }
@@ -217,7 +228,7 @@ function firstConfiguredPoint(...values: unknown[]): number {
 function slotPoints(
   exactPosition: boolean,
   correctButWrongPosition: boolean,
-  roundPoints: { exactPositionPoints: number; correctTeamWrongPositionPoints: number },
+  roundPoints: { exactPositionPoints: number; correctTeamWrongPositionPoints: number }
 ): number {
   if (exactPosition) return roundPoints.exactPositionPoints;
   if (correctButWrongPosition) return roundPoints.correctTeamWrongPositionPoints;
@@ -261,7 +272,8 @@ export function BracketVisualization({
 
     const now = Date.now();
     const activeLock = scrollLockRef.current;
-    const left = activeLock && activeLock.until > now ? activeLock.left : scrollContainer.scrollLeft;
+    const left =
+      activeLock && activeLock.until > now ? activeLock.left : scrollContainer.scrollLeft;
     scrollLockRef.current = { left, until: now + 800 };
 
     const restore = () => {
@@ -297,7 +309,7 @@ export function BracketVisualization({
   const selectedTeamIdsInPhase = (
     phaseKey: string,
     excludeMatchId: string,
-    excludeSide: Slot,
+    excludeSide: Slot
   ): Set<string> => {
     const ids = new Set<string>();
     (bracket[phaseKey] || []).forEach((match) => {
@@ -318,7 +330,7 @@ export function BracketVisualization({
   const getMatchTop = (
     matchIndex: number,
     phaseKey: string,
-    allPhases: Record<string, BracketMatch[]>,
+    allPhases: Record<string, BracketMatch[]>
   ): number => {
     if (phaseKey === '16th-finals') {
       const pairIndex = Math.floor(matchIndex / 2);
@@ -349,11 +361,7 @@ export function BracketVisualization({
     return centerBetween - MATCH_HEIGHT / 2;
   };
 
-  const renderRound = (
-    phaseKey: string,
-    label: string,
-    matches: BracketMatch[],
-  ) => {
+  const renderRound = (phaseKey: string, label: string, matches: BracketMatch[]) => {
     if (!matches || matches.length === 0) return null;
 
     const tone = toneFor(phaseKey);
@@ -414,93 +422,109 @@ export function BracketVisualization({
             flex: 1,
           }}
         >
-        {matches.map((match, idx) => {
-          const top = getMatchTop(idx, phaseKey, bracket);
-          const prediction = bracketPredictions[match.bracketMatchId] || {};
-          const matchCandidates = candidateOptions[match.bracketMatchId];
-          const unavailableTeamIds = {
-            home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
-            away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
-          };
-          const actualMatchComplete = Boolean(match.homeTeamId && match.awayTeamId);
-          const roundPoints = resolveBracketRoundPoints(
-            phaseKey,
-            exactPositionPoints,
-            correctTeamWrongPositionPoints,
-            roundScoring,
-          );
-          const homeTeamExactPosition =
-            isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
-          const awayTeamExactPosition =
-            isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
-          const homeTeamCorrectButWrongPosition =
-            isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
-          const awayTeamCorrectButWrongPosition =
-            isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
-          const homeTeamIncorrect =
-            isDeadlinePassed &&
-            actualMatchComplete &&
-            Boolean(prediction.homeTeamId) &&
-            prediction.homeTeamExactPosition === false &&
-            prediction.homeTeamCorrectButWrongPosition === false;
-          const awayTeamIncorrect =
-            isDeadlinePassed &&
-            actualMatchComplete &&
-            Boolean(prediction.awayTeamId) &&
-            prediction.awayTeamExactPosition === false &&
-            prediction.awayTeamCorrectButWrongPosition === false;
-          const homeTeamPoints = slotPoints(homeTeamExactPosition, homeTeamCorrectButWrongPosition, roundPoints);
-          const awayTeamPoints = slotPoints(awayTeamExactPosition, awayTeamCorrectButWrongPosition, roundPoints);
-          const points = isDeadlinePassed ? (prediction.points || 0) : 0;
-          const advancedTeamId = getAdvancedTeamId(bracket, phaseKey, idx);
-          const isFinished = isFinishedBracketMatch(match, advancedTeamId);
+          {matches.map((match, idx) => {
+            const top = getMatchTop(idx, phaseKey, bracket);
+            const prediction = bracketPredictions[match.bracketMatchId] || {};
+            const matchCandidates = candidateOptions[match.bracketMatchId];
+            const unavailableTeamIds = {
+              home: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'home'),
+              away: selectedTeamIdsInPhase(phaseKey, match.bracketMatchId, 'away'),
+            };
+            const actualMatchComplete = Boolean(match.homeTeamId && match.awayTeamId);
+            const roundPoints = resolveBracketRoundPoints(
+              phaseKey,
+              exactPositionPoints,
+              correctTeamWrongPositionPoints,
+              roundScoring
+            );
+            const homeTeamExactPosition =
+              isDeadlinePassed &&
+              Boolean(prediction.homeTeamId) &&
+              prediction.homeTeamExactPosition === true;
+            const awayTeamExactPosition =
+              isDeadlinePassed &&
+              Boolean(prediction.awayTeamId) &&
+              prediction.awayTeamExactPosition === true;
+            const homeTeamCorrectButWrongPosition =
+              isDeadlinePassed &&
+              Boolean(prediction.homeTeamId) &&
+              prediction.homeTeamCorrectButWrongPosition === true;
+            const awayTeamCorrectButWrongPosition =
+              isDeadlinePassed &&
+              Boolean(prediction.awayTeamId) &&
+              prediction.awayTeamCorrectButWrongPosition === true;
+            const homeTeamIncorrect =
+              isDeadlinePassed &&
+              actualMatchComplete &&
+              Boolean(prediction.homeTeamId) &&
+              prediction.homeTeamExactPosition === false &&
+              prediction.homeTeamCorrectButWrongPosition === false;
+            const awayTeamIncorrect =
+              isDeadlinePassed &&
+              actualMatchComplete &&
+              Boolean(prediction.awayTeamId) &&
+              prediction.awayTeamExactPosition === false &&
+              prediction.awayTeamCorrectButWrongPosition === false;
+            const homeTeamPoints = slotPoints(
+              homeTeamExactPosition,
+              homeTeamCorrectButWrongPosition,
+              roundPoints
+            );
+            const awayTeamPoints = slotPoints(
+              awayTeamExactPosition,
+              awayTeamCorrectButWrongPosition,
+              roundPoints
+            );
+            const points = isDeadlinePassed ? prediction.points || 0 : 0;
+            const advancedTeamId = getAdvancedTeamId(bracket, phaseKey, idx);
+            const isFinished = isFinishedBracketMatch(match, advancedTeamId);
 
-          return (
-            <div
-              key={match.bracketMatchId}
-              style={{
-                position: 'absolute',
-                top: `${top}px`,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%',
-                height: `${MATCH_HEIGHT}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <BracketMatchBox
-                match={match}
-                teams={teams}
-                poolId={poolId}
-                mode={mode}
-                updatingMatch={updatingMatch}
-                onUpdateTeam={onUpdateTeam}
-                prediction={prediction}
-                candidateTeams={matchCandidates}
-                unavailableTeamIds={unavailableTeamIds}
-                isDeadlinePassed={isDeadlinePassed}
-                onPredictionChange={onPredictionChange}
-                isFinal={false}
-                phaseKey={phaseKey}
-                onSelectInteractionStart={preserveBracketScrollPosition}
-                homeTeamExactPosition={homeTeamExactPosition}
-                awayTeamExactPosition={awayTeamExactPosition}
-                homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
-                awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
-                homeTeamIncorrect={homeTeamIncorrect}
-                awayTeamIncorrect={awayTeamIncorrect}
-                homeTeamPoints={homeTeamPoints}
-                awayTeamPoints={awayTeamPoints}
-                points={points}
-                onMatchClick={onMatchClick}
-                locale={locale}
-                isFinished={isFinished}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={match.bracketMatchId}
+                style={{
+                  position: 'absolute',
+                  top: `${top}px`,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '100%',
+                  height: `${MATCH_HEIGHT}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <BracketMatchBox
+                  match={match}
+                  teams={teams}
+                  poolId={poolId}
+                  mode={mode}
+                  updatingMatch={updatingMatch}
+                  onUpdateTeam={onUpdateTeam}
+                  prediction={prediction}
+                  candidateTeams={matchCandidates}
+                  unavailableTeamIds={unavailableTeamIds}
+                  isDeadlinePassed={isDeadlinePassed}
+                  onPredictionChange={onPredictionChange}
+                  isFinal={false}
+                  phaseKey={phaseKey}
+                  onSelectInteractionStart={preserveBracketScrollPosition}
+                  homeTeamExactPosition={homeTeamExactPosition}
+                  awayTeamExactPosition={awayTeamExactPosition}
+                  homeTeamCorrectButWrongPosition={homeTeamCorrectButWrongPosition}
+                  awayTeamCorrectButWrongPosition={awayTeamCorrectButWrongPosition}
+                  homeTeamIncorrect={homeTeamIncorrect}
+                  awayTeamIncorrect={awayTeamIncorrect}
+                  homeTeamPoints={homeTeamPoints}
+                  awayTeamPoints={awayTeamPoints}
+                  points={points}
+                  onMatchClick={onMatchClick}
+                  locale={locale}
+                  isFinished={isFinished}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -511,7 +535,7 @@ export function BracketVisualization({
     label: string,
     match: BracketMatch | undefined,
     isFinal: boolean = false,
-    isAuxiliaryMatch: boolean = false,
+    isAuxiliaryMatch: boolean = false
   ) => {
     if (!match) return null;
 
@@ -535,16 +559,28 @@ export function BracketVisualization({
       phaseKey,
       exactPositionPoints,
       correctTeamWrongPositionPoints,
-      roundScoring,
+      roundScoring
     );
     const homeTeamExactPosition =
-      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamExactPosition === true;
+      !isAuxiliaryMatch &&
+      isDeadlinePassed &&
+      Boolean(prediction.homeTeamId) &&
+      prediction.homeTeamExactPosition === true;
     const awayTeamExactPosition =
-      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamExactPosition === true;
+      !isAuxiliaryMatch &&
+      isDeadlinePassed &&
+      Boolean(prediction.awayTeamId) &&
+      prediction.awayTeamExactPosition === true;
     const homeTeamCorrectButWrongPosition =
-      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.homeTeamId) && prediction.homeTeamCorrectButWrongPosition === true;
+      !isAuxiliaryMatch &&
+      isDeadlinePassed &&
+      Boolean(prediction.homeTeamId) &&
+      prediction.homeTeamCorrectButWrongPosition === true;
     const awayTeamCorrectButWrongPosition =
-      !isAuxiliaryMatch && isDeadlinePassed && Boolean(prediction.awayTeamId) && prediction.awayTeamCorrectButWrongPosition === true;
+      !isAuxiliaryMatch &&
+      isDeadlinePassed &&
+      Boolean(prediction.awayTeamId) &&
+      prediction.awayTeamCorrectButWrongPosition === true;
     const homeTeamIncorrect =
       !isAuxiliaryMatch &&
       isDeadlinePassed &&
@@ -559,15 +595,24 @@ export function BracketVisualization({
       Boolean(prediction.awayTeamId) &&
       prediction.awayTeamExactPosition === false &&
       prediction.awayTeamCorrectButWrongPosition === false;
-    const homeTeamPoints = slotPoints(homeTeamExactPosition, homeTeamCorrectButWrongPosition, roundPoints);
-    const awayTeamPoints = slotPoints(awayTeamExactPosition, awayTeamCorrectButWrongPosition, roundPoints);
+    const homeTeamPoints = slotPoints(
+      homeTeamExactPosition,
+      homeTeamCorrectButWrongPosition,
+      roundPoints
+    );
+    const awayTeamPoints = slotPoints(
+      awayTeamExactPosition,
+      awayTeamCorrectButWrongPosition,
+      roundPoints
+    );
     const winnerAwardPoints =
       isFinal && isDeadlinePassed && prediction.tournamentWinnerCorrect === true
         ? tournamentWinnerPoints
         : 0;
-    const points = !isAuxiliaryMatch && isDeadlinePassed
-      ? Math.max(0, (prediction.points || 0) - winnerAwardPoints)
-      : 0;
+    const points =
+      !isAuxiliaryMatch && isDeadlinePassed
+        ? Math.max(0, (prediction.points || 0) - winnerAwardPoints)
+        : 0;
     const isFinished = isFinishedBracketMatch(match);
 
     return (
@@ -654,7 +699,7 @@ export function BracketVisualization({
 
   const renderWinnerCard = (
     match: BracketMatch | undefined,
-    variant: 'tournament' | 'third-place' = 'tournament',
+    variant: 'tournament' | 'third-place' = 'tournament'
   ) => {
     if (!match) return null;
 
@@ -667,14 +712,14 @@ export function BracketVisualization({
       typeof finalResult?.homeResult === 'number'
         ? finalResult.homeResult
         : typeof match.homeResult === 'number'
-        ? match.homeResult
-        : null;
+          ? match.homeResult
+          : null;
     const resultAway =
       typeof finalResult?.awayResult === 'number'
         ? finalResult.awayResult
         : typeof match.awayResult === 'number'
-        ? match.awayResult
-        : null;
+          ? match.awayResult
+          : null;
     const useActualMatch = isAdmin || isThirdPlace;
     const homeTeamId = useActualMatch ? match.homeTeamId || '' : prediction.homeTeamId || '';
     const awayTeamId = useActualMatch ? match.awayTeamId || '' : prediction.awayTeamId || '';
@@ -690,12 +735,8 @@ export function BracketVisualization({
         : ''
       : prediction.predictedWinnerTeamId || '';
     const isDisabled = isAdmin
-      ? submittingResult === match.bracketMatchId ||
-        !homeTeamId ||
-        !awayTeamId ||
-        !onUpdateResult
-      : isThirdPlace || Boolean(isDeadlinePassed) ||
-        !onPredictionChange;
+      ? submittingResult === match.bracketMatchId || !homeTeamId || !awayTeamId || !onUpdateResult
+      : isThirdPlace || Boolean(isDeadlinePassed) || !onPredictionChange;
     const handleWinnerChange = (teamId: string) => {
       if (isAdmin) {
         if (!onUpdateResult || !teamId) return;
@@ -719,36 +760,40 @@ export function BracketVisualization({
 
     const options = [
       ...(homeTeamId
-        ? [{ value: homeTeamId, label: (
-              <>
-                <ReactCountryFlag
-                  countryCode={countryIsoCode(homeTeamName)}
-                  svg
-                  style={{ width: '2em', height: '2em' }}
-                />
-                <span>
-                  {` ${homeTeamDisplayName}`}
-                </span>
-              </>
-            ),
-            displayLabel: homeTeamDisplayName,
-          }]
+        ? [
+            {
+              value: homeTeamId,
+              label: (
+                <>
+                  <ReactCountryFlag
+                    countryCode={countryIsoCode(homeTeamName)}
+                    svg
+                    style={{ width: '2em', height: '2em' }}
+                  />
+                  <span>{` ${homeTeamDisplayName}`}</span>
+                </>
+              ),
+              displayLabel: homeTeamDisplayName,
+            },
+          ]
         : []),
       ...(awayTeamId
-        ? [{ value: awayTeamId, label: (
-              <>
-                <ReactCountryFlag
-                  countryCode={countryIsoCode(awayTeamName)}
-                  svg
-                  style={{ width: '2em', height: '2em' }}
-                />
-                <span>
-                  {` ${awayTeamDisplayName}`}
-                </span>
-              </>
-            ),
-            displayLabel: awayTeamDisplayName,
-          }]
+        ? [
+            {
+              value: awayTeamId,
+              label: (
+                <>
+                  <ReactCountryFlag
+                    countryCode={countryIsoCode(awayTeamName)}
+                    svg
+                    style={{ width: '2em', height: '2em' }}
+                  />
+                  <span>{` ${awayTeamDisplayName}`}</span>
+                </>
+              ),
+              displayLabel: awayTeamDisplayName,
+            },
+          ]
         : []),
     ];
 
@@ -757,9 +802,7 @@ export function BracketVisualization({
       !isThirdPlace && isDeadlinePassed && prediction.tournamentWinnerCorrect === true
         ? tournamentWinnerPoints
         : 0;
-    const winnerLabel = isThirdPlace
-      ? t('bracket.thirdPlaceWinner')
-      : t('bracket.winner');
+    const winnerLabel = isThirdPlace ? t('bracket.thirdPlaceWinner') : t('bracket.winner');
     const winnerPlaceholder = isThirdPlace
       ? t('bracket.selectThirdPlaceWinner')
       : t('bracket.selectTournamentWinner');
@@ -875,17 +918,20 @@ export function BracketVisualization({
               styles={selectStyles({
                 control: (base) => ({
                   ...base,
-                  backgroundColor: (!isThirdPlace && prediction.tournamentWinnerCorrect === true) || selectedWinnerTeamId
-                    ? 'rgb(var(--gold) / 0.08)'
-                    : isDisabled
-                    ? 'rgb(var(--disabled-bg))'
-                    : 'rgb(var(--input-bg))',
+                  backgroundColor:
+                    (!isThirdPlace && prediction.tournamentWinnerCorrect === true) ||
+                    selectedWinnerTeamId
+                      ? 'rgb(var(--gold) / 0.08)'
+                      : isDisabled
+                        ? 'rgb(var(--disabled-bg))'
+                        : 'rgb(var(--input-bg))',
                   border: `1px solid ${
-                    (!isThirdPlace && prediction.tournamentWinnerCorrect === true) || selectedWinnerTeamId
+                    (!isThirdPlace && prediction.tournamentWinnerCorrect === true) ||
+                    selectedWinnerTeamId
                       ? 'rgb(var(--gold))'
                       : isDisabled
-                      ? 'rgb(var(--disabled-border))'
-                      : 'rgb(var(--border))'
+                        ? 'rgb(var(--disabled-border))'
+                        : 'rgb(var(--border))'
                   }`,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   opacity: 1,
@@ -920,7 +966,8 @@ export function BracketVisualization({
   // space below the bottom match.
   const LABEL_RESERVE = 30;
   maxHeight = Math.max(maxHeight, 140) + LABEL_RESERVE;
-  const bracketWidth = BRACKET_PHASES.length * MATCH_BOX_WIDTH + (BRACKET_PHASES.length - 1) * ROUND_GAP;
+  const bracketWidth =
+    BRACKET_PHASES.length * MATCH_BOX_WIDTH + (BRACKET_PHASES.length - 1) * ROUND_GAP;
   const matchCenterY = (top: number) => LABEL_RESERVE + top + MATCH_HEIGHT / 2;
   const connectorPaths: string[] = [];
 
@@ -939,7 +986,16 @@ export function BracketVisualization({
       const toTop = getMatchTop(targetIndex, nextPhaseKey, bracket);
       const fromX = phaseIndex * (MATCH_BOX_WIDTH + ROUND_GAP) + MATCH_BOX_WIDTH;
       const toX = (phaseIndex + 1) * (MATCH_BOX_WIDTH + ROUND_GAP);
-      connectorPaths.push(renderConnectorPath(fromX, matchCenterY(fromTop1), matchCenterY(fromTop2), toX, matchCenterY(toTop), 'left'));
+      connectorPaths.push(
+        renderConnectorPath(
+          fromX,
+          matchCenterY(fromTop1),
+          matchCenterY(fromTop2),
+          toX,
+          matchCenterY(toTop),
+          'left'
+        )
+      );
     });
   });
 
@@ -998,7 +1054,11 @@ export function BracketVisualization({
         >
           {renderRound('16th-finals', t('bracket.round.16th'), bracket['16th-finals'] || [])}
           {renderRound('8th-finals', t('bracket.round.8th'), bracket['8th-finals'] || [])}
-          {renderRound('quarter-finals', t('bracket.round.quarter'), bracket['quarter-finals'] || [])}
+          {renderRound(
+            'quarter-finals',
+            t('bracket.round.quarter'),
+            bracket['quarter-finals'] || []
+          )}
           {renderRound('semi-finals', t('bracket.round.semi'), bracket['semi-finals'] || [])}
         </div>
 
@@ -1025,26 +1085,62 @@ export function BracketVisualization({
               <>
                 {finalsMatch ? (
                   <>
-                    <div style={{ position: 'absolute', top: `${winnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: `${winnerTop}px`,
+                        left: 0,
+                        right: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {renderWinnerCard(finalsMatch)}
                     </div>
-                    <div style={{ position: 'absolute', top: `${finalTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: `${finalTop}px`,
+                        left: 0,
+                        right: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {renderStandaloneMatch('finals', t('bracket.round.final'), finalsMatch, true)}
                     </div>
                   </>
                 ) : null}
                 {thirdPlaceMatch ? (
                   <>
-                    <div style={{ position: 'absolute', top: `${thirdPlaceWinnerTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: `${thirdPlaceWinnerTop}px`,
+                        left: 0,
+                        right: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {renderWinnerCard(thirdPlaceMatch, 'third-place')}
                     </div>
-                    <div style={{ position: 'absolute', top: `${thirdPlaceTop}px`, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: `${thirdPlaceTop}px`,
+                        left: 0,
+                        right: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {renderStandaloneMatch(
                         'third-place',
                         t('bracket.round.thirdPlace'),
                         thirdPlaceMatch,
                         false,
-                        true,
+                        true
                       )}
                     </div>
                   </>
@@ -1064,7 +1160,12 @@ interface BracketMatchBoxProps {
   poolId: string;
   mode: 'admin' | 'user';
   updatingMatch?: string | null;
-  onUpdateTeam?: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => void;
+  onUpdateTeam?: (
+    bracketMatchId: string,
+    side: 'home' | 'away',
+    teamId: string,
+    teamName: string
+  ) => void;
   prediction?: BracketPrediction;
   candidateTeams?: { home: Team[]; away: Team[] };
   unavailableTeamIds?: { home: Set<string>; away: Set<string> };
@@ -1073,7 +1174,7 @@ interface BracketMatchBoxProps {
     bracketMatchId: string,
     side: 'home' | 'away' | 'winner',
     teamId: string,
-    teamName: string,
+    teamName: string
   ) => void;
   isFinal?: boolean;
   /** Phase key used to look up the round's accent colour. */
@@ -1156,14 +1257,14 @@ function BracketMatchBox({
     Boolean(homeTeamId),
     homeTeamExactPosition,
     homeTeamCorrectButWrongPosition,
-    homeTeamIncorrect,
+    homeTeamIncorrect
   );
   const awayState: SlotState = slotState(
     isAdmin,
     Boolean(awayTeamId),
     awayTeamExactPosition,
     awayTeamCorrectButWrongPosition,
-    awayTeamIncorrect,
+    awayTeamIncorrect
   );
 
   const handleTeamChange = (side: Slot, teamId: string, teamName: string) => {
@@ -1187,9 +1288,7 @@ function BracketMatchBox({
       }}
       style={{
         background: isFinished ? 'rgb(235 238 236)' : 'rgb(var(--input-bg))',
-        border: isFinished
-          ? '1px solid rgb(177 184 180)'
-          : '1px solid rgb(var(--control-border))',
+        border: isFinished ? '1px solid rgb(177 184 180)' : '1px solid rgb(var(--control-border))',
         borderLeft: `3px solid ${isFinished ? 'rgb(135 143 139)' : 'rgb(var(--control-border))'}`,
         boxShadow: isFinished ? 'none' : 'var(--shadow-sm)',
         padding: '0.42rem 0.48rem',
@@ -1217,11 +1316,8 @@ function BracketMatchBox({
           }}
         />
       ) : null}
-      {!isAdmin && points ? ( 
-        <PointsBadge
-          points={points}
-          label={t('poolDetail.players.points', { points: points })}
-        />
+      {!isAdmin && points ? (
+        <PointsBadge points={points} label={t('poolDetail.players.points', { points: points })} />
       ) : null}
       <div
         style={{
@@ -1240,7 +1336,9 @@ function BracketMatchBox({
             color: isFinished ? 'rgb(var(--fg-muted))' : phaseTone.label,
           }}
         >
-          {isFinal ? `${t('bracket.round.final')} · P${match.matchNumber}` : `P${match.matchNumber}`}
+          {isFinal
+            ? `${t('bracket.round.final')} · P${match.matchNumber}`
+            : `P${match.matchNumber}`}
           {sourceMatchupLabel ? (
             <span
               style={{
@@ -1304,7 +1402,6 @@ function BracketMatchBox({
         unavailableTeamIds={unavailableTeamIds?.away}
         onSelectInteractionStart={onSelectInteractionStart}
       />
-
     </article>
   );
 }
@@ -1329,7 +1426,7 @@ function isFinishedBracketMatch(match: BracketMatch, advancedTeamId = ''): boole
 function getAdvancedTeamId(
   bracket: Record<string, BracketMatch[]>,
   phaseKey: string,
-  matchIndex: number,
+  matchIndex: number
 ): string {
   const phaseIndex = BRACKET_PHASES.findIndex((phase) => phase === phaseKey);
   const nextPhase = phaseIndex >= 0 ? BRACKET_PHASES[phaseIndex + 1] : undefined;
@@ -1418,15 +1515,15 @@ function BracketSlot({
   const hasStatusBorder = isExact || isCorrect || isIncorrect;
 
   let tintBg = 'rgb(var(--input-bg))';
-    if (isExact) {
-      tintBg = 'rgb(var(--pitch) / 0.07)';
-    } else if (isCorrect) {
-      tintBg = 'rgb(var(--info) / 0.07)';
-    } else if (isIncorrect) {
-      tintBg = 'rgb(var(--live) / 0.07)';
-    } else if (disabled) {
-      tintBg = 'rgb(var(--disabled-bg))';
-    }
+  if (isExact) {
+    tintBg = 'rgb(var(--pitch) / 0.07)';
+  } else if (isCorrect) {
+    tintBg = 'rgb(var(--info) / 0.07)';
+  } else if (isIncorrect) {
+    tintBg = 'rgb(var(--live) / 0.07)';
+  } else if (disabled) {
+    tintBg = 'rgb(var(--disabled-bg))';
+  }
 
   const options = teams.map((team) => {
     const isUnavailable = team.teamId !== teamId && Boolean(unavailableTeamIds?.has(team.teamId));
@@ -1443,14 +1540,12 @@ function BracketSlot({
           />
           <span>
             {` ${displayName}`}
-            {isUnavailable
-              ? ` - ${t('bracket.alreadySelected')}`
-              : ''}
+            {isUnavailable ? ` - ${t('bracket.alreadySelected')}` : ''}
           </span>
         </>
       ),
       displayLabel: displayName,
-      isDisabled: isUnavailable
+      isDisabled: isUnavailable,
     };
   });
 
@@ -1510,7 +1605,10 @@ function BracketSlot({
                 <span
                   style={{
                     alignItems: 'center',
-                    color: actualTeamId && actualTeamId === teamId ? 'rgb(var(--pitch))' : 'rgb(var(--fg-muted))',
+                    color:
+                      actualTeamId && actualTeamId === teamId
+                        ? 'rgb(var(--pitch))'
+                        : 'rgb(var(--fg-muted))',
                     display: 'inline-flex',
                     flexShrink: 1,
                     fontSize: '0.6rem',
@@ -1527,7 +1625,9 @@ function BracketSlot({
                     svg
                     style={{ width: '1em', height: '1em', flexShrink: 0 }}
                   />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{actualDisplayName}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {actualDisplayName}
+                  </span>
                   )
                 </span>
               ) : null}
@@ -1544,7 +1644,10 @@ function BracketSlot({
       onPointerDownCapture={onSelectInteractionStart}
       style={{ display: 'grid', gap: sourceLabel ? '0.12rem' : 0 }}
     >
-      <Select<{ value: string; label: React.ReactNode; displayLabel: string; isDisabled: boolean }, false>
+      <Select<
+        { value: string; label: React.ReactNode; displayLabel: string; isDisabled: boolean },
+        false
+      >
         isSearchable={false}
         aria-label={ariaLabel}
         placeholder={t('bracket.selectTeam')}
@@ -1581,13 +1684,15 @@ function BracketSlot({
         })}
       />
       {sourceLabel ? (
-        <span style={{
-          fontSize: '0.58rem',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: 'rgb(var(--fg-subtle))',
-          paddingLeft: '0.2rem',
-        }}>
+        <span
+          style={{
+            fontSize: '0.58rem',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            color: 'rgb(var(--fg-subtle))',
+            paddingLeft: '0.2rem',
+          }}
+        >
           {sourceLabel}
         </span>
       ) : null}

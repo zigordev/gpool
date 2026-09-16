@@ -25,8 +25,10 @@ const pool = (id: string) => ({ id, name: `Pool ${id}`, config: {} });
 const respond = (path: string): Promise<{ data: unknown }> => {
   if (path === '/pools/pool-a') return Promise.resolve({ data: pool('pool-a') });
   if (path === '/pools/pool-b') return new Promise(() => {});
-  if (path.endsWith('/matches/predictions')) return Promise.resolve({ data: [{ matchId: 'm1', homeScore: 1, awayScore: 0 }] });
-  if (path.endsWith('/bracket') || path.endsWith('/bracket/predictions')) return Promise.resolve({ data: {} });
+  if (path.endsWith('/matches/predictions'))
+    return Promise.resolve({ data: [{ matchId: 'm1', homeScore: 1, awayScore: 0 }] });
+  if (path.endsWith('/bracket') || path.endsWith('/bracket/predictions'))
+    return Promise.resolve({ data: {} });
   return Promise.resolve({ data: [] });
 };
 
@@ -52,19 +54,31 @@ describe('PoolProvider', () => {
   afterEach(cleanup);
 
   it('loads the pool named in the route', async () => {
-    render(<PoolProvider><Probe /></PoolProvider>);
+    render(
+      <PoolProvider>
+        <Probe />
+      </PoolProvider>
+    );
 
     await waitFor(() => expect(screen.getByTestId('pool').textContent).toBe('pool-a'));
     expect(api.get).toHaveBeenCalledWith('/pools/pool-a');
   });
 
   it('drops every pool-scoped field the moment the route names another pool, before that pool has loaded', async () => {
-    const view = render(<PoolProvider><Probe /></PoolProvider>);
+    const view = render(
+      <PoolProvider>
+        <Probe />
+      </PoolProvider>
+    );
     await waitFor(() => expect(screen.getByTestId('pool').textContent).toBe('pool-a'));
 
     navigation.poolId = 'pool-b';
     navigation.pathname = '/pools/pool-b';
-    view.rerender(<PoolProvider><Probe /></PoolProvider>);
+    view.rerender(
+      <PoolProvider>
+        <Probe />
+      </PoolProvider>
+    );
 
     expect(screen.getByTestId('pool').textContent).toBe('none');
     expect(screen.getByTestId('predictions').textContent).toBe('0');

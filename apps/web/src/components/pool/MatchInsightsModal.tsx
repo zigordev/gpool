@@ -612,11 +612,7 @@ function PredictionRow({
 
   return (
     <div
-      style={compactPredictionCardStyle(
-        'rgb(var(--border-subtle))',
-        'rgb(var(--input-bg))',
-        false
-      )}
+      style={compactPredictionCardStyle('rgb(var(--border-subtle))', 'rgb(var(--input-bg))', false)}
     >
       {points === 0 ? null : (
         <PointsBadge points={points} label={t('poolDetail.match.points', { points })} compact />

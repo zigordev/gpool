@@ -36,6 +36,6 @@ export async function loadMessages(locale: Locale) {
 
   throw new Error(
     `Translations not available for locale "${locale}". ` +
-      'Provide local message files or configure Tolgee (TOLGEE_API_URL, TOLGEE_PROJECT_ID, TOLGEE_API_KEY).',
+      'Provide local message files or configure Tolgee (TOLGEE_API_URL, TOLGEE_PROJECT_ID, TOLGEE_API_KEY).'
   );
 }

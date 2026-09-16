@@ -14,7 +14,12 @@ import { PlayerShirt } from '@/components/pool/PlayerShirt';
 import { PlayerEliminatedBadge } from '@/components/pool/PlayerEliminatedBadge';
 import Image from 'next/image';
 import { Button } from 'design-system/components/core/Button.jsx';
-import { Table, TableSortHeader, TablePager, TableEmpty } from 'design-system/components/data-display/Table.jsx';
+import {
+  Table,
+  TableSortHeader,
+  TablePager,
+  TableEmpty,
+} from 'design-system/components/data-display/Table.jsx';
 
 type PlayerSortKey = PlayerStatKey | 'totalPoints';
 type PlayerActionGroup = 'match' | 'penalty' | 'shootout';
@@ -208,8 +213,7 @@ export function PlayerStatsTable({
   const safePage = Math.min(page, totalPages);
   const paged = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const sortDirection = (key: PlayerSortKey) =>
-    sortKey === key ? sortDir : null;
+  const sortDirection = (key: PlayerSortKey) => (sortKey === key ? sortDir : null);
 
   return (
     <Table
@@ -239,7 +243,7 @@ export function PlayerStatsTable({
         />
       }
     >
-        {players.length > 0 ? (
+      {players.length > 0 ? (
         <thead>
           <tr>
             <th
@@ -269,10 +273,7 @@ export function PlayerStatsTable({
                 {t(`poolDetail.players.actionGroups.${group.key}`)}
               </th>
             ))}
-            <th
-              colSpan={2}
-              style={{ ...groupThStyle, borderLeft: '2px solid rgb(var(--border))' }}
-            >
+            <th colSpan={2} style={{ ...groupThStyle, borderLeft: '2px solid rgb(var(--border))' }}>
               {t('poolDetail.players.actionGroups.tournament')}
             </th>
             <th
@@ -327,277 +328,280 @@ export function PlayerStatsTable({
             </th>
           </tr>
         </thead>
-        ) : null}
-        <tbody>
-          {players.length === 0 ? <TableEmpty>{t('poolDetail.players.empty')}</TableEmpty> : null}
-          {paged.map((player) => {
-            const totalPts = computeTotal(player);
-            const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
-            const isMVP = tournamentMvpPlayerId === player.playerId;
-            const dimmedPlayerStyle = player.teamEliminated
-              ? { opacity: 0.5, filter: 'grayscale(0.9)' }
-              : undefined;
-            const openInsights = onOpenInsights ? () => onOpenInsights(player) : undefined;
-            const handleInsightsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-              if (!openInsights || (event.key !== 'Enter' && event.key !== ' ')) return;
-              event.preventDefault();
-              openInsights();
-            };
-            return (
-              <tr
-                key={player.playerId}
+      ) : null}
+      <tbody>
+        {players.length === 0 ? <TableEmpty>{t('poolDetail.players.empty')}</TableEmpty> : null}
+        {paged.map((player) => {
+          const totalPts = computeTotal(player);
+          const isGoldenBoot = goldenBootPlayerIds.includes(player.playerId);
+          const isMVP = tournamentMvpPlayerId === player.playerId;
+          const dimmedPlayerStyle = player.teamEliminated
+            ? { opacity: 0.5, filter: 'grayscale(0.9)' }
+            : undefined;
+          const openInsights = onOpenInsights ? () => onOpenInsights(player) : undefined;
+          const handleInsightsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+            if (!openInsights || (event.key !== 'Enter' && event.key !== ' ')) return;
+            event.preventDefault();
+            openInsights();
+          };
+          return (
+            <tr
+              key={player.playerId}
+              style={{
+                borderBottom: '1px solid rgb(var(--border) / 0.65)',
+                background: player.teamEliminated ? 'rgb(var(--live) / 0.055)' : undefined,
+              }}
+            >
+              <td
                 style={{
-                  borderBottom: '1px solid rgb(var(--border) / 0.65)',
+                  ...tdStyle,
+                  textAlign: 'left',
+                  position: 'sticky',
+                  left: 0,
+                  zIndex: 1,
+                  // Layered over the surface rather than used alone: a
+                  // translucent frozen cell lets the row scroll through it.
                   background: player.teamEliminated
-                    ? 'rgb(var(--live) / 0.055)'
-                    : undefined,
+                    ? 'linear-gradient(rgb(var(--live) / 0.08), rgb(var(--live) / 0.08)), var(--ds-color-surface)'
+                    : 'var(--ds-color-surface)',
+                  borderRight: '1px solid var(--ds-color-border)',
                 }}
               >
-                <td
+                <div
+                  role={openInsights ? 'button' : undefined}
+                  tabIndex={openInsights ? 0 : undefined}
+                  title={openInsights ? t('poolDetail.players.insights.open') : undefined}
+                  onClick={openInsights}
+                  onKeyDown={handleInsightsKeyDown}
                   style={{
-                    ...tdStyle,
-                    textAlign: 'left',
-                    position: 'sticky',
-                    left: 0,
-                    zIndex: 1,
-                    // Layered over the surface rather than used alone: a
-                    // translucent frozen cell lets the row scroll through it.
-                    background: player.teamEliminated
-                      ? 'linear-gradient(rgb(var(--live) / 0.08), rgb(var(--live) / 0.08)), var(--ds-color-surface)'
-                      : 'var(--ds-color-surface)',
-                    borderRight: '1px solid var(--ds-color-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    cursor: openInsights ? 'pointer' : undefined,
+                    borderRadius: 'var(--radius-md)',
+                    outlineOffset: '3px',
+                    ...dimmedPlayerStyle,
                   }}
                 >
-                  <div
-                    role={openInsights ? 'button' : undefined}
-                    tabIndex={openInsights ? 0 : undefined}
-                    title={openInsights ? t('poolDetail.players.insights.open') : undefined}
-                    onClick={openInsights}
-                    onKeyDown={handleInsightsKeyDown}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: openInsights ? 'pointer' : undefined,
-                      borderRadius: 'var(--radius-md)',
-                      outlineOffset: '3px',
-                      ...dimmedPlayerStyle,
-                    }}
-                  >
-                    <PlayerShirt
-                      teamName={player.teamName}
-                      shirtNumber={player.shirtNumber}
-                      size={30}
-                    />
-                    {player.imageUrl ? (
-                      <span
-                        aria-hidden
-                        style={{
-                          width: '1.85rem',
-                          height: '1.85rem',
-                          borderRadius: '999px',
-                          display: 'grid',
-                          placeItems: 'center',
-                          flexShrink: 0,
-                          overflow: 'hidden',
-                          background: 'rgb(var(--bg-subtle))',
-                          border: '1px solid rgb(var(--border))',
-                        }}
-                      >
-                        <Image
-                          src={player.imageUrl}
-                          alt=""
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      </span>
-                    ) : null}
-                    <div style={{ minWidth: 0 }}>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          color: 'rgb(var(--fg))',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {player.name}
-                      </p>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: '0.68rem',
-                          color: 'rgb(var(--fg-muted))',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <ReactCountryFlag
-                          countryCode={countryIsoCode(player.teamName)}
-                          svg
-                          style={{ width: '1.3em', height: '1.3em' }}
-                        />
-                        {player.teamName}
-                      </p>
-                      {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
-                    </div>
-                  </div>
-                </td>
-
-                {visibleStatColumns.map((col, columnIndex) => {
-                  const value = player[col.key] || 0;
-                  const isUpdating =
-                    editable && updatingPlayerStat === `${player.playerId}:${col.key}`;
-                  const statVisibleForPlayer = isStatVisible(player, col.key);
-                  return (
-                    <td
-                      key={col.key}
+                  <PlayerShirt
+                    teamName={player.teamName}
+                    shirtNumber={player.shirtNumber}
+                    size={30}
+                  />
+                  {player.imageUrl ? (
+                    <span
+                      aria-hidden
                       style={{
-                        ...tdStyle,
-                        borderLeft:
-                          columnIndex > 0 &&
-                          visibleStatColumns[columnIndex - 1].group !== col.group
-                            ? '2px solid rgb(var(--border))'
-                            : undefined,
+                        width: '1.85rem',
+                        height: '1.85rem',
+                        borderRadius: '999px',
+                        display: 'grid',
+                        placeItems: 'center',
+                        flexShrink: 0,
+                        overflow: 'hidden',
+                        background: 'rgb(var(--bg-subtle))',
+                        border: '1px solid rgb(var(--border))',
                       }}
                     >
-                      {statVisibleForPlayer ? (
-                        editable ? (
-                          <span
+                      <Image
+                        src={player.imageUrl}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </span>
+                  ) : null}
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        color: 'rgb(var(--fg))',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {player.name}
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '0.68rem',
+                        color: 'rgb(var(--fg-muted))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <ReactCountryFlag
+                        countryCode={countryIsoCode(player.teamName)}
+                        svg
+                        style={{ width: '1.3em', height: '1.3em' }}
+                      />
+                      {player.teamName}
+                    </p>
+                    {player.teamEliminated ? <PlayerEliminatedBadge /> : null}
+                  </div>
+                </div>
+              </td>
+
+              {visibleStatColumns.map((col, columnIndex) => {
+                const value = player[col.key] || 0;
+                const isUpdating =
+                  editable && updatingPlayerStat === `${player.playerId}:${col.key}`;
+                const statVisibleForPlayer = isStatVisible(player, col.key);
+                return (
+                  <td
+                    key={col.key}
+                    style={{
+                      ...tdStyle,
+                      borderLeft:
+                        columnIndex > 0 && visibleStatColumns[columnIndex - 1].group !== col.group
+                          ? '2px solid rgb(var(--border))'
+                          : undefined,
+                    }}
+                  >
+                    {statVisibleForPlayer ? (
+                      editable ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.12rem',
+                          }}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            disabled={statsDisabled || isUpdating || value <= 0}
+                            title={t('adminResults.players.decrease')}
+                            aria-label={t('adminResults.players.decrease')}
+                            onClick={() => onStatChange?.(player, col.key, -1)}
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.12rem',
+                              width: '1.35rem',
+                              height: '1.35rem',
+                              fontSize: '0.8rem',
+                              flexShrink: 0,
                             }}
                           >
-                            <Button variant="ghost" size="icon"
-                              type="button"
-                              disabled={statsDisabled || isUpdating || value <= 0}
-                              title={t('adminResults.players.decrease')}
-                              aria-label={t('adminResults.players.decrease')}
-                              onClick={() => onStatChange?.(player, col.key, -1)}
-                              style={{
-                                width: '1.35rem',
-                                height: '1.35rem',
-                                fontSize: '0.8rem',
-                                flexShrink: 0,
-                              }}
-                            >
-                              −
-                            </Button>
-                            <span style={statNumberStyle}>{value}</span>
-                            <Button variant="ghost" size="icon"
-                              type="button"
-                              disabled={statsDisabled || isUpdating}
-                              title={t('adminResults.players.increase')}
-                              aria-label={t('adminResults.players.increase')}
-                              onClick={() => onStatChange?.(player, col.key, 1)}
-                              style={{
-                                width: '1.35rem',
-                                height: '1.35rem',
-                                fontSize: '0.8rem',
-                                flexShrink: 0,
-                              }}
-                            >
-                              +
-                            </Button>
-                          </span>
-                        ) : (
+                            −
+                          </Button>
                           <span style={statNumberStyle}>{value}</span>
-                        )
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            disabled={statsDisabled || isUpdating}
+                            title={t('adminResults.players.increase')}
+                            aria-label={t('adminResults.players.increase')}
+                            onClick={() => onStatChange?.(player, col.key, 1)}
+                            style={{
+                              width: '1.35rem',
+                              height: '1.35rem',
+                              fontSize: '0.8rem',
+                              flexShrink: 0,
+                            }}
+                          >
+                            +
+                          </Button>
+                        </span>
                       ) : (
-                        <span style={statNumberStyle}>0</span>
-                      )}
-                    </td>
-                  );
-                })}
-                <td style={{ ...tdStyle, borderLeft: '2px solid rgb(var(--border))' }}>
-                  {onAwardToggle ? (
-                    <Button variant="ghost" size="icon"
-                      type="button"
-                      aria-pressed={isGoldenBoot}
-                      aria-label={t('adminResults.players.awardWinners.toggleGoldenBoot', {
-                        player: player.name,
-                      })}
-                      title={t('adminResults.players.awardWinners.toggleGoldenBoot', {
-                        player: player.name,
-                      })}
-                      disabled={updatingPlayerAward === `golden_boot:${player.playerId}`}
-                      onClick={() => onAwardToggle(player, 'golden_boot', !isGoldenBoot)}
-                      style={{ width: '2rem', height: '2rem' }}
-                    >
-                      <GiLeatherBoot
-                        size={20}
-                        style={{
-                          color: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
-                          fill: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
-                          opacity: isGoldenBoot ? 1 : 0.3,
-                          transform: isGoldenBoot ? 'scale(1.08)' : 'scale(1)',
-                          transition:
-                            'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
-                        }}
-                      />
-                    </Button>
-                  ) : (
+                        <span style={statNumberStyle}>{value}</span>
+                      )
+                    ) : (
+                      <span style={statNumberStyle}>0</span>
+                    )}
+                  </td>
+                );
+              })}
+              <td style={{ ...tdStyle, borderLeft: '2px solid rgb(var(--border))' }}>
+                {onAwardToggle ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    aria-pressed={isGoldenBoot}
+                    aria-label={t('adminResults.players.awardWinners.toggleGoldenBoot', {
+                      player: player.name,
+                    })}
+                    title={t('adminResults.players.awardWinners.toggleGoldenBoot', {
+                      player: player.name,
+                    })}
+                    disabled={updatingPlayerAward === `golden_boot:${player.playerId}`}
+                    onClick={() => onAwardToggle(player, 'golden_boot', !isGoldenBoot)}
+                    style={{ width: '2rem', height: '2rem' }}
+                  >
                     <GiLeatherBoot
                       size={20}
                       style={{
                         color: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
                         fill: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
                         opacity: isGoldenBoot ? 1 : 0.3,
+                        transform: isGoldenBoot ? 'scale(1.08)' : 'scale(1)',
+                        transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
                       }}
                     />
-                  )}
-                </td>
-                <td style={tdStyle}>
-                  {onAwardToggle ? (
-                    <Button variant="ghost" size="icon"
-                      type="button"
-                      aria-pressed={isMVP}
-                      aria-label={t('adminResults.players.awardWinners.toggleTournamentMvp', {
-                        player: player.name,
-                      })}
-                      title={t('adminResults.players.awardWinners.toggleTournamentMvp', {
-                        player: player.name,
-                      })}
-                      disabled={updatingPlayerAward === `tournament_mvp:${player.playerId}`}
-                      onClick={() => onAwardToggle(player, 'tournament_mvp', !isMVP)}
-                      style={{ width: '2rem', height: '2rem' }}
-                    >
-                      <FaStar
-                        size={20}
-                        style={{
-                          color: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
-                          fill: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
-                          opacity: isMVP ? 1 : 0.3,
-                          transform: isMVP ? 'scale(1.08)' : 'scale(1)',
-                          transition:
-                            'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
-                        }}
-                      />
-                    </Button>
-                  ) : (
+                  </Button>
+                ) : (
+                  <GiLeatherBoot
+                    size={20}
+                    style={{
+                      color: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
+                      fill: isGoldenBoot ? '#D4A017' : 'rgb(var(--fg-muted))',
+                      opacity: isGoldenBoot ? 1 : 0.3,
+                    }}
+                  />
+                )}
+              </td>
+              <td style={tdStyle}>
+                {onAwardToggle ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    aria-pressed={isMVP}
+                    aria-label={t('adminResults.players.awardWinners.toggleTournamentMvp', {
+                      player: player.name,
+                    })}
+                    title={t('adminResults.players.awardWinners.toggleTournamentMvp', {
+                      player: player.name,
+                    })}
+                    disabled={updatingPlayerAward === `tournament_mvp:${player.playerId}`}
+                    onClick={() => onAwardToggle(player, 'tournament_mvp', !isMVP)}
+                    style={{ width: '2rem', height: '2rem' }}
+                  >
                     <FaStar
                       size={20}
                       style={{
                         color: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
                         fill: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
                         opacity: isMVP ? 1 : 0.3,
+                        transform: isMVP ? 'scale(1.08)' : 'scale(1)',
+                        transition: 'color 0.18s ease, opacity 0.18s ease, transform 0.18s ease',
                       }}
                     />
-                  )}
-                </td>
-                <td style={{ ...numberStyleGold, borderLeft: '2px solid rgb(var(--border))' }}>
-                  {totalPts}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
+                  </Button>
+                ) : (
+                  <FaStar
+                    size={20}
+                    style={{
+                      color: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
+                      fill: isMVP ? '#D4A017' : 'rgb(var(--fg-muted))',
+                      opacity: isMVP ? 1 : 0.3,
+                    }}
+                  />
+                )}
+              </td>
+              <td style={{ ...numberStyleGold, borderLeft: '2px solid rgb(var(--border))' }}>
+                {totalPts}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
     </Table>
   );
 }

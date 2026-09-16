@@ -13,15 +13,19 @@ export const DEFAULT_PLAYER_SELECTION_LIMITS: PlayerSelectionLimits = {
 };
 
 export function resolvePlayerSelectionLimits(value: unknown): PlayerSelectionLimits {
-  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
-  return (Object.keys(DEFAULT_PLAYER_SELECTION_LIMITS) as PlayerPosition[])
-    .reduce<PlayerSelectionLimits>((limits, position) => {
+  return (
+    Object.keys(DEFAULT_PLAYER_SELECTION_LIMITS) as PlayerPosition[]
+  ).reduce<PlayerSelectionLimits>(
+    (limits, position) => {
       const parsed = Number(source[position]);
       limits[position] =
         Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_PLAYER_SELECTION_LIMIT
           ? parsed
           : DEFAULT_PLAYER_SELECTION_LIMIT;
       return limits;
-    }, { ...DEFAULT_PLAYER_SELECTION_LIMITS });
+    },
+    { ...DEFAULT_PLAYER_SELECTION_LIMITS }
+  );
 }

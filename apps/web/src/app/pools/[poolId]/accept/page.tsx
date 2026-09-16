@@ -21,8 +21,8 @@ function AcceptInvitationContent() {
     typeof params?.poolId === 'string'
       ? params.poolId
       : Array.isArray(params?.poolId)
-      ? params.poolId[0]
-      : '';
+        ? params.poolId[0]
+        : '';
 
   useEffect(() => {
     if (!poolId) {
@@ -43,8 +43,7 @@ function AcceptInvitationContent() {
 
         globalThis.location.href = `/pools/${poolId}`;
       } catch (error: any) {
-        const errorMessage =
-          apiErrorDetail(error) || t('acceptInvitation.errors.acceptFailed');
+        const errorMessage = apiErrorDetail(error) || t('acceptInvitation.errors.acceptFailed');
         toast.error(errorMessage);
         trackEvent('Invitation Accept Failed');
         globalThis.location.href = '/pools';

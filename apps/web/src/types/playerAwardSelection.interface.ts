@@ -1,5 +1,5 @@
-import { TournamentPlayer } from "./tournamentPlayer.interface";
-import { PlayerAward } from "./playerAward.type";
+import { TournamentPlayer } from './tournamentPlayer.interface';
+import { PlayerAward } from './playerAward.type';
 
 export interface PlayerAwardSelection extends TournamentPlayer {
   poolId: string;

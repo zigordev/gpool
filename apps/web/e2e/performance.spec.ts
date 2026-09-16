@@ -18,7 +18,7 @@ test('the sign-in page meets its Core Web Vitals budgets', async ({ page }) => {
           resolve(entries.at(-1)?.startTime ?? 0);
         }).observe({ type: 'largest-contentful-paint', buffered: true });
         setTimeout(() => resolve(0), 5_000);
-      }),
+      })
   );
   expect(lcp, `LCP ${Math.round(lcp)}ms`).toBeLessThan(BUDGETS.lcpMs);
 
@@ -35,7 +35,7 @@ test('the sign-in page meets its Core Web Vitals budgets', async ({ page }) => {
           }
         }).observe({ type: 'layout-shift', buffered: true });
         setTimeout(() => resolve(total), 2_000);
-      }),
+      })
   );
   expect(cls, `CLS ${cls.toFixed(3)}`).toBeLessThan(BUDGETS.cls);
 });
@@ -51,6 +51,6 @@ test('the sign-in page stays inside its transfer budget', async ({ page }) => {
   await page.waitForLoadState('networkidle');
 
   expect(transferred, `${Math.round(transferred / 1024)} KB transferred`).toBeLessThan(
-    BUDGETS.transferBytes,
+    BUDGETS.transferBytes
   );
 });

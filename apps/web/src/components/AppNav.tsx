@@ -53,8 +53,16 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   // editing the real results every pool is graded against.
   if (isTournamentAdmin) {
     const adminItems = [
-      { href: '/admin/groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
-      { href: '/admin/final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
+      {
+        href: '/admin/groups',
+        label: t('poolDetail.tabs.groupPhase'),
+        icon: <Icon name="layout-dashboard" />,
+      },
+      {
+        href: '/admin/final',
+        label: t('poolDetail.tabs.finalPhase'),
+        icon: <Icon name="trophy" />,
+      },
       { href: '/admin/players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
     ];
 
@@ -68,28 +76,48 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
           title: t('systemAdmin.tabsLabel'),
           description: t('systemAdmin.title'),
           actions: (
-            <Button as={Link} variant="outline" size="sm" href="/pools" style={{ textDecoration: 'none' }}>
+            <Button
+              as={Link}
+              variant="outline"
+              size="sm"
+              href="/pools"
+              style={{ textDecoration: 'none' }}
+            >
               {t('common.backToPools')}
             </Button>
           ),
           utilities: <Utilities />,
         }}
       >
-        <div className="container-app" style={{ position: 'relative' }}>{children}</div>
+        <div className="container-app" style={{ position: 'relative' }}>
+          {children}
+        </div>
       </AppShell>
     );
   }
 
   const sections = isManage
     ? [
-        { key: 'settings', label: t('adminResults.config.general.title'), icon: <Icon name="settings" /> },
-        { key: 'groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
+        {
+          key: 'settings',
+          label: t('adminResults.config.general.title'),
+          icon: <Icon name="settings" />,
+        },
+        {
+          key: 'groups',
+          label: t('poolDetail.tabs.groupPhase'),
+          icon: <Icon name="layout-dashboard" />,
+        },
         { key: 'final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
         { key: 'players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
       ]
     : [
         { key: 'ranking', label: t('poolDetail.tabs.ranking'), icon: <Icon name="trending-up" /> },
-        { key: 'groups', label: t('poolDetail.tabs.groupPhase'), icon: <Icon name="layout-dashboard" /> },
+        {
+          key: 'groups',
+          label: t('poolDetail.tabs.groupPhase'),
+          icon: <Icon name="layout-dashboard" />,
+        },
         { key: 'final', label: t('poolDetail.tabs.finalPhase'), icon: <Icon name="trophy" /> },
         { key: 'players', label: t('poolDetail.tabs.players'), icon: <Icon name="users" /> },
       ];
@@ -102,9 +130,18 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
   const sidebarItems = [
     { href: '/', label: t('pools.filters.mine'), icon: <Icon name="trophy" /> },
     // exact: /pools/123/... is a pool's own section, not the directory.
-    { href: '/pools', exact: true, label: t('pools.filters.all'), icon: <Icon name="layout-dashboard" /> },
+    {
+      href: '/pools',
+      exact: true,
+      label: t('pools.filters.all'),
+      icon: <Icon name="layout-dashboard" />,
+    },
     ...(base
-      ? sections.map((section) => ({ href: `${base}/${section.key}`, label: section.label, icon: section.icon }))
+      ? sections.map((section) => ({
+          href: `${base}/${section.key}`,
+          label: section.label,
+          icon: section.icon,
+        }))
       : []),
   ];
 
@@ -119,7 +156,9 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
     const shared = ['groups', 'final', 'players'];
     const section = shared.includes(currentSection ?? '')
       ? currentSection
-      : target === 'manage' ? 'settings' : 'ranking';
+      : target === 'manage'
+        ? 'settings'
+        : 'ranking';
     return target === 'manage'
       ? `/pools/${activePoolId}/admin/${section}`
       : `/pools/${activePoolId}/${section}`;
@@ -146,11 +185,21 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
             }))}
           footer={({ close }: { close: () => void }) => (
             <>
-              <MenuItem onClick={() => { close(); router.push('/pools'); }}>
+              <MenuItem
+                onClick={() => {
+                  close();
+                  router.push('/pools');
+                }}
+              >
                 <Icon name="layout-dashboard" /> {t('pools.filters.all')}
               </MenuItem>
               {user?.role === 'admin' ? (
-                <MenuItem onClick={() => { close(); router.push('/admin/groups'); }}>
+                <MenuItem
+                  onClick={() => {
+                    close();
+                    router.push('/admin/groups');
+                  }}
+                >
                   <Icon name="shield" /> {t('systemAdmin.tabsLabel')}
                 </MenuItem>
               ) : null}
@@ -162,32 +211,36 @@ export function AppNav({ children }: Readonly<{ children: React.ReactNode }>) {
       activeHref={pathname}
       linkComponent={Link}
       topbar={{
-        actions: isPoolsList && user?.role === 'admin' ? (
-          <Button
-            as={Link}
-            variant="primary"
-            size="sm"
-            href={`${pathname}?create=1`}
-            style={{ textDecoration: 'none' }}
-          >
-            <Icon name="plus" size={14} /> {t('pools.actions.create')}
-          </Button>
-        ) : null,
-        mode: isPoolAdmin && activePoolId ? (
-          <SegmentedControl
-            ariaLabel={t('poolDetail.mode.label')}
-            linkComponent={Link}
-            value={isManage ? 'manage' : 'view'}
-            options={[
-              { value: 'view', label: t('poolDetail.mode.member'), href: twin('view') },
-              { value: 'manage', label: t('poolDetail.mode.admin'), href: twin('manage') },
-            ]}
-          />
-        ) : null,
+        actions:
+          isPoolsList && user?.role === 'admin' ? (
+            <Button
+              as={Link}
+              variant="primary"
+              size="sm"
+              href={`${pathname}?create=1`}
+              style={{ textDecoration: 'none' }}
+            >
+              <Icon name="plus" size={14} /> {t('pools.actions.create')}
+            </Button>
+          ) : null,
+        mode:
+          isPoolAdmin && activePoolId ? (
+            <SegmentedControl
+              ariaLabel={t('poolDetail.mode.label')}
+              linkComponent={Link}
+              value={isManage ? 'manage' : 'view'}
+              options={[
+                { value: 'view', label: t('poolDetail.mode.member'), href: twin('view') },
+                { value: 'manage', label: t('poolDetail.mode.admin'), href: twin('manage') },
+              ]}
+            />
+          ) : null,
         utilities: <Utilities />,
       }}
     >
-      <div className="container-app" style={{ position: 'relative' }}>{children}</div>
+      <div className="container-app" style={{ position: 'relative' }}>
+        {children}
+      </div>
     </AppShell>
   );
 }
