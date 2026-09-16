@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.73](https://github.com/zigordev/gpool/compare/v0.1.72...v0.1.73) (2026-09-16)
+
+
+### Refactoring
+
+* **pool:** drop the role parameter nothing reads ([#245](https://github.com/zigordev/gpool/issues/245)) ([8c4d7f1](https://github.com/zigordev/gpool/commit/8c4d7f1383df66fa72453dc882aef457d974d7ec))
+
 ## [0.1.72](https://github.com/zigordev/gpool/compare/v0.1.71...v0.1.72) (2026-09-15)
 
 
