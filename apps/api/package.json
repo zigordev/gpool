@@ -8,7 +8,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "lint": "echo \"No api lint configured\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.68.0",
     "@vitest/coverage-v8": "^5.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.6.2",
@@ -73,6 +73,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
     "unplugin-swc": "^1.5.1",
     "vitest": "^5.0.0"
   }

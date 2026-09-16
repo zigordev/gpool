@@ -1,4 +1,14 @@
-import { Body, Controller, ForbiddenException, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthenticatedGuard } from '../../auth/authenticated.guard';
@@ -29,28 +39,30 @@ export class PlayerController {
   @Get('selection-statistics')
   @ApiOperation({ summary: 'Get locked player selection popularity statistics for a pool' })
   @ApiResponse({ status: 200, description: 'Player selection statistics retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Prediction deadline has not passed or membership required',
+  })
   async getSelectionStatistics(@Param('poolId') poolId: string, @Req() req: Request) {
     const user = req.user as any;
-    return this.playerService.getPlayerSelectionStatistics(
-      poolId,
-      user.userId,
-      user.role,
-    );
+    return this.playerService.getPlayerSelectionStatistics(poolId, user.userId, user.role);
   }
 
   @Get(':playerId/insights')
   @ApiOperation({ summary: 'Get player selection and match-action insights for a locked pool' })
   @ApiResponse({ status: 200, description: 'Player insights retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid selection context' })
-  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Prediction deadline has not passed or membership required',
+  })
   @ApiResponse({ status: 404, description: 'Pool or player not found' })
   async getPlayerInsights(
     @Param('poolId') poolId: string,
     @Param('playerId') playerId: string,
     @Query('selectionType') selectionType: PlayerInsightSelectionType = 'position',
     @Query('award') award: PlayerAward | undefined,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.playerService.getPlayerInsights(
@@ -59,7 +71,7 @@ export class PlayerController {
       selectionType,
       award,
       user.userId,
-      user.role,
+      user.role
     );
   }
 
@@ -69,7 +81,7 @@ export class PlayerController {
   async updateSelection(
     @Param('poolId') poolId: string,
     @Body() body: { position: PlayerPosition; slot: number; playerId?: string | null },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.playerService.updatePlayerSelection(
@@ -77,7 +89,7 @@ export class PlayerController {
       user.userId,
       body.position,
       body.slot,
-      body.playerId || null,
+      body.playerId || null
     );
   }
 
@@ -87,14 +99,14 @@ export class PlayerController {
   async updateAwardSelection(
     @Param('poolId') poolId: string,
     @Body() body: { award: PlayerAward; playerId?: string | null },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.playerService.updatePlayerAwardSelection(
       poolId,
       user.userId,
       body.award,
-      body.playerId || null,
+      body.playerId || null
     );
   }
 
@@ -103,7 +115,7 @@ export class PlayerController {
   @ApiResponse({ status: 200, description: 'Tournament award result updated successfully' })
   async updateAwardResult(
     @Body() body: { award: PlayerAward; playerId: string; selected: boolean },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
@@ -113,7 +125,7 @@ export class PlayerController {
       body.playerId,
       body.award,
       body.selected,
-      user.role,
+      user.role
     );
   }
 
@@ -123,13 +135,14 @@ export class PlayerController {
   async updatePlayerStats(
     @Param('poolId') poolId: string,
     @Param('playerId') playerId: string,
-    @Body() body: {
+    @Body()
+    body: {
       matchId: string;
       matchType: PlayerMatchType;
       stat: PlayerStatKey;
       delta: number;
     },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {

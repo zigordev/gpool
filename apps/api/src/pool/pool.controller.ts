@@ -11,12 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PoolService } from './pool.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
@@ -41,7 +36,13 @@ export class PoolController {
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   async createPool(@Body() createPoolDto: CreatePoolDto, @Req() req: Request) {
     const user = req.user as any;
-    return this.poolService.createPool(createPoolDto, user.userId, user.role, user.name, user.email);
+    return this.poolService.createPool(
+      createPoolDto,
+      user.userId,
+      user.role,
+      user.name,
+      user.email
+    );
   }
 
   @Get()
@@ -71,7 +72,7 @@ export class PoolController {
   async updatePool(
     @Param('poolId') poolId: string,
     @Body() updatePoolDto: UpdatePoolDto,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.poolService.updatePool(poolId, updatePoolDto, user.userId, user.role);
@@ -108,7 +109,7 @@ export class PoolController {
   async acceptAccessRequest(
     @Param('poolId') poolId: string,
     @Param('userId') userId: string,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.poolService.acceptAccessRequest(poolId, userId, user.userId, user.role);
@@ -123,10 +124,16 @@ export class PoolController {
   async inviteUser(
     @Param('poolId') poolId: string,
     @Body() inviteUserDto: InviteUserDto,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.poolService.inviteUser(poolId, inviteUserDto.email, user.userId, user.role, user.email);
+    return this.poolService.inviteUser(
+      poolId,
+      inviteUserDto.email,
+      user.userId,
+      user.role,
+      user.email
+    );
   }
 
   @Post(':poolId/accept-invitation')
@@ -147,7 +154,7 @@ export class PoolController {
   async updatePoolConfiguration(
     @Param('poolId') poolId: string,
     @Body() newConfig: Record<string, any>,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.poolService.updatePoolConfiguration(poolId, newConfig, user.userId, user.role);

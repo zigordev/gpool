@@ -8,13 +8,6 @@ const roundOf32 = Array.from({ length: 16 }, (_, index) => ({
   awayTeamId: `team-${index * 2 + 2}`,
 }));
 
-const roundOf16 = Array.from({ length: 8 }, (_, index) => ({
-  bracketMatchId: `all-pools-8th-finals-${index + 1}`,
-  phase: '8th-finals',
-  homeTeamId: `team-${index * 2 + 1}`,
-  awayTeamId: `team-${index * 2 + 2}`,
-}));
-
 describe('BracketService startup recalculation', () => {
   it('creates missing final phase matches before re-evaluating on bootstrap', async () => {
     const repository = {
@@ -130,9 +123,11 @@ describe('BracketService team elimination sync', () => {
     }));
     const repository = {
       getBracketMatches: vi.fn().mockResolvedValue([...roundOf32, ...realisticRoundOf16]),
-      getAllTeams: vi.fn().mockResolvedValue(
-        Array.from({ length: 48 }, (_, index) => ({ teamId: `team-${index + 1}` }))
-      ),
+      getAllTeams: vi
+        .fn()
+        .mockResolvedValue(
+          Array.from({ length: 48 }, (_, index) => ({ teamId: `team-${index + 1}` }))
+        ),
       updateTeamEliminatedState: vi.fn().mockResolvedValue([]),
     };
     const service = new BracketService(repository as any);
@@ -259,10 +254,10 @@ describe('BracketService final phase match materialization', () => {
       'Team A'
     );
 
-    expect(repository.updateBracketMatch).toHaveBeenCalledWith(
-      thirdPlaceMatch.bracketMatchId,
-      { homeTeamId: 'team-a', homeTeamName: 'Team A' }
-    );
+    expect(repository.updateBracketMatch).toHaveBeenCalledWith(thirdPlaceMatch.bracketMatchId, {
+      homeTeamId: 'team-a',
+      homeTeamName: 'Team A',
+    });
     expect(repository.updateTeamEliminatedState).toHaveBeenCalledWith([]);
     expect(result).toEqual(thirdPlaceMatch);
   });
@@ -403,10 +398,7 @@ describe('BracketService final phase scoring', () => {
       'pool-1'
     );
 
-    expect(repository.getBracketMatches).toHaveBeenCalledWith(
-      'all-pools',
-      'quarter-finals'
-    );
+    expect(repository.getBracketMatches).toHaveBeenCalledWith('all-pools', 'quarter-finals');
     expect(repository.bulkUpdateBracketPredictionPoints).toHaveBeenCalledWith([
       {
         bracketPredictionId: 'prediction-1',
@@ -608,9 +600,13 @@ describe('BracketService final phase scoring', () => {
     };
     const phaseMatches = [emptyPredictionBox, knownTeamBox, thirdPlaceMatch];
     const repository = {
-      getBracketMatches: vi.fn().mockImplementation((_poolId, phase) =>
-        Promise.resolve(phase ? phaseMatches.filter((match) => match.phase === phase) : phaseMatches)
-      ),
+      getBracketMatches: vi
+        .fn()
+        .mockImplementation((_poolId, phase) =>
+          Promise.resolve(
+            phase ? phaseMatches.filter((match) => match.phase === phase) : phaseMatches
+          )
+        ),
       getAllBracketPredictionsForMatch: vi.fn().mockImplementation((bracketMatchId) =>
         Promise.resolve(
           bracketMatchId === emptyPredictionBox.bracketMatchId

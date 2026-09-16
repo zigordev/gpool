@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PostgresService } from '../../database/postgres.service';
 

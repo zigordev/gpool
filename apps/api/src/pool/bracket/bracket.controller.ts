@@ -11,12 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { BracketService } from './bracket.service';
 import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import { Request } from 'express';
@@ -44,13 +39,18 @@ export class BracketController {
     @Param('poolId') poolId: string,
     @Param('phase') phase: string,
     @Body() body: { numberOfMatches: number; forceRecreate?: boolean },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
       throw new ForbiddenException('Only administrators can create bracket phases');
     }
-    return this.bracketService.createBracketPhase(poolId, phase as any, body.numberOfMatches, body.forceRecreate || false);
+    return this.bracketService.createBracketPhase(
+      poolId,
+      phase as any,
+      body.numberOfMatches,
+      body.forceRecreate || false
+    );
   }
 
   @Put('matches/:bracketMatchId/team')
@@ -60,7 +60,7 @@ export class BracketController {
     @Param('poolId') poolId: string,
     @Param('bracketMatchId') bracketMatchId: string,
     @Body() body: { side: 'home' | 'away'; teamId: string; teamName: string },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
@@ -71,7 +71,7 @@ export class BracketController {
       poolId,
       body.side,
       body.teamId,
-      body.teamName,
+      body.teamName
     );
   }
 
@@ -81,8 +81,14 @@ export class BracketController {
   async updateResult(
     @Param('poolId') poolId: string,
     @Param('bracketMatchId') bracketMatchId: string,
-    @Body() body: { homeResult: number; awayResult: number; exactPositionPoints?: number; correctTeamWrongPositionPoints?: number },
-    @Req() req: Request,
+    @Body()
+    body: {
+      homeResult: number;
+      awayResult: number;
+      exactPositionPoints?: number;
+      correctTeamWrongPositionPoints?: number;
+    },
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
@@ -94,7 +100,7 @@ export class BracketController {
       body.homeResult,
       body.awayResult,
       body.exactPositionPoints,
-      body.correctTeamWrongPositionPoints,
+      body.correctTeamWrongPositionPoints
     );
   }
 
@@ -105,7 +111,8 @@ export class BracketController {
   async createPrediction(
     @Param('poolId') poolId: string,
     @Param('bracketMatchId') bracketMatchId: string,
-    @Body() body: {
+    @Body()
+    body: {
       homeTeamId: string;
       homeTeamName: string;
       awayTeamId: string;
@@ -113,7 +120,7 @@ export class BracketController {
       predictedWinnerTeamId?: string;
       predictedWinnerTeamName?: string;
     },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.bracketService.createBracketPrediction(
@@ -125,7 +132,7 @@ export class BracketController {
       body.awayTeamId,
       body.awayTeamName,
       body.predictedWinnerTeamId,
-      body.predictedWinnerTeamName,
+      body.predictedWinnerTeamName
     );
   }
 
@@ -140,7 +147,10 @@ export class BracketController {
   @Get('winner-insights')
   @ApiOperation({ summary: 'Get locked tournament winner selection statistics' })
   @ApiResponse({ status: 200, description: 'Tournament winner statistics retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Prediction deadline has not passed or membership required',
+  })
   async getWinnerInsights(@Param('poolId') poolId: string, @Req() req: Request) {
     const user = req.user as any;
     return this.bracketService.getWinnerInsights(poolId, user.userId, user.role);

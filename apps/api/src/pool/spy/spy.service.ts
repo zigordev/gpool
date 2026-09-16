@@ -26,7 +26,7 @@ export class SpyService {
     poolId: string,
     requesterUserId: string,
     requesterRole: string,
-    targetUserId: string,
+    targetUserId: string
   ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
@@ -37,7 +37,9 @@ export class SpyService {
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const requesterMembership = await this.poolRepository.getMembership(poolId, requesterUserId);
       if (!requesterMembership) {
-        throw new ForbiddenException('You must be a member of this pool to view other members\' picks');
+        throw new ForbiddenException(
+          "You must be a member of this pool to view other members' picks"
+        );
       }
     }
 
@@ -46,7 +48,13 @@ export class SpyService {
       throw new NotFoundException('Target user is not a member of this pool');
     }
 
-    const [predictions, bracketPredictions, playerSelections, playerAwardSelections, tournamentAwards] = await Promise.all([
+    const [
+      predictions,
+      bracketPredictions,
+      playerSelections,
+      playerAwardSelections,
+      tournamentAwards,
+    ] = await Promise.all([
       this.poolRepository.getUserPredictions(poolId, targetUserId),
       this.poolRepository.getUserBracketPredictions(poolId, targetUserId),
       this.poolRepository.getPlayerSelections(poolId, targetUserId),

@@ -32,20 +32,20 @@ describe('MatchService match insights', () => {
       'final',
       'final-match-1',
       'user-1',
-      'admin',
+      'admin'
     );
 
     expect(result.match).toEqual(
       expect.objectContaining({
         homeTeamName: 'México',
         awayTeamName: 'Sudáfrica',
-      }),
+      })
     );
     expect(repository.getPlayerSelectionsWithMatchStats).toHaveBeenCalledWith(
       'pool-1',
       'final',
       'final-match-1',
-      ['team-a', 'team-b'],
+      ['team-a', 'team-b']
     );
   });
 
@@ -83,29 +83,21 @@ describe('MatchService match insights', () => {
         homeTeamId: 'team-a',
         awayTeamId: 'team-b',
       }),
-      getPoolMembers: vi.fn().mockResolvedValue([
-        { userId: 'user-1', userName: 'User One', status: 'active' },
-      ]),
-      getAllPredictionsForMatch: vi.fn().mockResolvedValue([]),
-      getPlayerSelectionsWithMatchStats: vi
+      getPoolMembers: vi
         .fn()
-        .mockResolvedValue([zeroActionPlayer]),
+        .mockResolvedValue([{ userId: 'user-1', userName: 'User One', status: 'active' }]),
+      getAllPredictionsForMatch: vi.fn().mockResolvedValue([]),
+      getPlayerSelectionsWithMatchStats: vi.fn().mockResolvedValue([zeroActionPlayer]),
     };
     const service = new MatchService(repository as any);
 
-    const result = await service.getMatchInsights(
-      'pool-1',
-      'group',
-      'match-1',
-      'user-1',
-      'admin',
-    );
+    const result = await service.getMatchInsights('pool-1', 'group', 'match-1', 'user-1', 'admin');
 
     expect(repository.getPlayerSelectionsWithMatchStats).toHaveBeenCalledWith(
       'pool-1',
       'group',
       'match-1',
-      ['team-a', 'team-b'],
+      ['team-a', 'team-b']
     );
     expect(result.members[0].playerActions).toEqual([
       expect.objectContaining({

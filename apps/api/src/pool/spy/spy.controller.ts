@@ -24,7 +24,7 @@ export class SpyController {
   async getMemberPicks(
     @Param('poolId') poolId: string,
     @Param('userId') targetUserId: string,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.spyService.getMemberPicks(poolId, user.userId, user.role, targetUserId);
