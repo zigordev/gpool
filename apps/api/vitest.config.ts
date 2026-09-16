@@ -21,6 +21,12 @@ export default defineConfig({
       provider: 'v8',
       reportsDirectory: '../coverage',
       include: ['src/**/*.ts'],
+      thresholds: {
+        branches: 23,
+        functions: 20,
+        lines: 22,
+        statements: 22,
+      },
     },
   },
   plugins: [swc.vite({ module: { type: 'es6' } })],
