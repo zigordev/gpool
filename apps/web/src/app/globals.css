@@ -1,7 +1,7 @@
 /* Shared navigation design-system (Sidebar/Topbar/BottomNav/AppShell/Logo) —
    copied from design-system v0.1.3, themed via themes/gpool.css below. */
-@import "design-system/styles.css";
-@import "design-system/themes/gpool.css";
+@import 'design-system/styles.css';
+@import 'design-system/themes/gpool.css';
 
 /* ============================================================================
    GPool — design tokens
@@ -12,18 +12,18 @@
   color-scheme: light;
 
   /* Surfaces */
-  --bg: 239 245 241;            /* soft neutral with a light pitch tint */
+  --bg: 239 245 241; /* soft neutral with a light pitch tint */
   --bg-elevated: 248 251 249;
   --bg-subtle: 231 238 234;
   --surface-strong: 251 253 251;
-  --input-bg: 255 255 255;      /* white */
+  --input-bg: 255 255 255; /* white */
   --disabled-bg: 205 214 209;
   --match-neutral-bg: 255 255 255;
   --panel-muted-bg: rgb(var(--fg) / 0.08);
   --panel-muted-bg-solid: 213 221 216;
 
   /* Foreground */
-  --fg: 17 24 28;               /* deep ink */
+  --fg: 17 24 28; /* deep ink */
   --fg-muted: 71 85 99;
   /* Hand-mirrors design-system/themes/gpool.css's --ds-color-fg-subtle — kept
      numerically identical on purpose, update both together. This value itself
@@ -39,16 +39,16 @@
   --disabled-border: 105 119 111;
 
   /* Accent — pitch emerald → sunset amber */
-  --accent-from: 22 101 52;     /* emerald-800: deep, professional pitch */
-  --accent-to:   175 58 7;      /* deep orange: warm energy */
-  --accent-fg:   255 255 255;
+  --accent-from: 22 101 52; /* emerald-800: deep, professional pitch */
+  --accent-to: 175 58 7; /* deep orange: warm energy */
+  --accent-fg: 255 255 255;
 
   /* Semantic accents */
-  --pitch:    13 105 67;        /* primary emerald */
-  --sunset:   175 58 7;         /* primary orange */
-  --gold:     154 83 4;         /* amber-700, for trophies/winners */
-  --live:     185 28 28;        /* red-700 for live state */
-  --info:     30 64 175;        /* blue-700 */
+  --pitch: 13 105 67; /* primary emerald */
+  --sunset: 175 58 7; /* primary orange */
+  --gold: 154 83 4; /* amber-700, for trophies/winners */
+  --live: 185 28 28; /* red-700 for live state */
+  --info: 30 64 175; /* blue-700 */
 
   /* Focus ring */
   --ring: 22 101 52;
@@ -75,10 +75,8 @@
   /* Shadows */
   --shadow-sm: 0 1px 2px rgb(15 23 28 / 0.05), 0 1px 1px rgb(15 23 28 / 0.04);
   --shadow-md: 0 4px 12px rgb(15 23 28 / 0.08), 0 2px 4px rgb(15 23 28 / 0.04);
-  --shadow-lg: 0 16px 32px rgb(15 23 28 / 0.10), 0 4px 8px rgb(15 23 28 / 0.05);
-  --shadow-glow:
-    0 8px 24px rgb(var(--accent-from) / 0.18),
-    0 2px 6px rgb(var(--accent-to) / 0.12);
+  --shadow-lg: 0 16px 32px rgb(15 23 28 / 0.1), 0 4px 8px rgb(15 23 28 / 0.05);
+  --shadow-glow: 0 8px 24px rgb(var(--accent-from) / 0.18), 0 2px 6px rgb(var(--accent-to) / 0.12);
 
   /* Legacy aliases (so old inline styles still resolve while we migrate) */
   --color-cream: rgb(var(--bg-subtle));
@@ -97,7 +95,7 @@
   /* Motion budget — two easing curves and three duration tiers used across
      the design system. Centralised so every tab fade, modal enter, and
      section collapse moves in the same rhythm. */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* expo-out, "settling" */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* expo-out, "settling" */
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric, smooth */
   --motion-fast: 140ms;
   --motion: 220ms;
@@ -111,50 +109,48 @@ html.dark {
   color-scheme: dark;
 
   /* Surfaces */
-  --bg:            13 18 15;
-  --bg-elevated:   28 36 31;
-  --bg-subtle:      9 14 11;
+  --bg: 13 18 15;
+  --bg-elevated: 28 36 31;
+  --bg-subtle: 9 14 11;
   --surface-strong: 28 39 32;
-  --input-bg:      38 52 44;
-  --disabled-bg:   55 63 58;
+  --input-bg: 38 52 44;
+  --disabled-bg: 55 63 58;
   --match-neutral-bg: 38 52 44;
   --panel-muted-bg-solid: 29 35 32;
 
   /* Foreground */
-  --fg:       218 236 222;
+  --fg: 218 236 222;
   --fg-muted: 152 177 158;
   --fg-subtle: 134 160 141;
 
   /* Borders */
-  --border:         72 98 80;
-  --border-subtle:  52 72 59;
+  --border: 72 98 80;
+  --border-subtle: 52 72 59;
   --control-border: 105 135 113;
   --disabled-border: 126 139 131;
 
   /* Semantic accents — brighter so they pop on dark backgrounds */
-  --pitch:       52 211 153;
-  --sunset:     251 146 60;
-  --gold:       251 191 36;
-  --live:       248 113 113;
-  --info:        96 165 250;
+  --pitch: 52 211 153;
+  --sunset: 251 146 60;
+  --gold: 251 191 36;
+  --live: 248 113 113;
+  --info: 96 165 250;
   --accent-from: 74 222 128;
-  --accent-to:  251 146 60;
-  --accent-fg:    9 30 19;
+  --accent-to: 251 146 60;
+  --accent-fg: 9 30 19;
 
   /* Focus ring */
   --ring: 74 222 128;
 
   /* Glass card sheen — much subtler on dark backgrounds */
   --card-sheen: rgb(255 255 255 / 0.06);
-  --card-inset-highlight: rgb(255 255 255 / 0.10);
+  --card-inset-highlight: rgb(255 255 255 / 0.1);
 
   /* Shadows — stronger contrast in dark contexts */
-  --shadow-sm:  0 1px 3px rgb(0 0 0 / 0.30), 0 1px 2px rgb(0 0 0 / 0.20);
-  --shadow-md:  0 4px 14px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.25);
-  --shadow-lg:  0 16px 36px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.30);
-  --shadow-glow:
-    0 8px 24px rgb(var(--accent-from) / 0.25),
-    0 2px 6px rgb(var(--accent-to) / 0.18);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.25);
+  --shadow-lg: 0 16px 36px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.3);
+  --shadow-glow: 0 8px 24px rgb(var(--accent-from) / 0.25), 0 2px 6px rgb(var(--accent-to) / 0.18);
 }
 
 /* Honour the user's reduced-motion preference. We disable transitions and
@@ -209,7 +205,9 @@ html.dark {
 }
 
 @keyframes pool-detail-trigger-hint {
-  0%, 82%, 100% {
+  0%,
+  82%,
+  100% {
     box-shadow: 0 0 0 0 rgb(var(--fg) / 0);
     filter: brightness(1);
   }
@@ -225,7 +223,10 @@ html.dark {
 
 .pool-detail-modal-trigger {
   animation: pool-detail-trigger-hint 5s ease-in-out infinite;
-  transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .pool-detail-modal-trigger:hover:not(:disabled) {
@@ -281,18 +282,27 @@ body {
 
 body {
   font-family:
-    var(--font-sans, "Inter"),
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    var(--font-sans, 'Inter'),
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
     sans-serif;
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   min-height: 100vh;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display, var(--font-sans, "Inter")), sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display, var(--font-sans, 'Inter')), sans-serif;
   letter-spacing: -0.01em;
   line-height: 1.15;
   color: rgb(var(--fg));
@@ -338,7 +348,7 @@ select {
 
 a:focus-visible,
 button:focus-visible,
-[role="button"]:focus-visible,
+[role='button']:focus-visible,
 [tabindex]:focus-visible {
   outline: 3px solid rgb(var(--ring));
   outline-offset: 3px;
@@ -355,16 +365,15 @@ button:focus-visible,
 
 /* Subtle pitch-line pattern for hero sections */
 .pitch-lines {
-  background-image:
-    linear-gradient(
-      0deg,
-      transparent 0,
-      transparent calc(50% - 0.5px),
-      rgb(var(--accent-from) / 0.08) calc(50% - 0.5px),
-      rgb(var(--accent-from) / 0.08) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px),
-      transparent 100%
-    );
+  background-image: linear-gradient(
+    0deg,
+    transparent 0,
+    transparent calc(50% - 0.5px),
+    rgb(var(--accent-from) / 0.08) calc(50% - 0.5px),
+    rgb(var(--accent-from) / 0.08) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px),
+    transparent 100%
+  );
   background-size: 100% 96px;
 }
 
@@ -391,11 +400,7 @@ button:focus-visible,
    ============================================================================ */
 
 .gradient-text {
-  background-image: linear-gradient(
-    100deg,
-    rgb(var(--accent-from)),
-    rgb(var(--accent-to))
-  );
+  background-image: linear-gradient(100deg, rgb(var(--accent-from)), rgb(var(--accent-to)));
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -425,7 +430,9 @@ button:focus-visible,
 }
 
 @keyframes btn-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .pool-detail-action-trigger {
@@ -476,7 +483,10 @@ input:focus {
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .card-interactive {
@@ -506,15 +516,23 @@ input:focus {
 
 .pool-cover::after {
   /* Pitch lines overlay on the cover */
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(90deg, transparent 49.5%, rgb(255 255 255 / 0.18) 49.5%, rgb(255 255 255 / 0.18) 50.5%, transparent 50.5%),
+    linear-gradient(
+      90deg,
+      transparent 49.5%,
+      rgb(255 255 255 / 0.18) 49.5%,
+      rgb(255 255 255 / 0.18) 50.5%,
+      transparent 50.5%
+    ),
     radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.14) 18px, transparent 19px);
   background-repeat: no-repeat;
   background-position: center, center;
-  background-size: 100% 100%, 36px 36px;
+  background-size:
+    100% 100%,
+    36px 36px;
   opacity: 0.7;
 }
 
@@ -543,7 +561,7 @@ input:focus {
 .badge-sunset {
   background: rgb(var(--sunset) / 0.12);
   color: rgb(var(--sunset));
-  border: 1px solid rgb(var(--sunset) / 0.30);
+  border: 1px solid rgb(var(--sunset) / 0.3);
 }
 
 .badge-neutral {
@@ -555,17 +573,17 @@ input:focus {
 .badge-live {
   background: rgb(var(--live) / 0.12);
   color: rgb(var(--live));
-  border: 1px solid rgb(var(--live) / 0.30);
+  border: 1px solid rgb(var(--live) / 0.3);
 }
 
 .badge-gold {
   background: rgb(var(--gold) / 0.12);
   color: rgb(var(--gold));
-  border: 1px solid rgb(var(--gold) / 0.30);
+  border: 1px solid rgb(var(--gold) / 0.3);
 }
 
 .badge-info {
-  background: rgb(var(--info) / 0.10);
+  background: rgb(var(--info) / 0.1);
   color: rgb(var(--info));
   border: 1px solid rgb(var(--info) / 0.25);
 }
@@ -577,7 +595,9 @@ input:focus {
 }
 
 @keyframes badge-attention {
-  0%, 7%, 100% {
+  0%,
+  7%,
+  100% {
     transform: translateY(0) scale(1);
     box-shadow: 0 0 0 0 rgb(var(--sunset) / 0);
   }
@@ -592,7 +612,7 @@ input:focus {
 }
 
 .badge-live::before {
-  content: "";
+  content: '';
   display: inline-block;
   width: 6px;
   height: 6px;
@@ -603,9 +623,15 @@ input:focus {
 }
 
 @keyframes live-pulse {
-  0%   { box-shadow: 0 0 0 0 rgb(var(--live) / 0.55); }
-  70%  { box-shadow: 0 0 0 8px rgb(var(--live) / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(var(--live) / 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--live) / 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgb(var(--live) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--live) / 0);
+  }
 }
 
 /* Minimal workspace navigation — players page */
@@ -668,8 +694,8 @@ input:focus {
   transform: translateY(-50%);
   border: 2px solid rgb(255 255 255 / 0.85);
   background:
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px),
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.40) 0 1px, transparent 1px 6px);
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.4) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.4) 0 1px, transparent 1px 6px);
 }
 
 .players-pitch-goal--left {
@@ -727,7 +753,9 @@ input:focus {
   text-align: center;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .players-tab-btn:hover:not(.players-tab-btn--active) {
@@ -796,7 +824,10 @@ input:focus {
 }
 
 .player-selection-card {
-  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, opacity var(--motion-fast) ease;
+  transition:
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
+    opacity var(--motion-fast) ease;
 }
 
 .player-selection-card:focus-within {
@@ -804,19 +835,25 @@ input:focus {
   box-shadow: 0 0 0 3px rgb(var(--pitch) / 0.1) !important;
 }
 
-.player-selection-card[role="button"]:hover {
+.player-selection-card[role='button']:hover {
   border-color: rgb(var(--pitch) / 0.72) !important;
   box-shadow: var(--shadow-md) !important;
 }
 
 .player-selection-card--eliminated:focus-within,
-.player-selection-card--eliminated[role="button"]:hover {
+.player-selection-card--eliminated[role='button']:hover {
   border-color: rgb(var(--live) / 0.72) !important;
-  box-shadow: 0 0 0 3px rgb(var(--live) / 0.14), var(--shadow-md) !important;
+  box-shadow:
+    0 0 0 3px rgb(var(--live) / 0.14),
+    var(--shadow-md) !important;
 }
 
 html.dark .players-pitch-board {
-  background: linear-gradient(180deg, rgb(var(--pitch) / 0.13), rgb(var(--pitch) / 0.045)) !important;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--pitch) / 0.13),
+    rgb(var(--pitch) / 0.045)
+  ) !important;
   border-color: rgb(var(--pitch) / 0.28) !important;
 }
 
@@ -979,7 +1016,7 @@ html.dark .players-pitch-board {
 }
 
 .admin-section-title::before {
-  content: "";
+  content: '';
   width: 3px;
   height: 1rem;
   flex-shrink: 0;

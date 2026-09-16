@@ -67,9 +67,7 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
   const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
 
   return (
-    <article
-      className="admin-result-card"
-    >
+    <article className="admin-result-card">
       <div style={{ minWidth: 0 }}>
         <p
           style={{
@@ -85,12 +83,18 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
             gap: '0.4rem',
           }}
         >
-          <ReactCountryFlag countryCode={countryIsoCode(match.homeTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <ReactCountryFlag
+            countryCode={countryIsoCode(match.homeTeamName)}
+            svg
+            style={{ width: '2em', height: '2em' }}
+          />
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.homeTeamName}</span>
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2rem 0.45rem 2rem', alignItems: 'center' }}>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: '2rem 0.45rem 2rem', alignItems: 'center' }}
+      >
         <ScoreInput
           value={result.homeResult ?? ''}
           onChange={(v) => onChange(match.matchId, 'home', v)}
@@ -132,7 +136,11 @@ function ResultEntryRow({ match, locale, result, onChange }: Readonly<ResultEntr
           }}
         >
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{match.awayTeamName}</span>
-          <ReactCountryFlag countryCode={countryIsoCode(match.awayTeamName)} svg style={{ width: '2em', height: '2em' }} />
+          <ReactCountryFlag
+            countryCode={countryIsoCode(match.awayTeamName)}
+            svg
+            style={{ width: '2em', height: '2em' }}
+          />
         </p>
       </div>
 
@@ -251,11 +259,13 @@ function FairPlayTable({
 
     return teams
       .map((team, originalIndex) => ({ team, originalIndex }))
-      .sort((a, b) => (
-        draftScore(b.team) - draftScore(a.team) ||
-        (a.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) - (b.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) ||
-        a.originalIndex - b.originalIndex
-      ))
+      .sort(
+        (a, b) =>
+          draftScore(b.team) - draftScore(a.team) ||
+          (a.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) -
+            (b.team.fifaRanking ?? Number.MAX_SAFE_INTEGER) ||
+          a.originalIndex - b.originalIndex
+      )
       .map(({ team }) => team);
   }, [drafts, teams]);
 
@@ -269,13 +279,10 @@ function FairPlayTable({
       const previousPosition = previousRowPositions.current.get(team.teamId);
       const deltaY = previousPosition ? previousPosition.top - nextPosition.top : 0;
       if (deltaY && !globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        row.animate(
-          [
-            { transform: `translateY(${deltaY}px)` },
-            { transform: 'translateY(0)' },
-          ],
-          { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-        );
+        row.animate([{ transform: `translateY(${deltaY}px)` }, { transform: 'translateY(0)' }], {
+          duration: 260,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        });
       }
     });
     previousRowPositions.current = nextPositions;
@@ -299,21 +306,36 @@ function FairPlayTable({
 
   return (
     <Section
-      title={<span className="admin-section-title">{t('adminResults.groupPhase.fairPlay.title')}</span>}
+      title={
+        <span className="admin-section-title">{t('adminResults.groupPhase.fairPlay.title')}</span>
+      }
       collapsible
       defaultExpanded
       density="compact"
       tone="plain"
       className="admin-section-plain"
     >
-      <p style={{ margin: '0 0 0.65rem', color: 'rgb(var(--fg-muted))', fontSize: '0.84rem', lineHeight: 1.45 }}>
+      <p
+        style={{
+          margin: '0 0 0.65rem',
+          color: 'rgb(var(--fg-muted))',
+          fontSize: '0.84rem',
+          lineHeight: 1.45,
+        }}
+      >
         <span>
           {t('adminResults.groupPhase.fairPlay.description')}{' '}
           <a
             href="https://www.transfermarkt.co.uk/weltmeisterschaft/fairnesstabelle/pokalwettbewerb/FIWC/saison_id/2025"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'rgb(var(--fg))', fontWeight: 600 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              color: 'rgb(var(--fg))',
+              fontWeight: 600,
+            }}
           >
             {t('adminResults.groupPhase.fairPlay.fairPlaySourceLink')}
             <FaExternalLinkAlt size={11} aria-hidden />
@@ -321,71 +343,116 @@ function FairPlayTable({
         </span>
       </p>
       <Table minWidth="28rem" maxHeight="65vh" density="compact">
-      <thead>
-        <tr>
-          <th scope="col" style={{ ...adminFairPlayStickyHeaderStyle('rank'), width: '3.5rem', textAlign: 'center' }}>
-            {t('adminResults.groupPhase.fairPlay.rank')}
-          </th>
-          <th scope="col" style={{ ...adminFairPlayStickyHeaderStyle('team'), textAlign: 'left' }}>
-            {t('adminResults.groupPhase.fairPlay.team')}
-          </th>
-          <th scope="col" style={{ width: '6.5rem', textAlign: 'right' }}>
-            {t('adminResults.groupPhase.fairPlay.points')}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {orderedTeams.map((team, index) => (
-          <tr
-            key={team.teamId}
-            ref={(row) => {
-              if (row) rowRefs.current.set(team.teamId, row);
-              else rowRefs.current.delete(team.teamId);
-            }}
-          >
-            <td style={{ ...adminFairPlayStickyCellStyle('rank'), textAlign: 'center', color: 'rgb(var(--fg-muted))', fontWeight: 700 }}>
-              {index + 1}
-            </td>
-            <td style={{ ...adminFairPlayStickyCellStyle('team'), minWidth: 0 }}>
-              <span style={{ display: 'flex', minWidth: 0, alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem', fontWeight: 600 }}>
-                <ReactCountryFlag countryCode={countryIsoCode(team.name)} svg style={{ width: '1.5em', height: '1.5em' }} />
-                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</span>
-              </span>
-            </td>
-            <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
-              <Input
-                type="text"
-                inputMode="text"
-                autoComplete="off"
-                value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
-                disabled={updatingTeamId === team.teamId}
-                aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (/^-?\d*$/.test(value)) {
-                    setDrafts((prev) => ({ ...prev, [team.teamId]: value }));
-                  }
-                }}
-                onBlur={() => void saveDraft(team)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') event.currentTarget.blur();
-                  if (event.key === '+' || event.key === '.' || event.key === 'e' || event.key === 'E') event.preventDefault();
-                }}
-                style={{
-                  width: '4.5rem',
-                  height: '2rem',
-                  minHeight: '2rem',
-                  padding: '0.3rem 0.45rem',
-                  textAlign: 'right',
-                  borderRadius: 'var(--radius-sm)',
-                  fontWeight: 700,
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              />
-            </td>
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              style={{
+                ...adminFairPlayStickyHeaderStyle('rank'),
+                width: '3.5rem',
+                textAlign: 'center',
+              }}
+            >
+              {t('adminResults.groupPhase.fairPlay.rank')}
+            </th>
+            <th
+              scope="col"
+              style={{ ...adminFairPlayStickyHeaderStyle('team'), textAlign: 'left' }}
+            >
+              {t('adminResults.groupPhase.fairPlay.team')}
+            </th>
+            <th scope="col" style={{ width: '6.5rem', textAlign: 'right' }}>
+              {t('adminResults.groupPhase.fairPlay.points')}
+            </th>
           </tr>
-        ))}
-      </tbody>
+        </thead>
+        <tbody>
+          {orderedTeams.map((team, index) => (
+            <tr
+              key={team.teamId}
+              ref={(row) => {
+                if (row) rowRefs.current.set(team.teamId, row);
+                else rowRefs.current.delete(team.teamId);
+              }}
+            >
+              <td
+                style={{
+                  ...adminFairPlayStickyCellStyle('rank'),
+                  textAlign: 'center',
+                  color: 'rgb(var(--fg-muted))',
+                  fontWeight: 700,
+                }}
+              >
+                {index + 1}
+              </td>
+              <td style={{ ...adminFairPlayStickyCellStyle('team'), minWidth: 0 }}>
+                <span
+                  style={{
+                    display: 'flex',
+                    minWidth: 0,
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  <ReactCountryFlag
+                    countryCode={countryIsoCode(team.name)}
+                    svg
+                    style={{ width: '1.5em', height: '1.5em' }}
+                  />
+                  <span
+                    style={{
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {team.name}
+                  </span>
+                </span>
+              </td>
+              <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
+                <Input
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  value={drafts[team.teamId] ?? String(team.fairPlay ?? 0)}
+                  disabled={updatingTeamId === team.teamId}
+                  aria-label={t('adminResults.groupPhase.fairPlay.inputLabel', { team: team.name })}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (/^-?\d*$/.test(value)) {
+                      setDrafts((prev) => ({ ...prev, [team.teamId]: value }));
+                    }
+                  }}
+                  onBlur={() => void saveDraft(team)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.currentTarget.blur();
+                    if (
+                      event.key === '+' ||
+                      event.key === '.' ||
+                      event.key === 'e' ||
+                      event.key === 'E'
+                    )
+                      event.preventDefault();
+                  }}
+                  style={{
+                    width: '4.5rem',
+                    height: '2rem',
+                    minHeight: '2rem',
+                    padding: '0.3rem 0.45rem',
+                    textAlign: 'right',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 700,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </Table>
     </Section>
   );
@@ -395,25 +462,75 @@ export default function AdminGroupsPage() {
   const { t, locale } = useI18n();
   const {
     systemMode,
-    scoringConfig, setScoringConfig,
-    groups, matchesByGroup, results, handleResultChange,
-    teams, updatingTeamFairPlay, handleTeamFairPlayChange,
+    scoringConfig,
+    setScoringConfig,
+    groups,
+    matchesByGroup,
+    results,
+    handleResultChange,
+    teams,
+    updatingTeamFairPlay,
+    handleTeamFairPlayChange,
   } = useAdminContext();
 
   return (
     <div className="content-panel admin-content">
-
       {/* Group phase scoring */}
-      {systemMode ? null : <Section title={<span className="admin-section-title"><IoSettings size={13} aria-hidden />{t('adminResults.scoring.title')}</span>} collapsible defaultExpanded density="compact" tone="plain" className="admin-section-plain">
-        <div className="config-area ds-form-compact" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
-          <Field label={t('adminResults.scoring.groupPhaseWinner')}>
-            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.winnerPoints} attention={scoringConfig.winnerPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, winnerPoints: parseConfigNumberInput(e.target.value) }))} />
-          </Field>
-          <Field label={t('adminResults.scoring.groupPhaseExact')}>
-            <Input type="number" inputMode="numeric" min="0" value={scoringConfig.exactResultPoints} attention={scoringConfig.exactResultPoints === ''} onChange={(e) => setScoringConfig((prev) => ({ ...prev, exactResultPoints: parseConfigNumberInput(e.target.value) }))} />
-          </Field>
-        </div>
-      </Section>}
+      {systemMode ? null : (
+        <Section
+          title={
+            <span className="admin-section-title">
+              <IoSettings size={13} aria-hidden />
+              {t('adminResults.scoring.title')}
+            </span>
+          }
+          collapsible
+          defaultExpanded
+          density="compact"
+          tone="plain"
+          className="admin-section-plain"
+        >
+          <div
+            className="config-area ds-form-compact"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '0.6rem',
+            }}
+          >
+            <Field label={t('adminResults.scoring.groupPhaseWinner')}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="0"
+                value={scoringConfig.winnerPoints}
+                attention={scoringConfig.winnerPoints === ''}
+                onChange={(e) =>
+                  setScoringConfig((prev) => ({
+                    ...prev,
+                    winnerPoints: parseConfigNumberInput(e.target.value),
+                  }))
+                }
+              />
+            </Field>
+            <Field label={t('adminResults.scoring.groupPhaseExact')}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min="0"
+                value={scoringConfig.exactResultPoints}
+                attention={scoringConfig.exactResultPoints === ''}
+                onChange={(e) =>
+                  setScoringConfig((prev) => ({
+                    ...prev,
+                    exactResultPoints: parseConfigNumberInput(e.target.value),
+                  }))
+                }
+              />
+            </Field>
+          </div>
+        </Section>
+      )}
 
       {/* Match results */}
       {systemMode && groups.length > 0 ? (
@@ -423,7 +540,11 @@ export default function AdminGroupsPage() {
             return (
               <Section
                 key={group}
-                title={<span className="admin-section-title">{t('adminResults.groupPhase.group', { group })}</span>}
+                title={
+                  <span className="admin-section-title">
+                    {t('adminResults.groupPhase.group', { group })}
+                  </span>
+                }
                 collapsible
                 defaultExpanded
                 density="compact"
@@ -449,7 +570,15 @@ export default function AdminGroupsPage() {
           })}
         </div>
       ) : systemMode ? (
-        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+        <p
+          style={{
+            color: 'rgb(var(--fg-muted))',
+            fontSize: '0.875rem',
+            textAlign: 'center',
+            padding: '1.5rem',
+            margin: 0,
+          }}
+        >
           {t('adminResults.groupPhase.empty')}
         </p>
       ) : null}
@@ -461,7 +590,6 @@ export default function AdminGroupsPage() {
           onSave={handleTeamFairPlayChange}
         />
       ) : null}
-
     </div>
   );
 }

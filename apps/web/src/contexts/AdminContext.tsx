@@ -110,7 +110,10 @@ export const DEFAULT_PLAYER_SCORING: AdminPlayerScoringConfig = {
 
 const POSITION_KEYS: PlayerPositionKey[] = ['goalkeeper', 'defender', 'midfielder', 'forward'];
 
-export function parseConfigNumberInput(value: string, options: { allowNegative?: boolean; max?: number } = {}): ConfigNumber {
+export function parseConfigNumberInput(
+  value: string,
+  options: { allowNegative?: boolean; max?: number } = {}
+): ConfigNumber {
   if (value.trim() === '') return '';
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return '';
@@ -118,7 +121,10 @@ export function parseConfigNumberInput(value: string, options: { allowNegative?:
   return options.max === undefined ? minBound : Math.min(options.max, minBound);
 }
 
-function readConfigNumber(value: unknown, options: { allowNegative?: boolean; max?: number } = {}): ConfigNumber {
+function readConfigNumber(
+  value: unknown,
+  options: { allowNegative?: boolean; max?: number } = {}
+): ConfigNumber {
   if (value === '' || value === null || value === undefined) return '';
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return '';
@@ -163,16 +169,14 @@ export function prizePaidPositionsLimit(memberCount?: number): number {
 export function normalizePrizeDistribution(
   value: any,
   maxPaidPositions = prizePaidPositionsLimit(),
-  totalPrizePool = 0,
+  totalPrizePool = 0
 ): PrizePayout[] {
   const source = Array.isArray(value?.payouts) ? value.payouts : Array.isArray(value) ? value : [];
   if (source.length === 0 && totalPrizePool > 0) {
     return [{ rank: 1, amount: totalPrizePool }];
   }
-  const requestedCount = Number.parseInt(
-    String(value?.paidPositions ?? value?.positions ?? source.length),
-    10,
-  ) || 0;
+  const requestedCount =
+    Number.parseInt(String(value?.paidPositions ?? value?.positions ?? source.length), 10) || 0;
   const paidPositions = Math.max(0, Math.min(maxPaidPositions, requestedCount));
   const percentageTotal = source.reduce((sum: number, row: any) => {
     const percentage = Number.parseFloat(String(row?.percentage));
@@ -197,7 +201,11 @@ export function normalizePrizeDistribution(
   });
 }
 
-export function resizePrizeDistribution(rows: PrizePayout[], count: number, maxPaidPositions = prizePaidPositionsLimit()): PrizePayout[] {
+export function resizePrizeDistribution(
+  rows: PrizePayout[],
+  count: number,
+  maxPaidPositions = prizePaidPositionsLimit()
+): PrizePayout[] {
   const normalizedCount = Math.max(0, Math.min(maxPaidPositions, count));
   const next = rows.slice(0, normalizedCount);
   const usedRanks = new Set(next.map((row) => row.rank));
@@ -228,12 +236,21 @@ export function normalizeBracketScoring(value: any): AdminBracketScoringConfig {
     const exactPositionPoints = readConfigNumber(round.exactPositionPoints);
     const correctTeamWrongPositionPoints = readConfigNumber(round.correctTeamWrongPositionPoints);
     acc[phase.key] = {
-      exactPositionPoints: isConfiguredNumber(exactPositionPoints) ? exactPositionPoints : baseExact,
-      correctTeamWrongPositionPoints: isConfiguredNumber(correctTeamWrongPositionPoints) ? correctTeamWrongPositionPoints : baseWrong,
+      exactPositionPoints: isConfiguredNumber(exactPositionPoints)
+        ? exactPositionPoints
+        : baseExact,
+      correctTeamWrongPositionPoints: isConfiguredNumber(correctTeamWrongPositionPoints)
+        ? correctTeamWrongPositionPoints
+        : baseWrong,
     };
     return acc;
   }, {});
-  return { exactPositionPoints: baseExact, correctTeamWrongPositionPoints: baseWrong, tournamentWinnerPoints, rounds };
+  return {
+    exactPositionPoints: baseExact,
+    correctTeamWrongPositionPoints: baseWrong,
+    tournamentWinnerPoints,
+    rounds,
+  };
 }
 
 export function resolveCleanSheetScoring(value: any): PositionScoring {
@@ -241,7 +258,11 @@ export function resolveCleanSheetScoring(value: any): PositionScoring {
   const source = value && typeof value === 'object' ? value : {};
   const goalkeeper = readConfigNumber(source.goalkeeper);
   return {
-    goalkeeper: isConfiguredNumber(goalkeeper) ? goalkeeper : Number.isFinite(legacy) ? Math.max(0, legacy) : '',
+    goalkeeper: isConfiguredNumber(goalkeeper)
+      ? goalkeeper
+      : Number.isFinite(legacy)
+        ? Math.max(0, legacy)
+        : '',
     defender: readConfigNumber(source.defender),
     midfielder: readConfigNumber(source.midfielder),
     forward: readConfigNumber(source.forward),
@@ -311,7 +332,10 @@ export function bracketScoringMissingCount(scoring: AdminBracketScoringConfig): 
   return missingConfigCount([
     scoring.tournamentWinnerPoints,
     ...PHASES.flatMap((phase) => {
-      const round = scoring.rounds[phase.key] || { exactPositionPoints: '', correctTeamWrongPositionPoints: '' };
+      const round = scoring.rounds[phase.key] || {
+        exactPositionPoints: '',
+        correctTeamWrongPositionPoints: '',
+      };
       return [round.exactPositionPoints, round.correctTeamWrongPositionPoints];
     }),
   ]);
@@ -353,18 +377,23 @@ export function buildConfigPayloadFrom(input: {
   memberCount: number;
   prizeDistribution: PrizePayout[];
 }) {
-  const scoring = groupScoringMissingCount(input.scoring) === 0
-    ? { winnerPoints: input.scoring.winnerPoints, exactResultPoints: input.scoring.exactResultPoints }
-    : null;
+  const scoring =
+    groupScoringMissingCount(input.scoring) === 0
+      ? {
+          winnerPoints: input.scoring.winnerPoints,
+          exactResultPoints: input.scoring.exactResultPoints,
+        }
+      : null;
   const firstBracketRound = input.bracketScoring.rounds[PHASES[0].key];
-  const bracketScoring = bracketScoringMissingCount(input.bracketScoring) === 0
-    ? {
-        exactPositionPoints: firstBracketRound.exactPositionPoints,
-        correctTeamWrongPositionPoints: firstBracketRound.correctTeamWrongPositionPoints,
-        tournamentWinnerPoints: input.bracketScoring.tournamentWinnerPoints,
-        rounds: input.bracketScoring.rounds,
-      }
-    : null;
+  const bracketScoring =
+    bracketScoringMissingCount(input.bracketScoring) === 0
+      ? {
+          exactPositionPoints: firstBracketRound.exactPositionPoints,
+          correctTeamWrongPositionPoints: firstBracketRound.correctTeamWrongPositionPoints,
+          tournamentWinnerPoints: input.bracketScoring.tournamentWinnerPoints,
+          rounds: input.bracketScoring.rounds,
+        }
+      : null;
   const entryFee = Number.isFinite(input.entryFee) ? Math.max(0, input.entryFee) : 0;
   const memberCount = Number.isFinite(input.memberCount)
     ? Math.max(0, Math.floor(input.memberCount))
@@ -376,7 +405,7 @@ export function buildConfigPayloadFrom(input: {
     ranks.every((rank) => Number.isInteger(rank) && rank >= 1 && rank <= memberCount) &&
     new Set(ranks).size === ranks.length;
   const amountsAreValid = input.prizeDistribution.every(
-    (row) => Number.isFinite(row.amount) && row.amount > 0,
+    (row) => Number.isFinite(row.amount) && row.amount > 0
   );
   const prizeDistributionIsValid =
     prizePoolTotal === 0
@@ -391,7 +420,10 @@ export function buildConfigPayloadFrom(input: {
     bracketScoring,
     playerScoring: input.playerScoring,
     playerSelectionLimits: input.playerSelectionLimits,
-    playerAwardWinners: { goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds, tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '' },
+    playerAwardWinners: {
+      goldenBootPlayerIds: input.awardWinners.goldenBootPlayerIds,
+      tournamentMvpPlayerId: input.awardWinners.tournamentMvpPlayerId || '',
+    },
     deadline: fromDateTimeLocal(input.deadlineLocal),
     matchdaySeparatorTime: normalizeMatchdaySeparatorTime(input.matchdaySeparatorTime),
     entryFee,
@@ -415,20 +447,32 @@ function normalizeMatchdaySeparatorTime(value: unknown): string {
   if (!match) return DEFAULT_MATCHDAY_SEPARATOR_TIME;
   const hours = Number.parseInt(match[1], 10);
   const minutes = Number.parseInt(match[2], 10);
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
     return DEFAULT_MATCHDAY_SEPARATOR_TIME;
   }
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
-export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlayerScoringConfig): number {
-  const cleanSheetPoints = (player.cleanSheets || 0) * pointsValue(scoring.cleanSheet[player.position]);
+export function computePlayerPoints(
+  player: TournamentPlayer,
+  scoring: AdminPlayerScoringConfig
+): number {
+  const cleanSheetPoints =
+    (player.cleanSheets || 0) * pointsValue(scoring.cleanSheet[player.position]);
   const assistPoints = (player.assists || 0) * pointsValue(scoring.assist[player.position]);
   const cardPoints =
     (player.yellowCards || 0) * pointsValue(scoring.yellowCard) +
     (player.doubleYellowCards || 0) * pointsValue(scoring.doubleYellowCard) +
     (player.redCards || 0) * pointsValue(scoring.redCard);
-  return (player.goals || 0) * pointsValue(scoring.goal[player.position]) +
+  return (
+    (player.goals || 0) * pointsValue(scoring.goal[player.position]) +
     (player.penaltyGoals || 0) * pointsValue(scoring.penaltyGoal[player.position]) +
     (player.missedPenalties || 0) * pointsValue(scoring.missedPenalty) +
     (player.mvps || 0) * pointsValue(scoring.mvp) +
@@ -438,7 +482,10 @@ export function computePlayerPoints(player: TournamentPlayer, scoring: AdminPlay
     (player.shootoutGoals || 0) * pointsValue(scoring.shootoutGoal) +
     (player.shootoutMissedPenalties || 0) * pointsValue(scoring.shootoutMissedPenalty) +
     (player.shootoutForcedPenaltyMisses || 0) * pointsValue(scoring.shootoutForcedPenaltyMiss) +
-    cleanSheetPoints + assistPoints + cardPoints;
+    cleanSheetPoints +
+    assistPoints +
+    cardPoints
+  );
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -473,7 +520,9 @@ interface AdminContextValue {
   prizeDistribution: PrizePayout[];
   setPrizeDistribution: React.Dispatch<React.SetStateAction<PrizePayout[]>>;
   playerAwardWinnersConfig: { goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string };
-  setPlayerAwardWinnersConfig: React.Dispatch<React.SetStateAction<{ goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string }>>;
+  setPlayerAwardWinnersConfig: React.Dispatch<
+    React.SetStateAction<{ goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string }>
+  >;
   bracket: Record<string, BracketMatch[]>;
   teams: Team[];
   players: TournamentPlayer[];
@@ -498,12 +547,34 @@ interface AdminContextValue {
   finalConfigMissingCount: number;
   playersConfigMissingCount: number;
   handleResultChange: (matchId: string, side: 'home' | 'away', value: string) => void;
-  handleUpdateTeam: (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => Promise<void>;
-  handleBracketResultChange: (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => void;
-  handleSaveBracketResult: (bracketMatchId: string, homeResult: number, awayResult: number) => Promise<void>;
+  handleUpdateTeam: (
+    bracketMatchId: string,
+    side: 'home' | 'away',
+    teamId: string,
+    teamName: string
+  ) => Promise<void>;
+  handleBracketResultChange: (
+    bracketMatchId: string,
+    homeResult: number | '',
+    awayResult: number | ''
+  ) => void;
+  handleSaveBracketResult: (
+    bracketMatchId: string,
+    homeResult: number,
+    awayResult: number
+  ) => Promise<void>;
   handleReEvaluateBracket: () => Promise<void>;
-  handlePlayerStatChange: (player: TournamentPlayer, stat: PlayerStatKey, delta: number, match: PlayerMatchReference | null) => Promise<void>;
-  handlePlayerAwardToggle: (player: TournamentPlayer, award: PlayerAward, selected: boolean) => Promise<void>;
+  handlePlayerStatChange: (
+    player: TournamentPlayer,
+    stat: PlayerStatKey,
+    delta: number,
+    match: PlayerMatchReference | null
+  ) => Promise<void>;
+  handlePlayerAwardToggle: (
+    player: TournamentPlayer,
+    award: PlayerAward,
+    selected: boolean
+  ) => Promise<void>;
   handleTeamFairPlayChange: (teamId: string, fairPlay: number) => Promise<void>;
 }
 
@@ -540,21 +611,32 @@ export function AdminProvider({
   const configSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedName = useRef<string | null>(null);
   const nameSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [results, setResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
+  const [results, setResults] = useState<
+    Record<string, { homeResult: number | ''; awayResult: number | '' }>
+  >({});
   const [scoringConfig, setScoringConfig] = useState<GroupScoringConfig>(EMPTY_GROUP_SCORING);
-  const [bracketScoringConfig, setBracketScoringConfig] = useState<AdminBracketScoringConfig>(emptyBracketScoring());
-  const [playerScoringConfig, setPlayerScoringConfig] = useState<AdminPlayerScoringConfig>(DEFAULT_PLAYER_SCORING);
+  const [bracketScoringConfig, setBracketScoringConfig] =
+    useState<AdminBracketScoringConfig>(emptyBracketScoring());
+  const [playerScoringConfig, setPlayerScoringConfig] =
+    useState<AdminPlayerScoringConfig>(DEFAULT_PLAYER_SCORING);
   const [playerSelectionLimits, setPlayerSelectionLimits] = useState<PlayerSelectionLimits>(
-    DEFAULT_PLAYER_SELECTION_LIMITS,
+    DEFAULT_PLAYER_SELECTION_LIMITS
   );
   const [savingConfig, setSavingConfig] = useState(false);
   const [poolName, setPoolName] = useState<string>('');
   const [poolMemberCount, setPoolMemberCount] = useState<number>(0);
-  const [deadlineLocal, setDeadlineLocal] = useState<string>(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
-  const [matchdaySeparatorTime, setMatchdaySeparatorTime] = useState<string>(DEFAULT_MATCHDAY_SEPARATOR_TIME);
+  const [deadlineLocal, setDeadlineLocal] = useState<string>(
+    toDateTimeLocal(DEFAULT_POOL_DEADLINE)
+  );
+  const [matchdaySeparatorTime, setMatchdaySeparatorTime] = useState<string>(
+    DEFAULT_MATCHDAY_SEPARATOR_TIME
+  );
   const [entryFee, setEntryFee] = useState<number>(0);
   const [prizeDistribution, setPrizeDistribution] = useState<PrizePayout[]>([]);
-  const [playerAwardWinnersConfig, setPlayerAwardWinnersConfig] = useState<{ goldenBootPlayerIds: string[]; tournamentMvpPlayerId: string }>({ goldenBootPlayerIds: [], tournamentMvpPlayerId: '' });
+  const [playerAwardWinnersConfig, setPlayerAwardWinnersConfig] = useState<{
+    goldenBootPlayerIds: string[];
+    tournamentMvpPlayerId: string;
+  }>({ goldenBootPlayerIds: [], tournamentMvpPlayerId: '' });
   const [bracket, setBracket] = useState<Record<string, BracketMatch[]>>({});
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
@@ -566,7 +648,9 @@ export function AdminProvider({
   const [updatingTeamFairPlay, setUpdatingTeamFairPlay] = useState<string | null>(null);
   const [updatingMatch, setUpdatingMatch] = useState<string | null>(null);
   const [submittingBracketResult, setSubmittingBracketResult] = useState<string | null>(null);
-  const [bracketResults, setBracketResults] = useState<Record<string, { homeResult: number | ''; awayResult: number | '' }>>({});
+  const [bracketResults, setBracketResults] = useState<
+    Record<string, { homeResult: number | ''; awayResult: number | '' }>
+  >({});
 
   useEffect(() => {
     if (systemMode && user && user.role !== 'admin') {
@@ -596,14 +680,16 @@ export function AdminProvider({
         setResults(resultsMap);
 
         if (poolId) {
-          const [poolResponse, bracketResponse, teamsResponse, playersResponse] = await Promise.all([
-            systemMode
-              ? Promise.resolve({ data: {} })
-              : apiClient.get(`/pools/${poolId}`).catch(() => ({ data: {} })),
-            apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
-            apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
-            apiClient.get(`/pools/${poolId}/players`).catch(() => ({ data: { players: [] } })),
-          ]);
+          const [poolResponse, bracketResponse, teamsResponse, playersResponse] = await Promise.all(
+            [
+              systemMode
+                ? Promise.resolve({ data: {} })
+                : apiClient.get(`/pools/${poolId}`).catch(() => ({ data: {} })),
+              apiClient.get(`/pools/${poolId}/bracket`).catch(() => ({ data: {} })),
+              apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+              apiClient.get(`/pools/${poolId}/players`).catch(() => ({ data: { players: [] } })),
+            ]
+          );
 
           const pool = { ...poolResponse.data };
           if (!systemMode && pool?.userMembership?.role !== 'admin') {
@@ -613,23 +699,30 @@ export function AdminProvider({
           }
           setPoolName(pool?.name);
           lastSavedName.current = pool?.name ?? '';
-          const memberCount = Number.isFinite(pool?.memberCount) ? Math.max(0, Math.floor(pool.memberCount)) : 0;
+          const memberCount = Number.isFinite(pool?.memberCount)
+            ? Math.max(0, Math.floor(pool.memberCount))
+            : 0;
           setPoolMemberCount(memberCount);
           setDeadlineLocal(toDateTimeLocal(resolveDeadline(pool)));
-          setMatchdaySeparatorTime(normalizeMatchdaySeparatorTime(pool?.config?.matchdaySeparatorTime));
+          setMatchdaySeparatorTime(
+            normalizeMatchdaySeparatorTime(pool?.config?.matchdaySeparatorTime)
+          );
           setEntryFee(typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0);
-          const loadedEntryFee = typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
+          const loadedEntryFee =
+            typeof pool?.config?.entryFee === 'number' ? pool.config.entryFee : 0;
           const loadedPrizePoolTotal = loadedEntryFee * memberCount;
-          setPrizeDistribution(normalizePrizeDistribution(
-            pool?.config?.prizeDistribution,
-            prizePaidPositionsLimit(memberCount),
-            loadedPrizePoolTotal,
-          ));
+          setPrizeDistribution(
+            normalizePrizeDistribution(
+              pool?.config?.prizeDistribution,
+              prizePaidPositionsLimit(memberCount),
+              loadedPrizePoolTotal
+            )
+          );
           const loadedScoring = normalizeGroupScoring(pool?.config?.scoring);
           const loadedBracketScoring = normalizeBracketScoring(pool?.config?.bracketScoring);
           const loadedPlayerScoring = normalizePlayerScoring(pool?.config?.playerScoring);
           const loadedPlayerSelectionLimits = resolvePlayerSelectionLimits(
-            pool?.config?.playerSelectionLimits,
+            pool?.config?.playerSelectionLimits
           );
           setScoringConfig(loadedScoring);
           setBracketScoringConfig(loadedBracketScoring);
@@ -641,51 +734,98 @@ export function AdminProvider({
             : pool?.config?.playerAwardWinners;
           const loadedAwardWinners = {
             goldenBootPlayerIds: Array.isArray(awardWinnerSource?.goldenBootPlayerIds)
-              ? awardWinnerSource.goldenBootPlayerIds.filter((id: unknown): id is string => typeof id === 'string')
+              ? awardWinnerSource.goldenBootPlayerIds.filter(
+                  (id: unknown): id is string => typeof id === 'string'
+                )
               : [],
-            tournamentMvpPlayerId: typeof awardWinnerSource?.tournamentMvpPlayerId === 'string'
-              ? awardWinnerSource.tournamentMvpPlayerId
-              : '',
+            tournamentMvpPlayerId:
+              typeof awardWinnerSource?.tournamentMvpPlayerId === 'string'
+                ? awardWinnerSource.tournamentMvpPlayerId
+                : '',
           };
           setPlayerAwardWinnersConfig(loadedAwardWinners);
 
           const loadedDeadlineLocal = toDateTimeLocal(resolveDeadline(pool));
-          const loadedMatchdaySeparatorTime = normalizeMatchdaySeparatorTime(pool?.config?.matchdaySeparatorTime);
+          const loadedMatchdaySeparatorTime = normalizeMatchdaySeparatorTime(
+            pool?.config?.matchdaySeparatorTime
+          );
           const loadedPrizeDistribution = normalizePrizeDistribution(
             pool?.config?.prizeDistribution,
             prizePaidPositionsLimit(memberCount),
-            loadedPrizePoolTotal,
+            loadedPrizePoolTotal
           );
-          lastSavedConfig.current = JSON.stringify(buildConfigPayloadFrom({ scoring: loadedScoring, bracketScoring: loadedBracketScoring, playerScoring: loadedPlayerScoring, playerSelectionLimits: loadedPlayerSelectionLimits, awardWinners: loadedAwardWinners, deadlineLocal: loadedDeadlineLocal, matchdaySeparatorTime: loadedMatchdaySeparatorTime, entryFee: loadedEntryFee, memberCount, prizeDistribution: loadedPrizeDistribution }));
+          lastSavedConfig.current = JSON.stringify(
+            buildConfigPayloadFrom({
+              scoring: loadedScoring,
+              bracketScoring: loadedBracketScoring,
+              playerScoring: loadedPlayerScoring,
+              playerSelectionLimits: loadedPlayerSelectionLimits,
+              awardWinners: loadedAwardWinners,
+              deadlineLocal: loadedDeadlineLocal,
+              matchdaySeparatorTime: loadedMatchdaySeparatorTime,
+              entryFee: loadedEntryFee,
+              memberCount,
+              prizeDistribution: loadedPrizeDistribution,
+            })
+          );
 
           const bracketData = bracketResponse.data || {};
           setBracket(bracketData);
           setTeams(teamsResponse.data || []);
           setPlayers(playersResponse.data?.players || []);
 
-          const bracketResultsMap: Record<string, { homeResult: number | ''; awayResult: number | '' }> = {};
-          Object.values(bracketData || {}).flat().forEach((match: any) => {
-            if (match.bracketMatchId) bracketResultsMap[match.bracketMatchId] = { homeResult: typeof match.homeResult === 'number' ? match.homeResult : '', awayResult: typeof match.awayResult === 'number' ? match.awayResult : '' };
-          });
+          const bracketResultsMap: Record<
+            string,
+            { homeResult: number | ''; awayResult: number | '' }
+          > = {};
+          Object.values(bracketData || {})
+            .flat()
+            .forEach((match: any) => {
+              if (match.bracketMatchId)
+                bracketResultsMap[match.bracketMatchId] = {
+                  homeResult: typeof match.homeResult === 'number' ? match.homeResult : '',
+                  awayResult: typeof match.awayResult === 'number' ? match.awayResult : '',
+                };
+            });
           setBracketResults(bracketResultsMap);
 
           let needsRefresh = false;
           for (const phase of PHASES) {
             const phaseMatches = bracketData[phase.key] || [];
             if (phaseMatches.length === 0) {
-              try { await apiClient.post(`/pools/${poolId}/bracket/phases/${phase.key}`, { numberOfMatches: phase.matches }); needsRefresh = true; } catch {}
+              try {
+                await apiClient.post(`/pools/${poolId}/bracket/phases/${phase.key}`, {
+                  numberOfMatches: phase.matches,
+                });
+                needsRefresh = true;
+              } catch {}
             } else if (phaseMatches.length !== phase.matches) {
-              try { await apiClient.post(`/pools/${poolId}/bracket/phases/${phase.key}`, { numberOfMatches: phase.matches, forceRecreate: true }); needsRefresh = true; } catch {}
+              try {
+                await apiClient.post(`/pools/${poolId}/bracket/phases/${phase.key}`, {
+                  numberOfMatches: phase.matches,
+                  forceRecreate: true,
+                });
+                needsRefresh = true;
+              } catch {}
             }
           }
           if (needsRefresh) {
             const updated = await apiClient.get(`/pools/${poolId}/bracket`);
             const updatedData = updated.data || {};
             setBracket(updatedData);
-            const updatedResultsMap: Record<string, { homeResult: number | ''; awayResult: number | '' }> = {};
-            Object.values(updatedData || {}).flat().forEach((match: any) => {
-              if (match.bracketMatchId) updatedResultsMap[match.bracketMatchId] = { homeResult: match.homeResult === undefined ? '' : match.homeResult, awayResult: match.awayResult === undefined ? '' : match.awayResult };
-            });
+            const updatedResultsMap: Record<
+              string,
+              { homeResult: number | ''; awayResult: number | '' }
+            > = {};
+            Object.values(updatedData || {})
+              .flat()
+              .forEach((match: any) => {
+                if (match.bracketMatchId)
+                  updatedResultsMap[match.bracketMatchId] = {
+                    homeResult: match.homeResult === undefined ? '' : match.homeResult,
+                    awayResult: match.awayResult === undefined ? '' : match.awayResult,
+                  };
+              });
             setBracketResults(updatedResultsMap);
           }
         }
@@ -696,7 +836,7 @@ export function AdminProvider({
       }
     };
     if (user && (!systemMode || user.role === 'admin')) fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, t, poolId, systemMode]);
 
   // Clear the prize distribution whenever entry fee drops back to 0, adjusted
@@ -716,11 +856,10 @@ export function AdminProvider({
   const prizeRanks = prizeDistribution.map((row) => row.rank);
   const prizeRanksInvalid =
     prizeRanks.some(
-      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxPrizePaidPositions,
-    ) ||
-    new Set(prizeRanks).size !== prizeRanks.length;
+      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxPrizePaidPositions
+    ) || new Set(prizeRanks).size !== prizeRanks.length;
   const prizeAmountsInvalid = prizeDistribution.some(
-    (row) => !Number.isFinite(row.amount) || row.amount <= 0,
+    (row) => !Number.isFinite(row.amount) || row.amount <= 0
   );
   const prizeTotalInvalid =
     prizePoolTotal > 0
@@ -733,7 +872,18 @@ export function AdminProvider({
   const autoSaveConfig = async () => {
     if (!poolId) return;
     if (prizeTotalInvalid) return;
-    const payload = buildConfigPayloadFrom({ scoring: scoringConfig, bracketScoring: bracketScoringConfig, playerScoring: playerScoringConfig, playerSelectionLimits, awardWinners: playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, memberCount: poolMemberCount, prizeDistribution });
+    const payload = buildConfigPayloadFrom({
+      scoring: scoringConfig,
+      bracketScoring: bracketScoringConfig,
+      playerScoring: playerScoringConfig,
+      playerSelectionLimits,
+      awardWinners: playerAwardWinnersConfig,
+      deadlineLocal,
+      matchdaySeparatorTime,
+      entryFee,
+      memberCount: poolMemberCount,
+      prizeDistribution,
+    });
     const snapshot = JSON.stringify(payload);
     if (snapshot === lastSavedConfig.current) return;
     try {
@@ -755,9 +905,27 @@ export function AdminProvider({
       configSaveTimer.current = null;
       void autoSaveConfig();
     }, 600);
-    return () => { if (configSaveTimer.current) { clearTimeout(configSaveTimer.current); configSaveTimer.current = null; } };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoringConfig, bracketScoringConfig, playerScoringConfig, playerSelectionLimits, playerAwardWinnersConfig, deadlineLocal, matchdaySeparatorTime, entryFee, prizeDistribution, poolId, loading, systemMode]);
+    return () => {
+      if (configSaveTimer.current) {
+        clearTimeout(configSaveTimer.current);
+        configSaveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    scoringConfig,
+    bracketScoringConfig,
+    playerScoringConfig,
+    playerSelectionLimits,
+    playerAwardWinnersConfig,
+    deadlineLocal,
+    matchdaySeparatorTime,
+    entryFee,
+    prizeDistribution,
+    poolId,
+    loading,
+    systemMode,
+  ]);
 
   useEffect(() => {
     if (systemMode || loading || !poolId) return;
@@ -773,14 +941,27 @@ export function AdminProvider({
         toast.error(apiErrorDetail(err) || t('pools.errors.update'));
       }
     }, 600);
-    return () => { if (nameSaveTimer.current) { clearTimeout(nameSaveTimer.current); nameSaveTimer.current = null; } };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (nameSaveTimer.current) {
+        clearTimeout(nameSaveTimer.current);
+        nameSaveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolName, poolId, loading, systemMode]);
 
   const handleResultChange = (matchId: string, side: 'home' | 'away', value: string) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
     const numValue = value === '' ? '' : Math.max(0, Number.parseInt(value, 10) || 0);
-    setResults((prev) => ({ ...prev, [matchId]: { ...prev[matchId], [side === 'home' ? 'homeResult' : 'awayResult']: numValue, [side === 'home' ? 'awayResult' : 'homeResult']: prev[matchId]?.[side === 'home' ? 'awayResult' : 'homeResult'] ?? '' } }));
+    setResults((prev) => ({
+      ...prev,
+      [matchId]: {
+        ...prev[matchId],
+        [side === 'home' ? 'homeResult' : 'awayResult']: numValue,
+        [side === 'home' ? 'awayResult' : 'homeResult']:
+          prev[matchId]?.[side === 'home' ? 'awayResult' : 'homeResult'] ?? '',
+      },
+    }));
     const existing = resultSaveTimers.current[matchId];
     if (existing) clearTimeout(existing);
     const timer = setTimeout(() => {
@@ -798,10 +979,17 @@ export function AdminProvider({
     resultSaveTimers.current[matchId] = timer;
   };
 
-  const autoSaveResults = async (matchId: string, homeResult: number | null, awayResult: number | null) => {
+  const autoSaveResults = async (
+    matchId: string,
+    homeResult: number | null,
+    awayResult: number | null
+  ) => {
     try {
       setSubmitting(matchId);
-      const response = await apiClient.post(`/pools/${poolId}/matches/${matchId}/results`, { homeResult, awayResult });
+      const response = await apiClient.post(`/pools/${poolId}/matches/${matchId}/results`, {
+        homeResult,
+        awayResult,
+      });
       const saved = response.data;
       if (saved?.matchId) {
         setResults((prev) => ({
@@ -816,8 +1004,13 @@ export function AdminProvider({
           for (const [group, matches] of Object.entries(prev)) {
             next[group] = matches.map((match) =>
               match.matchId === saved.matchId
-                ? { ...match, homeResult: saved.homeResult, awayResult: saved.awayResult, status: saved.status ?? 'completed' }
-                : match,
+                ? {
+                    ...match,
+                    homeResult: saved.homeResult,
+                    awayResult: saved.awayResult,
+                    status: saved.status ?? 'completed',
+                  }
+                : match
             );
           }
           return next;
@@ -830,18 +1023,42 @@ export function AdminProvider({
     }
   };
 
-  const handleUpdateTeam = async (bracketMatchId: string, side: 'home' | 'away', teamId: string, teamName: string) => {
-    if (!poolId) { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
+  const handleUpdateTeam = async (
+    bracketMatchId: string,
+    side: 'home' | 'away',
+    teamId: string,
+    teamName: string
+  ) => {
+    if (!poolId) {
+      toast.error(t('adminResults.errors.selectPoolFirst'));
+      return;
+    }
     try {
       setUpdatingMatch(bracketMatchId);
-      await apiClient.put(`/pools/${poolId}/bracket/matches/${bracketMatchId}/team`, { side, teamId, teamName });
-      const [bracketResponse, teamsResponse] = await Promise.all([apiClient.get(`/pools/${poolId}/bracket`), apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] }))]);
+      await apiClient.put(`/pools/${poolId}/bracket/matches/${bracketMatchId}/team`, {
+        side,
+        teamId,
+        teamName,
+      });
+      const [bracketResponse, teamsResponse] = await Promise.all([
+        apiClient.get(`/pools/${poolId}/bracket`),
+        apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+      ]);
       setBracket(bracketResponse.data || {});
       setTeams(teamsResponse.data || []);
-      const bracketResultsMap: Record<string, { homeResult: number | ''; awayResult: number | '' }> = {};
-      Object.values(bracketResponse.data || {}).flat().forEach((match: any) => {
-        if (match.bracketMatchId) bracketResultsMap[match.bracketMatchId] = { homeResult: typeof match.homeResult === 'number' ? match.homeResult : '', awayResult: typeof match.awayResult === 'number' ? match.awayResult : '' };
-      });
+      const bracketResultsMap: Record<
+        string,
+        { homeResult: number | ''; awayResult: number | '' }
+      > = {};
+      Object.values(bracketResponse.data || {})
+        .flat()
+        .forEach((match: any) => {
+          if (match.bracketMatchId)
+            bracketResultsMap[match.bracketMatchId] = {
+              homeResult: typeof match.homeResult === 'number' ? match.homeResult : '',
+              awayResult: typeof match.awayResult === 'number' ? match.awayResult : '',
+            };
+        });
       setBracketResults(bracketResultsMap);
     } catch (err: any) {
       toast.error(apiErrorDetail(err) || t('adminResults.errors.updateTeam'));
@@ -850,23 +1067,52 @@ export function AdminProvider({
     }
   };
 
-  const handleBracketResultChange = (bracketMatchId: string, homeResult: number | '', awayResult: number | '') => {
-    setBracketResults((prev) => ({ ...prev, [bracketMatchId]: { homeResult: homeResult || '', awayResult: awayResult || '' } }));
+  const handleBracketResultChange = (
+    bracketMatchId: string,
+    homeResult: number | '',
+    awayResult: number | ''
+  ) => {
+    setBracketResults((prev) => ({
+      ...prev,
+      [bracketMatchId]: { homeResult: homeResult || '', awayResult: awayResult || '' },
+    }));
   };
 
-  const handleSaveBracketResult = async (bracketMatchId: string, homeResult: number, awayResult: number) => {
-    if (!poolId) { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
-    if (homeResult === 0 && awayResult === 0) { toast.error(t('adminResults.errors.enterBothResults')); return; }
+  const handleSaveBracketResult = async (
+    bracketMatchId: string,
+    homeResult: number,
+    awayResult: number
+  ) => {
+    if (!poolId) {
+      toast.error(t('adminResults.errors.selectPoolFirst'));
+      return;
+    }
+    if (homeResult === 0 && awayResult === 0) {
+      toast.error(t('adminResults.errors.enterBothResults'));
+      return;
+    }
     try {
       setSubmittingBracketResult(bracketMatchId);
-      await apiClient.put(`/pools/${poolId}/bracket/matches/${bracketMatchId}/result`, { homeResult, awayResult });
+      await apiClient.put(`/pools/${poolId}/bracket/matches/${bracketMatchId}/result`, {
+        homeResult,
+        awayResult,
+      });
       toast.success(t('adminResults.toast.bracketResultSaved'));
       const bracketResponse = await apiClient.get(`/pools/${poolId}/bracket`);
       setBracket(bracketResponse.data || {});
-      const bracketResultsMap: Record<string, { homeResult: number | ''; awayResult: number | '' }> = {};
-      Object.values(bracketResponse.data || {}).flat().forEach((match: any) => {
-        if (match.bracketMatchId) bracketResultsMap[match.bracketMatchId] = { homeResult: typeof match.homeResult === 'number' ? match.homeResult : '', awayResult: typeof match.awayResult === 'number' ? match.awayResult : '' };
-      });
+      const bracketResultsMap: Record<
+        string,
+        { homeResult: number | ''; awayResult: number | '' }
+      > = {};
+      Object.values(bracketResponse.data || {})
+        .flat()
+        .forEach((match: any) => {
+          if (match.bracketMatchId)
+            bracketResultsMap[match.bracketMatchId] = {
+              homeResult: typeof match.homeResult === 'number' ? match.homeResult : '',
+              awayResult: typeof match.awayResult === 'number' ? match.awayResult : '',
+            };
+        });
       setBracketResults(bracketResultsMap);
     } catch (err: any) {
       toast.error(apiErrorDetail(err) || t('adminResults.errors.saveBracketResult'));
@@ -879,10 +1125,16 @@ export function AdminProvider({
     player: TournamentPlayer,
     stat: PlayerStatKey,
     delta: number,
-    match: PlayerMatchReference | null,
+    match: PlayerMatchReference | null
   ) => {
-    if (!poolId) { toast.error(t('adminResults.errors.selectPoolFirst')); return; }
-    if (!match) { toast.error(t('adminResults.players.matchRequired')); return; }
+    if (!poolId) {
+      toast.error(t('adminResults.errors.selectPoolFirst'));
+      return;
+    }
+    if (!match) {
+      toast.error(t('adminResults.players.matchRequired'));
+      return;
+    }
     const key = `${player.playerId}:${stat}`;
     try {
       setUpdatingPlayerStat(key);
@@ -891,7 +1143,40 @@ export function AdminProvider({
         stat,
         delta,
       });
-      setPlayers((prev) => prev.map((item) => item.playerId === player.playerId ? (() => { const nextPlayer = { ...item, goals: updated.data?.goals ?? item.goals, penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals, missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties, mvps: updated.data?.mvps ?? item.mvps, penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved, forcedPenaltyMisses: updated.data?.forcedPenaltyMisses ?? item.forcedPenaltyMisses, shootoutPenaltiesSaved: updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved, shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals, shootoutMissedPenalties: updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties, shootoutForcedPenaltyMisses: updated.data?.shootoutForcedPenaltyMisses ?? item.shootoutForcedPenaltyMisses, cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets, assists: updated.data?.assists ?? item.assists, yellowCards: updated.data?.yellowCards ?? item.yellowCards, doubleYellowCards: updated.data?.doubleYellowCards ?? item.doubleYellowCards, redCards: updated.data?.redCards ?? item.redCards }; return { ...nextPlayer, totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig) }; })() : item));
+      setPlayers((prev) =>
+        prev.map((item) =>
+          item.playerId === player.playerId
+            ? (() => {
+                const nextPlayer = {
+                  ...item,
+                  goals: updated.data?.goals ?? item.goals,
+                  penaltyGoals: updated.data?.penaltyGoals ?? item.penaltyGoals,
+                  missedPenalties: updated.data?.missedPenalties ?? item.missedPenalties,
+                  mvps: updated.data?.mvps ?? item.mvps,
+                  penaltiesSaved: updated.data?.penaltiesSaved ?? item.penaltiesSaved,
+                  forcedPenaltyMisses:
+                    updated.data?.forcedPenaltyMisses ?? item.forcedPenaltyMisses,
+                  shootoutPenaltiesSaved:
+                    updated.data?.shootoutPenaltiesSaved ?? item.shootoutPenaltiesSaved,
+                  shootoutGoals: updated.data?.shootoutGoals ?? item.shootoutGoals,
+                  shootoutMissedPenalties:
+                    updated.data?.shootoutMissedPenalties ?? item.shootoutMissedPenalties,
+                  shootoutForcedPenaltyMisses:
+                    updated.data?.shootoutForcedPenaltyMisses ?? item.shootoutForcedPenaltyMisses,
+                  cleanSheets: updated.data?.cleanSheets ?? item.cleanSheets,
+                  assists: updated.data?.assists ?? item.assists,
+                  yellowCards: updated.data?.yellowCards ?? item.yellowCards,
+                  doubleYellowCards: updated.data?.doubleYellowCards ?? item.doubleYellowCards,
+                  redCards: updated.data?.redCards ?? item.redCards,
+                };
+                return {
+                  ...nextPlayer,
+                  totalPoints: computePlayerPoints(nextPlayer, playerScoringConfig),
+                };
+              })()
+            : item
+        )
+      );
     } catch (err: any) {
       toast.error(apiErrorDetail(err) || t('adminResults.errors.updatePlayerStats'));
     } finally {
@@ -902,7 +1187,7 @@ export function AdminProvider({
   const handlePlayerAwardToggle = async (
     player: TournamentPlayer,
     award: PlayerAward,
-    selected: boolean,
+    selected: boolean
   ) => {
     const key = `${award}:${player.playerId}`;
     try {
@@ -928,12 +1213,14 @@ export function AdminProvider({
   const handleTeamFairPlayChange = async (teamId: string, fairPlay: number) => {
     try {
       setUpdatingTeamFairPlay(teamId);
-      const updated = await apiClient.put(`/pools/${poolId}/matches/teams/${teamId}/fair-play`, { fairPlay });
-      setTeams((prev) => prev.map((team) => (
-        team.teamId === teamId
-          ? { ...team, fairPlay: updated.data?.fairPlay ?? fairPlay }
-          : team
-      )));
+      const updated = await apiClient.put(`/pools/${poolId}/matches/teams/${teamId}/fair-play`, {
+        fairPlay,
+      });
+      setTeams((prev) =>
+        prev.map((team) =>
+          team.teamId === teamId ? { ...team, fairPlay: updated.data?.fairPlay ?? fairPlay } : team
+        )
+      );
     } catch (err: any) {
       toast.error(apiErrorDetail(err) || t('adminResults.errors.updateFairPlay'));
       throw err;
@@ -955,16 +1242,67 @@ export function AdminProvider({
   const finalConfigMissingCount = bracketScoringMissingCount(bracketScoringConfig);
   const playersConfigMissingCount = playerScoringMissingCount(playerScoringConfig);
   const value: AdminContextValue = {
-    systemMode, poolId, poolName, setPoolName, poolMemberCount, loading, error, groups, matchesByGroup, results, submitting,
-    scoringConfig, setScoringConfig, bracketScoringConfig, setBracketScoringConfig,
-    playerScoringConfig, setPlayerScoringConfig, playerSelectionLimits, setPlayerSelectionLimits, savingConfig,
-    deadlineLocal, setDeadlineLocal, matchdaySeparatorTime, setMatchdaySeparatorTime, entryFee, setEntryFee,
-    prizeDistribution, setPrizeDistribution, playerAwardWinnersConfig, setPlayerAwardWinnersConfig,
-    bracket, teams, players, playerFilter, setPlayerFilter, playerCountryFilter, setPlayerCountryFilter,
-    playerPositionFilter, setPlayerPositionFilter, updatingPlayerStat, updatingPlayerAward, updatingTeamFairPlay, updatingMatch,
-    submittingBracketResult, bracketResults, maxPrizePaidPositions, prizeTotal, prizePoolTotal, prizeRanksInvalid, prizeTotalInvalid,
-    groupConfigMissingCount, finalConfigMissingCount, playersConfigMissingCount,
-    handleResultChange, handleUpdateTeam, handleBracketResultChange, handleSaveBracketResult, handleReEvaluateBracket, handlePlayerStatChange, handlePlayerAwardToggle, handleTeamFairPlayChange,
+    systemMode,
+    poolId,
+    poolName,
+    setPoolName,
+    poolMemberCount,
+    loading,
+    error,
+    groups,
+    matchesByGroup,
+    results,
+    submitting,
+    scoringConfig,
+    setScoringConfig,
+    bracketScoringConfig,
+    setBracketScoringConfig,
+    playerScoringConfig,
+    setPlayerScoringConfig,
+    playerSelectionLimits,
+    setPlayerSelectionLimits,
+    savingConfig,
+    deadlineLocal,
+    setDeadlineLocal,
+    matchdaySeparatorTime,
+    setMatchdaySeparatorTime,
+    entryFee,
+    setEntryFee,
+    prizeDistribution,
+    setPrizeDistribution,
+    playerAwardWinnersConfig,
+    setPlayerAwardWinnersConfig,
+    bracket,
+    teams,
+    players,
+    playerFilter,
+    setPlayerFilter,
+    playerCountryFilter,
+    setPlayerCountryFilter,
+    playerPositionFilter,
+    setPlayerPositionFilter,
+    updatingPlayerStat,
+    updatingPlayerAward,
+    updatingTeamFairPlay,
+    updatingMatch,
+    submittingBracketResult,
+    bracketResults,
+    maxPrizePaidPositions,
+    prizeTotal,
+    prizePoolTotal,
+    prizeRanksInvalid,
+    prizeTotalInvalid,
+    groupConfigMissingCount,
+    finalConfigMissingCount,
+    playersConfigMissingCount,
+    handleResultChange,
+    handleUpdateTeam,
+    handleBracketResultChange,
+    handleSaveBracketResult,
+    handleReEvaluateBracket,
+    handlePlayerStatChange,
+    handlePlayerAwardToggle,
+    handleTeamFairPlayChange,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

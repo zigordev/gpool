@@ -8,7 +8,7 @@ interface Props {
   deadline: number;
 }
 
-function formatRemaining(diffMs: number): { value: string; } {
+function formatRemaining(diffMs: number): { value: string } {
   const totalSeconds = Math.floor(diffMs / 1000);
   const totalMinutes = totalSeconds / 60;
   const totalHours = totalMinutes / 60;
@@ -41,9 +41,9 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
   }, []);
 
   const diff = deadline - tick;
-  
+
   return (
-    diff > 0 &&
+    diff > 0 && (
       <Badge
         variant="warning"
         className="badge-attention"
@@ -69,5 +69,6 @@ export function CountdownChip({ deadline }: Readonly<Props>) {
       >
         {formatRemaining(diff).value}
       </Badge>
+    )
   );
 }

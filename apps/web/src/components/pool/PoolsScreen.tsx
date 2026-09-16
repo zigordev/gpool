@@ -42,7 +42,9 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [poolName, setPoolName] = useState('');
-  const [poolDeadlineLocal, setPoolDeadlineLocal] = useState(toDateTimeLocal(DEFAULT_POOL_DEADLINE));
+  const [poolDeadlineLocal, setPoolDeadlineLocal] = useState(
+    toDateTimeLocal(DEFAULT_POOL_DEADLINE)
+  );
   const [poolEntryFee, setPoolEntryFee] = useState(0);
   const [poolPrizeDistribution, setPoolPrizeDistribution] = useState<PrizePayout[]>([]);
   const [creating, setCreating] = useState(false);
@@ -66,9 +68,8 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
   const createPrizeRanks = poolPrizeDistribution.map((row) => row.rank);
   const createPrizeRanksInvalid =
     createPrizeRanks.some(
-      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxCreatePrizePaidPositions,
-    ) ||
-    new Set(createPrizeRanks).size !== createPrizeRanks.length;
+      (rank) => !Number.isInteger(rank) || rank < 1 || rank > maxCreatePrizePaidPositions
+    ) || new Set(createPrizeRanks).size !== createPrizeRanks.length;
   const createPrizeTotalInvalid =
     createPrizePoolTotal > 0
       ? poolPrizeDistribution.length === 0 ||
@@ -152,15 +153,16 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
     try {
       setCreating(true);
       setCreateError(null);
-      const prizeDistribution = poolEntryFee > 0
-        ? {
-            paidPositions: poolPrizeDistribution.length,
-            payouts: poolPrizeDistribution.map((row) => ({
-              rank: row.rank,
-              amount: Number(row.amount.toFixed(2)),
-            })),
-          }
-        : { paidPositions: 0, payouts: [] };
+      const prizeDistribution =
+        poolEntryFee > 0
+          ? {
+              paidPositions: poolPrizeDistribution.length,
+              payouts: poolPrizeDistribution.map((row) => ({
+                rank: row.rank,
+                amount: Number(row.amount.toFixed(2)),
+              })),
+            }
+          : { paidPositions: 0, payouts: [] };
       const response = await apiClient.post('/pools', {
         name: poolName.trim(),
         config: {
@@ -251,7 +253,6 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
 
   return (
     <>
-
       {error ? (
         <div className="field-error" role="alert" style={{ marginBottom: '1rem' }}>
           <strong>{t('common.errorLabel')}</strong> {error}
@@ -282,7 +283,17 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
               marginBottom: '0.85rem',
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'rgb(var(--accent-from))' }}>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: 'rgb(var(--accent-from))' }}
+            >
               <circle cx="12" cy="12" r="10" />
               <path d="M12 2 5 9 8 18 16 18 19 9z" />
             </svg>
@@ -337,25 +348,47 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
               return (
                 <tr key={pool.poolId}>
                   <td>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        minWidth: 0,
+                      }}
+                    >
                       {/* The name is the link — a table row does not need a
                           separate Open button to be openable. */}
                       {isDisabled ? (
-                        <span style={{ fontWeight: 600, color: 'rgb(var(--fg-muted))' }}>{pool.name}</span>
+                        <span style={{ fontWeight: 600, color: 'rgb(var(--fg-muted))' }}>
+                          {pool.name}
+                        </span>
                       ) : (
-                        <Link href={`/pools/${pool.poolId}`} style={{ fontWeight: 600, color: 'rgb(var(--fg))' }}>
+                        <Link
+                          href={`/pools/${pool.poolId}`}
+                          style={{ fontWeight: 600, color: 'rgb(var(--fg))' }}
+                        >
                           {pool.name}
                         </Link>
                       )}
-                      {isPoolAdmin ? <Badge variant="accent">{t('poolDetail.mode.admin')}</Badge> : null}
-                      {isMember && !isPoolAdmin ? <Badge variant="success" dot>{t('pools.card.member')}</Badge> : null}
+                      {isPoolAdmin ? (
+                        <Badge variant="accent">{t('poolDetail.mode.admin')}</Badge>
+                      ) : null}
+                      {isMember && !isPoolAdmin ? (
+                        <Badge variant="success" dot>
+                          {t('pools.card.member')}
+                        </Badge>
+                      ) : null}
                     </span>
                   </td>
                   <td className="ds-table-num">{pool.memberCount || 0}</td>
                   <td>{fee && fee > 0 ? `${fee} €` : t('poolDetail.info.entryFeeFree')}</td>
                   <td>
                     {Number.isFinite(deadline) && deadline > 0
-                      ? new Date(deadline).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
+                      ? new Date(deadline).toLocaleDateString(locale, {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })
                       : '—'}
                   </td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -419,159 +452,204 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
           title={t('pools.modal.createTitle')}
           closeLabel={t('common.cancel')}
         >
-
-            <form onSubmit={handleSubmit}>
-              <div className="config-area ds-form-compact" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
-                    gap: '0.6rem',
-                    alignItems: 'start',
-                  }}
+          <form onSubmit={handleSubmit}>
+            <div
+              className="config-area ds-form-compact"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                marginBottom: '1.25rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
+                  gap: '0.6rem',
+                  alignItems: 'start',
+                }}
+              >
+                <Field label={t('pools.modal.poolNameLabel')}>
+                  <Input
+                    type="text"
+                    value={poolName}
+                    onChange={(e) => setPoolName(e.target.value)}
+                    placeholder={t('pools.modal.poolNamePlaceholder')}
+                    disabled={creating}
+                  />
+                </Field>
+                <Field
+                  label={
+                    <>
+                      <FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} />{' '}
+                      {t('pools.modal.deadlineLabel')}
+                    </>
+                  }
+                  hint={t('pools.modal.deadlineHint')}
                 >
-                  <Field label={t('pools.modal.poolNameLabel')}>
-                    <Input
-                      type="text"
-                      value={poolName}
-                      onChange={(e) => setPoolName(e.target.value)}
-                      placeholder={t('pools.modal.poolNamePlaceholder')}
-                      disabled={creating}
-                    />
-                  </Field>
-                  <Field
-                    label={<><FaClock aria-hidden style={{ color: 'rgb(var(--fg))' }} /> {t('pools.modal.deadlineLabel')}</>}
-                    hint={t('pools.modal.deadlineHint')}
-                  >
-                    <DateField
-                      type="datetime-local"
-                      value={poolDeadlineLocal}
-                      onChange={(e) => setPoolDeadlineLocal(e.target.value)}
-                      disabled={creating}
-                    />
-                  </Field>
-                </div>
+                  <DateField
+                    type="datetime-local"
+                    value={poolDeadlineLocal}
+                    onChange={(e) => setPoolDeadlineLocal(e.target.value)}
+                    disabled={creating}
+                  />
+                </Field>
+              </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
-                    gap: '0.6rem',
-                    alignItems: 'start',
-                  }}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
+                  gap: '0.6rem',
+                  alignItems: 'start',
+                }}
+              >
+                <Field
+                  label={
+                    <>
+                      <FaDollarSign aria-hidden style={{ color: 'rgb(var(--fg))' }} />{' '}
+                      {t('pools.modal.entryFeeLabel')}
+                    </>
+                  }
+                  hint={t('pools.modal.entryFeeHint')}
                 >
-                  <Field
-                    label={<><FaDollarSign aria-hidden style={{ color: 'rgb(var(--fg))' }} /> {t('pools.modal.entryFeeLabel')}</>}
-                    hint={t('pools.modal.entryFeeHint')}
-                  >
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.5"
-                      value={poolEntryFee}
-                      onChange={(e) => { const v = Number.parseFloat(e.target.value); setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0); }}
-                      disabled={creating}
-                    />
-                  </Field>
-                  <Field
-                    label={t('pools.modal.prizePaidPositionsLabel')}
-                    hint={t('pools.modal.prizePaidPositionsHint', { count: maxCreatePrizePaidPositions })}
-                  >
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max={maxCreatePrizePaidPositions}
-                      value={poolPrizeDistribution.length}
-                      onChange={(e) => {
-                        const value = Number.parseInt(e.target.value, 10) || 0;
-                        setPoolPrizeDistribution((prev) => resizePrizeDistribution(prev, value, maxCreatePrizePaidPositions));
-                      }}
-                      disabled={creating || poolEntryFee === 0}
-                    />
-                  </Field>
-                </div>
-
-                <div style={{ color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))', fontSize: '0.875rem', fontWeight: 600 }}>
-                  {t('adminResults.scoring.prizeTotal', {
-                    total: Number(createPrizeTotal.toFixed(2)),
-                    available: Number(createPrizePoolTotal.toFixed(2)),
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.5"
+                    value={poolEntryFee}
+                    onChange={(e) => {
+                      const v = Number.parseFloat(e.target.value);
+                      setPoolEntryFee(Number.isFinite(v) ? Math.max(0, v) : 0);
+                    }}
+                    disabled={creating}
+                  />
+                </Field>
+                <Field
+                  label={t('pools.modal.prizePaidPositionsLabel')}
+                  hint={t('pools.modal.prizePaidPositionsHint', {
+                    count: maxCreatePrizePaidPositions,
                   })}
-                  {createPrizePoolTotal > 0 ? (
-                    <span style={{ marginLeft: '0.5rem', color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))' }}>
-                      {createPrizeTotalInvalid ? t('adminResults.scoring.prizeTotalInvalid') : t('adminResults.scoring.prizeTotalValid')}
-                    </span>
-                  ) : null}
-                </div>
+                >
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    max={maxCreatePrizePaidPositions}
+                    value={poolPrizeDistribution.length}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10) || 0;
+                      setPoolPrizeDistribution((prev) =>
+                        resizePrizeDistribution(prev, value, maxCreatePrizePaidPositions)
+                      );
+                    }}
+                    disabled={creating || poolEntryFee === 0}
+                  />
+                </Field>
+              </div>
 
-                {poolPrizeDistribution.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                    {poolPrizeDistribution.map((row, index) => (
-                      <div key={index} className="prize-payout-row">
-                        <span className="prize-payout-rank">
-                          {t('adminResults.scoring.prizeNumber', { number: index + 1 })}
-                        </span>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min="1"
-                          max={maxCreatePrizePaidPositions}
-                          step="1"
-                          value={row.rank}
-                          aria-label={t('adminResults.scoring.prizeRankInput', { number: index + 1 })}
-                          onChange={(e) => {
-                            const rank = Number.parseInt(e.target.value, 10) || 0;
-                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => (
-                              itemIndex === index ? { ...item, rank } : item
-                            )));
-                          }}
-                          disabled={creating}
-                          invalid={createPrizeRanksInvalid}
-                        />
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          step="0.01"
-                          value={row.amount}
-                          aria-label={t('adminResults.scoring.prizeAmountInput', { number: index + 1 })}
-                          onChange={(e) => {
-                            const value = Number.parseFloat(e.target.value);
-                            const amount = Number.isFinite(value) ? Math.max(0, value) : 0;
-                            setPoolPrizeDistribution((prev) => prev.map((item, itemIndex) => (
-                              itemIndex === index ? { ...item, amount } : item
-                            )));
-                          }}
-                          disabled={creating}
-                          invalid={createPrizeTotalInvalid || row.amount <= 0}
-                        />
-                        <span className="prize-payout-hint">
-                          {t('adminResults.scoring.prizePayoutHint', { rank: row.rank })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              <div
+                style={{
+                  color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--fg-muted))',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                }}
+              >
+                {t('adminResults.scoring.prizeTotal', {
+                  total: Number(createPrizeTotal.toFixed(2)),
+                  available: Number(createPrizePoolTotal.toFixed(2)),
+                })}
+                {createPrizePoolTotal > 0 ? (
+                  <span
+                    style={{
+                      marginLeft: '0.5rem',
+                      color: createPrizeTotalInvalid ? 'rgb(var(--live))' : 'rgb(var(--pitch))',
+                    }}
+                  >
+                    {createPrizeTotalInvalid
+                      ? t('adminResults.scoring.prizeTotalInvalid')
+                      : t('adminResults.scoring.prizeTotalValid')}
+                  </span>
                 ) : null}
-                {createError ? <p className="field-error">{createError}</p> : null}
               </div>
 
-              <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
-                <Button variant="ghost"
-                  type="button"
-                  onClick={handleCloseCreateModal}
-                  disabled={creating}
-                >
-                  {t('common.cancel')}
-                </Button>
-                <Button variant="primary"
-                  type="submit"
-                  disabled={creating || !poolName.trim() || createPrizeTotalInvalid}
-                >
-                  {creating ? t('pools.actions.creating') : t('pools.actions.create')}
-                </Button>
-              </div>
-            </form>
+              {poolPrizeDistribution.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {poolPrizeDistribution.map((row, index) => (
+                    <div key={index} className="prize-payout-row">
+                      <span className="prize-payout-rank">
+                        {t('adminResults.scoring.prizeNumber', { number: index + 1 })}
+                      </span>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        max={maxCreatePrizePaidPositions}
+                        step="1"
+                        value={row.rank}
+                        aria-label={t('adminResults.scoring.prizeRankInput', { number: index + 1 })}
+                        onChange={(e) => {
+                          const rank = Number.parseInt(e.target.value, 10) || 0;
+                          setPoolPrizeDistribution((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, rank } : item
+                            )
+                          );
+                        }}
+                        disabled={creating}
+                        invalid={createPrizeRanksInvalid}
+                      />
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={row.amount}
+                        aria-label={t('adminResults.scoring.prizeAmountInput', {
+                          number: index + 1,
+                        })}
+                        onChange={(e) => {
+                          const value = Number.parseFloat(e.target.value);
+                          const amount = Number.isFinite(value) ? Math.max(0, value) : 0;
+                          setPoolPrizeDistribution((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, amount } : item
+                            )
+                          );
+                        }}
+                        disabled={creating}
+                        invalid={createPrizeTotalInvalid || row.amount <= 0}
+                      />
+                      <span className="prize-payout-hint">
+                        {t('adminResults.scoring.prizePayoutHint', { rank: row.rank })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {createError ? <p className="field-error">{createError}</p> : null}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={handleCloseCreateModal}
+                disabled={creating}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={creating || !poolName.trim() || createPrizeTotalInvalid}
+              >
+                {creating ? t('pools.actions.creating') : t('pools.actions.create')}
+              </Button>
+            </div>
+          </form>
         </Modal>
       ) : null}
 
@@ -584,38 +662,34 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
           title={t('pools.modal.inviteTitle', { poolName: invitingPool.name })}
           closeLabel={t('common.cancel')}
         >
-            <form onSubmit={handleInviteSubmit}>
-              <Field label={t('pools.modal.inviteEmailLabel')} error={inviteError || undefined}>
-                <Input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder={t('pools.modal.inviteEmailPlaceholder')}
-                  disabled={inviting}
-                  invalid={Boolean(inviteError)}
-                />
-              </Field>
+          <form onSubmit={handleInviteSubmit}>
+            <Field label={t('pools.modal.inviteEmailLabel')} error={inviteError || undefined}>
+              <Input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder={t('pools.modal.inviteEmailPlaceholder')}
+                disabled={inviting}
+                invalid={Boolean(inviteError)}
+              />
+            </Field>
 
-              <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
-                <Button variant="ghost"
-                  type="button"
-                  onClick={handleCloseInviteModal}
-                  disabled={inviting}
-                >
-                  {t('common.cancel')}
-                </Button>
-                <Button variant="primary"
-                  type="submit"
-                  disabled={inviting || !inviteEmail.trim()}
-                >
-                  {inviting ? t('pools.actions.sending') : t('pools.actions.sendInvitation')}
-                </Button>
-              </div>
-            </form>
+            <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end' }}>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={handleCloseInviteModal}
+                disabled={inviting}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button variant="primary" type="submit" disabled={inviting || !inviteEmail.trim()}>
+                {inviting ? t('pools.actions.sending') : t('pools.actions.sendInvitation')}
+              </Button>
+            </div>
+          </form>
         </Modal>
       ) : null}
     </>
   );
 }
-
-

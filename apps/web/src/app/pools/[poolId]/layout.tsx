@@ -3,10 +3,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useI18n } from '@/i18n/client';
 import { Loading } from '@/components/Loading';
-import {
-  PoolProvider,
-  usePoolContext,
-} from '@/contexts/PoolContext';
+import { PoolProvider, usePoolContext } from '@/contexts/PoolContext';
 
 function PoolLayoutInner({ children }: Readonly<{ children: React.ReactNode }>) {
   const { t } = useI18n();

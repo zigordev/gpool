@@ -61,10 +61,7 @@ export function WinnerInsightsModal({
       })
       .catch((requestError) => {
         if (active) {
-          setError(
-            apiErrorDetail(requestError) ||
-              t('poolDetail.winnerInsights.loadError'),
-          );
+          setError(apiErrorDetail(requestError) || t('poolDetail.winnerInsights.loadError'));
         }
       })
       .finally(() => {
@@ -76,12 +73,7 @@ export function WinnerInsightsModal({
   }, [open, poolId, t]);
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={t('poolDetail.winnerInsights.title')}
-      size="md"
-    >
+    <Modal open={open} onClose={onClose} title={t('poolDetail.winnerInsights.title')} size="md">
       {loading ? (
         <p style={messageStyle}>{t('common.loading')}</p>
       ) : error ? (
@@ -138,11 +130,16 @@ export function WinnerInsightsModal({
                     svg
                     style={{ width: '1.6em', height: '1.6em', flexShrink: 0 }}
                   />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
                     {selection.teamName}
                   </span>
                   {selection.correct === true ? (
-                    <FaTrophy aria-label={t('poolDetail.winnerInsights.correct')} style={{ color: 'rgb(var(--gold))' }} />
+                    <FaTrophy
+                      aria-label={t('poolDetail.winnerInsights.correct')}
+                      style={{ color: 'rgb(var(--gold))' }}
+                    />
                   ) : null}
                 </span>
                 <strong

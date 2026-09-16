@@ -1,4 +1,4 @@
-import { BracketRoundScoring } from "./bracketRoundScoring.type";
+import { BracketRoundScoring } from './bracketRoundScoring.type';
 
 export type BracketScoringConfig = BracketRoundScoring & {
   rounds: Record<string, BracketRoundScoring>;

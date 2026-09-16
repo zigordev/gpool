@@ -43,7 +43,12 @@ export const PLAYER_POSITIONS: Array<{ key: PlayerPosition; labelKey: string }> 
   { key: 'forward', labelKey: 'poolDetail.players.positions.forward' },
 ];
 
-export const PLAYER_AWARDS: Array<{ key: PlayerAward; labelKey: string; descriptionKey: string; icon: any }> = [
+export const PLAYER_AWARDS: Array<{
+  key: PlayerAward;
+  labelKey: string;
+  descriptionKey: string;
+  icon: any;
+}> = [
   {
     key: 'golden_boot',
     labelKey: 'poolDetail.players.awards.goldenBoot',
@@ -94,27 +99,26 @@ export function resolvePrizeDistribution(pool: any): PrizePayout[] {
           p.rank >= 1 &&
           typeof p.amount === 'number' &&
           Number.isFinite(p.amount) &&
-          p.amount >= 0,
+          p.amount >= 0
       )
       .map((p: any) => ({ rank: p.rank, amount: p.amount }));
     if (amountPayouts.length > 0) {
       return amountPayouts.sort((a: PrizePayout, b: PrizePayout) => a.rank - b.rank);
     }
 
-    const percentagePayouts = raw.payouts
-      .filter(
-        (p: any) =>
-          p &&
-          typeof p.rank === 'number' &&
-          Number.isFinite(p.rank) &&
-          p.rank >= 1 &&
-          typeof p.percentage === 'number' &&
-          Number.isFinite(p.percentage) &&
-          p.percentage >= 0,
-      );
+    const percentagePayouts = raw.payouts.filter(
+      (p: any) =>
+        p &&
+        typeof p.rank === 'number' &&
+        Number.isFinite(p.rank) &&
+        p.rank >= 1 &&
+        typeof p.percentage === 'number' &&
+        Number.isFinite(p.percentage) &&
+        p.percentage >= 0
+    );
     const percentageTotal = percentagePayouts.reduce(
       (sum: number, payout: any) => sum + payout.percentage,
-      0,
+      0
     );
     if (percentagePayouts.length > 0 && percentageTotal > 0) {
       return percentagePayouts
@@ -141,15 +145,15 @@ function normalizeBracketScoring(value: any): BracketScoringConfig {
   };
   const baseExact = readScoringNumber(
     value?.exactPositionPoints,
-    DEFAULT_BRACKET_EXACT_POSITION_POINTS,
+    DEFAULT_BRACKET_EXACT_POSITION_POINTS
   );
   const baseWrong = readScoringNumber(
     value?.correctTeamWrongPositionPoints,
-    DEFAULT_BRACKET_WRONG_POSITION_POINTS,
+    DEFAULT_BRACKET_WRONG_POSITION_POINTS
   );
   const tournamentWinnerPoints = readScoringNumber(
     value?.tournamentWinnerPoints,
-    DEFAULT_TOURNAMENT_WINNER_POINTS,
+    DEFAULT_TOURNAMENT_WINNER_POINTS
   );
   const rounds = BRACKET_PHASES.reduce<Record<string, any>>((acc, phase) => {
     const round = value?.rounds?.[phase.key] || {};
@@ -157,12 +161,17 @@ function normalizeBracketScoring(value: any): BracketScoringConfig {
       exactPositionPoints: readScoringNumber(round.exactPositionPoints, baseExact),
       correctTeamWrongPositionPoints: readScoringNumber(
         round.correctTeamWrongPositionPoints,
-        baseWrong,
+        baseWrong
       ),
     };
     return acc;
   }, {});
-  return { exactPositionPoints: baseExact, correctTeamWrongPositionPoints: baseWrong, tournamentWinnerPoints, rounds };
+  return {
+    exactPositionPoints: baseExact,
+    correctTeamWrongPositionPoints: baseWrong,
+    tournamentWinnerPoints,
+    rounds,
+  };
 }
 
 export function resolveGroupScoring(value: any) {
@@ -178,12 +187,18 @@ export function resolveGroupScoring(value: any) {
 
 export function phaseShortKey(phase: string): string {
   switch (phase) {
-    case '16th-finals': return '16th';
-    case '8th-finals': return '8th';
-    case 'quarter-finals': return 'quarter';
-    case 'semi-finals': return 'semi';
-    case 'finals': return 'final';
-    default: return phase;
+    case '16th-finals':
+      return '16th';
+    case '8th-finals':
+      return '8th';
+    case 'quarter-finals':
+      return 'quarter';
+    case 'semi-finals':
+      return 'semi';
+    case 'finals':
+      return 'final';
+    default:
+      return phase;
   }
 }
 
@@ -204,7 +219,13 @@ export function formatEur(amount: number, locale: string): string {
 
 // ─── Context value type ───────────────────────────────────────────────────────
 
-export type PlayerOption = { value: string; label: string; teamName: string; teamId: string; isDisabled: boolean };
+export type PlayerOption = {
+  value: string;
+  label: string;
+  teamName: string;
+  teamId: string;
+  isDisabled: boolean;
+};
 
 interface PoolContextValue {
   poolId: string;
@@ -213,7 +234,15 @@ interface PoolContextValue {
   matchesByGroup: Record<string, Match[]>;
   groups: string[];
   predictions: Record<string, Prediction>;
-  ranking: Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; movement?: { previousRank: number; delta: number; matchdayPoints: number } }>;
+  ranking: Array<{
+    rank: number;
+    userName: string;
+    userId?: string;
+    groupPhasePoints: number;
+    finalPhasePoints: number;
+    playerPoints: number;
+    movement?: { previousRank: number; delta: number; matchdayPoints: number };
+  }>;
   bracket: Record<string, any[]>;
   bracketPredictions: Record<string, any>;
   effectiveBracketPredictions: Record<string, any>;
@@ -231,11 +260,20 @@ interface PoolContextValue {
   finalMissingCount: number;
   playerAwardSelectionCount: number;
   playersMissingCount: number;
-  spy: { target: { userId: string; userName: string }; loading: boolean; error: string | null; data: SpyPicksData | null } | null;
+  spy: {
+    target: { userId: string; userName: string };
+    loading: boolean;
+    error: string | null;
+    data: SpyPicksData | null;
+  } | null;
   setSpy: (spy: PoolContextValue['spy']) => void;
   handleScoreChange: (matchId: string, side: 'home' | 'away', value: string) => void;
   handleStartSpy: (target: { userId: string; userName: string }) => Promise<void>;
-  handlePlayerSelection: (position: PlayerPosition, slot: number, playerId: string) => Promise<void>;
+  handlePlayerSelection: (
+    position: PlayerPosition,
+    slot: number,
+    playerId: string
+  ) => Promise<void>;
   handlePlayerAwardSelection: (award: PlayerAward, playerId: string) => Promise<void>;
   setBracketPredictions: React.Dispatch<React.SetStateAction<Record<string, any>>>;
 }
@@ -276,8 +314,8 @@ export function PoolProvider({ children }: Readonly<{ children: React.ReactNode 
     typeof params?.poolId === 'string'
       ? params.poolId
       : Array.isArray(params?.poolId)
-      ? params.poolId[0]
-      : '';
+        ? params.poolId[0]
+        : '';
 
   const [pool, setPool] = useState<any>(null);
   const [matchesByGroup, setMatchesByGroup] = useState<Record<string, Match[]>>({});
@@ -285,22 +323,36 @@ export function PoolProvider({ children }: Readonly<{ children: React.ReactNode 
   const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [loading, setLoading] = useState(true);
   const [saveTimers, setSaveTimers] = useState<Record<string, NodeJS.Timeout>>({});
-  const [ranking, setRanking] = useState<Array<{ rank: number; userName: string; userId?: string; groupPhasePoints: number; finalPhasePoints: number; playerPoints: number; movement?: { previousRank: number; delta: number; matchdayPoints: number } }>>([]);
+  const [ranking, setRanking] = useState<
+    Array<{
+      rank: number;
+      userName: string;
+      userId?: string;
+      groupPhasePoints: number;
+      finalPhasePoints: number;
+      playerPoints: number;
+      movement?: { previousRank: number; delta: number; matchdayPoints: number };
+    }>
+  >([]);
   const [bracket, setBracket] = useState<Record<string, any[]>>({});
   const [bracketPredictions, setBracketPredictions] = useState<Record<string, any>>({});
-const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<TournamentPlayer[]>([]);
   const [playerSelections, setPlayerSelections] = useState<Record<string, PlayerSelection>>({});
   const [playerSelectionLimits, setPlayerSelectionLimits] = useState<PlayerSelectionLimits>(
-    DEFAULT_PLAYER_SELECTION_LIMITS,
+    DEFAULT_PLAYER_SELECTION_LIMITS
   );
-  const [playerAwardSelections, setPlayerAwardSelections] = useState<Record<PlayerAward, PlayerAwardSelection | undefined>>({
+  const [playerAwardSelections, setPlayerAwardSelections] = useState<
+    Record<PlayerAward, PlayerAwardSelection | undefined>
+  >({
     golden_boot: undefined,
     tournament_mvp: undefined,
   });
   const [savingPlayerSlot, setSavingPlayerSlot] = useState<string | null>(null);
   const [spy, setSpy] = useState<PoolContextValue['spy']>(null);
-  const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(normalizeBracketScoring(null));
+  const [bracketScoringConfig, setBracketScoringConfig] = useState<BracketScoringConfig>(
+    normalizeBracketScoring(null)
+  );
   const [loadedSurfaces, setLoadedSurfaces] = useState<LoadedSurfaces>(EMPTY_LOADED_SURFACES);
 
   const applyMatchesResponse = (matchesData: any) => {
@@ -335,8 +387,8 @@ const [teams, setTeams] = useState<Team[]>([]);
     setPlayers(playersData?.players || []);
     setPlayerSelectionLimits(
       resolvePlayerSelectionLimits(
-        playersData?.limits ?? fallbackPool?.config?.playerSelectionLimits,
-      ),
+        playersData?.limits ?? fallbackPool?.config?.playerSelectionLimits
+      )
     );
 
     const selectionsMap: Record<string, PlayerSelection> = {};
@@ -394,7 +446,7 @@ const [teams, setTeams] = useState<Team[]>([]);
         setPool(poolResponse.data);
         setBracketScoringConfig(normalizeBracketScoring(poolResponse.data?.config?.bracketScoring));
         setPlayerSelectionLimits(
-          resolvePlayerSelectionLimits(poolResponse.data?.config?.playerSelectionLimits),
+          resolvePlayerSelectionLimits(poolResponse.data?.config?.playerSelectionLimits)
         );
         setLoadedSurfaces((prev) => ({ ...prev, common: true }));
       } catch (err: any) {
@@ -405,7 +457,7 @@ const [teams, setTeams] = useState<Team[]>([]);
     };
 
     fetchPool();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolId]);
 
   useEffect(() => {
@@ -444,7 +496,7 @@ const [teams, setTeams] = useState<Team[]>([]);
               applyPredictionsResponse(predictionsResponse.data || []);
               setTeams(teamsResponse.data || []);
               setLoadedSurfaces((prev) => ({ ...prev, groups: true }));
-            }),
+            })
           );
         }
 
@@ -456,15 +508,15 @@ const [teams, setTeams] = useState<Team[]>([]);
               needsGroups && !loadedSurfaces.groups
                 ? Promise.resolve({ data: null })
                 : loadedSurfaces.groups
-                ? Promise.resolve({ data: teams })
-                : apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
+                  ? Promise.resolve({ data: teams })
+                  : apiClient.get(`/pools/${poolId}/matches/teams`).catch(() => ({ data: [] })),
             ]).then(([bracketResponse, bracketPredictionsResponse, teamsResponse]) => {
               if (cancelled) return;
               setBracket(bracketResponse.data || {});
               applyBracketPredictionsResponse(bracketPredictionsResponse.data || []);
               if (teamsResponse.data) setTeams(teamsResponse.data || []);
               setLoadedSurfaces((prev) => ({ ...prev, final: true }));
-            }),
+            })
           );
         }
 
@@ -477,7 +529,7 @@ const [teams, setTeams] = useState<Team[]>([]);
                 if (cancelled) return;
                 applyPlayersResponse(playersResponse.data || {});
                 setLoadedSurfaces((prev) => ({ ...prev, players: true }));
-              }),
+              })
           );
         }
 
@@ -490,7 +542,7 @@ const [teams, setTeams] = useState<Team[]>([]);
                 if (cancelled) return;
                 setRanking(rankingResponse.data || []);
                 setLoadedSurfaces((prev) => ({ ...prev, ranking: true }));
-              }),
+              })
           );
         }
 
@@ -506,7 +558,7 @@ const [teams, setTeams] = useState<Team[]>([]);
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolId, pathname, loadedSurfaces]);
 
   const poolDeadline = resolveDeadline(pool);
@@ -518,8 +570,15 @@ const [teams, setTeams] = useState<Team[]>([]);
   }, []);
 
   const bracketProjection = useMemo(
-    () => buildBracketProjection({ matchesByGroup, groupPredictions: predictions, teams, bracket, bracketPredictions }),
-    [matchesByGroup, predictions, teams, bracket, bracketPredictions],
+    () =>
+      buildBracketProjection({
+        matchesByGroup,
+        groupPredictions: predictions,
+        teams,
+        bracket,
+        bracketPredictions,
+      }),
+    [matchesByGroup, predictions, teams, bracket, bracketPredictions]
   );
   const effectiveBracketPredictions = bracketProjection.effectivePredictions;
 
@@ -529,47 +588,58 @@ const [teams, setTeams] = useState<Team[]>([]);
     .flat()
     .filter((match) => {
       const prediction = predictions[match.matchId];
-      return prediction?.homeScore === '' || prediction?.homeScore === undefined ||
-        prediction?.awayScore === '' || prediction?.awayScore === undefined;
+      return (
+        prediction?.homeScore === '' ||
+        prediction?.homeScore === undefined ||
+        prediction?.awayScore === '' ||
+        prediction?.awayScore === undefined
+      );
     }).length;
 
   // All knockout rounds count now that the round of 32 is only filled on explicit user action.
-  const KNOCKOUT_PHASES_FOR_COUNT = ['16th-finals', '8th-finals', 'quarter-finals', 'semi-finals', 'finals'] as const;
+  const KNOCKOUT_PHASES_FOR_COUNT = [
+    '16th-finals',
+    '8th-finals',
+    'quarter-finals',
+    'semi-finals',
+    'finals',
+  ] as const;
 
-  const bracketTeamsMissing = KNOCKOUT_PHASES_FOR_COUNT
-    .flatMap((phase) => (bracket[phase] || []))
-    .reduce((count, match: any) => {
-      const prediction = effectiveBracketPredictions[match.bracketMatchId];
-      // Count each team slot independently so that both-empty = 2, one-empty = 1, none-empty = 0
-      if (!prediction?.homeTeamId) count++;
-      if (!prediction?.awayTeamId) count++;
-      return count;
-    }, 0);
+  const bracketTeamsMissing = KNOCKOUT_PHASES_FOR_COUNT.flatMap(
+    (phase) => bracket[phase] || []
+  ).reduce((count, match: any) => {
+    const prediction = effectiveBracketPredictions[match.bracketMatchId];
+    // Count each team slot independently so that both-empty = 2, one-empty = 1, none-empty = 0
+    if (!prediction?.homeTeamId) count++;
+    if (!prediction?.awayTeamId) count++;
+    return count;
+  }, 0);
 
-  const finalsMatches = (bracket['finals']) || [];
+  const finalsMatches = bracket['finals'] || [];
   const winnerMissing = finalsMatches.reduce((count, match: any) => {
     const effective = effectiveBracketPredictions[match.bracketMatchId];
     const raw = bracketPredictions[match.bracketMatchId];
     // "has teams" is true when the cascade has resolved teams OR the user explicitly picked them in the raw prediction
     const hasTeams =
-      (effective?.homeTeamId && effective?.awayTeamId) ||
-      (raw?.homeTeamId && raw?.awayTeamId);
+      (effective?.homeTeamId && effective?.awayTeamId) || (raw?.homeTeamId && raw?.awayTeamId);
     return hasTeams && !raw?.predictedWinnerTeamId ? count + 1 : count;
   }, 0);
 
   const finalMissingCount = bracketTeamsMissing + winnerMissing;
 
-  const playerAwardSelectionCount = PLAYER_AWARDS.filter((award) => playerAwardSelections[award.key]).length;
+  const playerAwardSelectionCount = PLAYER_AWARDS.filter(
+    (award) => playerAwardSelections[award.key]
+  ).length;
   const requiredPlayerSelections =
     Object.values(playerSelectionLimits).reduce((sum, limit) => sum + limit, 0) +
     PLAYER_AWARDS.length;
   const validPlayerSelectionCount = Object.values(playerSelections).filter(
-    (selection) => selection.slot <= playerSelectionLimits[selection.position],
+    (selection) => selection.slot <= playerSelectionLimits[selection.position]
   ).length;
 
   const playersMissingCount = Math.max(
     0,
-    requiredPlayerSelections - validPlayerSelectionCount - playerAwardSelectionCount,
+    requiredPlayerSelections - validPlayerSelectionCount - playerAwardSelectionCount
   );
 
   const autoSavePrediction = async (matchId: string, prediction: Prediction) => {
@@ -606,8 +676,8 @@ const [teams, setTeams] = useState<Team[]>([]);
       [matchId]: {
         ...prev[matchId],
         matchId,
-        homeScore: side === 'home' ? (numValue) : (prev[matchId]?.homeScore ?? ''),
-        awayScore: side === 'away' ? (numValue) : (prev[matchId]?.awayScore ?? ''),
+        homeScore: side === 'home' ? numValue : (prev[matchId]?.homeScore ?? ''),
+        awayScore: side === 'away' ? numValue : (prev[matchId]?.awayScore ?? ''),
       },
     }));
 
@@ -643,7 +713,7 @@ const [teams, setTeams] = useState<Team[]>([]);
             applyPredictionsResponse(predictionsResponse.data || []);
             setTeams(teamsResponse.data || []);
             setLoadedSurfaces((prev) => ({ ...prev, groups: true }));
-          }),
+          })
         );
       }
 
@@ -656,7 +726,7 @@ const [teams, setTeams] = useState<Team[]>([]);
             setBracket(bracketResponse.data || {});
             applyBracketPredictionsResponse(bracketPredictionsResponse.data || []);
             setLoadedSurfaces((prev) => ({ ...prev, final: true }));
-          }),
+          })
         );
       }
 
@@ -668,7 +738,7 @@ const [teams, setTeams] = useState<Team[]>([]);
             .then((playersResponse) => {
               applyPlayersResponse(playersResponse.data || {});
               setLoadedSurfaces((prev) => ({ ...prev, players: true }));
-            }),
+            })
         );
       }
 
@@ -691,13 +761,24 @@ const [teams, setTeams] = useState<Team[]>([]);
     }
   };
 
-  const handlePlayerSelection = async (position: PlayerPosition, slot: number, playerId: string) => {
-    if (Date.now() >= poolDeadline) { toast.error(t('poolDetail.finalPhase.deadlinePassed')); return; }
+  const handlePlayerSelection = async (
+    position: PlayerPosition,
+    slot: number,
+    playerId: string
+  ) => {
+    if (Date.now() >= poolDeadline) {
+      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+      return;
+    }
     const key = `${position}:${slot}`;
     const nextPlayer = players.find((player) => player.playerId === playerId);
     try {
       setSavingPlayerSlot(key);
-      await apiClient.put(`/pools/${poolId}/players/selection`, { position, slot, playerId: playerId || null });
+      await apiClient.put(`/pools/${poolId}/players/selection`, {
+        position,
+        slot,
+        playerId: playerId || null,
+      });
       setPlayerSelections((prev) => {
         const next = { ...prev };
         if (!playerId || !nextPlayer) {
@@ -715,16 +796,23 @@ const [teams, setTeams] = useState<Team[]>([]);
   };
 
   const handlePlayerAwardSelection = async (award: PlayerAward, playerId: string) => {
-    if (Date.now() >= poolDeadline) { toast.error(t('poolDetail.finalPhase.deadlinePassed')); return; }
+    if (Date.now() >= poolDeadline) {
+      toast.error(t('poolDetail.finalPhase.deadlinePassed'));
+      return;
+    }
     const nextPlayer = players.find((player) => player.playerId === playerId);
     try {
       setSavingPlayerSlot(`award:${award}`);
-      await apiClient.put(`/pools/${poolId}/players/award-selection`, { award, playerId: playerId || null });
+      await apiClient.put(`/pools/${poolId}/players/award-selection`, {
+        award,
+        playerId: playerId || null,
+      });
       setPlayerAwardSelections((prev) => ({
         ...prev,
-        [award]: playerId && nextPlayer
-          ? { ...nextPlayer, poolId, userId: user?.userId || '', award }
-          : undefined,
+        [award]:
+          playerId && nextPlayer
+            ? { ...nextPlayer, poolId, userId: user?.userId || '', award }
+            : undefined,
       }));
     } catch (err: any) {
       toast.error(apiErrorDetail(err) || t('poolDetail.players.saveError'));

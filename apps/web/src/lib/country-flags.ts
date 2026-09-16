@@ -60,7 +60,10 @@ export function countryTranslationKey(name: string | undefined | null): string {
   return iso ? `countries.${iso}` : '';
 }
 
-export function countryDisplayName(name: string | undefined | null, t: (key: string) => string): string {
+export function countryDisplayName(
+  name: string | undefined | null,
+  t: (key: string) => string
+): string {
   if (!name) return '';
   const key = countryTranslationKey(name);
   if (!key) return name;

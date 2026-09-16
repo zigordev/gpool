@@ -108,9 +108,7 @@ export function PlayerInsightsModal({
       })
       .catch((requestError) => {
         if (active) {
-          setError(
-            apiErrorDetail(requestError) || t('poolDetail.players.insights.loadError')
-          );
+          setError(apiErrorDetail(requestError) || t('poolDetail.players.insights.loadError'));
         }
       })
       .finally(() => {

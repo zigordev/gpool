@@ -19,9 +19,7 @@ export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) 
   }, [isAuthenticated, loading, router]);
 
   if (loading) {
-    return (
-      <Loading message={t('common.loading')} />
-    );
+    return <Loading message={t('common.loading')} />;
   }
 
   if (!isAuthenticated) {
