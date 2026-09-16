@@ -18,7 +18,7 @@ env:
 
 jobs:
   quality:
-    name: Quality (Lint + Typecheck + Build + Unit Coverage)
+    name: Quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
