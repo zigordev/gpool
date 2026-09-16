@@ -109,12 +109,7 @@ export class PoolService {
     };
   }
 
-  async updatePool(
-    poolId: string,
-    updatePoolDto: UpdatePoolDto,
-    userId: string,
-    _userRole: string
-  ) {
+  async updatePool(poolId: string, updatePoolDto: UpdatePoolDto, userId: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -132,7 +127,7 @@ export class PoolService {
     return updatedPool;
   }
 
-  async deletePool(poolId: string, userId: string, _userRole: string) {
+  async deletePool(poolId: string, userId: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -183,12 +178,7 @@ export class PoolService {
     };
   }
 
-  async acceptAccessRequest(
-    poolId: string,
-    targetUserId: string,
-    adminUserId: string,
-    _userRole: string
-  ) {
+  async acceptAccessRequest(poolId: string, targetUserId: string, adminUserId: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -218,13 +208,7 @@ export class PoolService {
     return { success: true, message: 'Access granted successfully' };
   }
 
-  async inviteUser(
-    poolId: string,
-    email: string,
-    invitedBy: string,
-    _userRole: string,
-    inviterEmail?: string
-  ) {
+  async inviteUser(poolId: string, email: string, invitedBy: string, inviterEmail?: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -283,12 +267,7 @@ export class PoolService {
     return { success: true, message: 'You have successfully joined the pool' };
   }
 
-  async updatePoolConfiguration(
-    poolId: string,
-    newConfig: Record<string, any>,
-    userId: string,
-    _userRole: string
-  ) {
+  async updatePoolConfiguration(poolId: string, newConfig: Record<string, any>, userId: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);

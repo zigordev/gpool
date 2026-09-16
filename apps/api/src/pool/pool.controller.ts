@@ -67,7 +67,7 @@ export class PoolController {
   @Put(':poolId')
   @ApiOperation({ summary: 'Update pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Pool updated successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - pool membership admin required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
   async updatePool(
     @Param('poolId') poolId: string,
@@ -75,18 +75,18 @@ export class PoolController {
     @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.poolService.updatePool(poolId, updatePoolDto, user.userId, user.role);
+    return this.poolService.updatePool(poolId, updatePoolDto, user.userId);
   }
 
   @Delete(':poolId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete pool (pool membership admin only)' })
   @ApiResponse({ status: 204, description: 'Pool deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - pool membership admin required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
   async deletePool(@Param('poolId') poolId: string, @Req() req: Request): Promise<void> {
     const user = req.user as any;
-    await this.poolService.deletePool(poolId, user.userId, user.role);
+    await this.poolService.deletePool(poolId, user.userId);
   }
 
   @Post(':poolId/request-access')
@@ -104,7 +104,7 @@ export class PoolController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept access request (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Access granted successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - pool membership admin required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
   async acceptAccessRequest(
     @Param('poolId') poolId: string,
@@ -112,14 +112,14 @@ export class PoolController {
     @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.poolService.acceptAccessRequest(poolId, userId, user.userId, user.role);
+    return this.poolService.acceptAccessRequest(poolId, userId, user.userId);
   }
 
   @Post(':poolId/invite')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Invite user to pool (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Invitation sent successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - pool membership admin required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
   async inviteUser(
     @Param('poolId') poolId: string,
@@ -127,13 +127,7 @@ export class PoolController {
     @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.poolService.inviteUser(
-      poolId,
-      inviteUserDto.email,
-      user.userId,
-      user.role,
-      user.email
-    );
+    return this.poolService.inviteUser(poolId, inviteUserDto.email, user.userId, user.email);
   }
 
   @Post(':poolId/accept-invitation')
@@ -149,7 +143,7 @@ export class PoolController {
   @Put(':poolId/configuration')
   @ApiOperation({ summary: 'Update pool configuration (pool membership admin only)' })
   @ApiResponse({ status: 200, description: 'Configuration updated successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - pool membership admin required' })
   @ApiResponse({ status: 404, description: 'Pool not found' })
   async updatePoolConfiguration(
     @Param('poolId') poolId: string,
@@ -157,6 +151,6 @@ export class PoolController {
     @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.poolService.updatePoolConfiguration(poolId, newConfig, user.userId, user.role);
+    return this.poolService.updatePoolConfiguration(poolId, newConfig, user.userId);
   }
 }
