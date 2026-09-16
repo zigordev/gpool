@@ -75,7 +75,7 @@ export class MatchService {
     matchId: string,
     userId: string,
     homeScore: number | null,
-    awayScore: number | null,
+    awayScore: number | null
   ) {
     const match = await this.poolRepository.getMatch(matchId);
     if (!match) {
@@ -101,7 +101,12 @@ export class MatchService {
       return cleared;
     }
 
-    if (homeScore < 0 || awayScore < 0 || !Number.isInteger(homeScore) || !Number.isInteger(awayScore)) {
+    if (
+      homeScore < 0 ||
+      awayScore < 0 ||
+      !Number.isInteger(homeScore) ||
+      !Number.isInteger(awayScore)
+    ) {
       throw new BadRequestException('Scores must be non-negative integers');
     }
 
@@ -110,7 +115,7 @@ export class MatchService {
       matchId,
       userId,
       homeScore,
-      awayScore,
+      awayScore
     );
 
     this.logger.log(`Prediction submitted: pool ${poolId}, match ${matchId}, user ${userId}`);
@@ -130,7 +135,7 @@ export class MatchService {
     matchType: 'group' | 'final',
     matchId: string,
     requesterUserId: string,
-    requesterRole: string,
+    requesterRole: string
   ) {
     if (matchType !== 'group' && matchType !== 'final') {
       throw new BadRequestException('Invalid match type');
@@ -141,7 +146,9 @@ export class MatchService {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
     }
     if (Date.now() < resolvePoolDeadline(pool)) {
-      throw new ForbiddenException('Match insights are only available after the prediction deadline');
+      throw new ForbiddenException(
+        'Match insights are only available after the prediction deadline'
+      );
     }
     if (!hasPermission(requesterRole || 'user', 'admin')) {
       const membership = await this.poolRepository.getMembership(poolId, requesterUserId);
@@ -150,18 +157,19 @@ export class MatchService {
       }
     }
 
-    const storedMatch = matchType === 'group'
-      ? await this.poolRepository.getMatch(matchId)
-      : (await this.poolRepository.getBracketMatches('all-pools'))
-          .find((candidate: any) => candidate.bracketMatchId === matchId);
+    const storedMatch =
+      matchType === 'group'
+        ? await this.poolRepository.getMatch(matchId)
+        : (await this.poolRepository.getBracketMatches('all-pools')).find(
+            (candidate: any) => candidate.bracketMatchId === matchId
+          );
     if (!storedMatch) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
-    const match = matchType === 'final'
-      ? await this.hydrateBracketMatchTeamNames(storedMatch)
-      : storedMatch;
+    const match =
+      matchType === 'final' ? await this.hydrateBracketMatchTeamNames(storedMatch) : storedMatch;
     const matchTeamIds = [match.homeTeamId, match.awayTeamId].filter(
-      (teamId): teamId is string => typeof teamId === 'string' && teamId.length > 0,
+      (teamId): teamId is string => typeof teamId === 'string' && teamId.length > 0
     );
 
     const [members, predictions, selectedPlayerActions] = await Promise.all([
@@ -173,14 +181,15 @@ export class MatchService {
         poolId,
         matchType,
         matchId,
-        matchTeamIds,
+        matchTeamIds
       ),
     ]);
-    const relevantPredictions = matchType === 'final'
-      ? predictions.filter((prediction: any) => prediction.poolId === poolId)
-      : predictions;
+    const relevantPredictions =
+      matchType === 'final'
+        ? predictions.filter((prediction: any) => prediction.poolId === poolId)
+        : predictions;
     const predictionByUser = new Map(
-      relevantPredictions.map((prediction: any) => [prediction.userId, prediction]),
+      relevantPredictions.map((prediction: any) => [prediction.userId, prediction])
     );
     const limits = resolvePlayerSelectionLimits(pool.config?.playerSelectionLimits);
     const playerScoring = resolvePlayerScoring(pool);
@@ -207,7 +216,9 @@ export class MatchService {
           userId: member.userId,
           userName:
             member.userName ||
-            (member.userEmail ? member.userEmail.split('@')[0] : `User ${member.userId.slice(0, 8)}`),
+            (member.userEmail
+              ? member.userEmail.split('@')[0]
+              : `User ${member.userId.slice(0, 8)}`),
           prediction: predictionByUser.get(member.userId) || null,
           playerActions: actionsByUser.get(member.userId) || [],
         })),
@@ -227,11 +238,7 @@ export class MatchService {
     };
   }
 
-  async updateMatchResults(
-    matchId: string,
-    homeResult: number | null,
-    awayResult: number | null,
-  ) {
+  async updateMatchResults(matchId: string, homeResult: number | null, awayResult: number | null) {
     const match = await this.poolRepository.getMatch(matchId);
     if (!match) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
@@ -244,16 +251,21 @@ export class MatchService {
       throw new BadRequestException('Both results must be provided or both must be empty');
     }
 
-    if (!clearingResult && (
-      homeResult < 0 ||
-      awayResult < 0 ||
-      !Number.isInteger(homeResult) ||
-      !Number.isInteger(awayResult)
-    )) {
+    if (
+      !clearingResult &&
+      (homeResult < 0 ||
+        awayResult < 0 ||
+        !Number.isInteger(homeResult) ||
+        !Number.isInteger(awayResult))
+    ) {
       throw new BadRequestException('Results must be non-negative integers');
     }
 
-    const updatedMatch = await this.poolRepository.updateMatchResults(matchId, homeResult, awayResult);
+    const updatedMatch = await this.poolRepository.updateMatchResults(
+      matchId,
+      homeResult,
+      awayResult
+    );
     if (!updatedMatch) {
       throw new NotFoundException(`Match with ID ${matchId} not found`);
     }
@@ -263,7 +275,7 @@ export class MatchService {
     if (clearingResult) {
       await this.poolRepository.resetPredictionStatusesForMatch(matchId);
       this.logger.log(
-        `Match results cleared and ${allPredictions.length} predictions reset for match ${matchId}`,
+        `Match results cleared and ${allPredictions.length} predictions reset for match ${matchId}`
       );
 
       return {
@@ -281,7 +293,7 @@ export class MatchService {
           winnerPoints: pool.config?.scoring?.winnerPoints ?? 0,
           exactResultPoints: pool.config?.scoring?.exactResultPoints ?? 0,
         },
-      ]),
+      ])
     );
 
     const getOutcome = (home: number, away: number): 'home' | 'away' | 'draw' => {
@@ -318,7 +330,7 @@ export class MatchService {
     await this.poolRepository.bulkUpdatePredictionStatuses(predictionUpdates);
 
     this.logger.log(
-      `Match results updated and ${allPredictions.length} predictions evaluated for match ${matchId}`,
+      `Match results updated and ${allPredictions.length} predictions evaluated for match ${matchId}`
     );
 
     return {
@@ -365,7 +377,8 @@ export class MatchService {
     const userPoints = new Map<string, RankingAccumulator>();
     members.forEach((member: any) => {
       const email = member.userEmail || '';
-      const userName = member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
+      const userName =
+        member.userName || (email ? email.split('@')[0] : `User ${member.userId.slice(0, 8)}`);
       userPoints.set(member.userId, {
         userId: member.userId,
         groupPhasePoints: 0,
@@ -424,7 +437,7 @@ export class MatchService {
 
     const latestWindow = latestCompletedMatchdayWindow(
       [...groupMatches, ...bracketMatches],
-      pool?.config?.matchdaySeparatorTime,
+      pool?.config?.matchdaySeparatorTime
     );
     const matchdayPoints = latestWindow
       ? await this.getMatchdayPointsForUsers({
@@ -458,12 +471,13 @@ export class MatchService {
       Array.from(userPoints.values())
         .sort((a, b) => {
           const pointDiff =
-            (totalPoints(b) - (matchdayPoints.get(b.userId) || 0)) -
+            totalPoints(b) -
+            (matchdayPoints.get(b.userId) || 0) -
             (totalPoints(a) - (matchdayPoints.get(a.userId) || 0));
           if (pointDiff !== 0) return pointDiff;
           return (currentRankByUser.get(a.userId) || 0) - (currentRankByUser.get(b.userId) || 0);
         })
-        .map((entry, index) => [entry.userId, index + 1]),
+        .map((entry, index) => [entry.userId, index + 1])
     );
 
     if (!latestWindow) {
@@ -510,12 +524,12 @@ export class MatchService {
     const groupMatchIds = new Set(
       groupMatches
         .filter((match: any) => isMatchInWindow(match, windowStart, windowEnd))
-        .map((match: any) => match.matchId),
+        .map((match: any) => match.matchId)
     );
     const bracketMatchIds = new Set(
       bracketMatches
         .filter((match: any) => isMatchInWindow(match, windowStart, windowEnd))
-        .map((match: any) => match.bracketMatchId),
+        .map((match: any) => match.bracketMatchId)
     );
     const pointsByUser = new Map<string, number>();
     const addPoints = (userId: string, points: number) => {
@@ -538,7 +552,7 @@ export class MatchService {
     const playerSelections = await this.poolRepository.getPlayerSelectionsWithMatchStatsForWindow(
       poolId,
       windowStart,
-      windowEnd,
+      windowEnd
     );
     playerSelections.forEach((selection: any) => {
       if (
@@ -554,13 +568,17 @@ export class MatchService {
   }
 }
 
-function totalPoints(entry: { groupPhasePoints: number; finalPhasePoints: number; playerPoints: number }) {
+function totalPoints(entry: {
+  groupPhasePoints: number;
+  finalPhasePoints: number;
+  playerPoints: number;
+}) {
   return entry.groupPhasePoints + entry.finalPhasePoints + entry.playerPoints;
 }
 
 function latestCompletedMatchdayWindow(
   matches: any[],
-  separatorTime: unknown,
+  separatorTime: unknown
 ): { start: Date; end: Date } | null {
   const completedMatches = matches
     .filter((match) => typeof match.homeResult === 'number' && typeof match.awayResult === 'number')
@@ -599,7 +617,14 @@ function parseMatchdaySeparatorTime(value: unknown): { hours: number; minutes: n
   if (!match) return { hours: 14, minutes: 0 };
   const hours = Number.parseInt(match[1], 10);
   const minutes = Number.parseInt(match[2], 10);
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
     return { hours: 14, minutes: 0 };
   }
   return { hours, minutes };

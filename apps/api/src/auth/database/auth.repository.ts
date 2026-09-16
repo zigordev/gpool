@@ -54,7 +54,7 @@ export class AuthRepository {
         userData.locale || 'es',
         createdAt,
         updatedAt,
-      ],
+      ]
     );
 
     return result.rows[0];
@@ -75,7 +75,7 @@ export class AuthRepository {
         FROM users
         WHERE user_id = $1
       `,
-      [userId],
+      [userId]
     );
 
     return result.rows[0] || null;
@@ -96,7 +96,7 @@ export class AuthRepository {
         FROM users
         WHERE email = $1
       `,
-      [email],
+      [email]
     );
 
     return result.rows[0] || null;
@@ -136,7 +136,7 @@ export class AuthRepository {
           created_at::text AS "createdAt",
           updated_at::text AS "updatedAt"
       `,
-      [userId, next.name, next.picture, next.role, next.locale, next.updatedAt],
+      [userId, next.name, next.picture, next.role, next.locale, next.updatedAt]
     );
 
     return result.rows[0];

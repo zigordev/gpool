@@ -30,7 +30,7 @@ export class PoolService {
 
   constructor(
     private readonly poolRepository: PoolRepository,
-    private readonly notificationService: NotificationService,
+    private readonly notificationService: NotificationService
   ) {}
 
   async createPool(
@@ -38,7 +38,7 @@ export class PoolService {
     adminUserId: string,
     userRole: string,
     adminName?: string,
-    adminEmail?: string,
+    adminEmail?: string
   ) {
     if (!hasPermission(userRole, 'admin')) {
       throw new ForbiddenException('Only administrators can create pools');
@@ -47,7 +47,7 @@ export class PoolService {
     validatePrizeDistribution(
       createPoolDto.config?.entryFee ?? 0,
       1,
-      createPoolDto.config?.prizeDistribution,
+      createPoolDto.config?.prizeDistribution
     );
 
     const poolId = uuidv4();
@@ -74,7 +74,9 @@ export class PoolService {
       ? await this.poolRepository.getUserPools(filters.userId)
       : [];
 
-    const userMembershipMap = new Map(userMemberships.map((membership) => [membership.poolId, membership]));
+    const userMembershipMap = new Map(
+      userMemberships.map((membership) => [membership.poolId, membership])
+    );
 
     return Promise.all(
       pools.map(async (pool) => {
@@ -86,7 +88,7 @@ export class PoolService {
           isMember: !!userMembership,
           userMembership: userMembership || null,
         };
-      }),
+      })
     );
   }
 
@@ -107,7 +109,12 @@ export class PoolService {
     };
   }
 
-  async updatePool(poolId: string, updatePoolDto: UpdatePoolDto, userId: string, userRole: string) {
+  async updatePool(
+    poolId: string,
+    updatePoolDto: UpdatePoolDto,
+    userId: string,
+    _userRole: string
+  ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -125,7 +132,7 @@ export class PoolService {
     return updatedPool;
   }
 
-  async deletePool(poolId: string, userId: string, userRole: string) {
+  async deletePool(poolId: string, userId: string, _userRole: string) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -176,7 +183,12 @@ export class PoolService {
     };
   }
 
-  async acceptAccessRequest(poolId: string, targetUserId: string, adminUserId: string, userRole: string) {
+  async acceptAccessRequest(
+    poolId: string,
+    targetUserId: string,
+    adminUserId: string,
+    _userRole: string
+  ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -190,7 +202,7 @@ export class PoolService {
       targetUserId,
       'member',
       targetUser?.email,
-      targetUser?.name,
+      targetUser?.name
     );
 
     await this.notificationService.sendPoolAccessGranted({
@@ -206,7 +218,13 @@ export class PoolService {
     return { success: true, message: 'Access granted successfully' };
   }
 
-  async inviteUser(poolId: string, email: string, invitedBy: string, userRole: string, inviterEmail?: string) {
+  async inviteUser(
+    poolId: string,
+    email: string,
+    invitedBy: string,
+    _userRole: string,
+    inviterEmail?: string
+  ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
       throw new NotFoundException(`Pool with ID ${poolId} not found`);
@@ -237,7 +255,7 @@ export class PoolService {
     const existingMembership = await this.poolRepository.getMembership(poolId, userId);
     if (existingMembership) {
       this.logger.log(
-        `User ${userId} attempted to accept invitation but is already a member of pool ${poolId}`,
+        `User ${userId} attempted to accept invitation but is already a member of pool ${poolId}`
       );
       return { success: true, message: 'You are already a member of this pool' };
     }
@@ -269,7 +287,7 @@ export class PoolService {
     poolId: string,
     newConfig: Record<string, any>,
     userId: string,
-    userRole: string,
+    _userRole: string
   ) {
     const pool = await this.poolRepository.getPool(poolId);
     if (!pool) {
@@ -283,7 +301,7 @@ export class PoolService {
       validatePrizeDistribution(
         newConfig.entryFee ?? pool.config?.entryFee ?? 0,
         members.length,
-        newConfig.prizeDistribution ?? pool.config?.prizeDistribution,
+        newConfig.prizeDistribution ?? pool.config?.prizeDistribution
       );
     }
 
@@ -296,7 +314,7 @@ export class PoolService {
         const value = Number(rawLimits[position]);
         if (!Number.isInteger(value) || value < 1 || value > MAX_PLAYER_SELECTION_LIMIT) {
           throw new BadRequestException(
-            `${position} selection limit must be an integer between 1 and ${MAX_PLAYER_SELECTION_LIMIT}`,
+            `${position} selection limit must be an integer between 1 and ${MAX_PLAYER_SELECTION_LIMIT}`
           );
         }
       }
@@ -309,7 +327,7 @@ export class PoolService {
     if (newConfig.playerSelectionLimits) {
       await this.poolRepository.deletePlayerSelectionsAboveLimits(
         poolId,
-        newConfig.playerSelectionLimits,
+        newConfig.playerSelectionLimits
       );
     }
 

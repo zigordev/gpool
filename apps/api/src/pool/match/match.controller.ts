@@ -11,12 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { MatchService } from './match.service';
 import { AuthenticatedGuard } from '../../auth/authenticated.guard';
 import { Request } from 'express';
@@ -51,7 +46,7 @@ export class MatchController {
   async updateTeamFairPlay(
     @Param('teamId') teamId: string,
     @Body() body: { fairPlay: number },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     if (user.role !== 'admin') {
@@ -70,7 +65,7 @@ export class MatchController {
     @Param('poolId') poolId: string,
     @Param('matchId') matchId: string,
     @Body() body: { homeScore: number | null; awayScore: number | null },
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
     return this.matchService.submitPrediction(
@@ -78,7 +73,7 @@ export class MatchController {
       matchId,
       user.userId,
       body.homeScore,
-      body.awayScore,
+      body.awayScore
     );
   }
 
@@ -94,22 +89,19 @@ export class MatchController {
   @ApiOperation({ summary: 'Get all member picks and selected-player actions for a locked match' })
   @ApiResponse({ status: 200, description: 'Match insights retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid match type' })
-  @ApiResponse({ status: 403, description: 'Prediction deadline has not passed or membership required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Prediction deadline has not passed or membership required',
+  })
   @ApiResponse({ status: 404, description: 'Pool or match not found' })
   async getMatchInsights(
     @Param('poolId') poolId: string,
     @Param('matchType') matchType: 'group' | 'final',
     @Param('matchId') matchId: string,
-    @Req() req: Request,
+    @Req() req: Request
   ) {
     const user = req.user as any;
-    return this.matchService.getMatchInsights(
-      poolId,
-      matchType,
-      matchId,
-      user.userId,
-      user.role,
-    );
+    return this.matchService.getMatchInsights(poolId, matchType, matchId, user.userId, user.role);
   }
 
   @Post(':matchId/results')
@@ -121,8 +113,14 @@ export class MatchController {
   async updateMatchResults(
     @Param('poolId') poolId: string,
     @Param('matchId') matchId: string,
-    @Body() body: { homeResult: number | null; awayResult: number | null; winnerPoints?: number; exactResultPoints?: number },
-    @Req() req: Request,
+    @Body()
+    body: {
+      homeResult: number | null;
+      awayResult: number | null;
+      winnerPoints?: number;
+      exactResultPoints?: number;
+    },
+    @Req() req: Request
   ) {
     const user = req.user as any;
     // Check if user is admin

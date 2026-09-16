@@ -29,7 +29,7 @@ const SERVICE = 'gpool-api';
 export class HealthController {
   constructor(
     private readonly postgres: PostgresService,
-    private readonly publisher: NotificationPublisherService,
+    private readonly publisher: NotificationPublisherService
   ) {}
 
   @Get()

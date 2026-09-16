@@ -10,7 +10,7 @@ describe('validatePrizeDistribution', () => {
           { rank: 2, amount: 60 },
           { rank: 7, amount: 40 },
         ],
-      }),
+      })
     ).not.toThrow();
   });
 
@@ -22,7 +22,7 @@ describe('validatePrizeDistribution', () => {
           { rank: 4, amount: 60 },
           { rank: 4, amount: 40 },
         ],
-      }),
+      })
     ).toThrow(BadRequestException);
   });
 
@@ -34,7 +34,7 @@ describe('validatePrizeDistribution', () => {
           { rank: 1, amount: 50 },
           { rank: 5, amount: 40 },
         ],
-      }),
+      })
     ).toThrow(BadRequestException);
   });
 
@@ -46,13 +46,11 @@ describe('validatePrizeDistribution', () => {
           { rank: 1, percentage: 70 },
           { rank: 2, percentage: 30 },
         ],
-      }),
+      })
     ).not.toThrow();
   });
 
   it('requires a distribution for paid pools', () => {
-    expect(() => validatePrizeDistribution(10, 4, undefined)).toThrow(
-      BadRequestException,
-    );
+    expect(() => validatePrizeDistribution(10, 4, undefined)).toThrow(BadRequestException);
   });
 });

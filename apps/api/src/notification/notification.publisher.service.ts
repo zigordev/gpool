@@ -57,7 +57,7 @@ export class NotificationPublisherService implements OnModuleInit, OnModuleDestr
   constructor(private readonly configService: ConfigService) {
     this.topic = this.configService.get<string>(
       'NOTIFICATIONS_EMAIL_TOPIC',
-      'notification.email.requested.v1',
+      'notification.email.requested.v1'
     );
     this.brokers = (this.configService.get<string>('NOTIFICATIONS_KAFKA_BROKERS', '') || '')
       .split(',')
@@ -105,7 +105,7 @@ export class NotificationPublisherService implements OnModuleInit, OnModuleDestr
     void this.probeBroker();
     this.probeTimer = setInterval(
       () => void this.probeBroker(),
-      NotificationPublisherService.PROBE_INTERVAL_MS,
+      NotificationPublisherService.PROBE_INTERVAL_MS
     );
     // Never hold the process open for a health probe.
     this.probeTimer.unref?.();
@@ -202,7 +202,6 @@ export class NotificationPublisherService implements OnModuleInit, OnModuleDestr
       idempotent: true,
       allowAutoTopicCreation: true,
     });
-
 
     this.connectPromise = producer
       .connect()

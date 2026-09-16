@@ -19,21 +19,24 @@ const DEFAULT_PLAYER_SELECTION_LIMITS: PlayerSelectionLimits = {
 };
 
 export function resolvePlayerSelectionLimits(value: unknown): PlayerSelectionLimits {
-  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
-  return PLAYER_SELECTION_POSITIONS.reduce<PlayerSelectionLimits>((limits, position) => {
-    const parsed = Number(source[position]);
-    limits[position] =
-      Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_PLAYER_SELECTION_LIMIT
-        ? parsed
-        : DEFAULT_PLAYER_SELECTION_LIMIT;
-    return limits;
-  }, { ...DEFAULT_PLAYER_SELECTION_LIMITS });
+  return PLAYER_SELECTION_POSITIONS.reduce<PlayerSelectionLimits>(
+    (limits, position) => {
+      const parsed = Number(source[position]);
+      limits[position] =
+        Number.isInteger(parsed) && parsed >= 1 && parsed <= MAX_PLAYER_SELECTION_LIMIT
+          ? parsed
+          : DEFAULT_PLAYER_SELECTION_LIMIT;
+      return limits;
+    },
+    { ...DEFAULT_PLAYER_SELECTION_LIMITS }
+  );
 }
 
 export function isSelectionWithinLimits(
   selection: { position?: unknown; slot?: unknown },
-  limits: PlayerSelectionLimits,
+  limits: PlayerSelectionLimits
 ): boolean {
   const position = selection.position as PlayerSelectionPosition;
   const slot = Number(selection.slot);

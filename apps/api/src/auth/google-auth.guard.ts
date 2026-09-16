@@ -72,7 +72,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
   private hasOAuthCredentials(): boolean {
     return Boolean(
       this.configService.get<string>('GOOGLE_CLIENT_ID') &&
-        this.configService.get<string>('GOOGLE_CLIENT_SECRET')
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET')
     );
   }
 
