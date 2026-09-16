@@ -47,7 +47,7 @@ You will need:
 - the runtime read API key for OpenBao secret `kv/gpool`
 - the write-capable promotion API key for GitHub secret `TOLGEE_SYNC_API_KEY`
 
-The tracked production env file defaults `TOLGEE_PROJECT_ID=3`.
+The tracked production env file sets `TOLGEE_PROJECT_ID=2`.
 If your real production project id is different, update the tracked file before deployment.
 
 ### 3.2 Google OAuth
