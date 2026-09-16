@@ -30,7 +30,7 @@ function configuredNumber(value: ConfigNumberLike): number | null {
 export function playerStatScoringValue(
   scoring: PlayerScoringLike,
   position: PlayerPosition,
-  stat: PlayerStatKey,
+  stat: PlayerStatKey
 ): number | null {
   switch (stat) {
     case 'goals':
@@ -39,7 +39,7 @@ export function playerStatScoringValue(
       return configuredNumber(
         scoring.penaltyGoal && typeof scoring.penaltyGoal === 'object'
           ? scoring.penaltyGoal[position]
-          : scoring.penaltyGoal,
+          : scoring.penaltyGoal
       );
     case 'assists':
       return configuredNumber(scoring.assist?.[position]);
@@ -73,7 +73,7 @@ export function playerStatScoringValue(
 export function isPlayerStatEnabled(
   scoring: PlayerScoringLike,
   position: PlayerPosition,
-  stat: PlayerStatKey,
+  stat: PlayerStatKey
 ): boolean {
   const value = playerStatScoringValue(scoring, position, stat);
   return value === null || value !== 0;

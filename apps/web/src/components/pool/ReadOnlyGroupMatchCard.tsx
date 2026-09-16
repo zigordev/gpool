@@ -37,9 +37,7 @@ export function ReadOnlyGroupMatchCard({
   const homeScore = typeof prediction?.homeScore === 'number' ? prediction.homeScore : '';
   const awayScore = typeof prediction?.awayScore === 'number' ? prediction.awayScore : '';
   const hasPrediction = homeScore !== '' && awayScore !== '';
-  const hasResult =
-    typeof match.homeResult === 'number' &&
-    typeof match.awayResult === 'number';
+  const hasResult = typeof match.homeResult === 'number' && typeof match.awayResult === 'number';
 
   let state: MatchPredictionState = 'locked';
   let badgeLabel = t('poolDetail.deadline.passedShort');
@@ -64,9 +62,7 @@ export function ReadOnlyGroupMatchCard({
     hour: 'numeric',
     minute: '2-digit',
   });
-  const matchDate = match.matchNumber
-    ? `P${match.matchNumber} · ${formattedDate}`
-    : formattedDate;
+  const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
 
   return (
     <MatchPredictionCard

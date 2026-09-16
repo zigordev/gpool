@@ -64,9 +64,7 @@ export function PlayerSelectionStatistics({
       })
       .catch((requestError) => {
         if (active) {
-          setError(
-            apiErrorDetail(requestError) || t('poolDetail.players.statistics.loadError')
-          );
+          setError(apiErrorDetail(requestError) || t('poolDetail.players.statistics.loadError'));
         }
       })
       .finally(() => {

@@ -1,16 +1,16 @@
 import type { StylesConfig, GroupBase } from 'react-select';
 
 const C = {
-  inputBg:   'rgb(var(--input-bg))',
+  inputBg: 'rgb(var(--input-bg))',
   disabledBg: 'rgb(var(--disabled-bg))',
   bgElevated: 'rgb(var(--bg-elevated))',
-  bgSubtle:  'rgb(var(--bg-subtle))',
-  border:    'rgb(var(--border))',
+  bgSubtle: 'rgb(var(--bg-subtle))',
+  border: 'rgb(var(--border))',
   controlBorder: 'rgb(var(--control-border))',
   disabledBorder: 'rgb(var(--disabled-border))',
-  fg:        'rgb(var(--fg))',
-  fgMuted:   'rgb(var(--fg-muted))',
-  pitch:     'rgb(var(--pitch))',
+  fg: 'rgb(var(--fg))',
+  fgMuted: 'rgb(var(--fg-muted))',
+  pitch: 'rgb(var(--pitch))',
 };
 
 type AnyStyles = StylesConfig<unknown, boolean, GroupBase<unknown>>;
@@ -22,8 +22,8 @@ function applyControl(base: object, state: { isFocused: boolean; isDisabled: boo
     borderColor: state.isDisabled
       ? C.disabledBorder
       : state.isFocused
-      ? 'rgb(var(--accent-from))'
-      : C.controlBorder,
+        ? 'rgb(var(--accent-from))'
+        : C.controlBorder,
     borderRadius: 'var(--radius-md)',
     minHeight: '2.5rem',
     boxShadow: state.isFocused ? '0 0 0 3px rgb(var(--accent-from) / 0.15)' : 'none',
@@ -34,14 +34,14 @@ function applyControl(base: object, state: { isFocused: boolean; isDisabled: boo
       borderColor: state.isDisabled
         ? C.disabledBorder
         : state.isFocused
-        ? 'rgb(var(--accent-from))'
-        : 'rgb(var(--fg-subtle))',
+          ? 'rgb(var(--accent-from))'
+          : 'rgb(var(--fg-subtle))',
     },
   };
 }
 
 export function selectStyles<Option = unknown, IsMulti extends boolean = false>(
-  overrides?: StylesConfig<Option, IsMulti>,
+  overrides?: StylesConfig<Option, IsMulti>
 ): StylesConfig<Option, IsMulti> {
   const { control: controlOverride, ...restOverrides } = (overrides ?? {}) as AnyStyles;
 
@@ -63,10 +63,10 @@ export function selectStyles<Option = unknown, IsMulti extends boolean = false>(
       backgroundColor: state.isDisabled
         ? C.bgElevated
         : state.isSelected
-        ? `rgb(var(--pitch) / 0.15)`
-        : state.isFocused
-        ? C.bgSubtle
-        : C.bgElevated,
+          ? `rgb(var(--pitch) / 0.15)`
+          : state.isFocused
+            ? C.bgSubtle
+            : C.bgElevated,
       color: state.isDisabled ? C.fgMuted : C.fg,
       opacity: state.isDisabled ? 0.45 : 1,
       cursor: state.isDisabled ? 'not-allowed' : 'default',

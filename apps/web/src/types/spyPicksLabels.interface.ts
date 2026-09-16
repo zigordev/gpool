@@ -1,5 +1,5 @@
-import { PlayerAward } from "./playerAward.type";
-import { PlayerPosition } from "./playerPosition.type";
+import { PlayerAward } from './playerAward.type';
+import { PlayerPosition } from './playerPosition.type';
 
 export interface SpyPicksLabels {
   title: (name: string) => string;

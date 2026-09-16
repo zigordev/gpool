@@ -23,22 +23,32 @@ import { apiErrorDetail } from '@/lib/api-error';
 
 const BracketVisualization = dynamic(
   () => import('@/components/BracketVisualization').then((mod) => mod.BracketVisualization),
-  { ssr: false },
+  { ssr: false }
 );
 const MatchInsightsModal = dynamic(
   () => import('@/components/pool/MatchInsightsModal').then((mod) => mod.MatchInsightsModal),
-  { ssr: false },
+  { ssr: false }
 );
 const WinnerInsightsModal = dynamic(
   () => import('@/components/pool/WinnerInsightsModal').then((mod) => mod.WinnerInsightsModal),
-  { ssr: false },
+  { ssr: false }
 );
 
 export default function FinalPage() {
   const { t, locale } = useI18n();
   const {
-    bracket, teams, pool, poolId, poolDeadline, isPastPoolDeadline, matchesByGroup, predictions,
-    bracketPredictions, effectiveBracketPredictions, bracketProjection, bracketScoringConfig,
+    bracket,
+    teams,
+    pool,
+    poolId,
+    poolDeadline,
+    isPastPoolDeadline,
+    matchesByGroup,
+    predictions,
+    bracketPredictions,
+    effectiveBracketPredictions,
+    bracketProjection,
+    bracketScoringConfig,
     setBracketPredictions,
   } = usePoolContext();
   const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
@@ -67,7 +77,7 @@ export default function FinalPage() {
   }, [effectiveBracketPredictions, bracketPredictions]);
   const nextMatchdayMatches = useMemo(
     () => findNextFinalMatchdayMatches(bracket, pool?.config?.matchdaySeparatorTime, matchdayNow),
-    [bracket, matchdayNow, pool?.config?.matchdaySeparatorTime],
+    [bracket, matchdayNow, pool?.config?.matchdaySeparatorTime]
   );
 
   useEffect(() => {
@@ -76,25 +86,24 @@ export default function FinalPage() {
   }, []);
 
   const sectionActions = (
-      <>
-        <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
-        {Object.keys(bracket).length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="pool-detail-action-trigger pool-detail-modal-trigger"
-            disabled={isPastPoolDeadline}
-            loading={autoFillingRoundOf32}
-            leadingIcon={<FaMagic size={13} />}
-            onClick={() => setShowAutoFillConfirm(true)}
-            style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2 }}
-          >
-            {t('poolDetail.finalPhase.autoFillRoundOf32')}
-          </Button>
-        ) : null}
+    <>
+      <FinalScoringInfoSection bracketScoring={bracketScoringConfig} />
+      {Object.keys(bracket).length > 0 ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="pool-detail-action-trigger pool-detail-modal-trigger"
+          disabled={isPastPoolDeadline}
+          loading={autoFillingRoundOf32}
+          leadingIcon={<FaMagic size={13} />}
+          onClick={() => setShowAutoFillConfirm(true)}
+          style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2 }}
+        >
+          {t('poolDetail.finalPhase.autoFillRoundOf32')}
+        </Button>
+      ) : null}
     </>
   );
-
 
   const handleAutoFillRoundOf32 = async () => {
     if (Date.now() >= poolDeadline) {
@@ -121,15 +130,18 @@ export default function FinalPage() {
               ? autoProjection.effectivePredictions[match.bracketMatchId]
               : null;
 
-          return apiClient.post(`/pools/${poolId}/bracket/matches/${match.bracketMatchId}/predict`, {
-            homeTeamId: generated?.homeTeamId || '',
-            homeTeamName: generated?.homeTeamName || '',
-            awayTeamId: generated?.awayTeamId || '',
-            awayTeamName: generated?.awayTeamName || '',
-            predictedWinnerTeamId: '',
-            predictedWinnerTeamName: '',
-          });
-        }),
+          return apiClient.post(
+            `/pools/${poolId}/bracket/matches/${match.bracketMatchId}/predict`,
+            {
+              homeTeamId: generated?.homeTeamId || '',
+              homeTeamName: generated?.homeTeamName || '',
+              awayTeamId: generated?.awayTeamId || '',
+              awayTeamName: generated?.awayTeamName || '',
+              predictedWinnerTeamId: '',
+              predictedWinnerTeamName: '',
+            }
+          );
+        })
       );
 
       const predsResponse = await apiClient.get(`/pools/${poolId}/bracket/predictions`);
@@ -157,7 +169,9 @@ export default function FinalPage() {
           minute: '2-digit',
         })
       : '';
-    const matchDate = match.matchNumber ? `P${match.matchNumber} · ${formattedDate}` : formattedDate;
+    const matchDate = match.matchNumber
+      ? `P${match.matchNumber} · ${formattedDate}`
+      : formattedDate;
     const homeName = match.homeTeamName || match.homeSourceLabel || '';
     const awayName = match.awayTeamName || match.awaySourceLabel || '';
     const canOpenInsights = isPastPoolDeadline;
@@ -169,10 +183,11 @@ export default function FinalPage() {
         tabIndex={canOpenInsights ? 0 : undefined}
         onClick={
           canOpenInsights
-            ? () => setInsightsTarget({
-                matchId: match.bracketMatchId,
-                matchType: 'final',
-              })
+            ? () =>
+                setInsightsTarget({
+                  matchId: match.bracketMatchId,
+                  matchType: 'final',
+                })
             : undefined
         }
         onKeyDown={(event) => {
@@ -220,7 +235,15 @@ export default function FinalPage() {
             <Section
               title={
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span aria-hidden style={{ width: 3, height: '1rem', borderRadius: '999px', background: 'rgb(var(--fg))' }} />
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 3,
+                      height: '1rem',
+                      borderRadius: '999px',
+                      background: 'rgb(var(--fg))',
+                    }}
+                  />
                   {t('poolDetail.finalPhase.nextMatchdayTitle')}
                 </span>
               }
@@ -249,15 +272,14 @@ export default function FinalPage() {
               roundScoring={bracketScoringConfig.rounds}
               onMatchClick={
                 isPastPoolDeadline
-                  ? (match) => setInsightsTarget({
-                      matchId: match.bracketMatchId,
-                      matchType: 'final',
-                    })
+                  ? (match) =>
+                      setInsightsTarget({
+                        matchId: match.bracketMatchId,
+                        matchType: 'final',
+                      })
                   : undefined
               }
-              onWinnerClick={
-                isPastPoolDeadline ? () => setShowWinnerInsights(true) : undefined
-              }
+              onWinnerClick={isPastPoolDeadline ? () => setShowWinnerInsights(true) : undefined}
               onPredictionChange={async (bracketMatchId, side, teamId, teamName) => {
                 if (Date.now() >= poolDeadline) {
                   toast.error(t('poolDetail.finalPhase.deadlinePassed'));
@@ -270,27 +292,49 @@ export default function FinalPage() {
                     predictedWinnerTeamName: prediction?.predictedWinnerTeamName || '',
                   };
                   if (side === 'home') {
-                    updates.homeTeamId = teamId; updates.homeTeamName = teamName;
-                    updates.awayTeamId = prediction?.awayTeamId || ''; updates.awayTeamName = prediction?.awayTeamName || '';
-                    if (updates.predictedWinnerTeamId && updates.predictedWinnerTeamId !== teamId && updates.predictedWinnerTeamId !== updates.awayTeamId) {
-                      updates.predictedWinnerTeamId = ''; updates.predictedWinnerTeamName = '';
+                    updates.homeTeamId = teamId;
+                    updates.homeTeamName = teamName;
+                    updates.awayTeamId = prediction?.awayTeamId || '';
+                    updates.awayTeamName = prediction?.awayTeamName || '';
+                    if (
+                      updates.predictedWinnerTeamId &&
+                      updates.predictedWinnerTeamId !== teamId &&
+                      updates.predictedWinnerTeamId !== updates.awayTeamId
+                    ) {
+                      updates.predictedWinnerTeamId = '';
+                      updates.predictedWinnerTeamName = '';
                     }
                   } else if (side === 'away') {
-                    updates.homeTeamId = prediction?.homeTeamId || ''; updates.homeTeamName = prediction?.homeTeamName || '';
-                    updates.awayTeamId = teamId; updates.awayTeamName = teamName;
-                    if (updates.predictedWinnerTeamId && updates.predictedWinnerTeamId !== updates.homeTeamId && updates.predictedWinnerTeamId !== teamId) {
-                      updates.predictedWinnerTeamId = ''; updates.predictedWinnerTeamName = '';
+                    updates.homeTeamId = prediction?.homeTeamId || '';
+                    updates.homeTeamName = prediction?.homeTeamName || '';
+                    updates.awayTeamId = teamId;
+                    updates.awayTeamName = teamName;
+                    if (
+                      updates.predictedWinnerTeamId &&
+                      updates.predictedWinnerTeamId !== updates.homeTeamId &&
+                      updates.predictedWinnerTeamId !== teamId
+                    ) {
+                      updates.predictedWinnerTeamId = '';
+                      updates.predictedWinnerTeamName = '';
                     }
                   } else {
-                    updates.homeTeamId = prediction?.homeTeamId || ''; updates.homeTeamName = prediction?.homeTeamName || '';
-                    updates.awayTeamId = prediction?.awayTeamId || ''; updates.awayTeamName = prediction?.awayTeamName || '';
-                    updates.predictedWinnerTeamId = teamId; updates.predictedWinnerTeamName = teamName;
+                    updates.homeTeamId = prediction?.homeTeamId || '';
+                    updates.homeTeamName = prediction?.homeTeamName || '';
+                    updates.awayTeamId = prediction?.awayTeamId || '';
+                    updates.awayTeamName = prediction?.awayTeamName || '';
+                    updates.predictedWinnerTeamId = teamId;
+                    updates.predictedWinnerTeamName = teamName;
                   }
-                  await apiClient.post(`/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`, updates);
+                  await apiClient.post(
+                    `/pools/${poolId}/bracket/matches/${bracketMatchId}/predict`,
+                    updates
+                  );
                   // Reload all predictions so scoring flags (evaluated after save) are fresh.
                   const predsResponse = await apiClient.get(`/pools/${poolId}/bracket/predictions`);
                   const newMap: Record<string, any> = {};
-                  (predsResponse.data || []).forEach((pred: any) => { newMap[pred.bracketMatchId] = pred; });
+                  (predsResponse.data || []).forEach((pred: any) => {
+                    newMap[pred.bracketMatchId] = pred;
+                  });
                   setBracketPredictions(newMap);
                   toast.success(t('poolDetail.finalPhase.predictionSaved'));
                 } catch (err: any) {
@@ -301,7 +345,15 @@ export default function FinalPage() {
           </section>
         </>
       ) : (
-        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.875rem', textAlign: 'center', padding: '1.5rem', margin: 0 }}>
+        <p
+          style={{
+            color: 'rgb(var(--fg-muted))',
+            fontSize: '0.875rem',
+            textAlign: 'center',
+            padding: '1.5rem',
+            margin: 0,
+          }}
+        >
           {t('poolDetail.finalPhase.bracketUnavailable')}
         </p>
       )}
@@ -332,7 +384,14 @@ export default function FinalPage() {
           </>
         }
       >
-        <p style={{ margin: 0, color: 'rgb(var(--fg-muted))', fontSize: '0.92rem', lineHeight: 1.55 }}>
+        <p
+          style={{
+            margin: 0,
+            color: 'rgb(var(--fg-muted))',
+            fontSize: '0.92rem',
+            lineHeight: 1.55,
+          }}
+        >
           {t('poolDetail.finalPhase.autoFillConfirmDescription')}
         </p>
       </Modal>
@@ -367,7 +426,7 @@ const BRACKET_PHASES = [
 function findNextFinalMatchdayMatches(
   bracket: Record<string, BracketMatch[]>,
   separatorTime: unknown,
-  nowMs: number,
+  nowMs: number
 ): BracketMatch[] {
   const separator = parseMatchdaySeparatorTime(separatorTime);
   const now = new Date(nowMs);
@@ -413,16 +472,20 @@ function parseMatchdaySeparatorTime(value: unknown): { hours: number; minutes: n
   if (!match) return { hours: 14, minutes: 0 };
   const hours = Number.parseInt(match[1], 10);
   const minutes = Number.parseInt(match[2], 10);
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
     return { hours: 14, minutes: 0 };
   }
   return { hours, minutes };
 }
 
-function currentMatchdaySeparator(
-  from: Date,
-  separator: { hours: number; minutes: number },
-): Date {
+function currentMatchdaySeparator(from: Date, separator: { hours: number; minutes: number }): Date {
   const current = new Date(from);
   current.setHours(separator.hours, separator.minutes, 0, 0);
   if (current.getTime() > from.getTime()) {
@@ -444,7 +507,7 @@ function isFinishedFinalMatch(
   bracket: Record<string, BracketMatch[]>,
   phaseKey: string,
   matchIndex: number,
-  match: BracketMatch,
+  match: BracketMatch
 ): boolean {
   const advancedTeamId = getAdvancedTeamId(bracket, phaseKey, matchIndex);
   const hasAdvancedTeam =
@@ -457,7 +520,7 @@ function isFinishedFinalMatch(
 function getAdvancedTeamId(
   bracket: Record<string, BracketMatch[]>,
   phaseKey: string,
-  matchIndex: number,
+  matchIndex: number
 ): string {
   const phaseIndex = BRACKET_PHASES.findIndex((phase) => phase === phaseKey);
   const nextPhase = phaseIndex >= 0 ? BRACKET_PHASES[phaseIndex + 1] : undefined;
@@ -509,10 +572,7 @@ function UpcomingFinalTeamsLine({
       >
         {homeDisplayName}
       </span>
-      <span
-        aria-hidden
-        style={{ color: 'rgb(var(--fg-muted))', flexShrink: 0, fontWeight: 700 }}
-      >
+      <span aria-hidden style={{ color: 'rgb(var(--fg-muted))', flexShrink: 0, fontWeight: 700 }}>
         -
       </span>
       {awayTeamName ? (

@@ -1,4 +1,4 @@
-import { TournamentPlayer } from "./tournamentPlayer.interface";
+import { TournamentPlayer } from './tournamentPlayer.interface';
 
 export interface PlayerSelection extends TournamentPlayer {
   poolId: string;

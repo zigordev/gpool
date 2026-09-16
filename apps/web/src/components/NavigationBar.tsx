@@ -100,7 +100,13 @@ export function LanguageButton() {
           {SUPPORTED_LOCALES.map((loc) => {
             const meta = LOCALE_META[loc];
             return (
-              <MenuItem key={loc} onClick={() => { close(); switchTo(loc); }}>
+              <MenuItem
+                key={loc}
+                onClick={() => {
+                  close();
+                  switchTo(loc);
+                }}
+              >
                 <Flag code={meta.flagCode} /> {meta.label}
               </MenuItem>
             );
@@ -137,21 +143,42 @@ export function UserButton() {
         <>
           <div
             style={{
-              padding: '6px 10px 8px', marginBottom: 4,
+              padding: '6px 10px 8px',
+              marginBottom: 4,
               borderBottom: '1px solid var(--ds-color-border)',
             }}
           >
-            <div style={{ fontSize: 'var(--ds-text-xs)', fontWeight: 'var(--ds-weight-bold)', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ds-color-fg-subtle)' }}>
+            <div
+              style={{
+                fontSize: 'var(--ds-text-xs)',
+                fontWeight: 'var(--ds-weight-bold)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--ds-color-fg-subtle)',
+              }}
+            >
               {t('nav.user')}
             </div>
-            <div style={{ fontSize: 'var(--ds-text-sm)', fontWeight: 'var(--ds-weight-semibold)', color: 'var(--ds-color-fg)', wordBreak: 'break-word' }}>
+            <div
+              style={{
+                fontSize: 'var(--ds-text-sm)',
+                fontWeight: 'var(--ds-weight-semibold)',
+                color: 'var(--ds-color-fg)',
+                wordBreak: 'break-word',
+              }}
+            >
               {user.email}
             </div>
           </div>
           {/* Tournament administration moved to the scope switcher. It is a
               workspace you switch into, not an account action — the account
               menu is where people look for logout and preferences. */}
-          <MenuItem onClick={() => { close(); logout(); }}>
+          <MenuItem
+            onClick={() => {
+              close();
+              logout();
+            }}
+          >
             <Icon name="log-out" /> {t('nav.logout')}
           </MenuItem>
         </>

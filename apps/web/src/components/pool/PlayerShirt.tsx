@@ -5,9 +5,7 @@ function hexLuminance(hexColor: string) {
   if (hex.length !== 6) return 0;
   const [r, g, b] = [0, 2, 4].map((start) => {
     const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
-    return channel <= 0.03928
-      ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4);
+    return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }

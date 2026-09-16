@@ -20,7 +20,12 @@ function Probe() {
   );
 }
 
-const mount = () => render(<AuthProvider><Probe /></AuthProvider>);
+const mount = () =>
+  render(
+    <AuthProvider>
+      <Probe />
+    </AuthProvider>
+  );
 
 describe('AuthProvider', () => {
   beforeEach(() => {
@@ -35,7 +40,7 @@ describe('AuthProvider', () => {
 
   it('turns a valid session into the signed-in user', async () => {
     fetchMock.mockResolvedValue(
-      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' }),
+      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' })
     );
     mount();
 
@@ -44,7 +49,7 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('email').textContent).toBe('ada@example.com');
     expect(fetchMock).toHaveBeenCalledWith(
       `${getApiBaseUrl()}/auth/me`,
-      expect.objectContaining({ method: 'GET', credentials: 'include', cache: 'no-store' }),
+      expect.objectContaining({ method: 'GET', credentials: 'include', cache: 'no-store' })
     );
   });
 
@@ -63,7 +68,7 @@ describe('AuthProvider', () => {
 
   it('logging out destroys the server session before forgetting the user', async () => {
     fetchMock.mockResolvedValueOnce(
-      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' }),
+      session({ userId: 'u1', email: 'ada@example.com', role: 'user', locale: 'es' })
     );
     fetchMock.mockResolvedValueOnce(session({}, true));
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -76,7 +81,7 @@ describe('AuthProvider', () => {
 
     expect(fetchMock).toHaveBeenLastCalledWith(
       `${getApiBaseUrl()}/auth/logout`,
-      expect.objectContaining({ method: 'POST', credentials: 'include' }),
+      expect.objectContaining({ method: 'POST', credentials: 'include' })
     );
     expect(screen.getByTestId('state').textContent).toBe('out');
     consoleError.mockRestore();

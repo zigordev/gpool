@@ -29,9 +29,7 @@ export function PointsBadge({
         lineHeight: 1,
         fontVariantNumeric: 'tabular-nums',
         border: `${compact ? 1 : 2}px solid rgb(var(--bg-elevated))`,
-        boxShadow: compact
-          ? '0 2px 7px rgb(15 23 42 / 0.18)'
-          : '0 4px 12px rgb(15 23 42 / 0.20)',
+        boxShadow: compact ? '0 2px 7px rgb(15 23 42 / 0.18)' : '0 4px 12px rgb(15 23 42 / 0.20)',
         zIndex: 2,
         pointerEvents: 'none',
       }}

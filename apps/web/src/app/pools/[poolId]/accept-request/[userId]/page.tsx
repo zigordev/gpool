@@ -40,11 +40,29 @@ function StatusIcon({ status }: Readonly<{ status: Status }>) {
       {status === 'pending' ? (
         <span className="btn-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
       ) : status === 'success' ? (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <polyline points="20 6 9 17 4 12" />
         </svg>
       ) : (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <line x1="6" y1="6" x2="18" y2="18" />
           <line x1="18" y1="6" x2="6" y2="18" />
         </svg>
@@ -63,19 +81,21 @@ function AcceptAccessRequestContent() {
     typeof params?.poolId === 'string'
       ? params.poolId
       : Array.isArray(params?.poolId)
-      ? params.poolId[0]
-      : '';
+        ? params.poolId[0]
+        : '';
   const userId =
     typeof params?.userId === 'string'
       ? params.userId
       : Array.isArray(params?.userId)
-      ? params.userId[0]
-      : '';
+        ? params.userId[0]
+        : '';
 
   const isInvalidLink = !poolId || !userId;
 
   const [asyncStatus, setAsyncStatus] = useState<'pending' | 'success' | 'error'>('pending');
-  const [asyncMessage, setAsyncMessage] = useState<string>(() => t('acceptRequest.processingMessage'));
+  const [asyncMessage, setAsyncMessage] = useState<string>(() =>
+    t('acceptRequest.processingMessage')
+  );
 
   const status: Status = isInvalidLink ? 'error' : asyncStatus;
   const message: string = isInvalidLink ? t('acceptRequest.errors.invalidLink') : asyncMessage;
@@ -100,8 +120,7 @@ function AcceptAccessRequestContent() {
 
         setTimeout(() => router.push(`/pools/${poolId}`), 1500);
       } catch (error: any) {
-        const errorMessage =
-          apiErrorDetail(error) || t('acceptRequest.errors.acceptFailed');
+        const errorMessage = apiErrorDetail(error) || t('acceptRequest.errors.acceptFailed');
         setAsyncStatus('error');
         setAsyncMessage(errorMessage);
         toast.error(errorMessage);
@@ -117,8 +136,8 @@ function AcceptAccessRequestContent() {
     status === 'pending'
       ? t('acceptRequest.heading.pending')
       : status === 'success'
-      ? t('acceptRequest.heading.success')
-      : t('acceptRequest.heading.error');
+        ? t('acceptRequest.heading.success')
+        : t('acceptRequest.heading.error');
 
   return (
     <main
@@ -153,7 +172,14 @@ function AcceptAccessRequestContent() {
         >
           {heading}
         </h1>
-        <p style={{ color: 'rgb(var(--fg-muted))', fontSize: '0.95rem', lineHeight: 1.55, marginBottom: '1.5rem' }}>
+        <p
+          style={{
+            color: 'rgb(var(--fg-muted))',
+            fontSize: '0.95rem',
+            lineHeight: 1.55,
+            marginBottom: '1.5rem',
+          }}
+        >
           {message}
         </p>
         {status === 'pending' ? null : (

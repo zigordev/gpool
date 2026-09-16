@@ -14,30 +14,175 @@ import { useI18n } from '@/i18n/client';
 
 type ActionGroup = 'match' | 'penalty' | 'shootout';
 
-export function PlayerActionSummary({ player, labels, position, scoring, compact = false }: Readonly<{
-  player: Pick<TournamentPlayer, 'goals' | 'penaltyGoals' | 'missedPenalties' | 'mvps' | 'penaltiesSaved' | 'forcedPenaltyMisses' | 'shootoutPenaltiesSaved' | 'shootoutGoals' | 'shootoutMissedPenalties' | 'shootoutForcedPenaltyMisses' | 'cleanSheets' | 'assists' | 'yellowCards' | 'doubleYellowCards' | 'redCards'>;
-  labels: { goals: string; penaltyGoals: string; missedPenalties: string; mvps: string; penaltiesSaved: string; forcedPenaltyMisses: string; shootoutPenaltiesSaved: string; shootoutGoals: string; shootoutMissedPenalties: string; shootoutForcedPenaltyMisses: string; cleanSheets: string; assists: string; yellowCards: string; doubleYellowCards: string; redCards: string };
+export function PlayerActionSummary({
+  player,
+  labels,
+  position,
+  scoring,
+  compact = false,
+}: Readonly<{
+  player: Pick<
+    TournamentPlayer,
+    | 'goals'
+    | 'penaltyGoals'
+    | 'missedPenalties'
+    | 'mvps'
+    | 'penaltiesSaved'
+    | 'forcedPenaltyMisses'
+    | 'shootoutPenaltiesSaved'
+    | 'shootoutGoals'
+    | 'shootoutMissedPenalties'
+    | 'shootoutForcedPenaltyMisses'
+    | 'cleanSheets'
+    | 'assists'
+    | 'yellowCards'
+    | 'doubleYellowCards'
+    | 'redCards'
+  >;
+  labels: {
+    goals: string;
+    penaltyGoals: string;
+    missedPenalties: string;
+    mvps: string;
+    penaltiesSaved: string;
+    forcedPenaltyMisses: string;
+    shootoutPenaltiesSaved: string;
+    shootoutGoals: string;
+    shootoutMissedPenalties: string;
+    shootoutForcedPenaltyMisses: string;
+    cleanSheets: string;
+    assists: string;
+    yellowCards: string;
+    doubleYellowCards: string;
+    redCards: string;
+  };
   position: PlayerPosition;
   scoring: ReturnType<typeof resolvePlayerInfoScoring>;
   compact?: boolean;
 }>) {
   const { t } = useI18n();
-  const actions: Array<{ key: PlayerStatKey; group: ActionGroup; value: number; label: string; icon: ReactNode }> = [
-    { key: 'goals', group: 'match', value: player.goals || 0, label: labels.goals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'assists', group: 'match', value: player.assists || 0, label: labels.assists, icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'mvps', group: 'match', value: player.mvps || 0, label: labels.mvps, icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'cleanSheets', group: 'match', value: player.cleanSheets || 0, label: labels.cleanSheets, icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'yellowCards', group: 'match', value: player.yellowCards || 0, label: labels.yellowCards, icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /> },
-    { key: 'doubleYellowCards', group: 'match', value: player.doubleYellowCards || 0, label: labels.doubleYellowCards, icon: <span style={{ display: 'inline-flex', gap: '0.04rem' }}><LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /><LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" /></span> },
-    { key: 'redCards', group: 'match', value: player.redCards || 0, label: labels.redCards, icon: <LuRectangleVertical style={{ color: 'rgb(var(--live))', fill: 'rgb(var(--live))' }} size="17" /> },
-    { key: 'penaltyGoals', group: 'penalty', value: player.penaltyGoals || 0, label: labels.penaltyGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'penaltiesSaved', group: 'penalty', value: player.penaltiesSaved || 0, label: labels.penaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
-    { key: 'missedPenalties', group: 'penalty', value: player.missedPenalties || 0, label: labels.missedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
-    { key: 'forcedPenaltyMisses', group: 'penalty', value: player.forcedPenaltyMisses || 0, label: labels.forcedPenaltyMisses, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'shootoutGoals', group: 'shootout', value: player.shootoutGoals || 0, label: labels.shootoutGoals, icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" /> },
-    { key: 'shootoutPenaltiesSaved', group: 'shootout', value: player.shootoutPenaltiesSaved || 0, label: labels.shootoutPenaltiesSaved, icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" /> },
-    { key: 'shootoutMissedPenalties', group: 'shootout', value: player.shootoutMissedPenalties || 0, label: labels.shootoutMissedPenalties, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" /> },
-    { key: 'shootoutForcedPenaltyMisses', group: 'shootout', value: player.shootoutForcedPenaltyMisses || 0, label: labels.shootoutForcedPenaltyMisses, icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" /> },
+  const actions: Array<{
+    key: PlayerStatKey;
+    group: ActionGroup;
+    value: number;
+    label: string;
+    icon: ReactNode;
+  }> = [
+    {
+      key: 'goals',
+      group: 'match',
+      value: player.goals || 0,
+      label: labels.goals,
+      icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'assists',
+      group: 'match',
+      value: player.assists || 0,
+      label: labels.assists,
+      icon: <FaMagic style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'mvps',
+      group: 'match',
+      value: player.mvps || 0,
+      label: labels.mvps,
+      icon: <FaStar style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'cleanSheets',
+      group: 'match',
+      value: player.cleanSheets || 0,
+      label: labels.cleanSheets,
+      icon: <FaShieldAlt style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'yellowCards',
+      group: 'match',
+      value: player.yellowCards || 0,
+      label: labels.yellowCards,
+      icon: <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" />,
+    },
+    {
+      key: 'doubleYellowCards',
+      group: 'match',
+      value: player.doubleYellowCards || 0,
+      label: labels.doubleYellowCards,
+      icon: (
+        <span style={{ display: 'inline-flex', gap: '0.04rem' }}>
+          <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" />
+          <LuRectangleVertical style={{ color: '#D4A017', fill: '#D4A017' }} size="17" />
+        </span>
+      ),
+    },
+    {
+      key: 'redCards',
+      group: 'match',
+      value: player.redCards || 0,
+      label: labels.redCards,
+      icon: (
+        <LuRectangleVertical
+          style={{ color: 'rgb(var(--live))', fill: 'rgb(var(--live))' }}
+          size="17"
+        />
+      ),
+    },
+    {
+      key: 'penaltyGoals',
+      group: 'penalty',
+      value: player.penaltyGoals || 0,
+      label: labels.penaltyGoals,
+      icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'penaltiesSaved',
+      group: 'penalty',
+      value: player.penaltiesSaved || 0,
+      label: labels.penaltiesSaved,
+      icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" />,
+    },
+    {
+      key: 'missedPenalties',
+      group: 'penalty',
+      value: player.missedPenalties || 0,
+      label: labels.missedPenalties,
+      icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" />,
+    },
+    {
+      key: 'forcedPenaltyMisses',
+      group: 'penalty',
+      value: player.forcedPenaltyMisses || 0,
+      label: labels.forcedPenaltyMisses,
+      icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'shootoutGoals',
+      group: 'shootout',
+      value: player.shootoutGoals || 0,
+      label: labels.shootoutGoals,
+      icon: <FaFutbol style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
+    {
+      key: 'shootoutPenaltiesSaved',
+      group: 'shootout',
+      value: player.shootoutPenaltiesSaved || 0,
+      label: labels.shootoutPenaltiesSaved,
+      icon: <GiGoalKeeper style={{ color: 'rgb(var(--fg))' }} size="18" />,
+    },
+    {
+      key: 'shootoutMissedPenalties',
+      group: 'shootout',
+      value: player.shootoutMissedPenalties || 0,
+      label: labels.shootoutMissedPenalties,
+      icon: <IoMdCloseCircle style={{ color: 'rgb(var(--live))' }} size="17" />,
+    },
+    {
+      key: 'shootoutForcedPenaltyMisses',
+      group: 'shootout',
+      value: player.shootoutForcedPenaltyMisses || 0,
+      label: labels.shootoutForcedPenaltyMisses,
+      icon: <IoMdCloseCircle style={{ color: 'rgb(var(--fg))' }} size="17" />,
+    },
   ];
   const visibleActions = actions.filter((item) => isPlayerStatEnabled(scoring, position, item.key));
   if (visibleActions.length === 0) return null;
@@ -47,7 +192,7 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
     { key: 'shootout', label: t('poolDetail.players.actionGroups.shootout') },
   ];
   const visibleGroups = groups.filter((group) =>
-    visibleActions.some((item) => item.group === group.key),
+    visibleActions.some((item) => item.group === group.key)
   );
 
   if (compact) {
@@ -58,9 +203,21 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
           return (
             <span
               key={group.key}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', flexWrap: 'wrap' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                flexWrap: 'wrap',
+              }}
             >
-              <span style={{ fontSize: '0.5rem', fontWeight: 800, color: 'rgb(var(--fg-subtle))', textTransform: 'uppercase' }}>
+              <span
+                style={{
+                  fontSize: '0.5rem',
+                  fontWeight: 800,
+                  color: 'rgb(var(--fg-subtle))',
+                  textTransform: 'uppercase',
+                }}
+              >
                 {group.label}
               </span>
               {groupActions.map((item) => {
@@ -70,10 +227,29 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                     key={item.key}
                     title={`${item.label}: ${item.value}`}
                     aria-label={`${item.label}: ${item.value}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.16rem', padding: '0.08rem 0.28rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--input-bg))', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.58rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.16rem',
+                      padding: '0.08rem 0.28rem',
+                      borderRadius: '999px',
+                      background: isZero ? 'transparent' : 'rgb(var(--input-bg))',
+                      border: isZero
+                        ? '1px dashed rgb(var(--border))'
+                        : '1px solid rgb(var(--border))',
+                      color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))',
+                      fontSize: '0.58rem',
+                      fontWeight: 800,
+                      lineHeight: 1,
+                      opacity: isZero ? 0.18 : 1,
+                      transition: 'opacity 0.2s ease',
+                      filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none',
+                    }}
                   >
                     {item.icon}
-                    <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1 }}>{item.value}</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1 }}>
+                      {item.value}
+                    </span>
                   </span>
                 );
               })}
@@ -101,7 +277,15 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
               borderTop: groupIndex > 0 ? '1px solid rgb(var(--border-subtle) / 0.7)' : undefined,
             }}
           >
-            <span style={{ width: '100%', fontSize: '0.52rem', fontWeight: 800, color: 'rgb(var(--fg-subtle))', textTransform: 'uppercase' }}>
+            <span
+              style={{
+                width: '100%',
+                fontSize: '0.52rem',
+                fontWeight: 800,
+                color: 'rgb(var(--fg-subtle))',
+                textTransform: 'uppercase',
+              }}
+            >
               {group.label}
             </span>
             {groupActions.map((item) => {
@@ -111,10 +295,27 @@ export function PlayerActionSummary({ player, labels, position, scoring, compact
                   key={item.key}
                   title={`${item.label}: ${item.value}`}
                   aria-label={`${item.label}: ${item.value}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.18rem', padding: '0.1rem 0.32rem', borderRadius: '999px', background: isZero ? 'transparent' : 'rgb(var(--input-bg))', border: isZero ? '1px dashed rgb(var(--border))' : '1px solid rgb(var(--border))', color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))', fontSize: '0.6rem', fontWeight: 800, lineHeight: 1, opacity: isZero ? 0.18 : 1, transition: 'opacity 0.2s ease', filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none' }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.18rem',
+                    padding: '0.1rem 0.32rem',
+                    borderRadius: '999px',
+                    background: isZero ? 'transparent' : 'rgb(var(--input-bg))',
+                    border: isZero
+                      ? '1px dashed rgb(var(--border))'
+                      : '1px solid rgb(var(--border))',
+                    color: isZero ? 'rgb(var(--fg-subtle))' : 'rgb(var(--fg))',
+                    fontSize: '0.6rem',
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    opacity: isZero ? 0.18 : 1,
+                    transition: 'opacity 0.2s ease',
+                    filter: isZero ? 'grayscale(100%) brightness(0.8)' : 'none',
+                  }}
                 >
                   {item.icon}
-                  <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1, }}>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', opacity: isZero ? 0.3 : 1 }}>
                     {item.value}
                   </span>
                 </span>

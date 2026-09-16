@@ -57,13 +57,16 @@ export function PoolsProvider({ children }: Readonly<{ children: React.ReactNode
     void refresh();
   }, [refresh]);
 
-  const value = useMemo<PoolsContextValue>(() => ({
-    pools,
-    activePool: pools.find((pool) => pool.poolId === activePoolId) ?? null,
-    activePoolId,
-    loading,
-    refresh,
-  }), [pools, activePoolId, loading, refresh]);
+  const value = useMemo<PoolsContextValue>(
+    () => ({
+      pools,
+      activePool: pools.find((pool) => pool.poolId === activePoolId) ?? null,
+      activePoolId,
+      loading,
+      refresh,
+    }),
+    [pools, activePoolId, loading, refresh]
+  );
 
   return <PoolsContext.Provider value={value}>{children}</PoolsContext.Provider>;
 }

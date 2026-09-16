@@ -18,10 +18,14 @@ test.describe('sign-in page', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
-    expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s) — ${v.help}`)).toEqual([]);
+    expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s) — ${v.help}`)).toEqual(
+      []
+    );
   });
 
-  test('a protected route sends a signed-out visitor to sign in instead of rendering half a page', async ({ page }) => {
+  test('a protected route sends a signed-out visitor to sign in instead of rendering half a page', async ({
+    page,
+  }) => {
     await page.goto('/pools');
     await page.waitForURL(/\/login/);
 

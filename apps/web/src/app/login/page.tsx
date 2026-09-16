@@ -42,16 +42,44 @@ function LoginPageContent() {
   }
 
   return (
-    <AuthShell utilities={<><ThemeButton /><LanguageButton /></>}>
+    <AuthShell
+      utilities={
+        <>
+          <ThemeButton />
+          <LanguageButton />
+        </>
+      }
+    >
       <AuthCard
-        logo={<Logo initials="GP" label="gpool" size="lg" shape="circle" href="/" linkComponent={Link} />}
+        logo={
+          <Logo
+            initials="GP"
+            label="gpool"
+            size="lg"
+            shape="circle"
+            href="/"
+            linkComponent={Link}
+          />
+        }
         eyebrow={t('login.eyebrow')}
         title={t('login.title')}
         description={t('login.tagline')}
-        error={error ? <><strong>{t('common.errorLabel')}</strong> {error}</> : null}
+        error={
+          error ? (
+            <>
+              <strong>{t('common.errorLabel')}</strong> {error}
+            </>
+          ) : null
+        }
         footer={t('login.terms')}
       >
-        <Button variant="primary" size="lg" style={{ width: '100%' }} type="button" onClick={() => login(redirectPath)}>
+        <Button
+          variant="primary"
+          size="lg"
+          style={{ width: '100%' }}
+          type="button"
+          onClick={() => login(redirectPath)}
+        >
           <GoogleMark />
           {t('login.signInWithGoogle')}
         </Button>
