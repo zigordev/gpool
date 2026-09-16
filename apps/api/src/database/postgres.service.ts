@@ -16,7 +16,9 @@ export class PostgresService implements OnModuleDestroy {
       database: this.configService.get<string>('DB_NAME', 'gpool'),
       max: Number(this.configService.get<string>('DB_POOL_MAX', '20')),
       idleTimeoutMillis: Number(this.configService.get<string>('DB_IDLE_TIMEOUT_MS', '30000')),
-      connectionTimeoutMillis: Number(this.configService.get<string>('DB_CONNECT_TIMEOUT_MS', '5000')),
+      connectionTimeoutMillis: Number(
+        this.configService.get<string>('DB_CONNECT_TIMEOUT_MS', '5000')
+      ),
     });
 
     this.pool.on('error', (err) => {

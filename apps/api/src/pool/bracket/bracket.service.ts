@@ -562,9 +562,8 @@ export class BracketService implements OnApplicationBootstrap {
         exactPositionPoints,
         correctTeamWrongPositionPoints,
       });
-      const predictions = await this.poolRepository.getAllBracketPredictionsForMatch(
-        bracketMatchId
-      );
+      const predictions =
+        await this.poolRepository.getAllBracketPredictionsForMatch(bracketMatchId);
       predictionsEvaluated = predictions.length;
     }
     await this.syncTeamEliminationState();
@@ -632,10 +631,7 @@ export class BracketService implements OnApplicationBootstrap {
       validWinner ? predictedWinnerTeamName : ''
     );
 
-    const phaseMatches = await this.poolRepository.getBracketMatches(
-      BRACKET_POOL_ID,
-      match.phase
-    );
+    const phaseMatches = await this.poolRepository.getBracketMatches(BRACKET_POOL_ID, match.phase);
     // If this phase already has any real team assigned, immediately evaluate this prediction even
     // when this specific match box is still empty. This awards wrong-box points as soon as a team
     // advances anywhere in the round.
@@ -657,9 +653,7 @@ export class BracketService implements OnApplicationBootstrap {
   async reEvaluateAllBracketMatches(poolId: string) {
     const allMatches = await this.poolRepository.getBracketMatches(poolId);
     const phasesWithTeams = new Set(
-      allMatches
-        .filter(hasAnyBracketTeam)
-        .map((match: any) => match.phase)
+      allMatches.filter(hasAnyBracketTeam).map((match: any) => match.phase)
     );
     const matchesToEvaluate = allMatches.filter(
       (match: any) => isBracketPhase(match.phase) && phasesWithTeams.has(match.phase)

@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { PostgresService } from '../database/postgres.service';
-import { NotificationEventEnvelope, NotificationPublisherService } from './notification.publisher.service';
+import {
+  NotificationEventEnvelope,
+  NotificationPublisherService,
+} from './notification.publisher.service';
 
 type NotificationStatus = 'pending' | 'queued' | 'failed' | 'skipped';
 type NotificationLocale = 'es' | 'en';
@@ -33,7 +36,7 @@ function accessGrantedSubject(poolName: string, locale: NotificationLocale): str
 function acceptedInvitationSubject(
   userName: string,
   poolName: string,
-  locale: NotificationLocale,
+  locale: NotificationLocale
 ): string {
   return locale === 'en'
     ? `${userName} accepted your invitation to ${poolName} on GPool`
@@ -46,7 +49,7 @@ export class NotificationService {
 
   constructor(
     private readonly postgres: PostgresService,
-    private readonly notificationPublisher: NotificationPublisherService,
+    private readonly notificationPublisher: NotificationPublisherService
   ) {}
 
   private async createNotification(input: {
@@ -83,7 +86,7 @@ export class NotificationService {
         input.content || null,
         JSON.stringify(input.metadata || {}),
         Math.floor(Date.now() / 1000),
-      ],
+      ]
     );
     return notificationId;
   }
@@ -95,11 +98,14 @@ export class NotificationService {
         SET status = 'queued'
         WHERE notification_id = $1
       `,
-      [notificationId],
+      [notificationId]
     );
   }
 
-  private async markNotificationFailed(notificationId: string, errorMessage: string): Promise<void> {
+  private async markNotificationFailed(
+    notificationId: string,
+    errorMessage: string
+  ): Promise<void> {
     await this.postgres.query(
       `
         UPDATE notifications
@@ -109,7 +115,7 @@ export class NotificationService {
           retry_count = retry_count + 1
         WHERE notification_id = $1
       `,
-      [notificationId, errorMessage],
+      [notificationId, errorMessage]
     );
   }
 
@@ -121,7 +127,7 @@ export class NotificationService {
         WHERE metadata->>'eventId' = $1
         LIMIT 1
       `,
-      [eventId],
+      [eventId]
     );
     return result.rows.length > 0;
   }
@@ -133,13 +139,13 @@ export class NotificationService {
         SET status = 'skipped', error_message = $2
         WHERE notification_id = $1
       `,
-      [notificationId, reason],
+      [notificationId, reason]
     );
   }
 
   private async publishNotification(
     notificationId: string,
-    event: NotificationEventEnvelope,
+    event: NotificationEventEnvelope
   ): Promise<void> {
     try {
       await this.notificationPublisher.publishEmail(event);
@@ -231,9 +237,11 @@ export class NotificationService {
     if (!recipient) {
       await this.markNotificationSkipped(
         notificationId,
-        `Admin email not available for pool ${data.poolId}`,
+        `Admin email not available for pool ${data.poolId}`
       );
-      this.logger.warn(`Skipping pool access request email; admin email not available for pool ${data.poolId}`);
+      this.logger.warn(
+        `Skipping pool access request email; admin email not available for pool ${data.poolId}`
+      );
       return;
     }
 
@@ -337,7 +345,9 @@ export class NotificationService {
     const locale = normalizeLocale(data.locale);
 
     if (data.eventId && (await this.alreadyProcessedEvent(data.eventId))) {
-      this.logger.log(`Skipping duplicate invitation-accepted notification for event ${data.eventId}`);
+      this.logger.log(
+        `Skipping duplicate invitation-accepted notification for event ${data.eventId}`
+      );
       return;
     }
 
@@ -360,9 +370,11 @@ export class NotificationService {
     if (!recipient) {
       await this.markNotificationSkipped(
         notificationId,
-        `Admin email missing for pool ${data.poolId}`,
+        `Admin email missing for pool ${data.poolId}`
       );
-      this.logger.warn(`Skipping user-accepted-invitation email; admin email missing for pool ${data.poolId}`);
+      this.logger.warn(
+        `Skipping user-accepted-invitation email; admin email missing for pool ${data.poolId}`
+      );
       return;
     }
 
