@@ -42,6 +42,7 @@ RUN npm run build
 FROM node:24-alpine AS prod
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--disable-warning=TimeoutNegativeWarning
 ENV NODE_PATH=/app/apps/api/node_modules:/app/node_modules
 RUN apk upgrade --no-cache zlib libcrypto3 libssl3 \
  && rm -rf /usr/local/lib/node_modules/npm /opt/yarn-v1.22.22 \
@@ -59,6 +60,7 @@ FROM prod AS local
 
 FROM base AS dev
 ENV NODE_ENV=development
+ENV NODE_OPTIONS=--disable-warning=TimeoutNegativeWarning
 ENV NODE_PATH=/app/apps/api/node_modules:/app/node_modules
 COPY --from=deps-build /app/node_modules /app/node_modules
 COPY --from=deps-build /app/apps/api/node_modules /app/apps/api/node_modules
