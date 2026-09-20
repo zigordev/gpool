@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.74](https://github.com/zigordev/gpool/compare/v0.1.73...v0.1.74) (2026-09-20)
+
+
+### Bug Fixes
+
+* **lifecycle:** stop cleanly on SIGTERM and start without warnings ([#256](https://github.com/zigordev/gpool/issues/256)) ([e356cf8](https://github.com/zigordev/gpool/commit/e356cf897c325dc862c1ef38d9b4cace72545cfe))
+
 ## [0.1.73](https://github.com/zigordev/gpool/compare/v0.1.72...v0.1.73) (2026-09-16)
 
 
