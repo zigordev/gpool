@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.75](https://github.com/zigordev/gpool/compare/v0.1.74...v0.1.75) (2026-09-20)
+
+
+### Bug Fixes
+
+* **rum:** record real visits again ([#259](https://github.com/zigordev/gpool/issues/259)) ([c343e0d](https://github.com/zigordev/gpool/commit/c343e0da54c185ed73dc9a8557473a72538edb19))
+
 ## [0.1.74](https://github.com/zigordev/gpool/compare/v0.1.73...v0.1.74) (2026-09-20)
 
 
