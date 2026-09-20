@@ -188,6 +188,7 @@ async function bootstrap() {
   }
 
   const port = Number(process.env.PORT || '3000');
+  app.enableShutdownHooks();
   await app.listen(port);
 
   console.log(`gpool api listening on http://localhost:${port}`);
