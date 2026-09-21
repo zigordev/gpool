@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.76](https://github.com/zigordev/gpool/compare/v0.1.75...v0.1.76) (2026-09-21)
+
+
+### Bug Fixes
+
+* **observability:** name a trace only when it was sampled ([#261](https://github.com/zigordev/gpool/issues/261)) ([7008062](https://github.com/zigordev/gpool/commit/70080625337f308bc9a00fa15a51e91ff3e90726))
+
 ## [0.1.75](https://github.com/zigordev/gpool/compare/v0.1.74...v0.1.75) (2026-09-20)
 
 
