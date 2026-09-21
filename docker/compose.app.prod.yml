@@ -54,6 +54,7 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:?TRUST_PROXY is required}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:?SWAGGER_ENABLED is required}
       OTEL_SERVICE_NAME: gpool-api
+      APP_RELEASE: ${NEXT_PUBLIC_RELEASE:?NEXT_PUBLIC_RELEASE is required}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       OPENBAO_ADDR: http://openbao:8200
       OPENBAO_TOKEN: ${OPENBAO_TOKEN:?OPENBAO_TOKEN is required}
