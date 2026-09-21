@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.77](https://github.com/zigordev/gpool/compare/v0.1.76...v0.1.77) (2026-09-21)
+
+
+### Features
+
+* **observability:** export the release as service_build_info ([#263](https://github.com/zigordev/gpool/issues/263)) ([87988f7](https://github.com/zigordev/gpool/commit/87988f7446fed3e92aa4887cbfebae4e2a1f4416))
+
 ## [0.1.76](https://github.com/zigordev/gpool/compare/v0.1.75...v0.1.76) (2026-09-21)
 
 
