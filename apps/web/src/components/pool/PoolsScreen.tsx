@@ -94,7 +94,6 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       setPools(response.data);
       setError(null);
     } catch (err: any) {
-      console.error('Failed to fetch pools:', err);
       const message = apiErrorDetail(err) || t('pools.errors.loadPools');
       setError(message);
       toast.error(message);
@@ -176,7 +175,6 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       toast.success(t('pools.toast.created'));
       handleCloseCreateModal();
     } catch (err: any) {
-      console.error('Failed to create pool:', err);
       const message = apiErrorDetail(err) || t('pools.errors.create');
       setCreateError(message);
       toast.error(message);
@@ -218,7 +216,6 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       toast.success(t('pools.toast.invitationSent', { email: inviteEmail.trim() }));
       handleCloseInviteModal();
     } catch (err: any) {
-      console.error('Failed to invite user:', err);
       const message = apiErrorDetail(err) || t('pools.errors.invite');
       setInviteError(message);
       toast.error(message);
@@ -235,7 +232,6 @@ export function PoolsScreen({ view }: Readonly<{ view: 'mine' | 'all' }>) {
       trackEvent('Access Requested');
       toast.success(t('pools.toast.requestSubmitted'));
     } catch (err: any) {
-      console.error('Failed to request access:', err);
       const message = apiErrorDetail(err) || t('pools.errors.requestAccess');
       toast.error(message);
     } finally {
