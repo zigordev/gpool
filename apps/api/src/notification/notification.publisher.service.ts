@@ -176,7 +176,7 @@ export class NotificationPublisherService implements OnModuleInit, OnModuleDestr
 
     await this.producer.disconnect().catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`Failed to disconnect Kafka producer cleanly: ${message}`);
+      this.logger.warn({ event: 'kafka.producer_disconnect_failed', reason: message });
     });
   }
 
@@ -209,7 +209,7 @@ export class NotificationPublisherService implements OnModuleInit, OnModuleDestr
       .then(() => {
         this.producer = producer;
         this.kafkaUp = true;
-        this.logger.log(`Kafka producer connected to ${this.brokers.join(', ')}`);
+        this.logger.log({ event: 'kafka.producer_connected', brokers: this.brokers });
         return producer;
       })
       .catch((error) => {

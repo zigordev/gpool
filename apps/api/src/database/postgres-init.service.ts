@@ -337,6 +337,6 @@ export class PostgresInitService implements OnModuleInit {
       CREATE INDEX IF NOT EXISTS idx_notifications_event_id ON notifications((metadata->>'eventId'));
     `);
 
-    this.logger.log('Postgres schema verified');
+    this.logger.log({ event: 'postgres.schema_verified' });
   }
 }
