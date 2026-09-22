@@ -58,7 +58,7 @@
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
     "@types/node": "^26.4.0",
-    "@types/nodemailer": "^6.4.21",
+    "@types/nodemailer": "^8.0.1",
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
