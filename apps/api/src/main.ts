@@ -20,8 +20,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { buildSessionPoolConfig, SESSION_TABLE_NAME } from './auth/session-store.config';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { httpMetricsMiddleware, JsonLogger } from './observability';
+import { startDomainMetricsAtZero } from './metrics/domain-metrics';
+import {
+  httpMetricsMiddleware,
+  JsonLogger,
+  logServiceStarted,
+  observeProcessFailures,
+} from './observability';
 
 const SWAGGER_PATH = '/docs';
 
@@ -82,6 +87,8 @@ function parseTrustProxy(input: string | undefined): TrustProxy {
 }
 
 async function bootstrap() {
+  observeProcessFailures();
+  startDomainMetricsAtZero();
   // `bufferLogs` holds the bootstrap lines until the logger is installed, so
   // startup logs come out as JSON with a traceId like everything else instead
   // of as Nest's coloured text.
@@ -172,7 +179,6 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor());
 
   const swaggerEnabled = parseBooleanEnv(process.env.SWAGGER_ENABLED, false);
   if (swaggerEnabled) {
@@ -191,10 +197,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
   await app.listen(port);
 
-  console.log(`gpool api listening on http://localhost:${port}`);
-  if (swaggerEnabled) {
-    console.log(`Swagger docs: http://localhost:${port}${SWAGGER_PATH}`);
-  }
+  logServiceStarted({ port, swagger: swaggerEnabled });
 }
 
 bootstrap();

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.78](https://github.com/zigordev/gpool/compare/v0.1.77...v0.1.78) (2026-09-22)
+
+
+### Features
+
+* **observability:** events, lifecycle and domain metrics in gpool-api ([#281](https://github.com/zigordev/gpool/issues/281)) ([8d97205](https://github.com/zigordev/gpool/commit/8d97205e1b9f33904eaafe3b8c8e3f7d06f0db45))
+
 ## [0.1.77](https://github.com/zigordev/gpool/compare/v0.1.76...v0.1.77) (2026-09-21)
 
 

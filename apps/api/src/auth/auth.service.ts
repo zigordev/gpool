@@ -77,7 +77,7 @@ export class AuthService {
         role: 'user',
         locale: DEFAULT_LOCALE,
       });
-      this.logger.log(`New user created from Google login: ${userId}`);
+      this.logger.log({ event: 'auth.user_created', userId });
     }
 
     return this.toAuthenticatedUser(dbUser);
