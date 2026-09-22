@@ -45,9 +45,11 @@ updates:
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+        exclude-patterns: ['@nestjs/*', '@vitest/*']
       production-patch:
         dependency-type: production
         update-types: [patch]
+        exclude-patterns: ['@nestjs/*']
     # design-system is a git dependency pinned by tag, and Dependabot cannot
     # order those tags reliably — it proposed "v0.1.42 -> v0.1.38", a
     # downgrade past four releases. Beyond that, taking a new design system
@@ -104,6 +106,9 @@ updates:
     # urgent enough to be worth being the first to install it.
     cooldown:
       default-days: 7
+    groups:
+      codeql:
+        patterns: ['github/codeql-action/*']
     commit-message:
       prefix: ci
       include: scope
