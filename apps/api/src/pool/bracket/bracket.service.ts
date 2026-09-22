@@ -164,9 +164,10 @@ export class BracketService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     await this.ensureGlobalBracketPhases();
     const result = await this.reEvaluateAllBracketMatches(BRACKET_POOL_ID);
-    this.logger.log(
-      `Recalculated final phase scoring at startup for ${result.matchesEvaluated} matches`
-    );
+    this.logger.log({
+      event: 'bracket.scoring_recalculated',
+      matchesEvaluated: result.matchesEvaluated,
+    });
   }
 
   async getBracketMatches(poolId: string, phase?: BracketPhase) {
@@ -298,7 +299,7 @@ export class BracketService implements OnApplicationBootstrap {
       matches.push(match);
     }
 
-    this.logger.log(`Created ${numberOfMatches} matches for phase ${phase} in pool ${poolId}`);
+    this.logger.log({ event: 'bracket.phase_created', poolId, phase, matches: numberOfMatches });
     await this.syncTeamEliminationState();
     return matches;
   }
@@ -421,9 +422,10 @@ export class BracketService implements OnApplicationBootstrap {
     }
 
     await this.poolRepository.updateTeamEliminatedState([...eliminatedTeamIds]);
-    this.logger.log(
-      `Synchronized ${eliminatedTeamIds.size} eliminated teams from bracket progression`
-    );
+    this.logger.debug({
+      event: 'bracket.eliminations_synced',
+      eliminatedTeams: eliminatedTeamIds.size,
+    });
   }
 
   private async evaluateBracketPredictions(

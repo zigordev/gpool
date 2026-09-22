@@ -22,7 +22,7 @@ export class PostgresService implements OnModuleDestroy {
     });
 
     this.pool.on('error', (err) => {
-      this.logger.error(`Unexpected Postgres pool error: ${err.message}`, err.stack);
+      this.logger.error({ event: 'postgres.idle_client_error', error: err });
     });
   }
 

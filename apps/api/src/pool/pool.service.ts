@@ -17,6 +17,7 @@ import {
   resolvePlayerSelectionLimits,
 } from './player/player-selection-limits';
 import { validatePrizeDistribution } from './prize-distribution';
+import { countPoolAction } from '../metrics/domain-metrics';
 
 const DEFAULT_LOCALE = 'es';
 
@@ -63,7 +64,8 @@ export class PoolService {
 
     await this.poolRepository.addMember(poolId, adminUserId, 'admin', adminEmail, adminName);
 
-    this.logger.log(`Pool created: ${poolId} by ${adminUserId}`);
+    this.logger.log({ event: 'pool.created', poolId, userId: adminUserId });
+    countPoolAction('created');
     return pool;
   }
 
@@ -123,7 +125,8 @@ export class PoolService {
     if (updatePoolDto.config) updates.config = updatePoolDto.config;
 
     const updatedPool = await this.poolRepository.updatePool(poolId, updates);
-    this.logger.log(`Pool updated: ${poolId} by ${userId}`);
+    this.logger.log({ event: 'pool.updated', poolId, userId });
+    countPoolAction('updated');
     return updatedPool;
   }
 
@@ -136,7 +139,8 @@ export class PoolService {
     await this.assertPoolMembershipAdmin(poolId, userId);
 
     await this.poolRepository.deletePool(poolId);
-    this.logger.log(`Pool deleted: ${poolId} by ${userId}`);
+    this.logger.log({ event: 'pool.deleted', poolId, userId });
+    countPoolAction('deleted');
     return { success: true, message: 'Pool deleted successfully' };
   }
 
@@ -156,7 +160,8 @@ export class PoolService {
 
     if (settings.isPublic) {
       await this.poolRepository.addMember(poolId, userId, 'member', userEmail, userName);
-      this.logger.log(`User ${userId} joined public pool ${poolId}`);
+      this.logger.log({ event: 'pool.joined', poolId, userId });
+      countPoolAction('joined');
       return { success: true, message: 'Successfully joined pool' };
     }
 
@@ -171,7 +176,8 @@ export class PoolService {
       locale: normalizeLocale(adminUser?.locale),
     });
 
-    this.logger.log(`Access requested to pool ${poolId} by ${userId}`);
+    this.logger.log({ event: 'pool.access_requested', poolId, userId });
+    countPoolAction('access_requested');
     return {
       success: true,
       message: 'Access request submitted. Pool administrator will review your request.',
@@ -204,7 +210,8 @@ export class PoolService {
       locale: normalizeLocale(targetUser?.locale),
     });
 
-    this.logger.log(`Access granted to pool ${poolId} for user ${targetUserId} by ${adminUserId}`);
+    this.logger.log({ event: 'pool.access_granted', poolId, userId: targetUserId, adminUserId });
+    countPoolAction('access_granted');
     return { success: true, message: 'Access granted successfully' };
   }
 
@@ -226,7 +233,8 @@ export class PoolService {
       locale: normalizeLocale(adminUser?.locale),
     });
 
-    this.logger.log(`User ${email} invited to pool ${poolId} by ${invitedBy}`);
+    this.logger.log({ event: 'pool.invitation_sent', poolId, invitedBy });
+    countPoolAction('invitation_sent');
     return { success: true, message: 'Invitation sent successfully' };
   }
 
@@ -238,9 +246,7 @@ export class PoolService {
 
     const existingMembership = await this.poolRepository.getMembership(poolId, userId);
     if (existingMembership) {
-      this.logger.log(
-        `User ${userId} attempted to accept invitation but is already a member of pool ${poolId}`
-      );
+      this.logger.debug({ event: 'pool.invitation_already_member', poolId, userId });
       return { success: true, message: 'You are already a member of this pool' };
     }
 
@@ -263,7 +269,8 @@ export class PoolService {
       locale: normalizeLocale(adminUser?.locale),
     });
 
-    this.logger.log(`User ${userId} accepted invitation and joined pool ${poolId}`);
+    this.logger.log({ event: 'pool.invitation_accepted', poolId, userId });
+    countPoolAction('invitation_accepted');
     return { success: true, message: 'You have successfully joined the pool' };
   }
 
@@ -310,7 +317,8 @@ export class PoolService {
       );
     }
 
-    this.logger.log(`Pool configuration updated: ${poolId} by ${userId}`);
+    this.logger.log({ event: 'pool.configured', poolId, userId });
+    countPoolAction('configured');
     return { success: true, message: 'Pool configuration updated successfully' };
   }
 

@@ -18,6 +18,7 @@ import {
   isSelectionWithinLimits,
   resolvePlayerSelectionLimits,
 } from '../player/player-selection-limits';
+import { countPrediction } from '../../metrics/domain-metrics';
 
 @Injectable()
 export class MatchService {
@@ -97,7 +98,7 @@ export class MatchService {
 
     if (clearingPrediction) {
       const cleared = await this.poolRepository.deletePrediction(poolId, matchId, userId);
-      this.logger.log(`Prediction cleared: pool ${poolId}, match ${matchId}, user ${userId}`);
+      countPrediction('cleared');
       return cleared;
     }
 
@@ -118,7 +119,7 @@ export class MatchService {
       awayScore
     );
 
-    this.logger.log(`Prediction submitted: pool ${poolId}, match ${matchId}, user ${userId}`);
+    countPrediction('submitted');
     return prediction;
   }
 
@@ -274,9 +275,11 @@ export class MatchService {
 
     if (clearingResult) {
       await this.poolRepository.resetPredictionStatusesForMatch(matchId);
-      this.logger.log(
-        `Match results cleared and ${allPredictions.length} predictions reset for match ${matchId}`
-      );
+      this.logger.log({
+        event: 'match.results_cleared',
+        matchId,
+        predictionsReset: allPredictions.length,
+      });
 
       return {
         ...updatedMatch,
@@ -329,9 +332,11 @@ export class MatchService {
 
     await this.poolRepository.bulkUpdatePredictionStatuses(predictionUpdates);
 
-    this.logger.log(
-      `Match results updated and ${allPredictions.length} predictions evaluated for match ${matchId}`
-    );
+    this.logger.log({
+      event: 'match.results_recorded',
+      matchId,
+      predictionsEvaluated: allPredictions.length,
+    });
 
     return {
       ...updatedMatch,

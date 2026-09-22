@@ -5,6 +5,7 @@ import {
   NotificationEventEnvelope,
   NotificationPublisherService,
 } from './notification.publisher.service';
+import { countNotification } from '../metrics/domain-metrics';
 
 type NotificationStatus = 'pending' | 'queued' | 'failed' | 'skipped';
 type NotificationLocale = 'es' | 'en';
@@ -150,7 +151,20 @@ export class NotificationService {
     try {
       await this.notificationPublisher.publishEmail(event);
       await this.markNotificationQueued(notificationId);
+      countNotification(event.templateId, 'queued');
+      this.logger.log({
+        event: 'notification.queued',
+        template: event.templateId,
+        messageId: event.messageId,
+      });
     } catch (error: any) {
+      countNotification(event.templateId, 'failed');
+      this.logger.error({
+        event: 'notification.publish_failed',
+        template: event.templateId,
+        messageId: event.messageId,
+        error,
+      });
       await this.markNotificationFailed(notificationId, error.message);
       throw error;
     }
@@ -239,9 +253,13 @@ export class NotificationService {
         notificationId,
         `Admin email not available for pool ${data.poolId}`
       );
-      this.logger.warn(
-        `Skipping pool access request email; admin email not available for pool ${data.poolId}`
-      );
+      this.logger.warn({
+        event: 'notification.skipped',
+        template: 'gpool.pool-access-request',
+        reason: 'admin_email_missing',
+        poolId: data.poolId,
+      });
+      countNotification('gpool.pool-access-request', 'skipped');
       return;
     }
 
@@ -299,7 +317,14 @@ export class NotificationService {
 
     if (!recipient) {
       await this.markNotificationSkipped(notificationId, `User email missing for ${data.userId}`);
-      this.logger.warn(`Skipping pool access granted email; user email missing for ${data.userId}`);
+      this.logger.warn({
+        event: 'notification.skipped',
+        template: 'gpool.pool-access-granted',
+        reason: 'user_email_missing',
+        poolId: data.poolId,
+        userId: data.userId,
+      });
+      countNotification('gpool.pool-access-granted', 'skipped');
       return;
     }
 
@@ -345,9 +370,11 @@ export class NotificationService {
     const locale = normalizeLocale(data.locale);
 
     if (data.eventId && (await this.alreadyProcessedEvent(data.eventId))) {
-      this.logger.log(
-        `Skipping duplicate invitation-accepted notification for event ${data.eventId}`
-      );
+      this.logger.debug({
+        event: 'notification.duplicate',
+        template: 'gpool.user-accepted-invitation',
+        eventId: data.eventId,
+      });
       return;
     }
 
@@ -372,9 +399,13 @@ export class NotificationService {
         notificationId,
         `Admin email missing for pool ${data.poolId}`
       );
-      this.logger.warn(
-        `Skipping user-accepted-invitation email; admin email missing for pool ${data.poolId}`
-      );
+      this.logger.warn({
+        event: 'notification.skipped',
+        template: 'gpool.user-accepted-invitation',
+        reason: 'admin_email_missing',
+        poolId: data.poolId,
+      });
+      countNotification('gpool.user-accepted-invitation', 'skipped');
       return;
     }
 
