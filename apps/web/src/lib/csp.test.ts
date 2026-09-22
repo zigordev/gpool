@@ -24,6 +24,10 @@ describe('contentSecurityPolicy', () => {
     );
   });
 
+  it('lets the country flags load from the CDN react-country-flag draws them from', () => {
+    expect(contentSecurityPolicy('n')).toContain("img-src 'self' data: https://cdn.jsdelivr.net;");
+  });
+
   it('gives back the nonce a policy carries, so a hand-written script can use it', () => {
     expect(nonceFrom(contentSecurityPolicy('bm9uY2U='))).toBe('bm9uY2U=');
     expect(nonceFrom("default-src 'self'")).toBeUndefined();

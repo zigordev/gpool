@@ -17,7 +17,7 @@ export function contentSecurityPolicy(nonce: string): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "img-src 'self' data:",
+    "img-src 'self' data: https://cdn.jsdelivr.net",
     "font-src 'self'",
     "style-src 'self' 'unsafe-inline'",
     `script-src 'self' 'nonce-${nonce}'`,
