@@ -97,6 +97,38 @@ describe('loadRemoteMessages', () => {
       );
     });
 
+    it('names the code Tolgee rejected the export with', async () => {
+      configure();
+      const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const rejection = (status: number, code: string) =>
+        new Response(JSON.stringify({ code, params: null }), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
+      vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(rejection(400, 'project_not_selected'))
+        .mockResolvedValueOnce(rejection(401, 'invalid_project_api_key'));
+
+      await loadRemoteMessages('es');
+      await loadRemoteMessages('en');
+
+      expect(health().components.tolgee).toEqual({ status: 'down' });
+      expect(logged(stdout)).toContainEqual(
+        expect.objectContaining({
+          event: 'i18n.fallback',
+          locale: 'es',
+          error: { name: 'HttpError', message: 'Tolgee answered 400 (project_not_selected)' },
+        })
+      );
+      expect(logged(stdout)).toContainEqual(
+        expect.objectContaining({
+          event: 'i18n.fallback',
+          locale: 'en',
+          error: { name: 'HttpError', message: 'Tolgee answered 401 (invalid_project_api_key)' },
+        })
+      );
+    });
+
     it('reports Tolgee down for any other rejected request', async () => {
       configure();
       vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
