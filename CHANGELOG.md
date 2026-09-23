@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.80](https://github.com/zigordev/gpool/compare/v0.1.79...v0.1.80) (2026-09-23)
+
+
+### Bug Fixes
+
+* **observability:** count re-clicked invitations and declare the RUM vocabulary at startup ([#285](https://github.com/zigordev/gpool/issues/285)) ([2089fcb](https://github.com/zigordev/gpool/commit/2089fcb2012f5ca5871feb84941ab5873f8d2f1c))
+
 ## [0.1.79](https://github.com/zigordev/gpool/compare/v0.1.78...v0.1.79) (2026-09-23)
 
 
