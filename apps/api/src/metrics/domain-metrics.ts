@@ -10,6 +10,7 @@ export const POOL_ACTIONS = [
   'access_granted',
   'invitation_sent',
   'invitation_accepted',
+  'invitation_already_member',
   'configured',
 ] as const;
 export type PoolAction = (typeof POOL_ACTIONS)[number];
