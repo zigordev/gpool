@@ -4,7 +4,9 @@ import { RumProvider } from '@/observability/RumProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { I18nProvider } from '@/i18n/client';
 import { getLocale, getMessages, getTranslator } from '@/i18n/server';
+import { nonceFrom } from '@/lib/csp';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { Inter, Bricolage_Grotesque } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import 'flag-icons/css/flag-icons.min.css';
@@ -39,11 +41,13 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages(locale);
+  const nonce = nonceFrom((await headers()).get('content-security-policy-report-only'));
 
   return (
     <html lang={locale} data-theme="gpool" className={`${inter.variable} ${display.variable}`}>
       <body>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('gpool-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-mode','dark');}}catch(e){}`,
           }}

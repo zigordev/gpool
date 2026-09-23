@@ -39,8 +39,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       }
 
       setUser((await response.json()) as User);
-    } catch (error: any) {
-      console.error('Auth check failed:', error);
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -71,8 +70,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         credentials: 'include',
         cache: 'no-store',
       });
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
     } finally {
       setUser(null);
       globalThis.location.href = '/login';

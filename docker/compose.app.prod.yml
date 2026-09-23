@@ -99,6 +99,8 @@ services:
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL is required}
       NEXT_PUBLIC_RELEASE: ${NEXT_PUBLIC_RELEASE:?NEXT_PUBLIC_RELEASE is required}
+      OTEL_SERVICE_NAME: gpool-web
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       OPENBAO_ADDR: http://openbao:8200
       OPENBAO_TOKEN: ${OPENBAO_TOKEN:?OPENBAO_TOKEN is required}
       OPENBAO_KV_MOUNT: kv

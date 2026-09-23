@@ -120,6 +120,8 @@ services:
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${CI_API_PORT:-3010}
       NEXT_PUBLIC_RELEASE: ci
+      OTEL_SERVICE_NAME: gpool-web
+      OTEL_TRACES_ENABLED: 'false'
       OPENBAO_ADDR: http://openbao:8200
       OPENBAO_TOKEN: ci-openbao-token
       OPENBAO_KV_MOUNT: kv
