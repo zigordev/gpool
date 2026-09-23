@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.79](https://github.com/zigordev/gpool/compare/v0.1.78...v0.1.79) (2026-09-23)
+
+
+### Features
+
+* **observability:** bring RUM v2, a nonce CSP, events and render tracing to gpool-web ([#283](https://github.com/zigordev/gpool/issues/283)) ([1420983](https://github.com/zigordev/gpool/commit/14209835b8d531b2aae36b4d9ad7deace0d64b1f))
+
 ## [0.1.78](https://github.com/zigordev/gpool/compare/v0.1.77...v0.1.78) (2026-09-22)
 
 
