@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.83](https://github.com/zigordev/gpool/compare/v0.1.82...v0.1.83) (2026-09-23)
+
+
+### Features
+
+* **observability:** vendor the kit's route naming, flag polling and registry split ([#291](https://github.com/zigordev/gpool/issues/291)) ([dff715d](https://github.com/zigordev/gpool/commit/dff715ddd9c161e709da329cd5f5eddc96869413))
+
 ## [0.1.82](https://github.com/zigordev/gpool/compare/v0.1.81...v0.1.82) (2026-09-23)
 
 
