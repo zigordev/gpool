@@ -246,7 +246,8 @@ export class PoolService {
 
     const existingMembership = await this.poolRepository.getMembership(poolId, userId);
     if (existingMembership) {
-      this.logger.debug({ event: 'pool.invitation_already_member', poolId, userId });
+      this.logger.log({ event: 'pool.invitation_already_member', poolId, userId });
+      countPoolAction('invitation_already_member');
       return { success: true, message: 'You are already a member of this pool' };
     }
 
