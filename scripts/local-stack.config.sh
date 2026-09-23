@@ -14,7 +14,7 @@ DB_USER="gpool_admin"
 DB_NAME="gpool"
 DB_BOOTSTRAP_DB="gpool"
 
-TOLGEE_SYNC="pull"
+TOLGEE_SYNC="push-pull"
 TOLGEE_WORKSPACE="@gpool/web"
 
 RESET_MODE="volumes"
