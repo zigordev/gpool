@@ -111,13 +111,19 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
       return cached.messages;
     }
     if (!response.ok) {
-      if (response.status === 400 && (await errorCode(response)) === 'no_exported_result') {
+      const code = await errorCode(response);
+      if (response.status === 400 && code === 'no_exported_result') {
         return fallBack(
           { name: 'NoExport', message: `Tolgee has no ${locale} translations to export` },
           'up'
         );
       }
-      return fallBack({ name: 'HttpError', message: `Tolgee answered ${response.status}` });
+      return fallBack({
+        name: 'HttpError',
+        message: code
+          ? `Tolgee answered ${response.status} (${code})`
+          : `Tolgee answered ${response.status}`,
+      });
     }
 
     const etag = response.headers.get('etag');
