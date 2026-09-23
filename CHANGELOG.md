@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.82](https://github.com/zigordev/gpool/compare/v0.1.81...v0.1.82) (2026-09-23)
+
+
+### Bug Fixes
+
+* **i18n:** push the repository copy to the local Tolgee before pulling it back ([#289](https://github.com/zigordev/gpool/issues/289)) ([9cadf0c](https://github.com/zigordev/gpool/commit/9cadf0ccf97bcd4da9f85f25ec5f9b8a1dea1199))
+
 ## [0.1.81](https://github.com/zigordev/gpool/compare/v0.1.80...v0.1.81) (2026-09-23)
 
 
