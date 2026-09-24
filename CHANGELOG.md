@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.85](https://github.com/zigordev/gpool/compare/v0.1.84...v0.1.85) (2026-09-24)
+
+
+### Bug Fixes
+
+* **i18n:** merge the Tolgee export over committed copy and count its source ([#298](https://github.com/zigordev/gpool/issues/298)) ([f7bc100](https://github.com/zigordev/gpool/commit/f7bc100f6d0cb4e69b8d526b010ac5968f629353))
+
 ## [0.1.84](https://github.com/zigordev/gpool/compare/v0.1.83...v0.1.84) (2026-09-24)
 
 
