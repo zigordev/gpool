@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.84](https://github.com/zigordev/gpool/compare/v0.1.83...v0.1.84) (2026-09-24)
+
+
+### Bug Fixes
+
+* **fonts:** self-host the web fonts so the build stops fetching them ([#294](https://github.com/zigordev/gpool/issues/294)) ([214a941](https://github.com/zigordev/gpool/commit/214a941b8a461ea1ef4ceec1501d557f1a84806c))
+* **observability:** one server span per gpool-web request, and fetch names that cannot grow ([#295](https://github.com/zigordev/gpool/issues/295)) ([ae0c8cd](https://github.com/zigordev/gpool/commit/ae0c8cdfd6944218b765b8365e43a4b1776776d5))
+
 ## [0.1.83](https://github.com/zigordev/gpool/compare/v0.1.82...v0.1.83) (2026-09-23)
 
 
