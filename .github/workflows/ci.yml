@@ -103,7 +103,7 @@ jobs:
           OPENBAO_REQUIRED_KEYS_API: SESSION_SECRET,SESSION_COOKIE_SECRET,GOOGLE_CLIENT_SECRET
           OPENBAO_REQUIRED_KEYS_WEB: TOLGEE_API_KEY
           TOLGEE_API_URL: http://tolgee:8080
-          TOLGEE_PROJECT_ID: '3'
+          TOLGEE_PROJECT_ID: '2'
           JWT_SECRET: ci-jwt-secret
           JWT_REFRESH_SECRET: ci-jwt-refresh-secret
           JWT_EXPIRES_IN: 15m
@@ -251,7 +251,7 @@ jobs:
       # as a Chrome connection error inside a browser test rather than here.
       - name: Wait for the mock provider
         run: |
-          for i in $(seq 1 40); do
+          for _ in $(seq 1 40); do
             if curl -fsS http://localhost:3900/gpool/.well-known/openid-configuration > /dev/null; then
               echo "Mock provider ready"
               exit 0

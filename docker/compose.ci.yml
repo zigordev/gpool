@@ -77,7 +77,7 @@ services:
       OPENBAO_SECRET_PATH: gpool
       OPENBAO_REQUIRED_KEYS_API: SESSION_SECRET,SESSION_COOKIE_SECRET,GOOGLE_CLIENT_SECRET
       TOLGEE_API_URL: http://tolgee:8080
-      TOLGEE_PROJECT_ID: '3'
+      TOLGEE_PROJECT_ID: '2'
       SESSION_SECRET: ci-session-secret
       SESSION_COOKIE_SECRET: ci-session-cookie-secret
       GOOGLE_CLIENT_ID: ci-google-id
@@ -128,7 +128,7 @@ services:
       OPENBAO_SECRET_PATH: gpool
       OPENBAO_REQUIRED_KEYS_WEB: TOLGEE_API_KEY
       TOLGEE_API_URL: http://tolgee:8080
-      TOLGEE_PROJECT_ID: '3'
+      TOLGEE_PROJECT_ID: '2'
     ports:
       - '${CI_WEB_PORT:-3101}:3001'
     depends_on:
