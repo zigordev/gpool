@@ -57,7 +57,7 @@ You will need:
 
 Important:
 
-- the tracked local env file defaults `TOLGEE_PROJECT_ID=3`
+- the tracked local env file defaults `TOLGEE_PROJECT_ID=2`, the id `gpool` also uses in CI and prod
 - if your fresh Tolgee instance gives `gpool` a different id, update `docker/.env.app.local`
 
 ## 4. Create The Google OAuth Client
