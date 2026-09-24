@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.86](https://github.com/zigordev/gpool/compare/v0.1.85...v0.1.86) (2026-09-24)
+
+
+### Bug Fixes
+
+* **i18n:** say when promoting copy to prod fails, and name the right local project ([#301](https://github.com/zigordev/gpool/issues/301)) ([e98298a](https://github.com/zigordev/gpool/commit/e98298a43bdcd6bdd0278dd23c44204d25fd1ad2))
+
 ## [0.1.85](https://github.com/zigordev/gpool/compare/v0.1.84...v0.1.85) (2026-09-24)
 
 
