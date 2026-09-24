@@ -18,6 +18,9 @@ concurrency:
 
 jobs:
   promote:
+    permissions:
+      contents: read
+      issues: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
@@ -66,8 +69,126 @@ jobs:
         run: npm ci
 
       - name: Promote committed snapshots into prod Tolgee
+        id: promote
         env:
           TOLGEE_API_URL: ${{ vars.TOLGEE_SYNC_API_URL }}
           TOLGEE_API_KEY: ${{ secrets.TOLGEE_SYNC_API_KEY }}
           TOLGEE_PROJECT_ID: ${{ env.TOLGEE_PROJECT_ID }}
-        run: npm run i18n:push -w @gpool/web
+        run: |
+          set +e
+          set -uo pipefail
+
+          delays=(10 30 60)
+          total=$(( ${#delays[@]} + 1 ))
+          status=1
+          classification=transient
+          attempt=0
+
+          while [ "$attempt" -lt "$total" ]; do
+            attempt=$(( attempt + 1 ))
+            echo "Promotion attempt $attempt of $total"
+
+            output="$(npm run i18n:push -w @gpool/web 2>&1)"
+            status=$?
+            printf '%s\n' "$output"
+
+            if [ "$status" -eq 0 ]; then
+              classification=none
+              break
+            fi
+
+            if printf '%s' "$output" | grep -qE 'invalid_pat|status: 40[13]'; then
+              classification=credentials
+              echo "Prod Tolgee rejected the credentials, so another attempt cannot succeed." >&2
+              break
+            fi
+
+            if [ "$attempt" -lt "$total" ]; then
+              sleep "${delays[$(( attempt - 1 ))]}"
+            fi
+          done
+
+          {
+            echo "status=$status"
+            echo "attempts=$attempt"
+            echo "classification=$classification"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Open or update an issue
+        if: failure() || steps.promote.outputs.status != '0'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          CLASSIFICATION: ${{ steps.promote.outputs.classification }}
+          ATTEMPTS: ${{ steps.promote.outputs.attempts }}
+        with:
+          script: |
+            const title = 'i18n: promoting copy into prod Tolgee is failing';
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const classification = process.env.CLASSIFICATION || 'setup';
+            const attempts = process.env.ATTEMPTS || '0';
+
+            const causes = {
+              credentials:
+                'Prod Tolgee answered 401/403. `TOLGEE_SYNC_API_KEY` has expired or been revoked, and no retry can get past that. Rotate the key in the `production` environment.',
+              transient:
+                'Prod Tolgee stayed unreachable for every attempt. Check that prod is powered on and that `TOLGEE_SYNC_API_URL` resolves.',
+              setup:
+                'The run failed before the push itself, so the promotion settings, the checkout, or `npm ci` are where to look.',
+            };
+
+            const body = [
+              'Committed copy is no longer reaching prod Tolgee, so prod keeps serving whatever it already held.',
+              '',
+              `- attempts: ${attempts}`,
+              `- classification: ${classification}`,
+              '',
+              causes[classification] ?? causes.setup,
+              '',
+              'The full output stays in the run log, where GitHub masks the API key.',
+              '',
+              `[Failing run](${run}) · [i18n fallback runbook](https://github.com/zigordev/platform-ops/blob/main/docs/runbooks/i18n-fallback.md)`,
+            ].join('\n');
+
+            const existing = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'all',
+              labels: 'i18n',
+              per_page: 20,
+            });
+            const open = existing.data.find((i) => i.title === title);
+
+            if (!open) {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['i18n'] });
+              return;
+            }
+
+            if (open.state === 'closed') {
+              await github.rest.issues.update({ ...context.repo, issue_number: open.number, state: 'open' });
+            }
+            await github.rest.issues.createComment({ ...context.repo, issue_number: open.number, body });
+
+      - name: Close the issue when the promotion succeeds
+        if: steps.promote.outputs.status == '0'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const title = 'i18n: promoting copy into prod Tolgee is failing';
+            const open = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'open',
+              labels: 'i18n',
+              per_page: 20,
+            });
+            const issue = open.data.find((i) => i.title === title);
+            if (issue) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: issue.number,
+                body: 'Committed copy reached prod Tolgee again. Closing.',
+              });
+              await github.rest.issues.update({ ...context.repo, issue_number: issue.number, state: 'closed' });
+            }
+
+      - name: Fail the run when the promotion failed
+        if: steps.promote.outputs.status != '0'
+        run: exit 1
