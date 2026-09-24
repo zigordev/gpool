@@ -97,7 +97,7 @@ jobs:
               break
             fi
 
-            if printf '%s' "$output" | grep -qE 'invalid_pat|status: 40[13]'; then
+            if grep -qE 'invalid_pat|status: 40[13]' <<<"$output"; then
               classification=credentials
               echo "Prod Tolgee rejected the credentials, so another attempt cannot succeed." >&2
               break
@@ -118,35 +118,25 @@ jobs:
         if: failure() || steps.promote.outputs.status != '0'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          CLASSIFICATION: ${{ steps.promote.outputs.classification }}
           ATTEMPTS: ${{ steps.promote.outputs.attempts }}
+          CLASSIFICATION: ${{ steps.promote.outputs.classification }}
         with:
           script: |
-            const title = 'i18n: promoting copy into prod Tolgee is failing';
+            const title = 'Prod translations: promotion to Tolgee failing';
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const classification = process.env.CLASSIFICATION || 'setup';
-            const attempts = process.env.ATTEMPTS || '0';
-
-            const causes = {
-              credentials:
-                'Prod Tolgee answered 401/403. `TOLGEE_SYNC_API_KEY` has expired or been revoked, and no retry can get past that. Rotate the key in the `production` environment.',
-              transient:
-                'Prod Tolgee stayed unreachable for every attempt. Check that prod is powered on and that `TOLGEE_SYNC_API_URL` resolves.',
-              setup:
-                'The run failed before the push itself, so the promotion settings, the checkout, or `npm ci` are where to look.',
-            };
-
+            const attempts = process.env.ATTEMPTS || 'all';
+            const classification = process.env.CLASSIFICATION || 'unknown';
             const body = [
-              'Committed copy is no longer reaching prod Tolgee, so prod keeps serving whatever it already held.',
+              `Promoting the committed message files into prod Tolgee failed after ${attempts} attempt(s).`,
               '',
-              `- attempts: ${attempts}`,
-              `- classification: ${classification}`,
+              `Commit: ${context.sha}`,
+              `Cause: ${classification}`,
               '',
-              causes[classification] ?? causes.setup,
+              'Prod Tolgee keeps serving whatever it already holds, so every render still counts',
+              'source="merged" and CopyServedFromRepository stays silent. The newest committed copy',
+              'is simply absent from Tolgee until this promotion succeeds.',
               '',
-              'The full output stays in the run log, where GitHub masks the API key.',
-              '',
-              `[Failing run](${run}) · [i18n fallback runbook](https://github.com/zigordev/platform-ops/blob/main/docs/runbooks/i18n-fallback.md)`,
+              `[Check run](${run}) · [Runbook](https://github.com/zigordev/platform-ops/blob/main/docs/runbooks/i18n-fallback.md)`,
             ].join('\n');
 
             const existing = await github.rest.issues.listForRepo({
@@ -172,7 +162,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const title = 'i18n: promoting copy into prod Tolgee is failing';
+            const title = 'Prod translations: promotion to Tolgee failing';
             const open = await github.rest.issues.listForRepo({
               ...context.repo,
               state: 'open',
