@@ -7,22 +7,29 @@ import { getLocale, getMessages, getTranslator } from '@/i18n/server';
 import { nonceFrom } from '@/lib/csp';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { Inter, Bricolage_Grotesque } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Toaster } from 'react-hot-toast';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: './fonts/inter-latin.woff2',
+  weight: '100 900',
+  style: 'normal',
   variable: '--font-sans',
   display: 'swap',
 });
 
-const display = Bricolage_Grotesque({
-  subsets: ['latin'],
+const display = localFont({
+  src: [
+    { path: './fonts/bricolage-grotesque-latin.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/bricolage-grotesque-latin.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/bricolage-grotesque-latin.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/bricolage-grotesque-latin.woff2', weight: '800', style: 'normal' },
+  ],
   variable: '--font-display',
   display: 'swap',
-  weight: ['500', '600', '700', '800'],
+  declarations: [{ prop: 'font-stretch', value: '100%' }],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
