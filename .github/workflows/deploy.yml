@@ -71,8 +71,9 @@ jobs:
           echo "release_tag=$raw_tag" >> "$GITHUB_OUTPUT"
           echo "image_tag=$safe_tag" >> "$GITHUB_OUTPUT"
 
-      - name: Validate required deploy variables
+      - name: Validate required deploy variables and secrets
         env:
+          AWS_DEPLOY_ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           AWS_ECR_API_REPOSITORY_URI: ${{ vars.AWS_ECR_API_REPOSITORY_URI }}
           AWS_ECR_WEB_REPOSITORY_URI: ${{ vars.AWS_ECR_WEB_REPOSITORY_URI }}
@@ -87,6 +88,7 @@ jobs:
             AWS_DEPLOY_BUCKET
             AWS_DEPLOY_INSTANCE_ID
             AWS_SSM_APP_PREFIX
+            AWS_DEPLOY_ROLE_ARN
           )
 
           for name in "${required[@]}"; do
@@ -96,7 +98,7 @@ jobs:
               value=""
             fi
             if [ -z "$value" ]; then
-              echo "Missing GitHub environment variable: $name" >&2
+              echo "Missing GitHub environment variable or secret: $name" >&2
               exit 1
             fi
           done

@@ -16,12 +16,27 @@ export function normaliseLocale(tag) {
   return tag.trim().toLowerCase().split(/[-_]/)[0];
 }
 
-export function mergeMessages(local, remote) {
+export function isFlatExport(messages) {
+  if (!messages || typeof messages !== 'object' || Array.isArray(messages)) return false;
+  return Object.keys(messages).some((key) => key.includes('.') || key.includes('['));
+}
+
+export function mergeMessages(local, remote, path = '', keptLists = []) {
+  if (Array.isArray(local) && Array.isArray(remote)) {
+    if (local.length !== remote.length) {
+      keptLists.push(`${path} (${local.length} committed, ${remote.length} exported)`);
+      return local;
+    }
+    return local.map((item, index) =>
+      mergeMessages(item, remote[index], `${path}.${index}`, keptLists)
+    );
+  }
   if (Array.isArray(remote) || typeof remote !== 'object' || remote === null) return remote;
   if (Array.isArray(local) || typeof local !== 'object' || local === null) return remote;
   const merged = { ...local };
   for (const [key, value] of Object.entries(remote)) {
-    merged[key] = key in local ? mergeMessages(local[key], value) : value;
+    const at = path ? `${path}.${key}` : key;
+    merged[key] = key in local ? mergeMessages(local[key], value, at, keptLists) : value;
   }
   return merged;
 }
@@ -41,7 +56,7 @@ export function sortKeys(value) {
 export function exportUrl(apiUrl, projectId) {
   const url = new URL(`/v2/projects/${projectId}/export`, apiUrl);
   url.searchParams.set('format', 'JSON');
-  url.searchParams.set('structure', 'KEYS');
+  url.searchParams.set('structureDelimiter', '.');
   url.searchParams.set('zip', 'true');
   url.searchParams.set('supportArrays', 'true');
   return url;
@@ -88,11 +103,18 @@ export async function applyExport(zip, outDir) {
 
   if (!entries.length) throw new PullError('Tolgee export zip contained no JSON files.');
 
+  const keptLists = [];
   const results = [];
   for (const { file, dest } of entries) {
     const remote = JSON.parse(await file.async('string'));
+    if (isFlatExport(remote)) {
+      throw new PullError(
+        `${path.basename(dest)} came back with dotted keys; the app reads a nested export. ` +
+          'Nothing was written.'
+      );
+    }
     const local = await readLocal(dest);
-    results.push({ dest, messages: local ? mergeMessages(local, remote) : remote });
+    results.push({ dest, messages: local ? mergeMessages(local, remote, '', keptLists) : remote });
   }
 
   await Promise.all(
@@ -105,7 +127,7 @@ export async function applyExport(zip, outDir) {
     (locale) => !zip.file(new RegExp(`(^|/)${locale}(-[A-Za-z]+)?\\.json$`, 'i')).length
   );
 
-  return { outDir, written: results.map(({ dest }) => dest), skipped, missing };
+  return { outDir, written: results.map(({ dest }) => dest), skipped, missing, keptLists };
 }
 
 export async function pullTranslations({
@@ -140,8 +162,15 @@ export async function pullTranslations({
 
 export async function main() {
   try {
-    const { outDir, skipped, missing } = await pullTranslations();
+    const { outDir, skipped, missing, keptLists } = await pullTranslations();
     console.log(`Updated translations in ${outDir}`);
+    if (keptLists.length) {
+      console.warn(
+        `Kept the committed list for: ${keptLists.join(', ')} — the export has a different ` +
+          'number of entries, which is a partial translation rather than an edit. Push, then ' +
+          'pull again.'
+      );
+    }
     if (skipped.length) {
       console.warn(`Skipped unsupported locales from Tolgee: ${skipped.join(', ')}`);
     }

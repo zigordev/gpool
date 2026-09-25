@@ -6,6 +6,25 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { applyExport, exportUrl, pullTranslations } from './i18n-pull.mjs';
 
+const TOLGEE_EXPORT_PARAMETERS = new Set([
+  'languages',
+  'format',
+  'structureDelimiter',
+  'filterKeyId',
+  'filterKeyIdNot',
+  'filterTag',
+  'filterTagIn',
+  'filterTagNotIn',
+  'filterKeyPrefix',
+  'filterState',
+  'filterNamespace',
+  'zip',
+  'messageFormat',
+  'fileStructureTemplate',
+  'supportArrays',
+  'escapeHtml',
+]);
+
 async function zipOf(files) {
   const zip = new JSZip();
   for (const [name, contents] of Object.entries(files)) {
@@ -115,12 +134,70 @@ describe('i18n pull', () => {
     ).rejects.toThrow(/no JSON files/);
   });
 
-  it('asks Tolgee to reassemble arrays', () => {
+  it('sends only parameters the Tolgee export endpoint defines', () => {
     const url = exportUrl('http://tolgee.invalid', '2');
 
-    expect(url.searchParams.get('supportArrays')).toBe('true');
-    expect(url.searchParams.get('structure')).toBe('KEYS');
     expect(url.pathname).toBe('/v2/projects/2/export');
+    expect(
+      [...url.searchParams.keys()].filter((key) => !TOLGEE_EXPORT_PARAMETERS.has(key))
+    ).toEqual([]);
+  });
+
+  it('asks for the same nested, array-aware shape the runtime loader reads', () => {
+    const url = exportUrl('http://tolgee.invalid', '2');
+
+    expect(url.searchParams.get('format')).toBe('JSON');
+    expect(url.searchParams.get('structureDelimiter')).toBe('.');
+    expect(url.searchParams.get('supportArrays')).toBe('true');
+  });
+
+  it('merges list entries in place when the export has the same number of them', async () => {
+    await writeFile(
+      path.join(outDir, 'es.json'),
+      JSON.stringify({ home: { bullets: ['Uno', 'Dos', 'Tres'] } }),
+      'utf8'
+    );
+
+    const result = await applyExport(
+      await zipOf({ 'es.json': { home: { bullets: ['Primero', 'Dos', 'Tercero'] } } }),
+      outDir
+    );
+
+    expect(await read('es')).toEqual({ home: { bullets: ['Primero', 'Dos', 'Tercero'] } });
+    expect(result.keptLists).toEqual([]);
+  });
+
+  it('keeps the committed list when the export is short, and names it', async () => {
+    await writeFile(
+      path.join(outDir, 'es.json'),
+      JSON.stringify({ home: { bullets: ['Uno', 'Dos', 'Tres'] } }),
+      'utf8'
+    );
+
+    const result = await applyExport(
+      await zipOf({ 'es.json': { home: { bullets: ['Primero'] } } }),
+      outDir
+    );
+
+    expect(await read('es')).toEqual({ home: { bullets: ['Uno', 'Dos', 'Tres'] } });
+    expect(result.keptLists).toEqual(['home.bullets (3 committed, 1 exported)']);
+  });
+
+  it('refuses a flat export and writes nothing', async () => {
+    const committed = JSON.stringify({ nav: { home: 'Inicio' } });
+    await writeFile(path.join(outDir, 'es.json'), committed, 'utf8');
+
+    await expect(
+      applyExport(await zipOf({ 'es.json': { 'nav.home': 'Portada' } }), outDir)
+    ).rejects.toThrow(/dotted keys/);
+
+    expect(await readFile(path.join(outDir, 'es.json'), 'utf8')).toBe(committed);
+  });
+
+  it('refuses an export that kept Tolgee bracket keys instead of arrays', async () => {
+    await expect(
+      applyExport(await zipOf({ 'en.json': { 'home[0]': 'First' } }), outDir)
+    ).rejects.toThrow(/dotted keys/);
   });
 
   it('stops before fetching when Tolgee is not configured', async () => {
