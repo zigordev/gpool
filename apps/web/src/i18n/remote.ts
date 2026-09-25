@@ -42,6 +42,10 @@ function isFlatExport(messages: Messages): boolean {
   return Object.keys(messages).some((key) => key.includes('.') || key.includes('['));
 }
 
+function isEmptyExport(messages: Messages): boolean {
+  return Object.keys(messages).length === 0;
+}
+
 async function errorCode(response: Response): Promise<string | undefined> {
   try {
     const body = (await response.json()) as { code?: unknown };
@@ -147,7 +151,7 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
       messages = (await response.json()) as Messages;
     }
 
-    if (!messages) {
+    if (!messages || isEmptyExport(messages)) {
       return fallBack({ name: 'EmptyExport', message: 'Tolgee returned no messages' }, 'up');
     }
 
