@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { health, reportComponent } from '@/observability/health';
@@ -257,15 +258,65 @@ describe('loadRemoteMessages', () => {
       );
     });
 
-    it('reports Tolgee down when the export comes back empty', async () => {
+    it('keeps Tolgee up when the export comes back empty, and names the project', async () => {
       configure();
-      vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(
         new Response('null', { status: 200, headers: { 'content-type': 'application/json' } })
       );
 
-      await loadRemoteMessages('en');
+      await expect(loadRemoteMessages('en')).resolves.toBeNull();
 
+      expect(health().components.tolgee).toEqual({ status: 'up' });
+      expect(logged(stdout)).toContainEqual(
+        expect.objectContaining({
+          event: 'i18n.fallback',
+          locale: 'en',
+          projectId: '1',
+          source: 'local',
+          error: { name: 'EmptyExport', message: 'Tolgee returned no messages' },
+        })
+      );
+    });
+
+    it('keeps Tolgee up when the archive it sends holds no translation file', async () => {
+      configure();
+      const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const archive = new JSZip();
+      archive.file('README.txt', 'no translations in here');
+      const buffer = await archive.generateAsync({ type: 'arraybuffer' });
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(buffer, { status: 200, headers: { 'content-type': 'application/zip' } })
+      );
+
+      await expect(loadRemoteMessages('en')).resolves.toBeNull();
+
+      expect(health().components.tolgee).toEqual({ status: 'up' });
+      expect(logged(stdout)).toContainEqual(
+        expect.objectContaining({
+          event: 'i18n.fallback',
+          error: expect.objectContaining({ name: 'EmptyExport' }),
+        })
+      );
+    });
+
+    it('reports Tolgee down when it never answers, or answers with a body nobody can read', async () => {
+      configure();
+      vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      vi.spyOn(globalThis, 'fetch')
+        .mockRejectedValueOnce(new DOMException('The operation was aborted', 'TimeoutError'))
+        .mockResolvedValueOnce(
+          new Response('<html>gateway</html>', {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          })
+        );
+
+      await expect(loadRemoteMessages('en')).resolves.toBeNull();
+      expect(health().components.tolgee).toEqual({ status: 'down' });
+
+      reportComponent('tolgee', 'unknown');
+      await expect(loadRemoteMessages('en')).resolves.toBeNull();
       expect(health().components.tolgee).toEqual({ status: 'down' });
     });
 
