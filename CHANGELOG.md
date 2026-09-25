@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.87](https://github.com/zigordev/gpool/compare/v0.1.86...v0.1.87) (2026-09-25)
+
+
+### Bug Fixes
+
+* **i18n:** request the structured export instead of a flat one ([#303](https://github.com/zigordev/gpool/issues/303)) ([dcf13c6](https://github.com/zigordev/gpool/commit/dcf13c643bd5b1ac19288311ad19df4dc6790e1b))
+
 ## [0.1.86](https://github.com/zigordev/gpool/compare/v0.1.85...v0.1.86) (2026-09-24)
 
 
