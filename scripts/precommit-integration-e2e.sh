@@ -38,53 +38,89 @@ fi
 API_HEALTH_URL="http://localhost:${CI_API_PORT}/health"
 METRICS_URL="http://localhost:${CI_API_PORT}/metrics"
 WEB_HEALTH_URL="http://localhost:${CI_WEB_PORT}"
+STACK_LABEL="the throwaway precommit stack (${COMPOSE_PROJECT})"
+STACK_COMPOSE=(docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE")
+API_LOG_SERVICES=(api)
+WEB_LOG_SERVICES=(web api)
 
 if [ "$existing_local_stack" -eq 1 ]; then
   API_HEALTH_URL="http://localhost:3010/health"
   METRICS_URL="http://localhost:3010/metrics"
   WEB_HEALTH_URL="http://localhost:3011"
+  STACK_LABEL="the local stack that was already running"
+  STACK_COMPOSE=(docker compose --env-file docker/.env.app.local -f docker/compose.app.local.yml)
+  API_LOG_SERVICES=(gpool_api)
+  WEB_LOG_SERVICES=(gpool_web gpool_api)
 fi
 
-echo "Waiting for API health..."
-i=1
-while [ $i -le 60 ]; do
-  if curl -fsS "$API_HEALTH_URL" >/dev/null; then
-    break
-  fi
-  sleep 2
-  i=$((i + 1))
-done
+ATTEMPTS=60
+DELAY=2
+ATTEMPT_TIMEOUT=10
 
-if [ $i -gt 60 ]; then
-  echo "API did not become healthy in time" >&2
-  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" logs --no-color api
+wait_for_http() {
+  local label="$1" url="$2"
+  local attempt=1 status=0 error='' first_error='' error_varied=0
+
+  echo "Waiting for ${label} at ${url} (up to ${ATTEMPTS} tries, ${DELAY}s apart)..."
+  while [ "$attempt" -le "$ATTEMPTS" ]; do
+    status=0
+    error="$(curl -fsS --max-time "$ATTEMPT_TIMEOUT" "$url" 2>&1 >/dev/null)" || status=$?
+    if [ "$status" -eq 0 ]; then
+      echo "${label} answered on try ${attempt}"
+      return 0
+    fi
+    error="${error:-curl exited ${status} without saying why}"
+    if [ -z "$first_error" ]; then
+      first_error="$error"
+    elif [ "$error" != "$first_error" ]; then
+      error_varied=1
+    fi
+    printf 'try %d/%d: %s\n' "$attempt" "$ATTEMPTS" "$error" >&2
+    sleep "$DELAY"
+    attempt=$((attempt + 1))
+  done
+
+  {
+    echo "${label} never answered."
+    echo "  tried:      GET ${url}"
+    echo "  stack:      ${STACK_LABEL}"
+    echo "  tries:      ${ATTEMPTS}, ${DELAY}s apart, ${ATTEMPT_TIMEOUT}s timeout each"
+    echo "  last error: ${error} (curl exit ${status})"
+    if [ "$error_varied" -eq 0 ]; then
+      echo "  all ${ATTEMPTS} tries failed the same way, so this is not a slow start"
+    else
+      echo "  first error: ${first_error}"
+      echo "  the error changed while waiting; compare the first and last to see how far it got"
+    fi
+  } >&2
+  return 1
+}
+
+dump_stack_logs() {
+  echo "Last 200 log lines from ${STACK_LABEL}:" >&2
+  "${STACK_COMPOSE[@]}" logs --no-color --tail 200 "$@" >&2 || true
+}
+
+require_metric() {
+  local name="$1" payload="$2"
+  case "$payload" in
+    *"$name"*) return 0 ;;
+  esac
+  echo "Missing ${name} in ${METRICS_URL} output" >&2
+  return 1
+}
+
+if ! wait_for_http "API health" "$API_HEALTH_URL"; then
+  dump_stack_logs "${API_LOG_SERVICES[@]}"
   exit 1
 fi
 
-metrics_payload="$(curl -fsS "$METRICS_URL")"
-if ! printf '%s\n' "$metrics_payload" | grep -q 'http_requests_total'; then
-  echo "Missing http_requests_total in /metrics output" >&2
-  exit 1
-fi
+metrics_payload="$(curl -fsS --max-time "$ATTEMPT_TIMEOUT" "$METRICS_URL")"
+require_metric 'http_requests_total' "$metrics_payload"
+require_metric 'http_request_duration_seconds_bucket' "$metrics_payload"
 
-if ! printf '%s\n' "$metrics_payload" | grep -q 'http_request_duration_seconds_bucket'; then
-  echo "Missing http_request_duration_seconds_bucket in /metrics output" >&2
-  exit 1
-fi
-
-echo "Waiting for web health..."
-i=1
-while [ $i -le 60 ]; do
-  if curl -fsS "$WEB_HEALTH_URL" >/dev/null; then
-    break
-  fi
-  sleep 2
-  i=$((i + 1))
-done
-
-if [ $i -gt 60 ]; then
-  echo "Web did not become reachable in time" >&2
-  docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" logs --no-color web api
+if ! wait_for_http "web health" "$WEB_HEALTH_URL"; then
+  dump_stack_logs "${WEB_LOG_SERVICES[@]}"
   exit 1
 fi
 
