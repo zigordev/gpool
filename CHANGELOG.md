@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.89](https://github.com/zigordev/gpool/compare/v0.1.88...v0.1.89) (2026-09-25)
+
+
+### Bug Fixes
+
+* **i18n:** a wrong-shape export is a content fault, not an unreachable tolgee ([#307](https://github.com/zigordev/gpool/issues/307)) ([3ab7a7a](https://github.com/zigordev/gpool/commit/3ab7a7a073dd71e0ed3c8df4d5899307409d6c1d))
+
 ## [0.1.88](https://github.com/zigordev/gpool/compare/v0.1.87...v0.1.88) (2026-09-25)
 
 
