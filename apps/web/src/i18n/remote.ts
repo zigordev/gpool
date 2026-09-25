@@ -97,6 +97,7 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
     writeLogRecord('warn', {
       event: 'i18n.fallback',
       locale,
+      projectId,
       source: cached ? 'cached' : 'local',
       error,
     });
@@ -149,10 +150,13 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
     if (!messages) return fallBack({ name: 'EmptyExport', message: 'Tolgee returned no messages' });
 
     if (isFlatExport(messages)) {
-      return fallBack({
-        name: 'FlatExport',
-        message: 'Tolgee returned dotted keys; the app reads a nested export',
-      });
+      return fallBack(
+        {
+          name: 'FlatExport',
+          message: 'Tolgee returned dotted keys; the app reads a nested export',
+        },
+        'up'
+      );
     }
 
     cache.set(locale, {
