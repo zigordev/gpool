@@ -100,6 +100,34 @@ describe('loadMessages', () => {
     expect(logged).not.toHaveBeenCalled();
   });
 
+  it('keeps the committed list when Tolgee returns more entries, and warns once', async () => {
+    local.mockResolvedValue({ faq: { steps: ['Uno', 'Dos'] } });
+    remote.mockResolvedValue({ faq: { steps: ['Primero', 'Segundo', 'Tercero'] } });
+
+    await expect(loadMessages('es')).resolves.toEqual({
+      faq: { steps: ['Uno', 'Dos'] },
+    });
+    expect(logged).toHaveBeenCalledWith('warn', {
+      event: 'i18n.list_length_mismatch',
+      key: 'faq.steps',
+      committed: 2,
+      remote: 3,
+    });
+
+    logged.mockClear();
+    await loadMessages('es');
+    expect(logged).not.toHaveBeenCalled();
+  });
+
+  it('keeps the fields of a list entry the export did not carry', async () => {
+    local.mockResolvedValue({ plans: { rows: [{ name: 'Free', note: 'Hasta tres quinielas' }] } });
+    remote.mockResolvedValue({ plans: { rows: [{ name: 'Gratis' }] } });
+
+    await expect(loadMessages('es')).resolves.toEqual({
+      plans: { rows: [{ name: 'Gratis', note: 'Hasta tres quinielas' }] },
+    });
+  });
+
   it('takes the remote list when nothing is committed under that key', async () => {
     local.mockResolvedValue({ nav: { home: 'Inicio' } });
     remote.mockResolvedValue({ faq: { steps: ['Uno', 'Dos'] } });
