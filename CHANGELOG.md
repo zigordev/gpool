@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.90](https://github.com/zigordev/gpool/compare/v0.1.89...v0.1.90) (2026-09-25)
+
+
+### Bug Fixes
+
+* **i18n:** an empty export is a content fault, and make a stuck smoke legible ([#309](https://github.com/zigordev/gpool/issues/309)) ([a64830c](https://github.com/zigordev/gpool/commit/a64830c23dd5915a218c171448597bcb66762e5d))
+
 ## [0.1.89](https://github.com/zigordev/gpool/compare/v0.1.88...v0.1.89) (2026-09-25)
 
 
