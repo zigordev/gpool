@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.91](https://github.com/zigordev/gpool/compare/v0.1.90...v0.1.91) (2026-09-25)
+
+
+### Bug Fixes
+
+* **i18n:** treat an export with no keys as an empty export ([#311](https://github.com/zigordev/gpool/issues/311)) ([04145ae](https://github.com/zigordev/gpool/commit/04145aeaa27e5240fa335373d053970cee28e9a3))
+
 ## [0.1.90](https://github.com/zigordev/gpool/compare/v0.1.89...v0.1.90) (2026-09-25)
 
 
