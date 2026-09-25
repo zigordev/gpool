@@ -199,7 +199,7 @@ describe('loadRemoteMessages', () => {
         expect.objectContaining({
           event: 'i18n.fallback',
           locale: 'en',
-          project: '1',
+          projectId: '1',
           source: 'local',
           error: {
             name: 'FlatExport',

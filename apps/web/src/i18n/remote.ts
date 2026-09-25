@@ -97,7 +97,7 @@ export async function loadRemoteMessages(locale: Locale): Promise<Messages | nul
     writeLogRecord('warn', {
       event: 'i18n.fallback',
       locale,
-      project: projectId,
+      projectId,
       source: cached ? 'cached' : 'local',
       error,
     });
