@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.88](https://github.com/zigordev/gpool/compare/v0.1.87...v0.1.88) (2026-09-25)
+
+
+### Bug Fixes
+
+* **i18n:** merge lists per entry, guard the pull, validate the deploy role ([#305](https://github.com/zigordev/gpool/issues/305)) ([72c0214](https://github.com/zigordev/gpool/commit/72c021442e466c6c3a42bd9a418e5ec344420a00))
+
 ## [0.1.87](https://github.com/zigordev/gpool/compare/v0.1.86...v0.1.87) (2026-09-25)
 
 
