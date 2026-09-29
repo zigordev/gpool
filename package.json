@@ -37,7 +37,7 @@
     "i18n:watch:local": "node scripts/i18n-sync-local.mjs --watch --workspace @gpool/web"
   },
   "overrides": {
-    "multer": "2.3.0",
+    "multer": "2.4.0",
     "@grpc/proto-loader": {
       "protobufjs": "7.6.5"
     },
