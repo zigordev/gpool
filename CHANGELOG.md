@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.92](https://github.com/zigordev/gpool/compare/v0.1.91...v0.1.92) (2026-10-05)
+
+
+### Bug Fixes
+
+* **gpool:** take the next patch that closes the next/og RCE ([#322](https://github.com/zigordev/gpool/issues/322)) ([d6bd6ae](https://github.com/zigordev/gpool/commit/d6bd6aee7e5eda5d55ab2e62b56ca7069dde57c0))
+
 ## [0.1.91](https://github.com/zigordev/gpool/compare/v0.1.90...v0.1.91) (2026-09-25)
 
 
