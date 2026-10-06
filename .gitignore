@@ -71,3 +71,5 @@ docs/*
 .claude/worktrees/
 apps/web/playwright-report/
 apps/web/test-results/
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
