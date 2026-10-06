@@ -1,6 +1,6 @@
 {
   "name": "gpool",
-  "version": "0.1.91",
+  "version": "0.1.93",
   "private": true,
   "description": "Real-time football pool management platform",
   "engines": {
@@ -37,7 +37,7 @@
     "i18n:watch:local": "node scripts/i18n-sync-local.mjs --watch --workspace @gpool/web"
   },
   "overrides": {
-    "multer": "2.3.0",
+    "multer": "2.4.0",
     "@grpc/proto-loader": {
       "protobufjs": "7.6.5"
     },
@@ -51,18 +51,18 @@
     "js-yaml": "5.4.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.5.1",
     "glob": "^13.0.6",
     "husky": "^9.1.7",
-    "prettier": "^3.1.0",
+    "prettier": "^3.9.9",
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.14.4",
-    "gcp-metadata": "9.0.3",
-    "next": "^16.3.5"
+    "@grpc/grpc-js": "^1.14.5",
+    "gcp-metadata": "9.0.4",
+    "next": "^16.3.8"
   }
 }
