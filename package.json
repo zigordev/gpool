@@ -1,6 +1,6 @@
 {
   "name": "gpool",
-  "version": "0.1.92",
+  "version": "0.1.93",
   "private": true,
   "description": "Real-time football pool management platform",
   "engines": {
@@ -57,7 +57,7 @@
     "@types/node": "^26.5.1",
     "glob": "^13.0.6",
     "husky": "^9.1.7",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.9",
     "typescript": "^5.3.0"
   },
   "dependencies": {
