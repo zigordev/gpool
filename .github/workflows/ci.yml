@@ -56,7 +56,7 @@ jobs:
 
       - name: Upload api coverage
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-api
           path: apps/api/coverage
@@ -190,7 +190,7 @@ jobs:
 
       - name: Upload OpenAPI spec
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: openapi-api
           path: artifacts/openapi.test.json
@@ -276,7 +276,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-web
           path: |
@@ -293,7 +293,7 @@ jobs:
 
       - name: Upload k6 summary
         if: ${{ always() && hashFiles('artifacts/k6-summary-test.json') != '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: k6-summary-api
           path: artifacts/k6-summary-test.json
@@ -371,7 +371,7 @@ jobs:
           done
 
       - name: Upload SBOM (api image)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-api
           path: artifacts/sbom-gpool-api.spdx.json
@@ -379,7 +379,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload SBOM (web image)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-web
           path: artifacts/sbom-gpool-web.spdx.json
@@ -415,7 +415,7 @@ jobs:
 
       - name: Upload Trivy report (api image)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: trivy-api
           path: artifacts/trivy-gpool-api.json
@@ -424,7 +424,7 @@ jobs:
 
       - name: Upload Trivy report (web image)
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: trivy-web
           path: artifacts/trivy-gpool-web.json
